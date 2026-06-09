@@ -1,0 +1,17 @@
+{
+  "stage": "skeleton_check",
+  "owner": "state_store",
+  "status": "fallback_local_digest",
+  "generated_at": "2026-06-09T22:57:14Z",
+  "source_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260609T225713Z-3cfcf429/skeleton-receipt.json",
+  "items": [
+    "Task focus: relocate REQJOB display between requirements and stats divider, show all jobs wi... Deliverable: Governed implementation artifacts, verification evidence, and cleanup receipts. Constraints: Do not bypass the...",
+    "Git branch: ",
+    "All required governed runtime prerequisite paths are present."
+  ],
+  "budget": {
+    "top_k": 3,
+    "max_tokens": 96,
+    "max_chars_per_item": 220
+  }
+}

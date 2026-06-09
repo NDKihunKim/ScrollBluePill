@@ -1,0 +1,35 @@
+{
+  "stage": "requirement_doc",
+  "source_stage": "bounded_memory_recall",
+  "owner": "state_store",
+  "disclosure_level": "decision_focused",
+  "generated_at": "2026-06-09T22:50:33Z",
+  "capsule_count": 1,
+  "selected_capsules": [
+    {
+      "capsule_id": "71b841ff68ff0e85",
+      "owner": "state_store",
+      "lane": null,
+      "kind": "fallback_digest",
+      "updated_at": null,
+      "title": "Task focus: increase manual search item display limit from 15 to 50 Deliverable: Governed implementation artifacts, verification evidence, a...",
+      "why_now": "Matched state_store memory for requirement_doc.",
+      "expansion_ref": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260609T225028Z-b2cd6ce1/memory-activation/skeleton-local-digest.json#71b841ff68ff0e85",
+      "summary_lines": [
+        "Task focus: increase manual search item display limit from 15 to 50 Deliverable: Governed implementation artifacts, verification evidence, and cleanup receipts. Constraints: Do not bypass the fixed six-stage governed run...",
+        "Git branch: ",
+        "All required governed runtime prerequisite paths are present."
+      ]
+    }
+  ],
+  "items": [
+    "Task focus: increase manual search item display limit from 15 to 50 Deliverable: Governed implementation artifacts, verification evidence, and cleanup receipts. Constraints: Do not bypass the fixed six-stage governed run...",
+    "Git branch: "
+  ],
+  "estimated_tokens": 59,
+  "budget": {
+    "top_k": 2,
+    "max_tokens": 120,
+    "max_chars_per_item": 260
+  }
+}

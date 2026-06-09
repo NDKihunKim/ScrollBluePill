@@ -1,0 +1,17 @@
+{
+  "lane": "serena",
+  "stage": "deep_interview",
+  "task": "increase manual search item display limit from 15 to 50",
+  "top_k": 3,
+  "max_chars_per_item": 240,
+  "keywords": [
+    "increase",
+    "manual",
+    "search",
+    "item",
+    "display",
+    "limit",
+    "from"
+  ],
+  "project_key_source": null
+}

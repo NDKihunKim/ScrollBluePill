@@ -1,0 +1,22 @@
+{
+  "lane": "cognee",
+  "stage": "skeleton_check",
+  "task": "relocate REQJOB display between requirements and stats divider, show all jobs with equippable ones bright and non-equippable jobs grayed out",
+  "top_k": 3,
+  "max_chars_per_item": 220,
+  "keywords": [
+    "relocate",
+    "reqjob",
+    "display",
+    "between",
+    "requirements",
+    "and",
+    "stats",
+    "divider",
+    "show",
+    "all",
+    "jobs",
+    "with"
+  ],
+  "project_key_source": null
+}
