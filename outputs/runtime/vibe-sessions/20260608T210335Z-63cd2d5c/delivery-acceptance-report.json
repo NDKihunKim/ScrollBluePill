@@ -1,0 +1,423 @@
+{
+  "evaluated_at": "2026-06-08T21:08:46Z",
+  "contract_id": "vibe-project-delivery-acceptance-v5",
+  "contract_version": 5,
+  "session_root": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c",
+  "artifacts": {
+    "execute_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/phase-execute.json",
+    "cleanup_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/cleanup-receipt.json",
+    "requirement_doc_path": "/Users/andykim/Desktop/project/ScrollBluePill/docs/requirements/2026-06-08-calculator-first-version-fields-required-level-keyboard-input-mi.md",
+    "execution_plan_path": "/Users/andykim/Desktop/project/ScrollBluePill/docs/plans/2026-06-08-calculator-first-version-fields-required-level-keyboard-input-mi-execution-plan.md",
+    "execution_manifest_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/execution-manifest.json",
+    "runtime_input_packet_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/runtime-input-packet.json"
+  },
+  "summary": {
+    "gate_result": "PASS_DEGRADED",
+    "completion_language_allowed": false,
+    "runtime_status": "completed",
+    "readiness_state": "degraded_but_traceable",
+    "manual_review_layer_count": 0,
+    "failing_layer_count": 0,
+    "degraded_layer_count": 1,
+    "forbidden_completion_hit_count": 0,
+    "incomplete_layers": [
+      "workflow_completion_truth"
+    ],
+    "manual_spot_check_count": 0,
+    "code_task_tdd_evidence_requirement_count": 4,
+    "artifact_review_requirement_count": 0,
+    "baseline_document_quality_dimension_count": 0,
+    "baseline_ui_quality_dimension_count": 0
+  },
+  "truth_results": {
+    "governance_truth": {
+      "state": "passing",
+      "success": true,
+      "completion_language_allowed": true,
+      "evidence": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/phase-execute.json",
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/cleanup-receipt.json",
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/requirements/2026-06-08-calculator-first-version-fields-required-level-keyboard-input-mi.md",
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/plans/2026-06-08-calculator-first-version-fields-required-level-keyboard-input-mi-execution-plan.md",
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/execution-manifest.json"
+      ],
+      "notes": "",
+      "details": {}
+    },
+    "engineering_verification_truth": {
+      "state": "passing",
+      "success": true,
+      "completion_language_allowed": true,
+      "evidence": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/execution-manifest.json"
+      ],
+      "notes": "",
+      "details": {}
+    },
+    "specialist_disclosure_truth": {
+      "state": "passing",
+      "success": true,
+      "completion_language_allowed": true,
+      "evidence": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/runtime-input-packet.json",
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/phase-execute.json",
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/execution-manifest.json"
+      ],
+      "notes": "Specialist disclosure stayed aligned with effective approved dispatch.",
+      "details": {}
+    },
+    "specialist_decision_truth": {
+      "state": "passing",
+      "success": true,
+      "completion_language_allowed": true,
+      "evidence": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/phase-execute.json"
+      ],
+      "notes": "Specialist decision stayed aligned with approved dispatch.",
+      "details": {}
+    },
+    "selected_lock_reconciliation_truth": {
+      "state": "passing",
+      "success": true,
+      "completion_language_allowed": true,
+      "evidence": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/runtime-input-packet.json",
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/execution-manifest.json"
+      ],
+      "notes": "Selected/approved specialist execution obligations are locked.",
+      "details": {
+        "selected_lock_reconciliation": {
+          "required": [
+            "manuscript-as-code"
+          ],
+          "selected": [
+            "manuscript-as-code"
+          ],
+          "approved": [
+            "manuscript-as-code"
+          ],
+          "locked": [
+            "manuscript-as-code",
+            "scikit-learn",
+            "scholarly-publishing"
+          ],
+          "missing": []
+        }
+      }
+    },
+    "specialist_lock_resolution_truth": {
+      "state": "passing",
+      "success": true,
+      "completion_language_allowed": true,
+      "evidence": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/runtime-input-packet.json",
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/execution-manifest.json"
+      ],
+      "notes": "All locked specialist execution obligations were resolved.",
+      "details": {}
+    },
+    "skill_usage_truth": {
+      "state": "passing",
+      "success": true,
+      "completion_language_allowed": true,
+      "evidence": [
+        "2026-06-08-calculator-first-version-fields-required-level-keyboard-input-mi.md",
+        "2026-06-08-calculator-first-version-fields-required-level-keyboard-input-mi-execution-plan.md",
+        "execution-manifest.json",
+        "execution-manifest.json"
+      ],
+      "notes": "",
+      "details": {}
+    },
+    "code_task_tdd_evidence_truth": {
+      "state": "passing",
+      "success": true,
+      "completion_language_allowed": true,
+      "evidence": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/tdd-evidence.json",
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/current-session-implementation-evidence.json"
+      ],
+      "notes": "Automated failing-first evidence was appropriate and recorded before implementation. The fourth frozen requirement is covered by using the automated path rather than claiming an exception.",
+      "details": {}
+    },
+    "workflow_completion_truth": {
+      "state": "degraded",
+      "success": false,
+      "completion_language_allowed": false,
+      "evidence": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/phase-execute.json",
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/cleanup-receipt.json",
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/specialist-execution.json"
+      ],
+      "notes": "Current-session specialist execution resolved the handoff, but approved specialist execution stayed degraded.",
+      "details": {}
+    },
+    "artifact_review_truth": {
+      "state": "passing",
+      "success": true,
+      "completion_language_allowed": true,
+      "evidence": [],
+      "notes": "",
+      "details": {}
+    },
+    "product_acceptance_truth": {
+      "state": "passing",
+      "success": true,
+      "completion_language_allowed": true,
+      "evidence": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/requirements/2026-06-08-calculator-first-version-fields-required-level-keyboard-input-mi.md"
+      ],
+      "notes": "",
+      "details": {}
+    }
+  },
+  "skill_usage_truth": {
+    "state": "PASS",
+    "truth_state": "passing",
+    "state_model": "binary_used_unused",
+    "used_skill_ids": [
+      "manuscript-as-code"
+    ],
+    "unused_skill_ids": [],
+    "loaded_skill_ids": [
+      "manuscript-as-code"
+    ],
+    "evidence_count": 3,
+    "evidence_paths": [
+      "2026-06-08-calculator-first-version-fields-required-level-keyboard-input-mi.md",
+      "2026-06-08-calculator-first-version-fields-required-level-keyboard-input-mi-execution-plan.md",
+      "execution-manifest.json",
+      "execution-manifest.json"
+    ],
+    "failure_reasons": []
+  },
+  "selected_lock_reconciliation": {
+    "required": [
+      "manuscript-as-code"
+    ],
+    "selected": [
+      "manuscript-as-code"
+    ],
+    "approved": [
+      "manuscript-as-code"
+    ],
+    "locked": [
+      "manuscript-as-code",
+      "scikit-learn",
+      "scholarly-publishing"
+    ],
+    "missing": []
+  },
+  "artifact_review_coverage": {
+    "covered_baseline_document_quality_dimensions": [],
+    "missing_baseline_document_quality_dimensions": [],
+    "covered_baseline_ui_quality_dimensions": [],
+    "missing_baseline_ui_quality_dimensions": [],
+    "covered_task_specific_acceptance_extensions": [],
+    "missing_task_specific_acceptance_extensions": [],
+    "considered_research_augmentation_sources": [],
+    "missing_research_augmentation_sources": []
+  },
+  "tdd_evidence_coverage": {
+    "covered_code_task_tdd_evidence_requirements": [
+      "Record failing-first evidence for the changed behavior before implementation or defect correction.",
+      "Record the green rerun that proves the targeted behavior passed after implementation.",
+      "Map the changed behavior to targeted verification evidence; generic suite success alone is insufficient.",
+      "If automated failing-first evidence is not appropriate, freeze and honor an explicit code-task TDD exception instead of silently skipping the requirement."
+    ],
+    "missing_code_task_tdd_evidence_requirements": [],
+    "covered_code_task_tdd_exceptions": [],
+    "missing_code_task_tdd_exceptions": [],
+    "red_phase_evidence_paths": [
+      "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/current-session-implementation-evidence.json"
+    ],
+    "green_phase_evidence_paths": [
+      "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/current-session-implementation-evidence.json"
+    ],
+    "refactor_phase_evidence_paths": []
+  },
+  "frozen_requirement_sections": {
+    "product_acceptance_criteria": [
+      "Requirement document is frozen before execution.",
+      "Execution plan exists before implementation.",
+      "Verification evidence exists before completion claims.",
+      "Phase cleanup receipt is produced.",
+      "The delivered output must satisfy observable behavior implied by the frozen goal and deliverable, not only internal runtime progress.",
+      "Full completion wording is allowed only after downstream delivery truth is passing."
+    ],
+    "manual_spot_checks": [],
+    "completion_language_policy": [
+      "Full completion wording is allowed only when governance truth, engineering verification truth, workflow completion truth, and product acceptance truth are all passing.",
+      "`completed_with_failures`, degraded execution, or pending manual actions must be reported as non-complete states.",
+      "If manual spot checks remain pending, the run must be described as requiring manual review rather than fully ready."
+    ],
+    "delivery_truth_contract": [
+      "Governance truth: requirement, plan, execution, and cleanup artifacts remain traceable and authoritative.",
+      "Engineering verification truth: targeted verification passes or fails explicitly; silence does not count as success.",
+      "Workflow completion truth: planned units, delegated lanes, and specialist outputs reconcile back into the governed plan.",
+      "Product acceptance truth: observable deliverable behavior satisfies frozen acceptance criteria before full completion language is allowed."
+    ],
+    "artifact_review_requirements": [],
+    "code_task_tdd_evidence_requirements": [
+      "Record failing-first evidence for the changed behavior before implementation or defect correction.",
+      "Record the green rerun that proves the targeted behavior passed after implementation.",
+      "Map the changed behavior to targeted verification evidence; generic suite success alone is insufficient.",
+      "If automated failing-first evidence is not appropriate, freeze and honor an explicit code-task TDD exception instead of silently skipping the requirement."
+    ],
+    "code_task_tdd_exceptions": [],
+    "baseline_document_quality_dimensions": [],
+    "baseline_ui_quality_dimensions": [],
+    "task_specific_acceptance_extensions": [],
+    "research_augmentation_sources": []
+  },
+  "execution_context": {
+    "run_id": "20260608T210335Z-63cd2d5c",
+    "session_root": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c",
+    "governance_scope": "root",
+    "completion_claim_allowed": true,
+    "cleanup_mode": "receipt_only",
+    "execution_status": "completed",
+    "executed_unit_count": 5,
+    "failed_unit_count": 0,
+    "timed_out_unit_count": 0,
+    "execution_plan_contains_delivery_acceptance_plan": true,
+    "tdd_evidence_source_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/tdd-evidence.json",
+    "code_task_tdd_evidence_state": "passing",
+    "artifact_review_source_path": "",
+    "artifact_review_state": "passing",
+    "specialist_decision_source_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/phase-execute.json",
+    "specialist_execution_source_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/specialist-execution.json",
+    "specialist_execution_sidecar_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/specialist-execution.json",
+    "approved_dispatch_skill_ids": [
+      "manuscript-as-code",
+      "scikit-learn",
+      "scholarly-publishing"
+    ],
+    "selected_lock_reconciliation": {
+      "required": [
+        "manuscript-as-code"
+      ],
+      "selected": [
+        "manuscript-as-code"
+      ],
+      "approved": [
+        "manuscript-as-code"
+      ],
+      "locked": [
+        "manuscript-as-code",
+        "scikit-learn",
+        "scholarly-publishing"
+      ],
+      "missing": []
+    },
+    "selected_skill_execution_skill_ids": [
+      "manuscript-as-code",
+      "scikit-learn",
+      "scholarly-publishing"
+    ],
+    "selected_skill_execution_count": 3,
+    "selected_skill_ids": [
+      "manuscript-as-code"
+    ],
+    "disclosed_specialist_skill_ids": [
+      "manuscript-as-code",
+      "scikit-learn",
+      "scholarly-publishing"
+    ],
+    "blocked_skill_execution_unit_count": 0,
+    "degraded_skill_execution_unit_count": 0,
+    "direct_routed_skill_execution_unit_ids": [
+      "specialist-in_execution-ungrouped-scikit-learn-specialist",
+      "specialist-post_execution-ungrouped-manuscript-as-code-specialist",
+      "specialist-post_execution-ungrouped-scholarly-publishing-specialist"
+    ],
+    "direct_routed_skill_execution_skill_ids": [
+      "scikit-learn",
+      "manuscript-as-code",
+      "scholarly-publishing"
+    ],
+    "direct_routed_skill_execution_units": [
+      {
+        "unit_id": "specialist-in_execution-ungrouped-scikit-learn-specialist",
+        "skill_id": "scikit-learn",
+        "native_skill_entrypoint": "/Users/andykim/.codex/skills/vibe/bundled/skills/scikit-learn/SKILL.runtime-mirror.md",
+        "result_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/execution-results/specialist-in_execution-ungrouped-scikit-learn-specialist.json"
+      },
+      {
+        "unit_id": "specialist-post_execution-ungrouped-manuscript-as-code-specialist",
+        "skill_id": "manuscript-as-code",
+        "native_skill_entrypoint": "/Users/andykim/.codex/skills/vibe/bundled/skills/manuscript-as-code/SKILL.runtime-mirror.md",
+        "result_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/execution-results/specialist-post_execution-ungrouped-manuscript-as-code-specialist.json"
+      },
+      {
+        "unit_id": "specialist-post_execution-ungrouped-scholarly-publishing-specialist",
+        "skill_id": "scholarly-publishing",
+        "native_skill_entrypoint": "/Users/andykim/.codex/skills/vibe/bundled/skills/scholarly-publishing/SKILL.runtime-mirror.md",
+        "result_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/execution-results/specialist-post_execution-ungrouped-scholarly-publishing-specialist.json"
+      }
+    ],
+    "specialist_lock_active": true,
+    "specialist_lock_skill_ids": [
+      "manuscript-as-code",
+      "scikit-learn",
+      "scholarly-publishing"
+    ],
+    "specialist_lock_executed_skill_ids": [
+      "scikit-learn",
+      "manuscript-as-code",
+      "scholarly-publishing"
+    ],
+    "specialist_lock_not_applicable_skill_ids": [],
+    "specialist_lock_deferred_skill_ids": [],
+    "specialist_lock_failed_skill_ids": [],
+    "specialist_lock_unresolved_skill_ids": [],
+    "specialist_host_resolution_state": "degraded",
+    "specialist_host_executed_unit_count": 0,
+    "specialist_host_degraded_unit_count": 3,
+    "specialist_host_blocked_unit_count": 0,
+    "specialist_host_failed_unit_count": 0,
+    "specialist_host_resolved_units": [
+      {
+        "unit_id": "specialist-in_execution-ungrouped-scikit-learn-specialist",
+        "skill_id": "scikit-learn",
+        "resolution_state": "degraded",
+        "native_skill_entrypoint": "/Users/andykim/.codex/skills/vibe/bundled/skills/scikit-learn/SKILL.runtime-mirror.md",
+        "evidence_paths": [
+          "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/current-session-implementation-evidence.json"
+        ],
+        "notes": "Not applicable to an Astro calculator input implementation. No machine-learning work was requested or performed."
+      },
+      {
+        "unit_id": "specialist-post_execution-ungrouped-manuscript-as-code-specialist",
+        "skill_id": "manuscript-as-code",
+        "resolution_state": "degraded",
+        "native_skill_entrypoint": "/Users/andykim/.codex/skills/vibe/bundled/skills/manuscript-as-code/SKILL.runtime-mirror.md",
+        "evidence_paths": [
+          "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/current-session-implementation-evidence.json"
+        ],
+        "notes": "Not applicable to an Astro calculator input implementation. No manuscript workflow was requested or performed."
+      },
+      {
+        "unit_id": "specialist-post_execution-ungrouped-scholarly-publishing-specialist",
+        "skill_id": "scholarly-publishing",
+        "resolution_state": "degraded",
+        "native_skill_entrypoint": "/Users/andykim/.codex/skills/vibe/bundled/skills/scholarly-publishing/SKILL.runtime-mirror.md",
+        "evidence_paths": [
+          "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T210335Z-63cd2d5c/current-session-implementation-evidence.json"
+        ],
+        "notes": "Not applicable to an Astro calculator input implementation. No scholarly publishing workflow was requested or performed."
+      }
+    ],
+    "specialist_host_missing_unit_ids": [],
+    "runtime_specialist_execution_status": "direct_current_session_routed",
+    "specialist_effective_execution_status": "host_current_session_degraded",
+    "specialist_host_continuation_pending": false,
+    "specialist_disclosure_state": "passing",
+    "specialist_execution_notes": []
+  },
+  "forbidden_completion_hits": [],
+  "manual_spot_checks": [],
+  "residual_risks": [
+    "Approved execution finished current-session continuation with degraded specialist outcomes."
+  ]
+}

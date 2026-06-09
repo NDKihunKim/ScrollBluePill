@@ -1,0 +1,22 @@
+{
+  "lane": "cognee",
+  "stage": "skeleton_check",
+  "task": "calculator first version fields required level keyboard input minus five plus five min zero equipment kind job default all selected next step later",
+  "top_k": 3,
+  "max_chars_per_item": 220,
+  "keywords": [
+    "calculator",
+    "first",
+    "version",
+    "fields",
+    "required",
+    "level",
+    "keyboard",
+    "input",
+    "minus",
+    "five",
+    "plus",
+    "min"
+  ],
+  "project_key_source": null
+}

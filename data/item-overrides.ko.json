@@ -1,0 +1,41 @@
+{
+  "1002357": {
+    "nameKo": "자쿰의 투구",
+    "aliases": ["자쿰", "자투", "자쿰투구", "자쿰의투구"],
+    "equipmentKind": "모자",
+    "requirements": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "pop": 0
+    },
+    "stats": {
+      "str": 15,
+      "dex": 15,
+      "int": 15,
+      "luk": 15,
+      "weaponDefense": 150,
+      "magicDefense": 150,
+      "accuracy": 20,
+      "avoidability": 20,
+      "upgradeSlots": 10
+    }
+  },
+  "1082002": {
+    "nameKo": "노가다 목장갑",
+    "aliases": ["노목", "공노목", "노가다장갑", "목장갑"],
+    "equipmentKind": "장갑",
+    "requirements": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "pop": 0
+    },
+    "stats": {
+      "weaponDefense": 2,
+      "upgradeSlots": 5
+    }
+  }
+}

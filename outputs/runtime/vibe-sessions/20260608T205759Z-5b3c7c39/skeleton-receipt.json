@@ -1,0 +1,60 @@
+{
+  "stage": "skeleton_check",
+  "run_id": "20260608T205759Z-5b3c7c39",
+  "mode": "interactive_governed",
+  "task": "calculator first version fields required level keyboard input minus five plus fi... Deliverable: Governed implementation artifacts, verification evidence, and cleanup receipts. Constraints: Do not bypass the fixed six-stage governed runtime.; Do not widen scope silently beyond the frozen requirement document.. Revision delta: Build the first calculator input step only, before UI polish.; Add a required item level numeric field where keyboard input is allowed.; Add a left button that decreases required item level by 5 and a right button that increases it by 5.; Clamp required item level so it never goes below 0.; Add an equipment kind select field with initial examples: 모자, 상의, 하의.; Add a job selection field where all jobs are selected by default, with initial examples including 전사 and 마법사.; Do not implement scroll selection, probability formulas, result calculations, or final UI polish yet.; Keep changes surgical and aligned with the existing Astro page.; Verify the project build after implementation.. Update: revise calculator first version input step requirements with item level stepper equipment kind and default all jobs selected",
+  "generated_at": "2026-06-08T20:58:00Z",
+  "repo_root": "/Users/andykim/.codex/skills/vibe",
+  "git_branch": null,
+  "git_status": [],
+  "required_paths": [
+    {
+      "path": "SKILL.md",
+      "exists": true
+    },
+    {
+      "path": "protocols/runtime.md",
+      "exists": true
+    },
+    {
+      "path": "protocols/think.md",
+      "exists": true
+    },
+    {
+      "path": "protocols/do.md",
+      "exists": true
+    },
+    {
+      "path": "protocols/team.md",
+      "exists": true
+    },
+    {
+      "path": "protocols/retro.md",
+      "exists": true
+    },
+    {
+      "path": "config/runtime-contract.json",
+      "exists": true
+    },
+    {
+      "path": "config/runtime-modes.json",
+      "exists": true
+    },
+    {
+      "path": "config/requirement-doc-policy.json",
+      "exists": true
+    },
+    {
+      "path": "config/plan-execution-policy.json",
+      "exists": true
+    },
+    {
+      "path": "config/phase-cleanup-policy.json",
+      "exists": true
+    }
+  ],
+  "existing_requirement_docs": [
+    "2026-06-08-calculator-first-version-fields-required-level-keyboard-input-mi.md"
+  ],
+  "existing_plan_docs": []
+}

@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-06-08T21:00:24Z",
+  "title": "calculator first version fields required level keyboard input minus five plus fi...",
+  "goal": "calculator first version fields required level keyboard input minus five plus fi...",
+  "deliverable": "Governed implementation artifacts, verification evidence, and cleanup receipts",
+  "constraints": [
+    "Do not bypass the fixed six-stage governed runtime.",
+    "Do not widen scope silently beyond the frozen requirement document."
+  ],
+  "acceptance_criteria": [
+    "Requirement document is frozen before execution.",
+    "Execution plan exists before implementation.",
+    "Verification evidence exists before completion claims.",
+    "Phase cleanup receipt is produced."
+  ],
+  "non_goals": [
+    "Do not treat M/L/XL as user-facing entry branches.",
+    "Do not introduce a second router or control plane."
+  ],
+  "risk_tolerance": "moderate",
+  "autonomy_mode": "interactive_governed",
+  "open_questions": [],
+  "inference_notes": [
+    "This contract was derived from the raw task text.",
+    "Interactive mode may still surface explicit clarification questions outside the script path."
+  ],
+  "assumptions": [
+    "Interactive clarification is allowed if unresolved ambiguity materially changes implementation."
+  ],
+  "internal_grade": "L",
+  "source_task": "calculator first version fields required level keyboard input minus five plus fi... Deliverable: Governed implementation artifacts, verification evidence, and cleanup receipts. Constraints: Do not bypass the fixed six-stage governed runtime.; Do not widen scope silently beyond the frozen requirement document.. Revision delta: The equipment kind and job candidate lists should be based on MapleStory old-school equipment and job categories, not arbitrary placeholder options.; Use a practical first-pass candidate list suitable for this first calculator step; exact final game data can be refined later.; Keep the implementation limited to the first input step and do not add calculation formulas or result behavior yet.. Update: revise calculator input candidates to use MapleStory old-school equipment and job categories"
+}

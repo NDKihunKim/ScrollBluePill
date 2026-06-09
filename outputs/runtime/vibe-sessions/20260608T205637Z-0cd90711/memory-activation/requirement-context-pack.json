@@ -1,0 +1,34 @@
+{
+  "stage": "requirement_doc",
+  "source_stage": "bounded_memory_recall",
+  "owner": "state_store",
+  "disclosure_level": "decision_focused",
+  "generated_at": "2026-06-08T20:56:42Z",
+  "capsule_count": 1,
+  "selected_capsules": [
+    {
+      "capsule_id": "70cd3c7ce8d7b7b7",
+      "owner": "Cognee",
+      "lane": "cognee",
+      "kind": "entity_relation_ingest",
+      "updated_at": "2026-06-03T23:00:18Z",
+      "title": "Cognee relation: change-verdict-quota-to-10-verdicts-max-for-all-users-per-30-min specified_by 2026-06-03-change-verdict-quota-to-10-verdict...",
+      "why_now": "Matched Cognee memory for requirement_doc.",
+      "expansion_ref": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260608T205637Z-0cd90711/memory-backend/cognee-read-response.json#70cd3c7ce8d7b7b7",
+      "summary_lines": [
+        "Cognee relation: change-verdict-quota-to-10-verdicts-max-for-all-users-per-30-min specified_by 2026-06-03-change-verdict-quota-to-10-verdicts-max-for-all-users-per-30-min.md",
+        "specified_by"
+      ]
+    }
+  ],
+  "items": [
+    "Cognee relation: change-verdict-quota-to-10-verdicts-max-for-all-users-per-30-min specified_by 2026-06-03-change-verdict-quota-to-10-verdicts-max-for-all-users-per-30-min.md",
+    "specified_by"
+  ],
+  "estimated_tokens": 47,
+  "budget": {
+    "top_k": 2,
+    "max_tokens": 120,
+    "max_chars_per_item": 260
+  }
+}
