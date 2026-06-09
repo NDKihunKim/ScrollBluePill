@@ -23,6 +23,7 @@ export const armorKinds = [
 	'얼굴장식',
 	'눈장식',
 	'귀고리',
+	'벨트',
 	'상의',
 	'하의',
 	'한벌옷',
@@ -45,4 +46,14 @@ export function normalizeItemLevel(value) {
 
 export function nextItemLevel(value, delta) {
 	return normalizeItemLevel(normalizeItemLevel(value) + delta);
+}
+
+export function normalizeItemLevelRange(minValue, maxValue) {
+	const min = normalizeItemLevel(minValue);
+	const max = normalizeItemLevel(maxValue);
+
+	return {
+		min: Math.min(min, max),
+		max: Math.max(min, max),
+	};
 }

@@ -7,6 +7,10 @@ const generatedItemIndex = JSON.parse(
 	await readFile(new URL('../public/data/items-gms83-ko.json', import.meta.url), 'utf8'),
 );
 const dedupeReport = await readFile(new URL('../docs/data-quality/dedupe-resolution-report.md', import.meta.url), 'utf8');
+const equipmentKindReport = await readFile(
+	new URL('../docs/data-quality/equipment-kind-visibility-report.md', import.meta.url),
+	'utf8',
+);
 const duplicateGroupsReport = await readFile(
 	new URL('../docs/data-quality/duplicate-item-groups.md', import.meta.url),
 	'utf8',
@@ -30,7 +34,7 @@ test('calculator first step renders MapleStory input candidates', async () => {
 		assert.ok(weaponKinds.includes(label), `missing weapon kind: ${label}`);
 	}
 
-	for (const label of ['모자', '상의', '하의', '한벌옷', '장갑', '신발', '망토']) {
+	for (const label of ['모자', '상의', '하의', '한벌옷', '장갑', '신발', '망토', '벨트']) {
 		assert.ok(armorKinds.includes(label), `missing armor kind: ${label}`);
 	}
 
@@ -44,6 +48,14 @@ test('calculator first step renders MapleStory input candidates', async () => {
 	assert.match(indexSource, /data-item-name-input/);
 	assert.match(indexSource, /data-selected-item-id/);
 	assert.match(indexSource, /data-item-suggestions/);
+	assert.match(indexSource, /data-manual-search-toggle/);
+	assert.match(indexSource, />\s*수동 검색\s*<\/button>/);
+	assert.match(indexSource, /aria-controls="manual-search-fields"/);
+	assert.match(indexSource, /aria-expanded="false"/);
+	assert.match(indexSource, /id="manual-search-fields"/);
+	assert.match(indexSource, /data-manual-search-fields/);
+	assert.match(indexSource, /aria-hidden="true"/);
+	assert.match(indexSource, /inert/);
 	assert.doesNotMatch(indexSource, /item\.nameEn/);
 	assert.match(indexSource, /meta\.textContent = item\.equipmentKind/);
 	assert.doesNotMatch(indexSource, /meta\.textContent = `\$\{item\.equipmentKind\} · Lv\.\$\{item\.requiredLevel\}`;/);
@@ -54,6 +66,8 @@ test('calculator first step renders MapleStory input candidates', async () => {
 	assert.match(indexSource, /data-selected-item-stats/);
 	assert.ok(indexSource.indexOf('data-selected-item-card') > indexSource.indexOf('<h2>결과</h2>'));
 	assert.ok(indexSource.indexOf('아이템 이름') < indexSource.indexOf('직업'));
+	assert.ok(indexSource.indexOf('data-item-name-search') < indexSource.indexOf('data-manual-search-toggle'));
+	assert.ok(indexSource.indexOf('data-manual-search-toggle') < indexSource.indexOf('id="manual-search-fields"'));
 	assert.ok(indexSource.indexOf('직업') < indexSource.indexOf('장비 종류'));
 	assert.ok(indexSource.indexOf('장비 종류') < indexSource.indexOf('아이템 요구 레벨'));
 	assert.match(indexSource, /class="item-search-fields"/);
@@ -64,6 +78,13 @@ test('calculator first step renders MapleStory input candidates', async () => {
 	assert.match(indexSource, /\.input-row \{/);
 	assert.match(indexSource, /border: 1px solid var\(--line\);/);
 	assert.match(indexSource, /border-radius: 8px;/);
+	assert.match(indexSource, /\.manual-search-accordion \{/);
+	assert.match(indexSource, /grid-template-rows: 0fr;/);
+	assert.match(indexSource, /\.manual-search-accordion\.open \{/);
+	assert.match(indexSource, /grid-template-rows: 1fr;/);
+	assert.match(indexSource, /grid-template-rows 220ms ease/);
+	assert.match(indexSource, /manualSearchFields\.inert = !isOpen/);
+	assert.match(indexSource, /manualSearchToggle\.setAttribute\('aria-expanded', String\(isOpen\)\)/);
 	assert.match(indexSource, /\.item-suggestion-menu :global\(\.item-suggestion-option\)/);
 	assert.match(indexSource, /\.item-suggestion-menu :global\(\.item-suggestion-text span\)/);
 	assert.match(indexSource, /gap: 16px;/);
@@ -81,6 +102,9 @@ test('calculator first step renders MapleStory input candidates', async () => {
 	assert.match(indexSource, /data-equipment-trigger/);
 	assert.match(indexSource, /data-equipment-menu/);
 	assert.match(indexSource, /data-equipment-option=\{kind\}/);
+	assert.match(indexSource, /data-equipment-options="armor" hidden/);
+	assert.match(indexSource, /\.equipment-menu \[data-equipment-options\]\[hidden\] \{/);
+	assert.match(indexSource, /display: none;/);
 	assert.doesNotMatch(indexSource, /<select id="equipment-kind"/);
 	assert.match(indexSource, /weaponKinds\.map/);
 	assert.match(indexSource, /armorKinds\.map/);
@@ -88,8 +112,16 @@ test('calculator first step renders MapleStory input candidates', async () => {
 	assert.match(indexSource, /data-level-step="5"/);
 	assert.match(indexSource, /min="0"/);
 	assert.match(indexSource, /fetch\('\/data\/items-gms83-ko\.json'\)/);
-	assert.match(indexSource, /'공격력', 'weaponAttack'/);
+	assert.match(indexSource, /'REQJOB', 'requiredJobs'/);
+	assert.match(indexSource, /'물리공격력', 'weaponAttack'/);
+	assert.match(indexSource, /'공격속도', 'attackSpeed'/);
 	assert.match(indexSource, /'최대HP', 'maxHp'/);
+	assert.match(indexSource, /Beginner: '초보자'/);
+	assert.match(indexSource, /Pirate: '해적'/);
+	assert.match(indexSource, /formatRequiredJobs/);
+	assert.match(indexSource, /key === 'requiredJobs'/);
+	assert.match(indexSource, /5: '빠름'/);
+	assert.match(indexSource, /`\$\{value\} \(\$\{speedLabelByValue\[value\] \?\? '속도 정보 없음'\}\)`/);
 	assert.match(indexSource, /syncFiltersToSelectedItem\(item\)/);
 	assert.match(indexSource, /jobKindByRequiredJob/);
 	assert.match(indexSource, /setEquipmentOption\(matchingOption\)/);
@@ -128,21 +160,64 @@ test('MapleStory.io search helper builds item query URLs', async () => {
 });
 
 test('Korean item search supports two-character names and aliases', async () => {
-	const { normalizeSearchText, searchKoreanItems } = await import('../src/lib/itemSearch.mjs');
+	const { buildSpacedNameInitials, normalizeSearchText, searchKoreanItems } = await import('../src/lib/itemSearch.mjs');
 
 	assert.equal(normalizeSearchText(' 노 가 '), '노가');
+	assert.equal(buildSpacedNameInitials('드래곤 샤인보우'), '드샤');
 
-	assert.equal(generatedItemIndex.length, 5337);
+	assert.equal(generatedItemIndex.length, 3680);
 	assert.equal(generatedItemIndex.filter((item) => !/[가-힣]/.test(item.nameKo)).length, 0);
 	assert.equal(generatedItemIndex.filter((item) => item.equipmentKind === 'Medal').length, 0);
 	assert.equal(generatedItemIndex.filter((item) => item.equipmentKind === 'Cash').length, 0);
+	for (const hiddenKind of ['Hair', 'hair', 'Face', 'Mount', 'Pet Equipment', 'Skill Effect']) {
+		assert.equal(generatedItemIndex.filter((item) => item.equipmentKind === hiddenKind).length, 0);
+	}
 	assert.equal(generatedItemIndex.filter((item) => item.equipmentKind === 'Ring').length, 0);
 	assert.equal(generatedItemIndex.filter((item) => item.equipmentKind === 'Pendant').length, 0);
 	assert.ok(generatedItemIndex.some((item) => item.equipmentKind === '반지'));
 	assert.ok(generatedItemIndex.some((item) => item.equipmentKind === '펜던트'));
+	assert.equal(generatedItemIndex.filter((item) => item.equipmentKind === 'Belt').length, 0);
+	assert.equal(generatedItemIndex.filter((item) => item.equipmentKind === '벨트').length, 14);
 	assert.equal(generatedItemIndex.some((item) => item.id === 1002390 || item.id === 1002430), false);
 	assert.ok(generatedItemIndex.filter((item) => Object.keys(item.stats).length > 0).length > 2000);
 	assert.equal(searchKoreanItems('노', { items: generatedItemIndex }).length, 0);
+
+	const icarusCapeById = new Map(
+		generatedItemIndex.filter((item) => [1102054, 1102055, 1102056].includes(item.id)).map((item) => [item.id, item]),
+	);
+	assert.equal(icarusCapeById.get(1102054)?.nameKo, '이카루스의 망토 (회피)');
+	assert.equal(icarusCapeById.get(1102054)?.stats.avoidability, 15);
+	assert.equal(icarusCapeById.get(1102055)?.nameKo, '이카루스의 망토 (이속)');
+	assert.equal(icarusCapeById.get(1102055)?.stats.speed, 10);
+	assert.equal(icarusCapeById.get(1102056)?.nameKo, '이카루스의 망토 (점프)');
+	assert.equal(icarusCapeById.get(1102056)?.stats.jump, 5);
+
+	const seraphims = searchKoreanItems('세라핌즈', { items: generatedItemIndex, limit: 10 });
+	assert.deepEqual(
+		seraphims.map((item) => item.id),
+		[1482008],
+	);
+	assert.equal(seraphims[0]?.requiredLevel, 60);
+	assert.deepEqual(seraphims[0]?.requiredJobs, ['Pirate']);
+	assert.equal(seraphims[0]?.requirements.str, 150);
+	assert.equal(seraphims[0]?.requirements.dex, 60);
+	assert.equal(seraphims[0]?.requirements.int, 0);
+	assert.equal(seraphims[0]?.requirements.luk, 0);
+	assert.equal(seraphims[0]?.requirements.pop, 0);
+	assert.equal(seraphims[0]?.stats.weaponAttack, 58);
+	assert.equal(seraphims[0]?.stats.attackSpeed, 5);
+	assert.equal(seraphims[0]?.stats.upgradeSlots, 7);
+
+	const zenumistCape = searchKoreanItems('제뉴미스트의 망토', { items: generatedItemIndex, limit: 10 });
+	assert.deepEqual(
+		zenumistCape.map((item) => item.id),
+		[1102139],
+	);
+	assert.equal(zenumistCape[0]?.stats.maxMp, 15);
+	assert.equal(zenumistCape[0]?.stats.weaponDefense, 28);
+	assert.equal(zenumistCape[0]?.stats.magicDefense, 33);
+	assert.equal(zenumistCape[0]?.stats.speed, 7);
+	assert.equal(zenumistCape[0]?.stats.jump, 3);
 
 	const generatedKoreanName = searchKoreanItems('갈색턱수염', { items: generatedItemIndex });
 	assert.equal(generatedKoreanName[0]?.nameKo, '갈색 턱수염');
@@ -150,6 +225,10 @@ test('Korean item search supports two-character names and aliases', async () => 
 
 	const generatedKoreanPartial = searchKoreanItems('스카이', { items: generatedItemIndex });
 	assert.ok(generatedKoreanPartial.some((item) => item.nameKo.includes('스카이')));
+
+	const spacedInitials = searchKoreanItems('드샤', { items: generatedItemIndex });
+	assert.equal(spacedInitials[0]?.nameKo, '드래곤 샤인보우');
+	assert.equal(spacedInitials[0]?.id, 1452044);
 
 	const byName = searchKoreanItems('노가', { items: generatedItemIndex });
 	assert.equal(byName[0]?.nameKo, '노가다 목장갑');
@@ -250,23 +329,40 @@ test('Korean item search supports two-character names and aliases', async () => 
 		new Set(['고고학자의 안경 (1)', '고고학자의 안경 (3)']),
 	);
 
-	for (const hiddenQuery of ['메이플 1000일 깃발', '야비한 늑대 모자', '용감한 어린양 모자', 'Ragged Red Cape']) {
+	for (const hiddenQuery of [
+		'메이플 1000일 깃발',
+		'야비한 늑대 모자',
+		'용감한 어린양 모자',
+		'Ragged Red Cape',
+		'카우보이 바지',
+		'코-크 모자',
+		'트레이닝웨어',
+		'하트 슬리브리스',
+	]) {
 		assert.deepEqual(searchKoreanItems(hiddenQuery, { items: generatedItemIndex, limit: 10 }), []);
 	}
 });
 
 test('item dedupe report records collapsed and unresolved groups', () => {
 	assert.match(dedupeReport, /Raw item count: 7105/);
-	assert.match(dedupeReport, /Visibility-hidden item count: 10/);
+	assert.match(dedupeReport, /Visibility-hidden item count: 20/);
 	assert.match(dedupeReport, /Missing-Korean-name hidden item count: 1117/);
-	assert.match(dedupeReport, /Equipment-kind hidden item count: 297/);
-	assert.match(dedupeReport, /Visibility-renamed item count: 25/);
-	assert.match(dedupeReport, /Dedupe input item count: 5681/);
-	assert.match(dedupeReport, /Deduped item count: 5337/);
-	assert.match(dedupeReport, /Exact-signature groups collapsed: 49/);
-	assert.match(dedupeReport, /Variant highest-level groups collapsed: 85/);
+	assert.match(dedupeReport, /Equipment-kind hidden item count: 2039/);
+	assert.match(dedupeReport, /Visibility-renamed item count: 28/);
+	assert.match(dedupeReport, /Dedupe input item count: 3929/);
+	assert.match(dedupeReport, /Deduped item count: 3680/);
+	assert.match(dedupeReport, /Dedupe-hidden item count: 249/);
+	assert.match(dedupeReport, /Exact-signature groups collapsed: 34/);
+	assert.match(dedupeReport, /Variant highest-level groups collapsed: 83/);
 	assert.match(dedupeReport, /Unresolved variant groups: 0/);
-	assert.match(dedupeReport, /Hidden equipment kinds: Cash, Medal/);
+	assert.match(dedupeReport, /Hidden equipment kinds: Cash, Face, Hair, Medal, Mount, Pet Equipment, Skill Effect/);
+	assert.match(equipmentKindReport, /Hidden equipment kinds: Cash, Face, Hair, Medal, Mount, Pet Equipment, Skill Effect/);
+	for (const hiddenKind of ['Face', 'Hair', 'Mount', 'Pet Equipment', 'Skill Effect']) {
+		assert.doesNotMatch(equipmentKindReport, new RegExp(`\\| ${hiddenKind} \\|`));
+	}
+	assert.doesNotMatch(equipmentKindReport, /\| Belt \|/);
+	assert.match(equipmentKindReport, /\| 벨트 \| 14 \|/);
+	assert.match(dedupeReport, /Renamed item ids: .*1102054, 1102055, 1102056/);
 	assert.match(dedupeReport, /### 흑갑충 \/ Black Scarab \/ 아대/);
 	assert.match(dedupeReport, /Kept: 1472029 Lv\.70/);
 	assert.match(dedupeReport, /Hidden: 1472037, 1472042, 1472048/);
