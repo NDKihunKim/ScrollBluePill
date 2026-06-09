@@ -187,6 +187,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 							</div>
 						</div>
 					</div>
+					</div>
 				<div class="button-row">
 					<button type="button" disabled>계산</button>
 					<a class="button secondary" href="/methodology/">데이터 기준</a>
@@ -203,6 +204,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 						</div>
 						<div class="selected-item-requirements" data-selected-item-requirements></div>
 					</div>
+					<div class="selected-item-jobs" data-selected-item-jobs></div>
 					<div class="selected-item-divider"></div>
 					<div class="selected-item-stats" data-selected-item-stats></div>
 				</div>
@@ -263,6 +265,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	const selectedItemIcon = document.querySelector('[data-selected-item-icon]');
 	const selectedItemRequirements = document.querySelector('[data-selected-item-requirements]');
 	const selectedItemStats = document.querySelector('[data-selected-item-stats]');
+		const selectedItemJobs = document.querySelector('[data-selected-item-jobs]');
 	const levelInputs = form?.querySelectorAll('[data-level-input]');
 		const levelMinInput = form?.querySelector('[data-level-min-input]');
 		const levelMaxInput = form?.querySelector('[data-level-max-input]');
@@ -332,7 +335,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		['REQINT', 'int'],
 		['REQLUK', 'luk'],
 		['REQPOP', 'pop'],
-			['REQJOB', 'requiredJobs'],
 	];
 	const statRows = [
 		['STR', 'str'],
@@ -360,10 +362,29 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		Pirate: '해적',
 	};
 
-	const formatRequiredJobs = (requiredJobs = []) => {
-				const jobs = requiredJobs.map((job) => jobKindByRequiredJob[job]).filter(Boolean);
-				return jobs.length > 0 ? jobs.join(', ') : '전체';
-			};
+			const formatRequiredJobs = (requiredJobs = []) => {
+					const allJobs = ['초보자', '전사', '마법사', '궁수', '도적', '해적'];
+					const equippableSet = new Set(
+						(requiredJobs ?? []).length === 0 || (requiredJobs ?? []).includes('Beginner')
+							? allJobs
+							: requiredJobs.map((job) => jobKindByRequiredJob[job]).filter(Boolean),
+					);
+
+					const row = document.createElement('div');
+					row.className = 'selected-item-jobs-row';
+
+					allJobs.forEach((job) => {
+						const chip = document.createElement('span');
+						chip.className = 'job-chip';
+						chip.textContent = job;
+						if (!equippableSet.has(job)) {
+							chip.classList.add('job-chip--inactive');
+						}
+						row.append(chip);
+					});
+
+					return row;
+				};
 
 			const createItemLine = (label, value) => {
 		const row = document.createElement('div');
@@ -416,14 +437,16 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		selectedItemIcon.src = buildItemIconUrl(item.id);
 		selectedItemRequirements.replaceChildren();
 		selectedItemStats.replaceChildren();
+		if (selectedItemJobs instanceof HTMLElement) {
+			selectedItemJobs.replaceChildren();
+			selectedItemJobs.append(formatRequiredJobs(item.requiredJobs));
+		}
 
 		requirementRows.forEach(([label, key]) => {
 			const value =
 						key === 'requiredLevel'
 							? item.requiredLevel
-							: key === 'requiredJobs'
-								? formatRequiredJobs(item.requiredJobs)
-								: (item.requirements?.[key] ?? 0);
+							: (item.requirements?.[key] ?? 0);
 			selectedItemRequirements.append(createItemLine(label, value));
 		});
 
@@ -578,7 +601,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			manualItemResults.replaceChildren();
 
 			const results = getManualFilteredItems();
-			if (results.length === 0 || results.length >= 15) {
+			if (results.length === 0 || results.length >= 50) {
 				manualItemResults.hidden = true;
 				return;
 			}
@@ -1174,6 +1197,34 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		background: white;
 	}
 
+	.selected-item-jobs {
+		padding: 4px 0;
+	}
+
+	.selected-item-jobs-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 6px;
+		color: white;
+		font-size: 1rem;
+	}
+
+	.job-chip {
+		display: inline-block;
+		padding: 2px 6px;
+		border-radius: 4px;
+		background: rgba(255,255,255,0.15);
+		color: white;
+		font-weight: 500;
+		font-size: 0.92rem;
+	}
+
+	.job-chip--inactive {
+		color: #888;
+		background: rgba(255,255,255,0.06);
+	}
+
 	.field-header {
 		display: flex;
 		align-items: center;
@@ -1307,5 +1358,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			.level-range-separator {
 				text-align: center;
 			}
+		}
+
+		aside.panel {
+			position: sticky;
+			top: 1rem;
+			align-self: start;
 		}
 </style>
