@@ -108,6 +108,11 @@ export const equipmentKindApiFilters = {
 		categoryFilter: 'Accessory',
 		subCategoryFilter: 'Earrings',
 	},
+	벨트: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Accessory',
+		subCategoryFilter: 'Belt',
+	},
 	상의: {
 		overallCategoryFilter: 'Equip',
 		categoryFilter: 'Armor',
@@ -144,6 +149,8 @@ export function buildItemSearchUrl({
 	searchFor = '',
 	equipmentKind = '',
 	requiredLevel = 0,
+	requiredLevelMin,
+	requiredLevelMax,
 	startPosition = 0,
 	count = 20,
 	region = MAPLESTORY_IO_REGION,
@@ -165,10 +172,11 @@ export function buildItemSearchUrl({
 		}
 	}
 
-	const parsedLevel = Number.parseInt(String(requiredLevel), 10);
-	if (Number.isFinite(parsedLevel) && parsedLevel > 0) {
-		url.searchParams.set('minLevelFilter', String(parsedLevel));
-		url.searchParams.set('maxLevelFilter', String(parsedLevel));
+	const parsedMinLevel = Number.parseInt(String(requiredLevelMin ?? requiredLevel), 10);
+	const parsedMaxLevel = Number.parseInt(String(requiredLevelMax ?? requiredLevel), 10);
+	if (Number.isFinite(parsedMinLevel) && Number.isFinite(parsedMaxLevel) && Math.max(parsedMinLevel, parsedMaxLevel) > 0) {
+		url.searchParams.set('minLevelFilter', String(Math.min(parsedMinLevel, parsedMaxLevel)));
+		url.searchParams.set('maxLevelFilter', String(Math.max(parsedMinLevel, parsedMaxLevel)));
 	}
 
 	return url.toString();

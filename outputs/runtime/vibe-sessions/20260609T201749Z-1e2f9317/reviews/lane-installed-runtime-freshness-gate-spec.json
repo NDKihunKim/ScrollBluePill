@@ -1,0 +1,9 @@
+{
+  "lane_id": "lane-installed-runtime-freshness-gate",
+  "review_kind": "spec",
+  "passed": true,
+  "governance_scope": "root",
+  "generated_at": "2026-06-09T20:17:56Z",
+  "source_lane_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260609T201749Z-1e2f9317/child-lanes/lane-installed-runtime-freshness-gate/lane-receipt.json",
+  "notes": "Spec compliance review confirms the delegated lane completed inside the frozen scope."
+}

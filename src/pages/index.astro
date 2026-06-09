@@ -55,7 +55,24 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 						>
 						</div>
 					</div>
-					<fieldset class="input-row job-options">
+						<button
+							type="button"
+							class="manual-search-toggle"
+							aria-expanded="false"
+							aria-controls="manual-search-fields"
+							data-manual-search-toggle
+						>
+							수동 검색
+						</button>
+						<div
+							id="manual-search-fields"
+							class="manual-search-accordion"
+							aria-hidden="true"
+							data-manual-search-fields
+							inert
+						>
+							<div class="manual-search-accordion-inner">
+								<fieldset class="input-row job-options">
 						<div class="field-header">
 							<legend>직업</legend>
 							<div class="compact-actions">
@@ -78,11 +95,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 						<div class="field-header">
 							<span id="equipment-kind-label" class="field-label">장비 종류</span>
 							<div class="segmented-control" aria-label="장비 종류 범위">
-								<button type="button" class="segment active" data-equipment-mode="weapon">무기</button>
+								<button type="button" class="segment" data-equipment-mode="weapon">무기</button>
 								<button type="button" class="segment" data-equipment-mode="armor">장비</button>
 							</div>
 						</div>
-						<input type="hidden" name="equipmentKind" value={weaponKinds[0]} data-equipment-kind />
+						<input type="hidden" name="equipmentKind" value="" data-equipment-kind />
 						<div class="dropdown-frame" data-equipment-dropdown>
 							<button
 								type="button"
@@ -92,7 +109,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 								aria-labelledby="equipment-kind-label"
 								data-equipment-trigger
 							>
-								<span data-equipment-trigger-label>{weaponKinds[0]}</span>
+								<span data-equipment-trigger-label>장비 종류를 먼저 골라주세요</span>
 								<span aria-hidden="true">⌄</span>
 							</button>
 							<div class="equipment-menu" role="listbox" aria-labelledby="equipment-kind-label" data-equipment-menu hidden>
@@ -101,10 +118,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 									weaponKinds.map((kind, index) => (
 										<button
 											type="button"
-											class={index === 0 ? 'equipment-option active' : 'equipment-option'}
+											class='equipment-option'
 											data-equipment-option={kind}
 											role="option"
-											aria-selected={index === 0 ? 'true' : 'false'}
+											aria-selected='false'
 										>
 											{kind}
 										</button>
@@ -122,28 +139,54 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 								</div>
 							</div>
 						</div>
+								<div class="input-row field-block level-range-block">
+									<span class="field-label">아이템 요구 레벨</span>
+									<div class="level-range-control">
+										<span class="level-stepper">
+											<button type="button" class="step-button" data-level-bound="min" data-level-step="-5" aria-label="최소 요구 레벨 5 감소">
+												-5
+											</button>
+											<input
+												type="number"
+												name="requiredLevelMin"
+												value="10"
+												min="0"
+												step="5"
+												inputmode="numeric"
+												aria-label="최소 요구 레벨"
+												data-level-input
+												data-level-min-input
+											/>
+											<button type="button" class="step-button" data-level-bound="min" data-level-step="5" aria-label="최소 요구 레벨 5 증가">
+												+5
+											</button>
+										</span>
+										<span class="level-range-separator" aria-hidden="true">-</span>
+										<span class="level-stepper">
+											<button type="button" class="step-button" data-level-bound="max" data-level-step="-5" aria-label="최대 요구 레벨 5 감소">
+												-5
+											</button>
+											<input
+												type="number"
+												name="requiredLevelMax"
+												value="20"
+												min="0"
+												step="5"
+												inputmode="numeric"
+												aria-label="최대 요구 레벨"
+												data-level-input
+												data-level-max-input
+											/>
+											<button type="button" class="step-button" data-level-bound="max" data-level-step="5" aria-label="최대 요구 레벨 5 증가">
+												+5
+											</button>
+										</span>
+									</div>
+								</div>
+								<div class="manual-item-results" data-manual-item-results hidden></div>
+							</div>
+						</div>
 					</div>
-					<label class="input-row">
-						아이템 요구 레벨
-						<span class="level-stepper">
-							<button type="button" class="step-button" data-level-step="-5" aria-label="요구 레벨 5 감소">
-								-5
-							</button>
-							<input
-								type="number"
-								name="requiredLevel"
-								value="0"
-								min="0"
-								step="5"
-								inputmode="numeric"
-								data-level-input
-							/>
-							<button type="button" class="step-button" data-level-step="5" aria-label="요구 레벨 5 증가">
-								+5
-							</button>
-						</span>
-					</label>
-				</div>
 				<div class="button-row">
 					<button type="button" disabled>계산</button>
 					<a class="button secondary" href="/methodology/">데이터 기준</a>
@@ -206,7 +249,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 </BaseLayout>
 
 <script>
-	import { nextItemLevel, normalizeItemLevel } from '../lib/calculatorInput.mjs';
+	import { nextItemLevel, normalizeItemLevel, normalizeItemLevelRange } from '../lib/calculatorInput.mjs';
 	import { searchKoreanItems } from '../lib/itemSearch.mjs';
 	import { buildItemIconUrl, buildItemSearchUrl } from '../lib/maplestoryIo.mjs';
 
@@ -220,7 +263,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	const selectedItemIcon = document.querySelector('[data-selected-item-icon]');
 	const selectedItemRequirements = document.querySelector('[data-selected-item-requirements]');
 	const selectedItemStats = document.querySelector('[data-selected-item-stats]');
-	const levelInput = form?.querySelector('[data-level-input]');
+	const levelInputs = form?.querySelectorAll('[data-level-input]');
+		const levelMinInput = form?.querySelector('[data-level-min-input]');
+		const levelMaxInput = form?.querySelector('[data-level-max-input]');
 	const stepButtons = form?.querySelectorAll('[data-level-step]');
 	const equipmentInput = form?.querySelector('[data-equipment-kind]');
 	const equipmentDropdown = form?.querySelector('[data-equipment-dropdown]');
@@ -230,7 +275,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	const equipmentModeButtons = form?.querySelectorAll('[data-equipment-mode]');
 	const equipmentOptionGroups = form?.querySelectorAll('[data-equipment-options]');
 	const equipmentOptionButtons = form?.querySelectorAll('[data-equipment-option]');
-	const jobInputs = form?.querySelectorAll('input[name="jobs"]');
+	const manualSearchToggle = form?.querySelector('[data-manual-search-toggle]');
+		const manualSearchFields = form?.querySelector('[data-manual-search-fields]');
+		const manualItemResults = form?.querySelector('[data-manual-item-results]');
+		const jobInputs = form?.querySelectorAll('input[name="jobs"]');
 	const jobSelectAllButton = form?.querySelector('[data-job-select-all]');
 	const jobClearAllButton = form?.querySelector('[data-job-clear-all]');
 	let itemIndex = [];
@@ -246,19 +294,34 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		});
 	};
 
-	const syncItemSearchUrl = () => {
+	const setManualSearchOpen = (isOpen) => {
+			if (!(manualSearchToggle instanceof HTMLButtonElement) || !(manualSearchFields instanceof HTMLElement)) {
+				return;
+			}
+
+			manualSearchToggle.setAttribute('aria-expanded', String(isOpen));
+			manualSearchFields.classList.toggle('open', isOpen);
+			manualSearchFields.setAttribute('aria-hidden', String(!isOpen));
+			manualSearchFields.inert = !isOpen;
+		};
+
+		const syncItemSearchUrl = () => {
 		if (!(itemNameInput instanceof HTMLInputElement) || !(equipmentInput instanceof HTMLInputElement)) {
 			return;
 		}
 
-		const requiredLevel = levelInput instanceof HTMLInputElement ? levelInput.value : 0;
-		form?.setAttribute(
-			'data-item-search-url',
-			buildItemSearchUrl({
-				searchFor: itemNameInput.value,
-				equipmentKind: equipmentInput.value,
-				requiredLevel,
-			}),
+		const levelRange =
+				levelMinInput instanceof HTMLInputElement && levelMaxInput instanceof HTMLInputElement
+					? normalizeItemLevelRange(levelMinInput.value, levelMaxInput.value)
+					: normalizeItemLevelRange(0, 0);
+			form?.setAttribute(
+				'data-item-search-url',
+				buildItemSearchUrl({
+					searchFor: itemNameInput.value,
+					equipmentKind: equipmentInput.value,
+					requiredLevelMin: levelRange.min,
+					requiredLevelMax: levelRange.max,
+				}),
 		);
 	};
 
@@ -269,6 +332,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		['REQINT', 'int'],
 		['REQLUK', 'luk'],
 		['REQPOP', 'pop'],
+			['REQJOB', 'requiredJobs'],
 	];
 	const statRows = [
 		['STR', 'str'],
@@ -288,14 +352,20 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		['업그레이드 가능 횟수', 'upgradeSlots'],
 	];
 	const jobKindByRequiredJob = {
-		Warrior: '전사',
+		Beginner: '초보자',
+			Warrior: '전사',
 		Magician: '마법사',
 		Bowman: '궁수',
 		Thief: '도적',
 		Pirate: '해적',
 	};
 
-	const createItemLine = (label, value) => {
+	const formatRequiredJobs = (requiredJobs = []) => {
+				const jobs = requiredJobs.map((job) => jobKindByRequiredJob[job]).filter(Boolean);
+				return jobs.length > 0 ? jobs.join(', ') : '전체';
+			};
+
+			const createItemLine = (label, value) => {
 		const row = document.createElement('div');
 		row.className = 'selected-item-line';
 
@@ -310,12 +380,26 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	};
 
 	const formatStatValue = (key, value) => {
-		if (key === 'upgradeSlots' || value <= 0) {
-			return value;
-		}
+			if (key === 'attackSpeed') {
+				const speedLabelByValue = {
+					2: '매우 빠름',
+					3: '빠름',
+					4: '빠름',
+					5: '빠름',
+					6: '보통',
+					7: '느림',
+					8: '느림',
+					9: '매우 느림',
+				};
+				return `${value} (${speedLabelByValue[value] ?? '속도 정보 없음'})`;
+			}
 
-		return `+${value}`;
-	};
+			if (key === 'upgradeSlots' || value <= 0) {
+				return value;
+			}
+
+			return `+${value}`;
+		};
 
 	const renderSelectedItemCard = (item) => {
 		if (
@@ -334,7 +418,12 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		selectedItemStats.replaceChildren();
 
 		requirementRows.forEach(([label, key]) => {
-			const value = key === 'requiredLevel' ? item.requiredLevel : (item.requirements?.[key] ?? 0);
+			const value =
+						key === 'requiredLevel'
+							? item.requiredLevel
+							: key === 'requiredJobs'
+								? formatRequiredJobs(item.requiredJobs)
+								: (item.requirements?.[key] ?? 0);
 			selectedItemRequirements.append(createItemLine(label, value));
 		});
 
@@ -398,9 +487,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		syncJobsToSelectedItem(item);
 		syncEquipmentToSelectedItem(item);
 
-		if (levelInput instanceof HTMLInputElement) {
-			levelInput.value = String(normalizeItemLevel(item.requiredLevel));
-		}
+		if (levelMinInput instanceof HTMLInputElement && levelMaxInput instanceof HTMLInputElement) {
+				const requiredLevel = String(normalizeItemLevel(item.requiredLevel));
+				levelMinInput.value = requiredLevel;
+				levelMaxInput.value = requiredLevel;
+			}
 	};
 
 	const hideItemSuggestions = () => {
@@ -413,23 +504,122 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		}
 	};
 
-	const selectSuggestedItem = (item) => {
-		if (!(itemNameInput instanceof HTMLInputElement)) {
-			return;
-		}
+	const selectSuggestedItem = (item, { syncFilters = true } = {}) => {
+			if (!(itemNameInput instanceof HTMLInputElement)) {
+				return;
+			}
 
-		itemNameInput.value = item.nameKo;
-		if (selectedItemIdInput instanceof HTMLInputElement) {
-			selectedItemIdInput.value = String(item.id);
-		}
-		form?.setAttribute('data-selected-item-id', String(item.id));
-		syncFiltersToSelectedItem(item);
-		renderSelectedItemCard(item);
-		syncItemSearchUrl();
-		hideItemSuggestions();
-	};
+			if (syncFilters) {
+				itemNameInput.value = item.nameKo;
+			}
+			if (selectedItemIdInput instanceof HTMLInputElement) {
+				selectedItemIdInput.value = String(item.id);
+			}
+			form?.setAttribute('data-selected-item-id', String(item.id));
+			if (syncFilters) {
+				syncFiltersToSelectedItem(item);
+			}
+			renderSelectedItemCard(item);
+			if (syncFilters) {
+				syncItemSearchUrl();
+				hideItemSuggestions();
+				renderManualItemResults();
+			}
+		};
 
-	const renderItemSuggestions = () => {
+	const getSelectedJobKinds = () =>
+			new Set(
+				[...(jobInputs ?? [])]
+					.filter((input) => input instanceof HTMLInputElement && input.checked)
+					.map((input) => input.value),
+			);
+
+		const itemMatchesSelectedJobs = (item, selectedJobs) => {
+			if (selectedJobs.size === 0) {
+				return false;
+			}
+
+			const requiredJobs = item.requiredJobs ?? [];
+			const hasOnlyBeginner = requiredJobs.length === 1 && requiredJobs[0] === 'Beginner';
+			if (requiredJobs.length === 0 || hasOnlyBeginner) {
+				return true;
+			}
+
+			return requiredJobs.some((job) => selectedJobs.has(jobKindByRequiredJob[job]));
+		};
+
+		const getManualFilteredItems = () => {
+			if (!(equipmentInput instanceof HTMLInputElement)) {
+				return [];
+			}
+
+			if (!equipmentInput.value) {
+				return [];
+			}
+
+			const selectedJobs = getSelectedJobKinds();
+			const levelRange =
+				levelMinInput instanceof HTMLInputElement && levelMaxInput instanceof HTMLInputElement
+					? normalizeItemLevelRange(levelMinInput.value, levelMaxInput.value)
+					: normalizeItemLevelRange(0, 0);
+
+			return itemIndex
+				.filter((item) => item.equipmentKind === equipmentInput.value)
+				.filter((item) => item.requiredLevel >= levelRange.min && item.requiredLevel <= levelRange.max)
+				.filter((item) => itemMatchesSelectedJobs(item, selectedJobs))
+				.sort((a, b) => a.requiredLevel - b.requiredLevel || a.nameKo.localeCompare(b.nameKo, 'ko-KR'));
+		};
+
+		const renderManualItemResults = () => {
+			if (!(manualItemResults instanceof HTMLElement)) {
+				return;
+			}
+
+			manualItemResults.replaceChildren();
+
+			const results = getManualFilteredItems();
+			if (results.length === 0 || results.length >= 15) {
+				manualItemResults.hidden = true;
+				return;
+			}
+
+			const grid = document.createElement('div');
+			grid.className = 'manual-item-grid';
+
+			results.forEach((item) => {
+				const option = document.createElement('button');
+				option.type = 'button';
+				option.className = 'manual-item-option';
+				option.dataset.itemId = String(item.id);
+
+				const icon = document.createElement('img');
+				icon.className = 'manual-item-icon';
+				icon.src = buildItemIconUrl(item.id);
+				icon.alt = '';
+				icon.loading = 'lazy';
+
+				const text = document.createElement('span');
+				text.className = 'manual-item-text';
+
+				const name = document.createElement('strong');
+				name.textContent = item.nameKo;
+
+				const meta = document.createElement('span');
+				meta.textContent = item.equipmentKind;
+
+				text.append(name, meta);
+				option.append(icon, text);
+				option.addEventListener('click', () => {
+					selectSuggestedItem(item, { syncFilters: false });
+				});
+				grid.append(option);
+			});
+
+			manualItemResults.append(grid);
+			manualItemResults.hidden = false;
+		};
+
+		const renderItemSuggestions = () => {
 		if (!(itemNameInput instanceof HTMLInputElement) || !(itemSuggestions instanceof HTMLElement)) {
 			return;
 		}
@@ -496,17 +686,29 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		if (equipmentTriggerLabel instanceof HTMLElement) {
 			equipmentTriggerLabel.textContent = equipmentInput.value;
 		}
-		syncItemSearchUrl();
+			renderManualItemResults();
+			syncItemSearchUrl();
 		if (equipmentMenu instanceof HTMLElement && equipmentTrigger instanceof HTMLButtonElement) {
 			equipmentMenu.hidden = true;
 			equipmentTrigger.setAttribute('aria-expanded', 'false');
 		}
 	};
 
-	if (levelInput instanceof HTMLInputElement) {
-		levelInput.addEventListener('blur', () => {
-			levelInput.value = String(normalizeItemLevel(levelInput.value));
-			syncItemSearchUrl();
+	levelInputs?.forEach((input) => {
+			if (!(input instanceof HTMLInputElement)) {
+				return;
+			}
+
+			input.addEventListener('input', () => {
+				syncItemSearchUrl();
+				renderManualItemResults();
+			});
+
+			input.addEventListener('blur', () => {
+				input.value = String(normalizeItemLevel(input.value));
+				syncItemSearchUrl();
+				renderManualItemResults();
+			});
 		});
 
 		stepButtons?.forEach((button) => {
@@ -515,19 +717,35 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 					return;
 				}
 
+				const targetInput =
+					button.dataset.levelBound === 'max'
+						? levelMaxInput
+						: levelMinInput;
+				if (!(targetInput instanceof HTMLInputElement)) {
+					return;
+				}
+
 				const delta = Number.parseInt(button.dataset.levelStep ?? '0', 10);
-				levelInput.value = String(nextItemLevel(levelInput.value, delta));
+				targetInput.value = String(nextItemLevel(targetInput.value, delta));
 				syncItemSearchUrl();
+				renderManualItemResults();
 			});
 		});
-	}
 
 	itemNameInput?.addEventListener('input', () => {
 		syncItemSearchUrl();
 		renderItemSuggestions();
 	});
 
-	itemNameInput?.addEventListener('keydown', (event) => {
+	manualSearchToggle?.addEventListener('click', () => {
+			if (!(manualSearchToggle instanceof HTMLButtonElement)) {
+				return;
+			}
+
+			setManualSearchOpen(manualSearchToggle.getAttribute('aria-expanded') !== 'true');
+		});
+
+		itemNameInput?.addEventListener('keydown', (event) => {
 		if (event instanceof KeyboardEvent && event.key === 'Escape') {
 			hideItemSuggestions();
 		}
@@ -568,7 +786,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 					matchingGroup?.querySelector('[data-equipment-option]');
 				if (selectedOption instanceof HTMLButtonElement) {
 					setEquipmentOption(selectedOption);
-				}
+						renderManualItemResults();
+					}
 			});
 		});
 	}
@@ -603,7 +822,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	});
 
 	jobInputs?.forEach((input) => {
-		input.addEventListener('change', syncJobButtons);
+		input.addEventListener('change', () => {
+				syncJobButtons();
+				renderManualItemResults();
+			});
 	});
 
 	jobSelectAllButton?.addEventListener('click', () => {
@@ -613,6 +835,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			}
 		});
 		syncJobButtons();
+		renderManualItemResults();
 	});
 
 	jobClearAllButton?.addEventListener('click', () => {
@@ -622,8 +845,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			}
 		});
 		syncJobButtons();
+		renderManualItemResults();
 	});
 
+	setManualSearchOpen(false);
 	syncJobButtons();
 	syncItemSearchUrl();
 
@@ -658,6 +883,40 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		gap: 12px;
 	}
 
+		.manual-search-toggle {
+			justify-self: start;
+			border: 1px solid var(--line);
+			background: var(--surface);
+			color: var(--ink);
+		}
+
+		.manual-search-toggle[aria-expanded='true'] {
+			border-color: var(--green);
+			background: var(--green);
+			color: white;
+		}
+
+		.manual-search-accordion {
+			display: grid;
+			grid-template-rows: 0fr;
+			opacity: 0;
+			transition:
+				grid-template-rows 220ms ease,
+				opacity 180ms ease;
+		}
+
+		.manual-search-accordion.open {
+			grid-template-rows: 1fr;
+			opacity: 1;
+		}
+
+		.manual-search-accordion-inner {
+			display: grid;
+			min-height: 0;
+			gap: 12px;
+			overflow: hidden;
+		}
+
 	.input-row {
 		padding: 16px;
 		border: 1px solid var(--line);
@@ -670,6 +929,83 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		grid-template-columns: auto minmax(0, 1fr) auto;
 		gap: 8px;
 	}
+
+		.level-range-control {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+			align-items: center;
+			gap: 10px;
+		}
+
+		.level-stepper input {
+			min-width: 0;
+			text-align: center;
+		}
+
+		.level-range-separator {
+			color: var(--muted);
+			font-weight: 800;
+		}
+
+		.manual-item-results[hidden] {
+			display: none;
+		}
+
+		.manual-item-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+			gap: 8px;
+		}
+
+		.manual-item-option {
+			display: grid;
+			grid-template-columns: 40px minmax(0, 1fr);
+			align-items: center;
+			gap: 12px;
+			min-height: 64px;
+			padding: 10px;
+			border: 1px solid var(--line);
+			border-radius: 8px;
+			background: #fbfcfa;
+			color: var(--ink);
+			text-align: left;
+			cursor: pointer;
+		}
+
+		.manual-item-option:hover,
+		.manual-item-option:focus-visible {
+			border-color: var(--green);
+			outline: none;
+		}
+
+		.manual-item-icon {
+			width: 32px;
+			height: 32px;
+			object-fit: contain;
+			image-rendering: pixelated;
+		}
+
+		.manual-item-text {
+			display: grid;
+			min-width: 0;
+			line-height: 1.25;
+		}
+
+		.manual-item-text strong,
+		.manual-item-text span {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.manual-item-text span {
+			margin-top: 5px;
+			padding-top: 5px;
+			border-top: 1px solid var(--line);
+			color: var(--muted);
+			font-size: 0.86rem;
+			font-weight: 650;
+		}
 
 	.step-button {
 		width: 48px;
@@ -963,5 +1299,13 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		.choice-button {
 			min-width: 84px;
 		}
-	}
+
+			.level-range-control {
+				grid-template-columns: minmax(0, 1fr);
+			}
+
+			.level-range-separator {
+				text-align: center;
+			}
+		}
 </style>

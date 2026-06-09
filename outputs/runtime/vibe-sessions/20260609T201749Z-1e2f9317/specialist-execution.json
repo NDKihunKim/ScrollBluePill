@@ -1,0 +1,33 @@
+{
+  "protocol_version": "v1",
+  "source_run_id": "20260609T201749Z-1e2f9317",
+  "resolution_mode": "current_session_host_execution",
+  "evidence_paths": [
+    "outputs/runtime/vibe-sessions/20260609T201749Z-1e2f9317/host-verification-evidence.md"
+  ],
+  "units": [
+    {
+      "unit_id": "specialist-post_execution-ungrouped-manuscript-as-code-specialist",
+      "skill_id": "manuscript-as-code",
+      "resolution_state": "executed",
+      "native_skill_entrypoint": "/Users/andykim/.codex/skills/vibe/bundled/skills/manuscript-as-code/SKILL.runtime-mirror.md",
+      "evidence_paths": [
+        "/Users/andykim/.codex/skills/vibe/bundled/skills/manuscript-as-code/SKILL.runtime-mirror.md",
+        "outputs/runtime/vibe-sessions/20260609T201749Z-1e2f9317/host-verification-evidence.md"
+      ],
+      "notes": "Loaded and reviewed. No manuscript-as-code workflow changes were applicable to this frontend accordion implementation."
+    },
+    {
+      "unit_id": "specialist-post_execution-ungrouped-scholarly-publishing-specialist",
+      "skill_id": "scholarly-publishing",
+      "resolution_state": "executed",
+      "native_skill_entrypoint": "/Users/andykim/.codex/skills/vibe/bundled/skills/scholarly-publishing/SKILL.runtime-mirror.md",
+      "evidence_paths": [
+        "/Users/andykim/.codex/skills/vibe/bundled/skills/scholarly-publishing/SKILL.runtime-mirror.md",
+        "outputs/runtime/vibe-sessions/20260609T201749Z-1e2f9317/host-verification-evidence.md"
+      ],
+      "notes": "Loaded and reviewed. No scholarly publishing workflow changes were applicable to this frontend accordion implementation."
+    }
+  ],
+  "notes": "Specialist entrypoints were loaded as required by Vibe. Both routed skills were resolved in current-session host execution with no applicable code changes for this UI task."
+}

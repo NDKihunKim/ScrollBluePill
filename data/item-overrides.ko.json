@@ -37,5 +37,20 @@
       "weaponDefense": 2,
       "upgradeSlots": 5
     }
+  },
+  "1482008": {
+    "nameKo": "세라핌즈",
+    "requirements": {
+      "str": 150,
+      "dex": 60,
+      "int": 0,
+      "luk": 0,
+      "pop": 0
+    },
+    "stats": {
+      "weaponAttack": 58,
+      "attackSpeed": 5,
+      "upgradeSlots": 7
+    }
   }
 }

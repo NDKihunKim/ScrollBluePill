@@ -1,0 +1,35 @@
+{
+  "stage": "requirement_doc",
+  "source_stage": "bounded_memory_recall",
+  "owner": "state_store",
+  "disclosure_level": "decision_focused",
+  "generated_at": "2026-06-09T20:16:52Z",
+  "capsule_count": 1,
+  "selected_capsules": [
+    {
+      "capsule_id": "37057dd6cb6bb509",
+      "owner": "state_store",
+      "lane": null,
+      "kind": "fallback_digest",
+      "updated_at": null,
+      "title": "Task focus: frontend accordion manual search collapsible item search fields UI Deliverable: Governed implementation artifacts, verification...",
+      "why_now": "Matched state_store memory for requirement_doc.",
+      "expansion_ref": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260609T201647Z-af8b7d1a/memory-activation/skeleton-local-digest.json#37057dd6cb6bb509",
+      "summary_lines": [
+        "Task focus: frontend accordion manual search collapsible item search fields UI Deliverable: Governed implementation artifacts, verification evidence, and cleanup receipts. Constraints: Do not bypass the fixed six-stage g...",
+        "Git branch: ",
+        "All required governed runtime prerequisite paths are present."
+      ]
+    }
+  ],
+  "items": [
+    "Task focus: frontend accordion manual search collapsible item search fields UI Deliverable: Governed implementation artifacts, verification evidence, and cleanup receipts. Constraints: Do not bypass the fixed six-stage g...",
+    "Git branch: "
+  ],
+  "estimated_tokens": 59,
+  "budget": {
+    "top_k": 2,
+    "max_tokens": 120,
+    "max_chars_per_item": 260
+  }
+}

@@ -2,6 +2,16 @@ export function normalizeSearchText(value) {
 	return String(value).trim().replace(/\s+/g, '').toLocaleLowerCase('ko-KR');
 }
 
+export function buildSpacedNameInitials(value) {
+	const words = String(value).trim().split(/\s+/).filter(Boolean);
+
+	if (words.length < 2) {
+		return '';
+	}
+
+	return normalizeSearchText(words.map((word) => [...word][0]).join(''));
+}
+
 function scoreTextMatch(query, value, exactScore, prefixScore, includesScore) {
 	const normalizedValue = normalizeSearchText(value);
 
@@ -33,6 +43,7 @@ export function scoreItemMatch(query, item) {
 
 	const scores = [
 		scoreTextMatch(normalizedQuery, item.nameKo, 100, 85, 70),
+		scoreTextMatch(normalizedQuery, buildSpacedNameInitials(item.nameKo), 84, 69, 0),
 		scoreTextMatch(normalizedQuery, item.nameEn, 80, 45, 25),
 		...(item.aliases ?? []).map((alias) => scoreTextMatch(normalizedQuery, alias, 95, 80, 65)),
 	];

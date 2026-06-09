@@ -1,0 +1,71 @@
+{
+  "task": "frontend accordion manual search collapsible item search fields UI Deliverable:... Deliverable: Governed implementation artifacts, verification evidence, and cleanup receipts. Constraints: Do not bypass the fixed six-stage governed runtime.; Do not widen scope silently beyond the frozen requirement document.. Update: execute frontend accordion manual search collapsible item search fields UI",
+  "relations": [
+    {
+      "source": "frontend-accordion-manual-search-collapsible-item-search-fields",
+      "relation": "specified_by",
+      "target": "2026-06-09-frontend-accordion-manual-search-collapsible-item-search-fields.md",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/requirements/2026-06-09-frontend-accordion-manual-search-collapsible-item-search-fields.md"
+      ],
+      "keywords": [
+        "frontend",
+        "accordion",
+        "manual",
+        "search",
+        "collapsible",
+        "item",
+        "fields",
+        "deliverable",
+        "governed",
+        "implementation",
+        "artifacts",
+        "verification"
+      ]
+    },
+    {
+      "source": "frontend-accordion-manual-search-collapsible-item-search-fields",
+      "relation": "planned_in",
+      "target": "2026-06-09-frontend-accordion-manual-search-collapsible-item-search-fields-execution-plan.md",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/plans/2026-06-09-frontend-accordion-manual-search-collapsible-item-search-fields-execution-plan.md"
+      ],
+      "keywords": [
+        "frontend",
+        "accordion",
+        "manual",
+        "search",
+        "collapsible",
+        "item",
+        "fields",
+        "deliverable",
+        "governed",
+        "implementation",
+        "artifacts",
+        "verification"
+      ]
+    },
+    {
+      "source": "frontend-accordion-manual-search-collapsible-item-search-fields",
+      "relation": "executed_as",
+      "target": "execution-manifest.json",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260609T201749Z-1e2f9317/execution-manifest.json"
+      ],
+      "keywords": [
+        "frontend",
+        "accordion",
+        "manual",
+        "search",
+        "collapsible",
+        "item",
+        "fields",
+        "deliverable",
+        "governed",
+        "implementation",
+        "artifacts",
+        "verification"
+      ]
+    }
+  ]
+}

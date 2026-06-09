@@ -1,0 +1,17 @@
+{
+  "status": "passing",
+  "evidence_paths": [
+    "outputs/runtime/vibe-sessions/20260609T201749Z-1e2f9317/host-verification-evidence.md",
+    "src/pages/index.astro",
+    "tests/calculator-input-contract.test.mjs"
+  ],
+  "covered_baseline_ui_quality_dimensions": [
+    "Structure Completeness",
+    "Interaction Feedback",
+    "State Coverage",
+    "Design System Consistency",
+    "Responsive Stability",
+    "Spec Fidelity"
+  ],
+  "notes": "Host-side artifact review covered the accordion structure, accessible state, styling consistency, responsive animation strategy, and requirement fidelity. Browser visual spot checks remain manual-review pending."
+}
