@@ -1,0 +1,182 @@
+export const MAPLESTORY_IO_BASE_URL = 'https://maplestory.io';
+export const MAPLESTORY_IO_REGION = 'GMS';
+export const MAPLESTORY_IO_VERSION = '83';
+
+export const equipmentKindApiFilters = {
+	'한손검': {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'One-Handed Weapon',
+		subCategoryFilter: 'One-Handed Sword',
+	},
+	'두손검': {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Two-Handed Weapon',
+		subCategoryFilter: 'Two-Handed Sword',
+	},
+	'한손도끼': {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'One-Handed Weapon',
+		subCategoryFilter: 'One-Handed Axe',
+	},
+	'두손도끼': {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Two-Handed Weapon',
+		subCategoryFilter: 'Two-Handed Axe',
+	},
+	'한손둔기': {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'One-Handed Weapon',
+		subCategoryFilter: 'One-Handed Blunt Weapon',
+	},
+	'두손둔기': {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Two-Handed Weapon',
+		subCategoryFilter: 'Two-Handed Blunt',
+	},
+	창: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Two-Handed Weapon',
+		subCategoryFilter: 'Spear',
+	},
+	폴암: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Two-Handed Weapon',
+		subCategoryFilter: 'Pole Arm',
+	},
+	완드: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'One-Handed Weapon',
+		subCategoryFilter: 'Wand',
+	},
+	스태프: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'One-Handed Weapon',
+		subCategoryFilter: 'Staff',
+	},
+	활: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Two-Handed Weapon',
+		subCategoryFilter: 'Bow',
+	},
+	석궁: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Two-Handed Weapon',
+		subCategoryFilter: 'Crossbow',
+	},
+	아대: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Two-Handed Weapon',
+		subCategoryFilter: 'Claw',
+	},
+	단검: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'One-Handed Weapon',
+		subCategoryFilter: 'Dagger',
+	},
+	너클: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Two-Handed Weapon',
+		subCategoryFilter: 'Knuckle',
+	},
+	총: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Two-Handed Weapon',
+		subCategoryFilter: 'Gun',
+	},
+	방패: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Armor',
+		subCategoryFilter: 'Shield',
+	},
+	모자: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Armor',
+		subCategoryFilter: 'Hat',
+	},
+	얼굴장식: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Accessory',
+		subCategoryFilter: 'Face Accessory',
+	},
+	눈장식: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Accessory',
+		subCategoryFilter: 'Eye Decoration',
+	},
+	귀고리: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Accessory',
+		subCategoryFilter: 'Earrings',
+	},
+	상의: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Armor',
+		subCategoryFilter: 'Top',
+	},
+	하의: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Armor',
+		subCategoryFilter: 'Bottom',
+	},
+	한벌옷: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Armor',
+		subCategoryFilter: 'Overall',
+	},
+	장갑: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Armor',
+		subCategoryFilter: 'Glove',
+	},
+	신발: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Armor',
+		subCategoryFilter: 'Shoes',
+	},
+	망토: {
+		overallCategoryFilter: 'Equip',
+		categoryFilter: 'Armor',
+		subCategoryFilter: 'Cape',
+	},
+};
+
+export function buildItemSearchUrl({
+	searchFor = '',
+	equipmentKind = '',
+	requiredLevel = 0,
+	startPosition = 0,
+	count = 20,
+	region = MAPLESTORY_IO_REGION,
+	version = MAPLESTORY_IO_VERSION,
+} = {}) {
+	const url = new URL(`/api/${region}/${version}/item`, MAPLESTORY_IO_BASE_URL);
+	url.searchParams.set('startPosition', String(startPosition));
+	url.searchParams.set('count', String(count));
+
+	const trimmedSearch = String(searchFor).trim();
+	if (trimmedSearch) {
+		url.searchParams.set('searchFor', trimmedSearch);
+	}
+
+	const filters = equipmentKindApiFilters[equipmentKind];
+	if (filters) {
+		for (const [key, value] of Object.entries(filters)) {
+			url.searchParams.set(key, value);
+		}
+	}
+
+	const parsedLevel = Number.parseInt(String(requiredLevel), 10);
+	if (Number.isFinite(parsedLevel) && parsedLevel > 0) {
+		url.searchParams.set('minLevelFilter', String(parsedLevel));
+		url.searchParams.set('maxLevelFilter', String(parsedLevel));
+	}
+
+	return url.toString();
+}
+
+export function buildItemIconUrl(
+	itemId,
+	{ region = MAPLESTORY_IO_REGION, version = MAPLESTORY_IO_VERSION } = {},
+) {
+	return new URL(`/api/${region}/${version}/item/${itemId}/icon`, MAPLESTORY_IO_BASE_URL).toString();
+}

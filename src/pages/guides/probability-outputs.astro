@@ -1,0 +1,24 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+	title="확률 결과 항목"
+	description="주문서 확률 계산 결과로 제공할 분포, 기대값, 목표 확률, 백분위 항목입니다."
+>
+	<section class="band">
+		<div class="container prose">
+			<p class="eyebrow">Probability Outputs</p>
+			<h1>확률 결과 항목</h1>
+			<p>
+				입력값은 아직 확정하지 않습니다. 출력값은 전체 분포, 기대값, 목표 확률,
+				백분위 범위를 기준으로 먼저 고정합니다.
+			</p>
+			<h2>출력 기준</h2>
+			<p>
+				분포는 최종 스탯 값과 해당 확률의 목록으로 표현합니다. 기대값과 목표 확률은
+				사용자가 주문서 전략을 비교할 때 기준점으로 사용합니다.
+			</p>
+		</div>
+	</section>
+</BaseLayout>

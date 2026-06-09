@@ -1,0 +1,967 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { armorKinds, jobKinds, weaponKinds } from '../lib/calculatorInput.mjs';
+import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo.mjs';
+
+---
+
+<BaseLayout
+	title="주문서 확률 계산기"
+	description="MapleWorlds 옛날 메이플 주문서 확률 계산을 위한 한국어 도구입니다."
+>
+	<section class="band">
+		<div class="container">
+			<p class="eyebrow">MapleWorlds old-school scroll calculator</p>
+			<h1>주문서 확률 계산기</h1>
+			<p class="lede">
+				고정 주문서와 랜덤 주문서 데이터를 버전별로 정리하고, 목표 스탯 도달 확률과
+				기대값을 계산하기 위한 작업 공간입니다.
+			</p>
+		</div>
+	</section>
+
+	<section class="band">
+		<div class="container grid two">
+			<form
+				class="panel"
+				aria-label="주문서 계산 입력"
+				data-calculator-input
+				data-maplestory-region={MAPLESTORY_IO_REGION}
+				data-maplestory-version={MAPLESTORY_IO_VERSION}
+			>
+				<h2>1. 아이템 검색</h2>
+				<div class="item-search-fields">
+					<div class="input-row field-block item-name-search" data-item-name-search>
+						<label class="field-label" for="item-name-input">아이템 이름</label>
+						<input
+							id="item-name-input"
+							type="search"
+							name="itemName"
+							placeholder="예: 노가다 목장갑, 노목"
+							autocomplete="off"
+							aria-autocomplete="list"
+							aria-controls="item-suggestion-list"
+							aria-expanded="false"
+							data-item-name-input
+						/>
+						<input type="hidden" name="itemId" data-selected-item-id />
+						<div
+							id="item-suggestion-list"
+							class="item-suggestion-menu"
+							role="listbox"
+							aria-label="아이템 검색 결과"
+							data-item-suggestions
+							hidden
+						>
+						</div>
+					</div>
+					<fieldset class="input-row job-options">
+						<div class="field-header">
+							<legend>직업</legend>
+							<div class="compact-actions">
+								<button type="button" class="small-button secondary" data-job-select-all>전체 선택</button>
+								<button type="button" class="small-button secondary" data-job-clear-all>전체 해제</button>
+							</div>
+						</div>
+						<div class="choice-row">
+							{
+								jobKinds.map((job) => (
+									<label class="choice-button">
+										<input type="checkbox" name="jobs" value={job} checked hidden />
+										<span>{job}</span>
+									</label>
+								))
+							}
+						</div>
+					</fieldset>
+					<div class="input-row field-block equipment-block">
+						<div class="field-header">
+							<span id="equipment-kind-label" class="field-label">장비 종류</span>
+							<div class="segmented-control" aria-label="장비 종류 범위">
+								<button type="button" class="segment active" data-equipment-mode="weapon">무기</button>
+								<button type="button" class="segment" data-equipment-mode="armor">장비</button>
+							</div>
+						</div>
+						<input type="hidden" name="equipmentKind" value={weaponKinds[0]} data-equipment-kind />
+						<div class="dropdown-frame" data-equipment-dropdown>
+							<button
+								type="button"
+								class="dropdown-trigger"
+								aria-expanded="false"
+								aria-haspopup="listbox"
+								aria-labelledby="equipment-kind-label"
+								data-equipment-trigger
+							>
+								<span data-equipment-trigger-label>{weaponKinds[0]}</span>
+								<span aria-hidden="true">⌄</span>
+							</button>
+							<div class="equipment-menu" role="listbox" aria-labelledby="equipment-kind-label" data-equipment-menu hidden>
+								<div data-equipment-options="weapon">
+								{
+									weaponKinds.map((kind, index) => (
+										<button
+											type="button"
+											class={index === 0 ? 'equipment-option active' : 'equipment-option'}
+											data-equipment-option={kind}
+											role="option"
+											aria-selected={index === 0 ? 'true' : 'false'}
+										>
+											{kind}
+										</button>
+									))
+								}
+								</div>
+								<div data-equipment-options="armor" hidden>
+								{
+									armorKinds.map((kind) => (
+										<button type="button" class="equipment-option" data-equipment-option={kind} role="option" aria-selected="false">
+											{kind}
+										</button>
+									))
+								}
+								</div>
+							</div>
+						</div>
+					</div>
+					<label class="input-row">
+						아이템 요구 레벨
+						<span class="level-stepper">
+							<button type="button" class="step-button" data-level-step="-5" aria-label="요구 레벨 5 감소">
+								-5
+							</button>
+							<input
+								type="number"
+								name="requiredLevel"
+								value="0"
+								min="0"
+								step="5"
+								inputmode="numeric"
+								data-level-input
+							/>
+							<button type="button" class="step-button" data-level-step="5" aria-label="요구 레벨 5 증가">
+								+5
+							</button>
+						</span>
+					</label>
+				</div>
+				<div class="button-row">
+					<button type="button" disabled>계산</button>
+					<a class="button secondary" href="/methodology/">데이터 기준</a>
+				</div>
+			</form>
+
+			<aside class="panel" aria-label="계산 결과">
+				<h2>결과</h2>
+				<div class="selected-item-card" data-selected-item-card hidden>
+					<h3 data-selected-item-name></h3>
+					<div class="selected-item-top">
+						<div class="selected-item-icon-frame">
+							<img data-selected-item-icon alt="" />
+						</div>
+						<div class="selected-item-requirements" data-selected-item-requirements></div>
+					</div>
+					<div class="selected-item-divider"></div>
+					<div class="selected-item-stats" data-selected-item-stats></div>
+				</div>
+				<div class="grid">
+					<div class="metric">
+						<span>기대값</span>
+						<strong>준비 중</strong>
+					</div>
+					<div class="metric">
+						<span>목표 달성 확률</span>
+						<strong>준비 중</strong>
+					</div>
+					<div class="metric">
+						<span>백분위 범위</span>
+						<strong>준비 중</strong>
+					</div>
+				</div>
+			</aside>
+		</div>
+	</section>
+
+	<section class="band">
+		<div class="container">
+			<div class="ad-slot" aria-label="광고 영역">광고 영역</div>
+		</div>
+	</section>
+
+	<section class="band">
+		<div class="container grid three">
+			<a class="card" href="/guides/fixed-random-scrolls/">
+				<h2>고정 주문서와 랜덤 주문서</h2>
+				<p>주문서 유형별 데이터 프레임을 정리합니다.</p>
+			</a>
+			<a class="card" href="/guides/probability-outputs/">
+				<h2>확률 결과 항목</h2>
+				<p>분포, 기대값, 목표 확률, 백분위 출력 기준을 정리합니다.</p>
+			</a>
+			<a class="card" href="/guides/version-tags/">
+				<h2>버전 태그</h2>
+				<p>MapleWorlds 서버와 데이터 기준을 분리해 관리합니다.</p>
+			</a>
+		</div>
+	</section>
+</BaseLayout>
+
+<script>
+	import { nextItemLevel, normalizeItemLevel } from '../lib/calculatorInput.mjs';
+	import { searchKoreanItems } from '../lib/itemSearch.mjs';
+	import { buildItemIconUrl, buildItemSearchUrl } from '../lib/maplestoryIo.mjs';
+
+	const form = document.querySelector('[data-calculator-input]');
+	const itemNameSearch = form?.querySelector('[data-item-name-search]');
+	const itemNameInput = form?.querySelector('[data-item-name-input]');
+	const selectedItemIdInput = form?.querySelector('[data-selected-item-id]');
+	const itemSuggestions = form?.querySelector('[data-item-suggestions]');
+	const selectedItemCard = document.querySelector('[data-selected-item-card]');
+	const selectedItemName = document.querySelector('[data-selected-item-name]');
+	const selectedItemIcon = document.querySelector('[data-selected-item-icon]');
+	const selectedItemRequirements = document.querySelector('[data-selected-item-requirements]');
+	const selectedItemStats = document.querySelector('[data-selected-item-stats]');
+	const levelInput = form?.querySelector('[data-level-input]');
+	const stepButtons = form?.querySelectorAll('[data-level-step]');
+	const equipmentInput = form?.querySelector('[data-equipment-kind]');
+	const equipmentDropdown = form?.querySelector('[data-equipment-dropdown]');
+	const equipmentTrigger = form?.querySelector('[data-equipment-trigger]');
+	const equipmentTriggerLabel = form?.querySelector('[data-equipment-trigger-label]');
+	const equipmentMenu = form?.querySelector('[data-equipment-menu]');
+	const equipmentModeButtons = form?.querySelectorAll('[data-equipment-mode]');
+	const equipmentOptionGroups = form?.querySelectorAll('[data-equipment-options]');
+	const equipmentOptionButtons = form?.querySelectorAll('[data-equipment-option]');
+	const jobInputs = form?.querySelectorAll('input[name="jobs"]');
+	const jobSelectAllButton = form?.querySelector('[data-job-select-all]');
+	const jobClearAllButton = form?.querySelector('[data-job-clear-all]');
+	let itemIndex = [];
+	let itemById = new Map();
+
+	const syncJobButtons = () => {
+		jobInputs?.forEach((input) => {
+			if (!(input instanceof HTMLInputElement)) {
+				return;
+			}
+
+			input.closest('.choice-button')?.classList.toggle('active', input.checked);
+		});
+	};
+
+	const syncItemSearchUrl = () => {
+		if (!(itemNameInput instanceof HTMLInputElement) || !(equipmentInput instanceof HTMLInputElement)) {
+			return;
+		}
+
+		const requiredLevel = levelInput instanceof HTMLInputElement ? levelInput.value : 0;
+		form?.setAttribute(
+			'data-item-search-url',
+			buildItemSearchUrl({
+				searchFor: itemNameInput.value,
+				equipmentKind: equipmentInput.value,
+				requiredLevel,
+			}),
+		);
+	};
+
+	const requirementRows = [
+		['REQLEV', 'requiredLevel'],
+		['REQSTR', 'str'],
+		['REQDEX', 'dex'],
+		['REQINT', 'int'],
+		['REQLUK', 'luk'],
+		['REQPOP', 'pop'],
+	];
+	const statRows = [
+		['STR', 'str'],
+		['DEX', 'dex'],
+		['INT', 'int'],
+		['LUK', 'luk'],
+		['최대HP', 'maxHp'],
+		['최대MP', 'maxMp'],
+		['공격력', 'weaponAttack'],
+		['마력', 'magicAttack'],
+		['물리방어력', 'weaponDefense'],
+		['마법방어력', 'magicDefense'],
+		['명중률', 'accuracy'],
+		['회피율', 'avoidability'],
+		['이동속도', 'speed'],
+		['점프력', 'jump'],
+		['업그레이드 가능 횟수', 'upgradeSlots'],
+	];
+	const jobKindByRequiredJob = {
+		Warrior: '전사',
+		Magician: '마법사',
+		Bowman: '궁수',
+		Thief: '도적',
+		Pirate: '해적',
+	};
+
+	const createItemLine = (label, value) => {
+		const row = document.createElement('div');
+		row.className = 'selected-item-line';
+
+		const labelElement = document.createElement('span');
+		labelElement.textContent = label;
+
+		const valueElement = document.createElement('strong');
+		valueElement.textContent = String(value);
+
+		row.append(labelElement, document.createTextNode(' : '), valueElement);
+		return row;
+	};
+
+	const formatStatValue = (key, value) => {
+		if (key === 'upgradeSlots' || value <= 0) {
+			return value;
+		}
+
+		return `+${value}`;
+	};
+
+	const renderSelectedItemCard = (item) => {
+		if (
+			!(selectedItemCard instanceof HTMLElement) ||
+			!(selectedItemName instanceof HTMLElement) ||
+			!(selectedItemIcon instanceof HTMLImageElement) ||
+			!(selectedItemRequirements instanceof HTMLElement) ||
+			!(selectedItemStats instanceof HTMLElement)
+		) {
+			return;
+		}
+
+		selectedItemName.textContent = item.nameKo;
+		selectedItemIcon.src = buildItemIconUrl(item.id);
+		selectedItemRequirements.replaceChildren();
+		selectedItemStats.replaceChildren();
+
+		requirementRows.forEach(([label, key]) => {
+			const value = key === 'requiredLevel' ? item.requiredLevel : (item.requirements?.[key] ?? 0);
+			selectedItemRequirements.append(createItemLine(label, value));
+		});
+
+		statRows.forEach(([label, key]) => {
+			const value = item.stats?.[key];
+			if (Number.isFinite(value)) {
+				selectedItemStats.append(createItemLine(label, formatStatValue(key, value)));
+			}
+		});
+
+		selectedItemCard.hidden = false;
+	};
+
+	const clearSelectedItemCard = () => {
+		if (selectedItemCard instanceof HTMLElement) {
+			selectedItemCard.hidden = true;
+		}
+	};
+
+	const syncJobsToSelectedItem = (item) => {
+		const requiredJobs = item.requiredJobs ?? [];
+		const selectedJobs = new Set(requiredJobs.map((job) => jobKindByRequiredJob[job]).filter(Boolean));
+		const shouldSelectAll = selectedJobs.size === 0;
+
+		jobInputs?.forEach((input) => {
+			if (input instanceof HTMLInputElement) {
+				input.checked = shouldSelectAll || selectedJobs.has(input.value);
+			}
+		});
+		syncJobButtons();
+	};
+
+	const syncEquipmentToSelectedItem = (item) => {
+		const matchingOption = [...(equipmentOptionButtons ?? [])].find(
+			(option) => option instanceof HTMLButtonElement && option.dataset.equipmentOption === item.equipmentKind,
+		);
+
+		if (!(matchingOption instanceof HTMLButtonElement)) {
+			return;
+		}
+
+		const matchingGroup = matchingOption.closest('[data-equipment-options]');
+		const matchingMode = matchingGroup instanceof HTMLElement ? matchingGroup.dataset.equipmentOptions : undefined;
+
+		equipmentOptionGroups?.forEach((group) => {
+			if (group instanceof HTMLElement) {
+				group.hidden = group !== matchingGroup;
+			}
+		});
+
+		equipmentModeButtons?.forEach((button) => {
+			if (button instanceof HTMLButtonElement) {
+				button.classList.toggle('active', button.dataset.equipmentMode === matchingMode);
+			}
+		});
+
+		setEquipmentOption(matchingOption);
+	};
+
+	const syncFiltersToSelectedItem = (item) => {
+		syncJobsToSelectedItem(item);
+		syncEquipmentToSelectedItem(item);
+
+		if (levelInput instanceof HTMLInputElement) {
+			levelInput.value = String(normalizeItemLevel(item.requiredLevel));
+		}
+	};
+
+	const hideItemSuggestions = () => {
+		if (itemSuggestions instanceof HTMLElement) {
+			itemSuggestions.hidden = true;
+		}
+
+		if (itemNameInput instanceof HTMLInputElement) {
+			itemNameInput.setAttribute('aria-expanded', 'false');
+		}
+	};
+
+	const selectSuggestedItem = (item) => {
+		if (!(itemNameInput instanceof HTMLInputElement)) {
+			return;
+		}
+
+		itemNameInput.value = item.nameKo;
+		if (selectedItemIdInput instanceof HTMLInputElement) {
+			selectedItemIdInput.value = String(item.id);
+		}
+		form?.setAttribute('data-selected-item-id', String(item.id));
+		syncFiltersToSelectedItem(item);
+		renderSelectedItemCard(item);
+		syncItemSearchUrl();
+		hideItemSuggestions();
+	};
+
+	const renderItemSuggestions = () => {
+		if (!(itemNameInput instanceof HTMLInputElement) || !(itemSuggestions instanceof HTMLElement)) {
+			return;
+		}
+
+		if (selectedItemIdInput instanceof HTMLInputElement) {
+			selectedItemIdInput.value = '';
+		}
+		form?.removeAttribute('data-selected-item-id');
+		clearSelectedItemCard();
+		itemSuggestions.replaceChildren();
+
+		const results = searchKoreanItems(itemNameInput.value, { items: itemIndex });
+		if (results.length === 0) {
+			hideItemSuggestions();
+			return;
+		}
+
+		results.forEach((item) => {
+			const option = document.createElement('button');
+			option.type = 'button';
+			option.className = 'item-suggestion-option';
+			option.setAttribute('role', 'option');
+			option.dataset.itemId = String(item.id);
+
+			const icon = document.createElement('img');
+			icon.className = 'item-suggestion-icon';
+			icon.src = buildItemIconUrl(item.id);
+			icon.alt = '';
+			icon.loading = 'lazy';
+
+			const text = document.createElement('span');
+			text.className = 'item-suggestion-text';
+
+			const name = document.createElement('strong');
+			name.textContent = item.nameKo;
+
+			const meta = document.createElement('span');
+			meta.textContent = item.equipmentKind;
+
+			text.append(name, meta);
+			option.append(icon, text);
+			option.addEventListener('click', () => {
+				selectSuggestedItem(item);
+			});
+			itemSuggestions.append(option);
+		});
+
+		itemSuggestions.hidden = false;
+		itemNameInput.setAttribute('aria-expanded', 'true');
+	};
+
+	const setEquipmentOption = (button) => {
+		if (!(equipmentInput instanceof HTMLInputElement) || !(button instanceof HTMLButtonElement)) {
+			return;
+		}
+
+		form?.querySelectorAll('[data-equipment-option]').forEach((option) => {
+			const isActive = option === button;
+			option.classList.toggle('active', isActive);
+			option.setAttribute('aria-selected', String(isActive));
+		});
+
+		equipmentInput.value = button.dataset.equipmentOption ?? '';
+		if (equipmentTriggerLabel instanceof HTMLElement) {
+			equipmentTriggerLabel.textContent = equipmentInput.value;
+		}
+		syncItemSearchUrl();
+		if (equipmentMenu instanceof HTMLElement && equipmentTrigger instanceof HTMLButtonElement) {
+			equipmentMenu.hidden = true;
+			equipmentTrigger.setAttribute('aria-expanded', 'false');
+		}
+	};
+
+	if (levelInput instanceof HTMLInputElement) {
+		levelInput.addEventListener('blur', () => {
+			levelInput.value = String(normalizeItemLevel(levelInput.value));
+			syncItemSearchUrl();
+		});
+
+		stepButtons?.forEach((button) => {
+			button.addEventListener('click', () => {
+				if (!(button instanceof HTMLButtonElement)) {
+					return;
+				}
+
+				const delta = Number.parseInt(button.dataset.levelStep ?? '0', 10);
+				levelInput.value = String(nextItemLevel(levelInput.value, delta));
+				syncItemSearchUrl();
+			});
+		});
+	}
+
+	itemNameInput?.addEventListener('input', () => {
+		syncItemSearchUrl();
+		renderItemSuggestions();
+	});
+
+	itemNameInput?.addEventListener('keydown', (event) => {
+		if (event instanceof KeyboardEvent && event.key === 'Escape') {
+			hideItemSuggestions();
+		}
+	});
+
+	if (equipmentInput instanceof HTMLInputElement) {
+		equipmentTrigger?.addEventListener('click', () => {
+			if (!(equipmentMenu instanceof HTMLElement) || !(equipmentTrigger instanceof HTMLButtonElement)) {
+				return;
+			}
+
+			const willOpen = equipmentMenu.hidden;
+			equipmentMenu.hidden = !willOpen;
+			equipmentTrigger.setAttribute('aria-expanded', String(willOpen));
+		});
+
+		equipmentModeButtons?.forEach((button) => {
+			button.addEventListener('click', () => {
+				if (!(button instanceof HTMLButtonElement)) {
+					return;
+				}
+
+				const mode = button.dataset.equipmentMode;
+				const matchingGroup = form?.querySelector(`[data-equipment-options="${mode}"]`);
+
+				equipmentOptionGroups?.forEach((group) => {
+					if (group instanceof HTMLElement) {
+						group.hidden = group !== matchingGroup;
+					}
+				});
+
+				equipmentModeButtons.forEach((modeButton) => {
+					modeButton.classList.toggle('active', modeButton === button);
+				});
+
+				const selectedOption =
+					matchingGroup?.querySelector('.equipment-option.active') ??
+					matchingGroup?.querySelector('[data-equipment-option]');
+				if (selectedOption instanceof HTMLButtonElement) {
+					setEquipmentOption(selectedOption);
+				}
+			});
+		});
+	}
+
+	equipmentOptionButtons?.forEach((button) => {
+		button.addEventListener('click', () => {
+			setEquipmentOption(button);
+		});
+	});
+
+	document.addEventListener('click', (event) => {
+		if (
+			equipmentDropdown instanceof HTMLElement &&
+			equipmentMenu instanceof HTMLElement &&
+			equipmentTrigger instanceof HTMLButtonElement &&
+			event.target instanceof Node &&
+			!equipmentDropdown.contains(event.target)
+		) {
+			equipmentMenu.hidden = true;
+			equipmentTrigger.setAttribute('aria-expanded', 'false');
+		}
+
+		if (
+			itemNameSearch instanceof HTMLElement &&
+			itemSuggestions instanceof HTMLElement &&
+			itemNameInput instanceof HTMLInputElement &&
+			event.target instanceof Node &&
+			!itemNameSearch.contains(event.target)
+		) {
+			hideItemSuggestions();
+		}
+	});
+
+	jobInputs?.forEach((input) => {
+		input.addEventListener('change', syncJobButtons);
+	});
+
+	jobSelectAllButton?.addEventListener('click', () => {
+		jobInputs?.forEach((input) => {
+			if (input instanceof HTMLInputElement) {
+				input.checked = true;
+			}
+		});
+		syncJobButtons();
+	});
+
+	jobClearAllButton?.addEventListener('click', () => {
+		jobInputs?.forEach((input) => {
+			if (input instanceof HTMLInputElement) {
+				input.checked = false;
+			}
+		});
+		syncJobButtons();
+	});
+
+	syncJobButtons();
+	syncItemSearchUrl();
+
+	fetch('/data/items-gms83-ko.json')
+		.then((response) => {
+			if (!response.ok) {
+				throw new Error(`Unable to load item index: ${response.status}`);
+			}
+
+			return response.json();
+		})
+		.then((items) => {
+			itemIndex = Array.isArray(items) ? items : [];
+			itemById = new Map(itemIndex.map((item) => [item.id, item]));
+
+			const initialSelectedItemId =
+				selectedItemIdInput instanceof HTMLInputElement ? Number.parseInt(selectedItemIdInput.value, 10) : NaN;
+			if (itemById.has(initialSelectedItemId)) {
+				renderSelectedItemCard(itemById.get(initialSelectedItemId));
+			}
+
+			renderItemSuggestions();
+		})
+		.catch((error) => {
+			console.error(error);
+		});
+</script>
+
+<style>
+	.item-search-fields {
+		display: grid;
+		gap: 12px;
+	}
+
+	.input-row {
+		padding: 16px;
+		border: 1px solid var(--line);
+		border-radius: 8px;
+		background: #fbfcfa;
+	}
+
+	.level-stepper {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		gap: 8px;
+	}
+
+	.step-button {
+		width: 48px;
+		padding: 10px 0;
+	}
+
+    .job-options {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      min-inline-size: 0;
+    }
+
+	.job-options legend {
+		margin: 0;
+		color: var(--muted);
+		font-size: 0.92rem;
+		font-weight: 700;
+	}
+
+	.field-block {
+		display: grid;
+		gap: 6px;
+	}
+
+	.item-name-search {
+		position: relative;
+	}
+
+	.item-suggestion-menu {
+		position: absolute;
+		z-index: 6;
+		top: calc(100% - 8px);
+		left: 16px;
+		right: 16px;
+		display: grid;
+		max-height: 280px;
+		gap: 6px;
+		overflow-y: auto;
+		padding: 8px;
+		border: 1px solid var(--line);
+		border-radius: 8px;
+		background: var(--surface);
+		box-shadow: var(--shadow);
+	}
+
+	.item-suggestion-menu[hidden] {
+		display: none;
+	}
+
+	.item-suggestion-menu :global(.item-suggestion-option) {
+		display: grid;
+		grid-template-columns: 40px minmax(0, 1fr);
+		align-items: center;
+		gap: 16px;
+		width: 100%;
+		min-height: 56px;
+		padding: 8px 10px;
+		border: 1px solid transparent;
+		border-radius: 8px;
+		background: #fbfcfa;
+		color: var(--ink);
+		text-align: left;
+	}
+
+	.item-suggestion-menu :global(.item-suggestion-option:hover),
+	.item-suggestion-menu :global(.item-suggestion-option:focus-visible) {
+		border-color: var(--green);
+		outline: none;
+	}
+
+	.item-suggestion-menu :global(.item-suggestion-icon) {
+		width: 32px;
+		height: 32px;
+		object-fit: contain;
+		image-rendering: pixelated;
+	}
+
+	.item-suggestion-menu :global(.item-suggestion-text) {
+		display: grid;
+		min-width: 0;
+		line-height: 1.25;
+	}
+
+	.item-suggestion-menu :global(.item-suggestion-text strong),
+	.item-suggestion-menu :global(.item-suggestion-text span) {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.item-suggestion-menu :global(.item-suggestion-text span) {
+		margin-top: 5px;
+		padding-top: 5px;
+		border-top: 1px solid var(--line);
+		color: var(--muted);
+		font-size: 0.86rem;
+		font-weight: 650;
+	}
+
+	.selected-item-card {
+		display: grid;
+		gap: 14px;
+		margin-bottom: 16px;
+		padding: 18px;
+		border: 2px solid #f4f1ff;
+		border-radius: 8px;
+		background: #4d4c78;
+		color: white;
+		box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%);
+	}
+
+	.selected-item-card[hidden] {
+		display: none;
+	}
+
+	.selected-item-card h3 {
+		margin: 0;
+		color: white;
+		font-size: 1.5rem;
+		line-height: 1.15;
+		text-align: center;
+	}
+
+	.selected-item-top {
+		display: grid;
+		grid-template-columns: 112px minmax(0, 1fr);
+		gap: 14px;
+		align-items: start;
+	}
+
+	.selected-item-icon-frame {
+		display: grid;
+		width: 112px;
+		height: 112px;
+		place-items: center;
+		background: #c8c8d2;
+	}
+
+	.selected-item-icon-frame img {
+		max-width: 88px;
+		max-height: 88px;
+		object-fit: contain;
+		image-rendering: pixelated;
+	}
+
+	.selected-item-requirements,
+	.selected-item-stats {
+		display: grid;
+		gap: 2px;
+		font-size: 1rem;
+		line-height: 1.25;
+	}
+
+	.selected-item-stats {
+		justify-items: center;
+		font-size: 1.18rem;
+	}
+
+	.selected-item-line strong {
+		font-weight: 500;
+	}
+
+	.selected-item-divider {
+		height: 3px;
+		background: white;
+	}
+
+	.field-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+	}
+
+	.field-label,
+	.field-header > label {
+		display: block;
+		color: var(--muted);
+		font-size: 0.92rem;
+		font-weight: 700;
+	}
+
+	.compact-actions,
+	.segmented-control {
+		display: inline-flex;
+		gap: 6px;
+	}
+
+	.small-button,
+	.segment {
+		min-height: 34px;
+		border: 1px solid var(--line);
+		background: #fbfcfa;
+		color: var(--ink);
+		padding: 6px 10px;
+		font-size: 0.86rem;
+	}
+
+	.segment.active,
+	.choice-button.active {
+		border-color: var(--green);
+		background: var(--green);
+		color: white;
+	}
+
+	.choice-row {
+		display: flex;
+		gap: 8px;
+		overflow-x: auto;
+		padding-bottom: 2px;
+	}
+
+	.dropdown-frame {
+		position: relative;
+	}
+
+	.dropdown-trigger {
+		width: 100%;
+		justify-content: space-between;
+		border: 1px solid var(--line);
+		background: #fbfcfa;
+		color: var(--ink);
+	}
+
+	.equipment-menu {
+		position: absolute;
+		z-index: 5;
+		top: calc(100% + 6px);
+		left: 0;
+		display: grid;
+		width: 100%;
+		max-height: 260px;
+		gap: 6px;
+		overflow-y: auto;
+		padding: 8px;
+		border: 1px solid var(--line);
+		border-radius: 8px;
+		background: var(--surface);
+		box-shadow: var(--shadow);
+	}
+
+	.equipment-menu[hidden] {
+		display: none;
+	}
+
+	.equipment-menu [data-equipment-options] {
+		display: grid;
+		gap: 6px;
+	}
+
+	.equipment-option,
+	.choice-button {
+		display: flex;
+		min-height: 44px;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		padding: 9px 11px;
+		border: 1px solid var(--line);
+		border-radius: 8px;
+		background: #fbfcfa;
+		color: var(--ink);
+		text-align: center;
+		cursor: pointer;
+	}
+
+	.equipment-option.active {
+		border-color: var(--green);
+		background: var(--green);
+		color: white;
+	}
+
+	.choice-button:has(input:focus-visible) {
+		outline: 2px solid var(--blue);
+		outline-offset: 2px;
+	}
+
+	@media (max-width: 760px) {
+		.field-header {
+			display: grid;
+			justify-content: stretch;
+		}
+
+		.compact-actions,
+		.segmented-control {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		.choice-button {
+			min-width: 84px;
+		}
+	}
+</style>

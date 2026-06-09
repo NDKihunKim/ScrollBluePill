@@ -1,0 +1,380 @@
+---
+import { site } from '../lib/site';
+
+type Props = {
+	title: string;
+	description: string;
+	canonicalPath?: string;
+};
+
+const { title, description, canonicalPath = Astro.url.pathname } = Astro.props;
+const canonical = new URL(canonicalPath, Astro.site ?? Astro.url).toString();
+const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
+---
+
+<!doctype html>
+<html lang="ko">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{pageTitle}</title>
+		<meta name="description" content={description} />
+		<link rel="canonical" href={canonical} />
+		<meta property="og:type" content="website" />
+		<meta property="og:locale" content="ko_KR" />
+		<meta property="og:site_name" content={site.name} />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonical} />
+	</head>
+	<body>
+		<header class="site-header">
+			<a class="brand" href="/" aria-label={`${site.name} 홈`}>
+				<span class="brand-mark">S</span>
+				<span>{site.name}</span>
+			</a>
+			<nav aria-label="주요 메뉴">
+				{
+					site.nav.map((item) => (
+						<a href={item.href} class={Astro.url.pathname === item.href ? 'active' : ''}>
+							{item.label}
+						</a>
+					))
+				}
+			</nav>
+		</header>
+		<main>
+			<slot />
+		</main>
+		<footer class="site-footer">
+			<div>
+				<strong>{site.name}</strong>
+				<p>게임 내 데이터는 버전과 서버 기준에 따라 달라질 수 있습니다.</p>
+			</div>
+			<div class="footer-links">
+				<a href="/privacy/">개인정보처리방침</a>
+				<a href="/terms/">이용약관</a>
+				<a href="/contact/">문의</a>
+			</div>
+		</footer>
+	</body>
+</html>
+
+<style is:global>
+	:root {
+		color-scheme: light;
+		--bg: #f7f8f5;
+		--surface: #ffffff;
+		--ink: #20231f;
+		--muted: #62685f;
+		--line: #dfe4dc;
+		--green: #167c64;
+		--blue: #245aa8;
+		--shadow: 0 12px 30px rgb(38 45 35 / 10%);
+		font-family:
+			Inter, Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	}
+
+	* {
+		box-sizing: border-box;
+	}
+
+	body {
+		margin: 0;
+		background: var(--bg);
+		color: var(--ink);
+		line-height: 1.6;
+	}
+
+	a {
+		color: inherit;
+		text-decoration: none;
+	}
+
+	button,
+	input,
+	select {
+		font: inherit;
+	}
+
+	.site-header {
+		position: sticky;
+		top: 0;
+		z-index: 10;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 24px;
+		padding: 14px clamp(16px, 4vw, 56px);
+		border-bottom: 1px solid var(--line);
+		background: rgb(247 248 245 / 92%);
+		backdrop-filter: blur(12px);
+	}
+
+	.brand {
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+		font-weight: 800;
+		white-space: nowrap;
+	}
+
+	.brand-mark {
+		display: grid;
+		width: 32px;
+		height: 32px;
+		place-items: center;
+		border-radius: 8px;
+		background: var(--green);
+		color: white;
+	}
+
+	nav {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+		gap: 6px;
+	}
+
+	nav a,
+	.footer-links a {
+		border-radius: 8px;
+		color: var(--muted);
+		font-size: 0.95rem;
+		font-weight: 650;
+	}
+
+	nav a {
+		padding: 8px 10px;
+	}
+
+	nav a.active,
+	nav a:hover,
+	.footer-links a:hover {
+		color: var(--ink);
+		background: #e9eee6;
+	}
+
+	main {
+		min-height: 72vh;
+	}
+
+	.band {
+		padding: clamp(28px, 5vw, 72px) clamp(16px, 4vw, 56px);
+	}
+
+	.container {
+		width: min(1120px, 100%);
+		margin: 0 auto;
+	}
+
+	.eyebrow {
+		margin: 0 0 8px;
+		color: var(--green);
+		font-size: 0.9rem;
+		font-weight: 800;
+	}
+
+	h1,
+	h2,
+	h3,
+	p {
+		margin-top: 0;
+	}
+
+	h1 {
+		max-width: 760px;
+		margin-bottom: 12px;
+		font-size: clamp(2rem, 4vw, 4rem);
+		line-height: 1.08;
+		letter-spacing: 0;
+	}
+
+	h2 {
+		margin-bottom: 16px;
+		font-size: clamp(1.45rem, 2.4vw, 2.1rem);
+		line-height: 1.2;
+	}
+
+	.lede {
+		max-width: 780px;
+		color: var(--muted);
+		font-size: clamp(1rem, 1.6vw, 1.18rem);
+	}
+
+	.grid {
+		display: grid;
+		gap: 16px;
+	}
+
+	.grid.two {
+		grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+	}
+
+	.grid.three {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	.card,
+	.panel {
+		border: 1px solid var(--line);
+		border-radius: 8px;
+		background: var(--surface);
+		box-shadow: var(--shadow);
+	}
+
+	.card {
+		padding: 20px;
+	}
+
+	.panel {
+		padding: clamp(18px, 3vw, 28px);
+	}
+
+	.field-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 14px;
+	}
+
+	label {
+		display: grid;
+		gap: 6px;
+		color: var(--muted);
+		font-size: 0.92rem;
+		font-weight: 700;
+	}
+
+	input,
+	select {
+		width: 100%;
+		min-height: 44px;
+		border: 1px solid var(--line);
+		border-radius: 8px;
+		background: #fbfcfa;
+		color: var(--ink);
+		padding: 9px 11px;
+	}
+
+	input:disabled,
+	select:disabled,
+	button:disabled {
+		cursor: not-allowed;
+		opacity: 0.64;
+	}
+
+	.button-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		margin-top: 18px;
+	}
+
+	button,
+	.button {
+		display: inline-flex;
+		min-height: 44px;
+		align-items: center;
+		justify-content: center;
+		border: 0;
+		border-radius: 8px;
+		background: var(--green);
+		color: white;
+		padding: 10px 14px;
+		font-weight: 800;
+	}
+
+	.button.secondary {
+		border: 1px solid var(--line);
+		background: white;
+		color: var(--ink);
+	}
+
+	.metric {
+		display: grid;
+		gap: 4px;
+		padding: 16px;
+		border: 1px solid var(--line);
+		border-radius: 8px;
+		background: #fbfcfa;
+	}
+
+	.metric span {
+		color: var(--muted);
+		font-size: 0.88rem;
+		font-weight: 700;
+	}
+
+	.metric strong {
+		font-size: 1.35rem;
+	}
+
+	.ad-slot {
+		display: grid;
+		min-height: 96px;
+		place-items: center;
+		border: 1px dashed #bdc7b9;
+		border-radius: 8px;
+		background: #f0f3ed;
+		color: var(--muted);
+		font-size: 0.9rem;
+		font-weight: 700;
+	}
+
+	.prose {
+		max-width: 800px;
+	}
+
+	.prose a {
+		color: var(--blue);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	.site-footer {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 24px;
+		padding: 28px clamp(16px, 4vw, 56px);
+		border-top: 1px solid var(--line);
+		color: var(--muted);
+	}
+
+	.site-footer p {
+		margin: 4px 0 0;
+	}
+
+	.footer-links {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+		gap: 8px;
+	}
+
+	.footer-links a {
+		padding: 6px 8px;
+	}
+
+	@media (max-width: 760px) {
+		.site-header,
+		.site-footer {
+			display: grid;
+			justify-content: stretch;
+		}
+
+		nav,
+		.footer-links {
+			justify-content: flex-start;
+		}
+
+		.grid.two,
+		.grid.three,
+		.field-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
