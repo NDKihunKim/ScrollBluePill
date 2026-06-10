@@ -172,16 +172,18 @@ async function main() {
 		console.log(`Dropped ${droppedNullIds} scrolls with null maplestory_io_item_id.`);
 	}
 
-	// Sort: equipmentKind (Korean), then percent descending (100→60→10), then name
+	// Sort: equipmentKind → stat stem (Korean) → percent descending (100→60→10)
 	const extractPercent = (name) => {
 		const match = name?.match(PERCENT_PATTERN);
 		return match ? Number(match[1]) : 0;
 	};
 
+	const stemName = (name) => String(name ?? '').replace(PERCENT_PATTERN, '').trimEnd();
+
 	frontendScrolls.sort((a, b) =>
 		String(a.equipmentKind).localeCompare(String(b.equipmentKind), 'ko-KR') ||
-		extractPercent(b.nameKo) - extractPercent(a.nameKo) ||
-		String(a.nameKo).localeCompare(String(b.nameKo), 'ko-KR'),
+		stemName(a.nameKo).localeCompare(stemName(b.nameKo), 'ko-KR') ||
+		extractPercent(b.nameKo) - extractPercent(a.nameKo),
 	);
 
 	await mkdir(dirname(outputPath), { recursive: true });
