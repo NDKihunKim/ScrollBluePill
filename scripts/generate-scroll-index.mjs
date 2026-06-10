@@ -34,6 +34,21 @@ async function fetchSupabase(url, options = {}) {
 	return response.json();
 }
 
+const DESIRED_PERCENTS = new Set([10, 60, 100]);
+const PERCENT_PATTERN = /(\d+)%$/;
+
+function filterDesiredPercentScrolls(scrolls) {
+	return scrolls.filter((scroll) => {
+		const match = scroll.name_ko?.match(PERCENT_PATTERN);
+		if (!match) {
+			return false;
+		}
+
+		const percent = Number(match[1]);
+		return DESIRED_PERCENTS.has(percent);
+	});
+}
+
 function applyVisibilityOverrides(scrolls, overrides) {
 	const hiddenIds = new Set(overrides.hideScrollIds ?? []);
 	const hiddenCategories = new Set(overrides.hideCategories ?? []);
@@ -131,7 +146,11 @@ async function main() {
 	console.log(`Fetched ${rawScrolls.length} scroll definitions (RLS-filtered to published only).`);
 
 	const visibilityResult = applyVisibilityOverrides(rawScrolls, overrides);
-	const { scrolls } = visibilityResult;
+	let { scrolls } = visibilityResult;
+
+	const beforePercentFilter = scrolls.length;
+	scrolls = filterDesiredPercentScrolls(scrolls);
+	console.log(`Percent filter: kept ${scrolls.length} scrolls (10%, 60%, 100% only; removed ${beforePercentFilter - scrolls.length}).`);
 
 	const sorted = [...scrolls].sort((a, b) => a.name_ko.localeCompare(b.name_ko, 'ko-KR'));
 
