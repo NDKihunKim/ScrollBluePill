@@ -219,6 +219,26 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 						</div>
 						<div class="enhancement-message" data-enhancement-message hidden></div>
 					</div>
+						<div class="maker-section" data-maker-section hidden>
+							<div class="maker-toggle-row">
+								<button type="button" class="maker-toggle-button" data-maker-toggle disabled>
+									메이커
+								</button>
+							</div>
+							<div class="maker-gem-area" data-maker-gem-area hidden>
+								<p class="enhancement-section-label">추가 재료</p>
+								<div class="maker-gem-slots" data-maker-gem-slots>
+								</div>
+								<div class="maker-picker" data-maker-picker hidden>
+									<p class="enhancement-section-label" data-maker-picker-label>보석 종류 선택</p>
+									<div class="maker-picker-grid" data-maker-picker-grid>
+									</div>
+									<button type="button" class="small-button secondary maker-picker-back" data-maker-picker-back>
+										뒤로
+									</button>
+								</div>
+							</div>
+						</div>
 				</div>
 			</form>
 			</div>
@@ -1726,6 +1746,127 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			height: 36px;
 			font-size: 0.82rem;
 		}
+	}
+
+
+	/* Maker gem section */
+	.maker-toggle-button {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 8px 18px;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		background: var(--surface);
+		color: var(--ink);
+		font-size: 0.95rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: background 0.15s, border-color 0.15s;
+	}
+	.maker-toggle-button:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+	.maker-toggle-button.maker-toggle-button--active {
+		border-color: var(--green);
+		background: var(--green);
+		color: white;
+	}
+	.maker-gem-slots {
+		display: flex;
+		gap: 10px;
+		margin-bottom: 14px;
+	}
+	.maker-gem-slot {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		width: 72px;
+		height: 84px;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		background: var(--surface);
+		cursor: pointer;
+		gap: 4px;
+		font-size: 0.8rem;
+		text-align: center;
+		position: relative;
+		transition: border-color 0.15s;
+	}
+	.maker-gem-slot:hover:not(.maker-gem-slot--disabled) {
+		border-color: var(--green);
+	}
+	.maker-gem-slot--disabled {
+		opacity: 0.35;
+		cursor: not-allowed;
+	}
+	.maker-gem-slot--disabled::after {
+		content: '✗';
+		position: absolute;
+		font-size: 1.5rem;
+		color: var(--line);
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+	}
+	.maker-gem-slot--filled {
+		border-color: var(--green);
+	}
+	.maker-gem-slot img {
+		width: 28px;
+		height: 28px;
+		object-fit: contain;
+	}
+	.maker-gem-slot .maker-gem-slot-name {
+		font-size: 0.7rem;
+		line-height: 1.15;
+	}
+	.maker-gem-slot .maker-gem-slot-grade {
+		font-size: 0.7rem;
+		color: var(--green);
+		font-weight: 600;
+	}
+	.maker-picker-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+		gap: 8px;
+		margin-bottom: 10px;
+	}
+	.maker-picker-item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 8px 4px;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		background: var(--surface);
+		cursor: pointer;
+		gap: 4px;
+		font-size: 0.75rem;
+		text-align: center;
+		transition: border-color 0.15s;
+	}
+	.maker-picker-item:hover:not(.maker-picker-item--disabled) {
+		border-color: var(--green);
+	}
+	.maker-picker-item--disabled {
+		opacity: 0.35;
+		cursor: not-allowed;
+	}
+	.maker-picker-item img {
+		width: 28px;
+		height: 28px;
+		object-fit: contain;
+	}
+	.maker-picker-item .maker-picker-item-stat {
+		font-size: 0.7rem;
+		color: var(--muted);
+	}
+	.maker-picker-back {
+		display: block;
+		margin: 0 auto;
 	}
 
 </style>
