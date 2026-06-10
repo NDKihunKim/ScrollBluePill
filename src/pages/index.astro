@@ -477,6 +477,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		}
 
 		selectedItemName.textContent = item.nameKo;
+		selectedItemName.style.color = '';  // reset grade color — no scrolls applied
 		selectedItemIcon.src = buildItemIconUrl(item.id);
 		selectedItemRequirements.replaceChildren();
 		selectedItemStats.replaceChildren();
@@ -596,7 +597,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			}
 		};
 
-	const renderEnhancedItemCard = (item, accumulatedStats, remainingSlots, appliedCount) => {
+		const renderEnhancedItemCard = (item, accumulatedStats, remainingSlots, appliedCount, gradeColor) => {
 		if (
 			!(selectedItemCard instanceof HTMLElement) ||
 			!(selectedItemName instanceof HTMLElement) ||
@@ -609,6 +610,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 		const titleSuffix = appliedCount > 0 ? ` (+${appliedCount})` : '';
 		selectedItemName.textContent = `${item.nameKo}${titleSuffix}`;
+		selectedItemName.style.color = gradeColor ?? '';
 		selectedItemIcon.src = buildItemIconUrl(item.id);
 		selectedItemRequirements.replaceChildren();
 		selectedItemStats.replaceChildren();
