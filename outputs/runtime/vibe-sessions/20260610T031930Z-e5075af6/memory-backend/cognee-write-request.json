@@ -1,0 +1,71 @@
+{
+  "task": "scale down body main UI density smaller controls fit more fields on screen Deliv... Deliverable: Governed implementation artifacts, verification evidence, and cleanup receipts. Constraints: Do not bypass the fixed six-stage governed runtime.; Do not widen scope silently beyond the frozen requirement document.. Update: execute approved plan to scale down body main UI density and verify",
+  "relations": [
+    {
+      "source": "scale-down-body-main-ui-density-smaller-controls-fit-more-fields",
+      "relation": "specified_by",
+      "target": "2026-06-09-scale-down-body-main-ui-density-smaller-controls-fit-more-fields.md",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/requirements/2026-06-09-scale-down-body-main-ui-density-smaller-controls-fit-more-fields.md"
+      ],
+      "keywords": [
+        "scale",
+        "down",
+        "body",
+        "main",
+        "density",
+        "smaller",
+        "controls",
+        "fit",
+        "more",
+        "fields",
+        "screen",
+        "deliv"
+      ]
+    },
+    {
+      "source": "scale-down-body-main-ui-density-smaller-controls-fit-more-fields",
+      "relation": "planned_in",
+      "target": "2026-06-09-scale-down-body-main-ui-density-smaller-controls-fit-more-fields-execution-plan.md",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/plans/2026-06-09-scale-down-body-main-ui-density-smaller-controls-fit-more-fields-execution-plan.md"
+      ],
+      "keywords": [
+        "scale",
+        "down",
+        "body",
+        "main",
+        "density",
+        "smaller",
+        "controls",
+        "fit",
+        "more",
+        "fields",
+        "screen",
+        "deliv"
+      ]
+    },
+    {
+      "source": "scale-down-body-main-ui-density-smaller-controls-fit-more-fields",
+      "relation": "executed_as",
+      "target": "execution-manifest.json",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T031930Z-e5075af6/execution-manifest.json"
+      ],
+      "keywords": [
+        "scale",
+        "down",
+        "body",
+        "main",
+        "density",
+        "smaller",
+        "controls",
+        "fit",
+        "more",
+        "fields",
+        "screen",
+        "deliv"
+      ]
+    }
+  ]
+}

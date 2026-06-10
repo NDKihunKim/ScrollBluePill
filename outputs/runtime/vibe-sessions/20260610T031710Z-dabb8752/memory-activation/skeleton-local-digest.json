@@ -1,0 +1,17 @@
+{
+  "stage": "skeleton_check",
+  "owner": "state_store",
+  "status": "fallback_local_digest",
+  "generated_at": "2026-06-10T03:17:11Z",
+  "source_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T031710Z-dabb8752/skeleton-receipt.json",
+  "items": [
+    "Task focus: scale down body main UI density smaller controls fit more fields on screen",
+    "Git branch: ",
+    "All required governed runtime prerequisite paths are present."
+  ],
+  "budget": {
+    "top_k": 3,
+    "max_tokens": 96,
+    "max_chars_per_item": 220
+  }
+}

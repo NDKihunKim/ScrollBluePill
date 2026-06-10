@@ -1,0 +1,62 @@
+{
+  "unit_id": "release-install-runtime-coherence-gate",
+  "kind": "powershell_file",
+  "status": "completed",
+  "started_at": "2026-06-10T03:19:38.388195Z",
+  "finished_at": "2026-06-10T03:19:39.333439Z",
+  "command": "/opt/homebrew/Cellar/powershell/7.6.2/libexec/pwsh",
+  "arguments": [
+    "-NoProfile",
+    "-File",
+    "/Users/andykim/.codex/skills/vibe/scripts/verify/vibe-release-install-runtime-coherence-gate.ps1",
+    "-TargetRoot",
+    "/Users/andykim/.codex"
+  ],
+  "host_kind": "pwsh",
+  "fallback_used": false,
+  "display_command": "/opt/homebrew/Cellar/powershell/7.6.2/libexec/pwsh -NoProfile -File /Users/andykim/.codex/skills/vibe/scripts/verify/vibe-release-install-runtime-coherence-gate.ps1 -TargetRoot /Users/andykim/.codex",
+  "cwd": "/Users/andykim/.codex/skills/vibe",
+  "timeout_seconds": 240,
+  "expected_exit_code": 0,
+  "exit_code": 0,
+  "timed_out": false,
+  "stdout_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T031930Z-e5075af6/child-lanes/lane-release-install-runtime-coherence-gate/execution-logs/release-install-runtime-coherence-gate.stdout.log",
+  "stderr_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T031930Z-e5075af6/child-lanes/lane-release-install-runtime-coherence-gate/execution-logs/release-install-runtime-coherence-gate.stderr.log",
+  "stdout_preview": [
+    "=== VCO Release / Install / Runtime Coherence Gate ===",
+    "Repo root  : /Users/andykim/.codex/skills/vibe",
+    "Target root: /Users/andykim/.codex",
+    "[PASS] [runtime] target_relpath is declared",
+    "[PASS] [runtime] receipt_relpath is declared"
+  ],
+  "stderr_preview": [],
+  "arguments_render_mode": "ArgumentList",
+  "rendered_arguments": null,
+  "launch_metadata_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T031930Z-e5075af6/child-lanes/lane-release-install-runtime-coherence-gate/execution-logs/release-install-runtime-coherence-gate.launch.json",
+  "preflight": {
+    "host_kind": "pwsh",
+    "resolved_command": "/opt/homebrew/Cellar/powershell/7.6.2/libexec/pwsh",
+    "resolved_arguments": [
+      "-NoProfile",
+      "-File",
+      "/Users/andykim/.codex/skills/vibe/scripts/verify/vibe-release-install-runtime-coherence-gate.ps1",
+      "-TargetRoot",
+      "/Users/andykim/.codex"
+    ],
+    "resolved_working_directory": "/Users/andykim/.codex/skills/vibe",
+    "script_path": "/Users/andykim/.codex/skills/vibe/scripts/verify/vibe-release-install-runtime-coherence-gate.ps1",
+    "python_command_spec": null,
+    "executable_exists": true,
+    "executable_is_file": true,
+    "working_directory_exists": true,
+    "working_directory_is_directory": true,
+    "script_exists": true,
+    "script_is_file": true,
+    "script_used_as_executable": false,
+    "python_spec_expanded": true,
+    "passed": true,
+    "failures": []
+  },
+  "expected_artifacts": [],
+  "verification_passed": true
+}

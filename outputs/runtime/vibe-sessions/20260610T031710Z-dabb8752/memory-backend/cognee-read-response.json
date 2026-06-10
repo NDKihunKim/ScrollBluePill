@@ -1,0 +1,55 @@
+{
+  "ok": true,
+  "status": "backend_read",
+  "lane": "cognee",
+  "store_path": "/Users/andykim/.codex/skills/vibe/.vibeskills/memory/workspace-memory-plane.jsonl",
+  "project_key": "vibe",
+  "project_key_source": "workspace_plane",
+  "item_count": 3,
+  "items": [
+    "Cognee relation: frontend-accordion-manual-search-collapsible-item-search-fields specified_by 2026-06-09-frontend-accordion-manual-search-collapsible-item-search-fields.md",
+    "Cognee relation: frontend-accordion-manual-search-collapsible-item-search-fields planned_in 2026-06-09-frontend-accordion-manual-search-collapsible-item-search-fields-execution-plan.md",
+    "Cognee relation: frontend-accordion-manual-search-collapsible-item-search-fields executed_as execution-manifest.json"
+  ],
+  "capsule_count": 3,
+  "capsules": [
+    {
+      "capsule_id": "1dc31b3b31cb0c85",
+      "owner": "Cognee",
+      "lane": "cognee",
+      "kind": "entity_relation_ingest",
+      "disclosure_level": "bounded",
+      "summary": "specified_by",
+      "updated_at": "2026-06-09T20:17:58Z"
+    },
+    {
+      "capsule_id": "dbcd282f40ea9160",
+      "owner": "Cognee",
+      "lane": "cognee",
+      "kind": "entity_relation_ingest",
+      "disclosure_level": "bounded",
+      "summary": "planned_in",
+      "updated_at": "2026-06-09T20:17:58Z"
+    },
+    {
+      "capsule_id": "330df5828d6fed8d",
+      "owner": "Cognee",
+      "lane": "cognee",
+      "kind": "entity_relation_ingest",
+      "disclosure_level": "bounded",
+      "summary": "executed_as",
+      "updated_at": "2026-06-09T20:17:58Z"
+    }
+  ],
+  "suppressed_count": 0,
+  "workspace_memory_plane": {
+    "schema_version": 1,
+    "workspace_root": "/Users/andykim/.codex/skills/vibe",
+    "workspace_sidecar_root": "/Users/andykim/.codex/skills/vibe/.vibeskills",
+    "descriptor_path": "/Users/andykim/.codex/skills/vibe/.vibeskills/project.json",
+    "workspace_id": "ws:0d323c77769d9d96eca85295",
+    "plane_path": "/Users/andykim/.codex/skills/vibe/.vibeskills/memory/workspace-memory-plane.jsonl"
+  },
+  "driver_mode": "compatibility_shell",
+  "generated_at": "2026-06-10T03:17:11Z"
+}

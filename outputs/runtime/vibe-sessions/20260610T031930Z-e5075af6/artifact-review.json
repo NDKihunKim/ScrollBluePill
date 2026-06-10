@@ -1,0 +1,21 @@
+{
+  "status": "passing",
+  "state": "passing",
+  "evidence_paths": [
+    "visual-evidence/home-1440.png",
+    "visual-evidence/home-390.png",
+    "npm run build"
+  ],
+  "covered_baseline_document_quality_dimensions": [],
+  "covered_baseline_ui_quality_dimensions": [
+    "Structure Completeness",
+    "Interaction Feedback",
+    "State Coverage",
+    "Design System Consistency",
+    "Responsive Stability",
+    "Spec Fidelity"
+  ],
+  "covered_task_specific_acceptance_extensions": [],
+  "considered_research_augmentation_sources": [],
+  "notes": "Reviewed the main page after the density change. Structure remains complete, primary calculator/search controls still render, states for default desktop/mobile layouts are visible, existing design tokens and radii are preserved, mobile screenshot shows no overlap, and the delivered UI matches the approved request to make body > main feel slightly smaller."
+}

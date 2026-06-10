@@ -1,0 +1,29 @@
+{
+  "protocol_version": "v1",
+  "source_run_id": "20260610T031930Z-e5075af6",
+  "resolution_mode": "current_session_host_execution",
+  "units": [
+    {
+      "unit_id": "specialist-in_execution-ungrouped-screenshot-specialist",
+      "skill_id": "screenshot",
+      "resolution_state": "executed",
+      "native_skill_entrypoint": "/Users/andykim/.codex/skills/vibe/bundled/skills/screenshot/SKILL.runtime-mirror.md",
+      "evidence_paths": [
+        "visual-evidence/home-1440.png",
+        "visual-evidence/home-390.png"
+      ],
+      "notes": "Captured Chrome screenshots for desktop and mobile viewport checks."
+    },
+    {
+      "unit_id": "specialist-post_execution-ungrouped-scholarly-publishing-specialist",
+      "skill_id": "scholarly-publishing",
+      "resolution_state": "executed",
+      "native_skill_entrypoint": "/Users/andykim/.codex/skills/vibe/bundled/skills/scholarly-publishing/SKILL.runtime-mirror.md",
+      "evidence_paths": [
+        "artifact-review.json",
+        "delivery-acceptance-report.md"
+      ],
+      "notes": "No scholarly publishing deliverable was applicable to this UI task; the bounded post-execution review was recorded as governed runtime evidence only."
+    }
+  ]
+}
