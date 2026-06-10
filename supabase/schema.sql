@@ -18,7 +18,6 @@ create table if not exists public.scroll_definitions (
 	published_status text not null default 'draft' check (published_status in ('draft', 'published', 'hidden')),
 	affected_stats text[] not null default '{}',
 	stat_effect_frame jsonb not null default '{}'::jsonb,
-	maplestory_io_item_id integer unique,
 	source_note text,
 	created_at timestamptz not null default now(),
 	updated_at timestamptz not null default now()
@@ -70,27 +69,13 @@ alter table public.item_categories enable row level security;
 alter table public.probability_sets enable row level security;
 alter table public.guide_content enable row level security;
 
--- RLS: anon can read active version tags
-create policy "Public can read version tags" on public.version_tags
-	for select using (is_active = true);
-
--- RLS: anon can insert/update scroll definitions (seed script)
-create policy "Public can insert scroll definitions" on public.scroll_definitions
-	for insert with check (true);
-
-create policy "Public can update scroll definitions" on public.scroll_definitions
-	for update using (true) with check (true);
-
 -- RLS: only published scrolls are visible to the public anon role
 create policy "Public can read published scrolls" on public.scroll_definitions
 	for select using (published_status = 'published');
 
--- Migration for existing scroll_definitions tables that lack newer columns
+-- Migration for existing scroll_definitions tables that lack published_status
 alter table public.scroll_definitions
 	add column if not exists published_status text not null default 'draft';
-
-alter table public.scroll_definitions
-	add column if not exists maplestory_io_item_id integer;
 
 alter table public.scroll_definitions
 	add constraint scroll_definitions_published_status_check
