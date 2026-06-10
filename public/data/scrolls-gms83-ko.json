@@ -1186,16 +1186,6 @@
     }
   },
   {
-    "id": 2040720,
-    "nameKo": "신발 민첩 주문서 100%",
-    "equipmentKind": "신발",
-    "behavior_type": "fixed",
-    "stats": {
-      "dex": 1,
-      "jump": 2
-    }
-  },
-  {
     "id": 2040701,
     "nameKo": "신발 민첩 주문서 60%",
     "equipmentKind": "신발",
@@ -1214,6 +1204,15 @@
       "speed": 1,
       "accuracy": 3,
       "avoidability": 5
+    }
+  },
+  {
+    "id": 2040700,
+    "nameKo": "신발 민첩성 주문서 100%",
+    "equipmentKind": "신발",
+    "behavior_type": "fixed",
+    "stats": {
+      "avoidability": 1
     }
   },
   {
