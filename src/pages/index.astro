@@ -113,7 +113,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 								<span aria-hidden="true">⌄</span>
 							</button>
 							<div class="equipment-menu" role="listbox" aria-labelledby="equipment-kind-label" data-equipment-menu hidden>
-								<div data-equipment-options="weapon">
+								<div data-equipment-options="weapon" hidden>
 								{
 									weaponKinds.map((kind, index) => (
 										<button
@@ -195,7 +195,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			</form>
 
 			<aside class="panel" aria-label="계산 결과">
-				<h2>결과</h2>
+				<h2>아이템</h2>
 				<div class="selected-item-card" data-selected-item-card hidden>
 					<h3 data-selected-item-name></h3>
 					<div class="selected-item-top">
@@ -207,20 +207,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 					<div class="selected-item-jobs" data-selected-item-jobs></div>
 					<div class="selected-item-divider"></div>
 					<div class="selected-item-stats" data-selected-item-stats></div>
-				</div>
-				<div class="grid">
-					<div class="metric">
-						<span>기대값</span>
-						<strong>준비 중</strong>
-					</div>
-					<div class="metric">
-						<span>목표 달성 확률</span>
-						<strong>준비 중</strong>
-					</div>
-					<div class="metric">
-						<span>백분위 범위</span>
-						<strong>준비 중</strong>
-					</div>
 				</div>
 			</aside>
 		</div>
@@ -780,6 +766,12 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 				return;
 			}
 
+			// Don't open the menu until a mode (무기/장비) is selected
+			const activeMode = form?.querySelector('.segment.active');
+			if (!activeMode) {
+				return;
+			}
+
 			const willOpen = equipmentMenu.hidden;
 			equipmentMenu.hidden = !willOpen;
 			equipmentTrigger.setAttribute('aria-expanded', String(willOpen));
@@ -970,6 +962,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			font-weight: 800;
 		}
 
+		.manual-item-results {
+			margin-top: 10px;
+		}
+
 		.manual-item-results[hidden] {
 			display: none;
 		}
@@ -977,7 +973,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		.manual-item-grid {
 			display: grid;
 			grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-			gap: 8px;
+			gap: 20px;
 		}
 
 		.manual-item-option {
@@ -1131,7 +1127,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 	.selected-item-card {
 		display: grid;
-		gap: 14px;
+		gap: 8px;
 		margin-bottom: 16px;
 		padding: 18px;
 		border: 2px solid #f4f1ff;
@@ -1148,7 +1144,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	.selected-item-card h3 {
 		margin: 0;
 		color: white;
-		font-size: 1.5rem;
+		font-size: 1.25rem;
 		line-height: 1.15;
 		text-align: center;
 	}
@@ -1169,8 +1165,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	}
 
 	.selected-item-icon-frame img {
-		max-width: 88px;
-		max-height: 88px;
+		width: 80px;
+		height: 80px;
 		object-fit: contain;
 		image-rendering: pixelated;
 	}
@@ -1179,13 +1175,13 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	.selected-item-stats {
 		display: grid;
 		gap: 2px;
-		font-size: 1rem;
+		font-size: 0.875rem;
 		line-height: 1.25;
 	}
 
 	.selected-item-stats {
 		justify-items: center;
-		font-size: 1.18rem;
+		font-size: 1rem;
 	}
 
 	.selected-item-line strong {
@@ -1198,31 +1194,27 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	}
 
 	.selected-item-jobs {
-		padding: 4px 0;
+		padding: 1px 0;
 	}
 
-	.selected-item-jobs-row {
+	:global(.selected-item-jobs-row) {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
+		justify-content: center;
 		gap: 6px;
 		color: white;
-		font-size: 1rem;
+		font-size: 0.875rem;
 	}
 
-	.job-chip {
-		display: inline-block;
-		padding: 2px 6px;
-		border-radius: 4px;
-		background: rgba(255,255,255,0.15);
+	:global(.job-chip) {
 		color: white;
 		font-weight: 500;
-		font-size: 0.92rem;
+		font-size: 0.85rem;
 	}
 
-	.job-chip--inactive {
+	:global(.job-chip--inactive) {
 		color: #888;
-		background: rgba(255,255,255,0.06);
 	}
 
 	.field-header {
@@ -1306,6 +1298,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	.equipment-menu [data-equipment-options] {
 		display: grid;
 		gap: 6px;
+	}
+
+	.equipment-menu [data-equipment-options][hidden] {
+		display: none;
 	}
 
 	.equipment-option,
