@@ -40349,16 +40349,16 @@
       "Warrior"
     ],
     "requirements": {
-      "str": 115,
       "dex": 0,
       "int": 0,
       "luk": 0,
-      "pop": 0
+      "pop": 0,
+      "str": 115
     },
     "stats": {
       "attackSpeed": 5,
-      "weaponAttack": 55,
-      "upgradeSlots": 7
+      "upgradeSlots": 7,
+      "weaponAttack": 55
     },
     "aliases": []
   },
