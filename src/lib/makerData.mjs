@@ -101,3 +101,19 @@ export const GEM_ITEM_IDS = {
   topaz:       { low: 0, mid: 0, high: 0 },
   emerald:     { low: 0, mid: 0, high: 0 },
 };
+
+/** Background colors for gem icon placeholders, keyed by stat */
+export const GEM_STAT_COLORS = {
+  weaponAttack:  '#e74c3c',
+  magicAttack:   '#8e44ad',
+  str:           '#e74c3c',
+  dex:           '#27ae60',
+  int:           '#2980b9',
+  luk:           '#f39c12',
+  accuracy:      '#e67e22',
+  avoidability:  '#1abc9c',
+  speed:         '#3498db',
+  jump:          '#2ecc71',
+  maxHp:         '#c0392b',
+  maxMp:         '#2c3e50',
+};
