@@ -295,6 +295,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	const equipmentOptionButtons = form?.querySelectorAll('[data-equipment-option]');
 	const manualSearchToggle = form?.querySelector('[data-manual-search-toggle]');
 		const manualSearchFields = form?.querySelector('[data-manual-search-fields]');
+			const manualSearchAccordionInner = manualSearchFields?.querySelector('.manual-search-accordion-inner');
 		const manualItemResults = form?.querySelector('[data-manual-item-results]');
 		const jobInputs = form?.querySelectorAll('input[name="jobs"]');
 	const jobSelectAllButton = form?.querySelector('[data-job-select-all]');
@@ -321,6 +322,20 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			manualSearchFields.classList.toggle('open', isOpen);
 			manualSearchFields.setAttribute('aria-hidden', String(!isOpen));
 			manualSearchFields.inert = !isOpen;
+
+			if (!isOpen) {
+				if (equipmentMenu instanceof HTMLElement && equipmentTrigger instanceof HTMLButtonElement) {
+					equipmentMenu.hidden = true;
+					equipmentTrigger.setAttribute("aria-expanded", "false");
+					toggleEquipmentDropdownOpen(false);
+				}
+			}
+		};
+
+		const toggleEquipmentDropdownOpen = (isOpen) => {
+			if (manualSearchAccordionInner instanceof HTMLElement) {
+				manualSearchAccordionInner.classList.toggle("dropdown-open", isOpen);
+			}
 		};
 
 		const syncItemSearchUrl = () => {
@@ -817,6 +832,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		if (equipmentMenu instanceof HTMLElement && equipmentTrigger instanceof HTMLButtonElement) {
 			equipmentMenu.hidden = true;
 			equipmentTrigger.setAttribute('aria-expanded', 'false');
+			toggleEquipmentDropdownOpen(false);
 		}
 	};
 
@@ -877,6 +893,16 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		}
 	});
 
+		equipmentTrigger?.addEventListener("keydown", (event) => {
+			if (event instanceof KeyboardEvent && event.key === "Escape") {
+				if (equipmentMenu instanceof HTMLElement && equipmentTrigger instanceof HTMLButtonElement) {
+					equipmentMenu.hidden = true;
+					equipmentTrigger.setAttribute("aria-expanded", "false");
+					toggleEquipmentDropdownOpen(false);
+				}
+			}
+		});
+
 	if (equipmentInput instanceof HTMLInputElement) {
 		equipmentTrigger?.addEventListener('click', () => {
 			if (!(equipmentMenu instanceof HTMLElement) || !(equipmentTrigger instanceof HTMLButtonElement)) {
@@ -892,6 +918,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			const willOpen = equipmentMenu.hidden;
 			equipmentMenu.hidden = !willOpen;
 			equipmentTrigger.setAttribute('aria-expanded', String(willOpen));
+				toggleEquipmentDropdownOpen(willOpen);
 		});
 
 		equipmentModeButtons?.forEach((button) => {
@@ -1055,6 +1082,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			min-height: 0;
 			gap: 10px;
 			overflow: hidden;
+		}
+
+		.manual-search-accordion-inner.dropdown-open {
+			overflow: visible;
 		}
 
 	.input-row {
