@@ -250,8 +250,18 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
         scrollsByEquipmentKind.get(kind).push(scroll);
       });
 
+      const percentPattern = /(\d+)%$/;
+      const extractPercent = (name) => {
+        const match = name?.match(percentPattern);
+        return match ? Number(match[1]) : 0;
+      };
+      const stemName = (name) => String(name ?? '').replace(percentPattern, '').trimEnd();
+
       for (const s of scrollsByEquipmentKind.values()) {
-        s.sort((a, b) => a.nameKo.localeCompare(b.nameKo, 'ko-KR'));
+        s.sort((a, b) =>
+          stemName(a.nameKo).localeCompare(stemName(b.nameKo), 'ko-KR') ||
+          extractPercent(b.nameKo) - extractPercent(a.nameKo),
+        );
       }
     })
     .catch((error) => {
