@@ -168,6 +168,7 @@ export function revertToSlot(state, slotIndex) {
 export function resetState(state) {
   _resetScrollState(state.scrollState);
   resetGems(state);
+  deactivateMaker(state);
 }
 
 export function computeAppliedScrollCount(state) {
