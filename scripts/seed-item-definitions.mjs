@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -66,9 +66,15 @@ const weaponAttackSpeedBySubCategory = {
     Gun: 5,
 };
 
-if (!supabaseUrl || !supabaseServiceRoleKey) {
-    console.error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables are required.');
+if (!supabaseUrl) {
+    console.error('SUPABASE_URL environment variable is required.');
     console.error('Copy .env.example to .env and fill in your Supabase project credentials.');
+    process.exit(1);
+}
+
+if (!supabaseServiceRoleKey && process.env.SEED_DRY_RUN !== '1') {
+    console.error('SUPABASE_SERVICE_ROLE_KEY environment variable is required for live seeding.');
+    console.error('Set SEED_DRY_RUN=1 to output JSON instead, or add the key to .env.');
     process.exit(1);
 }
 
@@ -299,15 +305,25 @@ async function main() {
         };
     });
 
-    // 5. Resolve version tag
-    const versionTagId = await resolveVersionTagId();
+    // 5. Resolve version tag (skip in dry-run)
+    const isDryRun = process.env.SEED_DRY_RUN === '1';
+    let versionTagId = '00000000-0000-0000-0000-000000000000';
+    if (!isDryRun) {
+        versionTagId = await resolveVersionTagId();
+    }
     for (const row of rows) {
         row.version_tag_id = versionTagId;
     }
 
-    // 6. Upsert into Supabase
-    console.log(`Upserting ${rows.length} item definitions to Supabase...`);
-    await upsertItemDefinitions(rows);
+    // 6. Upsert into Supabase (or dry-run to JSON)
+    if (isDryRun) {
+        const dryRunPath = resolve('scripts/.seed-rows.json');
+        await writeFile(dryRunPath, JSON.stringify(rows, null, 2));
+        console.log(`Dry-run: wrote ${rows.length} rows to ${dryRunPath}`);
+    } else {
+        console.log(`Upserting ${rows.length} item definitions to Supabase...`);
+        await upsertItemDefinitions(rows);
+    }
 
     // 7. Summary
     const koreanNamedCount = rows.filter((row) => /[가-힣]/.test(row.name_ko)).length;
@@ -320,7 +336,11 @@ async function main() {
     console.log(`Stats filled: ${statCount}/${rows.length}`);
     console.log(`Missing detail records: ${missingDetailCount}`);
     console.log(`Alias overrides: ${aliasCount}; override records: ${Object.keys(overrides).length}`);
-    console.log(`Version tag: ${versionTagId}`);
+    if (!isDryRun) {
+        console.log(`Version tag: ${versionTagId}`);
+    } else {
+        console.log('Dry-run mode: no data written to Supabase.');
+    }
 }
 
 await main();
