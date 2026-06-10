@@ -587,13 +587,21 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			manualItemResults.replaceChildren();
 
 			const results = getManualFilteredItems();
-			if (results.length === 0 || results.length >= 50) {
+			if (results.length === 0) {
 				manualItemResults.hidden = true;
 				return;
 			}
 
-			const grid = document.createElement('div');
-			grid.className = 'manual-item-grid';
+			const OVERFLOW_THRESHOLD = 30;
+			if (results.length >= OVERFLOW_THRESHOLD) {
+				const warning = document.createElement('div');
+				warning.className = 'manual-item-overflow-warning';
+				warning.textContent = `검색 결과가 ${results.length}개로 많습니다. 아래 목록을 스크롤하여 확인하세요.`;
+				manualItemResults.append(warning);
+			}
+
+			const list = document.createElement('div');
+			list.className = 'manual-item-list';
 
 			results.forEach((item) => {
 				const option = document.createElement('button');
@@ -621,10 +629,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 				option.addEventListener('click', () => {
 					selectSuggestedItem(item, { syncFilters: false });
 				});
-				grid.append(option);
+				list.append(option);
 			});
 
-			manualItemResults.append(grid);
+			manualItemResults.append(list);
 			manualItemResults.hidden = false;
 		};
 
@@ -970,10 +978,25 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			display: none;
 		}
 
-		.manual-item-grid {
-			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-			gap: 20px;
+		.manual-item-overflow-warning {
+			margin-bottom: 10px;
+			padding: 10px 14px;
+			border: 1px solid #e6c800;
+			border-radius: 8px;
+			background: #fffbe6;
+			color: #6b5a00;
+			font-size: 0.88rem;
+			font-weight: 600;
+			line-height: 1.4;
+		}
+
+		.manual-item-list {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			max-height: 420px;
+			overflow-y: auto;
+			padding-right: 4px;
 		}
 
 		.manual-item-option {
@@ -981,7 +1004,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			grid-template-columns: 40px minmax(0, 1fr);
 			align-items: center;
 			gap: 12px;
-			min-height: 64px;
+			width: 100%;
+			min-height: 56px;
 			padding: 10px;
 			border: 1px solid var(--line);
 			border-radius: 8px;
