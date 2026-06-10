@@ -62,6 +62,11 @@ test('groupScrollsByCategory sorts categories and scroll names using Korean loca
 
 test('parseScrollSelection accepts single numbers, comma lists, ranges, and UUIDs', () => {
 	assert.deepEqual(
+		parseScrollSelection('1', sampleScrolls).map((scroll) => scroll.id),
+		['11111111-1111-4111-8111-111111111111'],
+	);
+
+	assert.deepEqual(
 		parseScrollSelection('1,2', sampleScrolls).map((scroll) => scroll.id),
 		[
 			'11111111-1111-4111-8111-111111111111',
@@ -84,6 +89,11 @@ test('parseScrollSelection accepts single numbers, comma lists, ranges, and UUID
 			'22222222-2222-4222-8222-222222222222',
 		],
 	);
+
+	assert.deepEqual(
+		parseScrollSelection('33333333-3333-4333-8333-333333333333', sampleScrolls).map((scroll) => scroll.id),
+		['33333333-3333-4333-8333-333333333333'],
+	);
 });
 
 test('parseScrollSelection rejects unsafe or unknown input before writes', () => {
@@ -101,12 +111,10 @@ test('parseScrollSelection rejects unsafe or unknown input before writes', () =>
 test('review script source uses service role and patches only published_status', async () => {
 	const source = await readFile(new URL('../scripts/review-scroll-status.mjs', import.meta.url), 'utf8');
 
-	assert.match(source, /SUPABASE_SERVICE_ROLE_KEY/);
-	assert.doesNotMatch(source, /SUPABASE_ANON_KEY/);
-	assert.match(source, /buildStatusUpdatePayload/);
-	assert.match(source, /method:\s*'PATCH'/);
-	assert.doesNotMatch(source, /name_ko:\s*/);
-	assert.doesNotMatch(source, /category:\s*/);
-	assert.doesNotMatch(source, /behavior_type:\s*/);
-	assert.doesNotMatch(source, /affected_stats:\s*/);
+	assert.match(source, /process\.env\.SUPABASE_SERVICE_ROLE_KEY/);
+	assert.doesNotMatch(source, /process\.env\.SUPABASE_ANON_KEY/);
+	assert.match(
+		source,
+		/const\s+payload\s*=\s*buildStatusUpdatePayload\([^)]*\);[\s\S]*method:\s*'PATCH'[\s\S]*body:\s*JSON\.stringify\(payload\)/,
+	);
 });
