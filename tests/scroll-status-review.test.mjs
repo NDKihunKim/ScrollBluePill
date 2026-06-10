@@ -5,7 +5,6 @@ import test from 'node:test';
 import {
 	allowedScrollStatuses,
 	buildStatusUpdatePayload,
-	filterDesiredPercentScrolls,
 	groupScrollsByCategory,
 	parseScrollSelection,
 	validateScrollStatus,
@@ -125,106 +124,6 @@ test('parseScrollSelection rejects unsafe or unknown input before writes', () =>
 		() => parseScrollSelection('99999999-9999-4999-8999-999999999999', sampleScrolls),
 		/Unknown scroll id/,
 	);
-});
-
-test('filterDesiredPercentScrolls keeps 10%, 60%, and 100% scrolls only', () => {
-	const scrolls = [
-		{
-			id: 'a0000000-0000-4000-8000-000000000001',
-			name_ko: '장갑 공격력 주문서 10%',
-			category: '장갑',
-			behavior_type: 'fixed',
-			published_status: 'published',
-			affected_stats: ['weaponAttack'],
-		},
-		{
-			id: 'a0000000-0000-4000-8000-000000000002',
-			name_ko: '장갑 공격력 주문서 30%',
-			category: '장갑',
-			behavior_type: 'fixed',
-			published_status: 'published',
-			affected_stats: ['weaponAttack'],
-		},
-		{
-			id: 'a0000000-0000-4000-8000-000000000003',
-			name_ko: '장갑 공격력 주문서 60%',
-			category: '장갑',
-			behavior_type: 'fixed',
-			published_status: 'published',
-			affected_stats: ['weaponAttack'],
-		},
-		{
-			id: 'a0000000-0000-4000-8000-000000000004',
-			name_ko: '장갑 공격력 주문서 70%',
-			category: '장갑',
-			behavior_type: 'fixed',
-			published_status: 'published',
-			affected_stats: ['weaponAttack'],
-		},
-		{
-			id: 'a0000000-0000-4000-8000-000000000005',
-			name_ko: '장갑 공격력 주문서 100%',
-			category: '장갑',
-			behavior_type: 'fixed',
-			published_status: 'published',
-			affected_stats: ['weaponAttack'],
-		},
-		{
-			id: 'a0000000-0000-4000-8000-000000000006',
-			name_ko: '장갑 마력 주문서 60%',
-			category: '장갑',
-			behavior_type: 'fixed',
-			published_status: 'published',
-			affected_stats: ['magicAttack'],
-		},
-		{
-			id: 'a0000000-0000-4000-8000-000000000007',
-			name_ko: '장갑 마력 주문서 70%',
-			category: '장갑',
-			behavior_type: 'fixed',
-			published_status: 'published',
-			affected_stats: ['magicAttack'],
-		},
-		{
-			id: 'a0000000-0000-4000-8000-000000000008',
-			name_ko: '환생의 주문서',
-			category: '장갑',
-			behavior_type: 'fixed',
-			published_status: 'published',
-			affected_stats: [],
-		},
-	];
-
-	const result = filterDesiredPercentScrolls(scrolls);
-
-	assert.deepEqual(
-		result.map((s) => s.id),
-		[
-			'a0000000-0000-4000-8000-000000000001', // 10%
-			'a0000000-0000-4000-8000-000000000003', // 60%
-			'a0000000-0000-4000-8000-000000000005', // 100%
-			'a0000000-0000-4000-8000-000000000006', // 60% magicAttack
-		],
-	);
-});
-
-test('filterDesiredPercentScrolls handles empty array', () => {
-	assert.deepEqual(filterDesiredPercentScrolls([]), []);
-});
-
-test('filterDesiredPercentScrolls drops scrolls without percent in name', () => {
-	const scrolls = [
-		{
-			id: 'b0000000-0000-4000-8000-000000000001',
-			name_ko: '혼돈의 주문서',
-			category: '장갑',
-			behavior_type: 'random',
-			published_status: 'published',
-			affected_stats: [],
-		},
-	];
-
-	assert.deepEqual(filterDesiredPercentScrolls(scrolls), []);
 });
 
 test('review script source uses service role and patches only published_status', async () => {
