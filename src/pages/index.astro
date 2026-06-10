@@ -352,6 +352,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		['REQPOP', 'pop'],
 	];
 	const statRows = [
+		['공격속도', 'attackSpeed'],
 		['STR', 'str'],
 		['DEX', 'dex'],
 		['INT', 'int'],
@@ -427,7 +428,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 					8: '느림',
 					9: '매우 느림',
 				};
-				return `${value} (${speedLabelByValue[value] ?? '속도 정보 없음'})`;
+				return speedLabelByValue[value] ?? '속도 정보 없음';
 			}
 
 			if (key === 'upgradeSlots' || value <= 0) {
