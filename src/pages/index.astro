@@ -970,15 +970,15 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			font-weight: 800;
 		}
 
-		.manual-item-results {
+		:global(.manual-item-results) {
 			margin-top: 10px;
 		}
 
-		.manual-item-results[hidden] {
+		:global(.manual-item-results[hidden]) {
 			display: none;
 		}
 
-		.manual-item-overflow-warning {
+		:global(.manual-item-overflow-warning) {
 			margin-bottom: 10px;
 			padding: 10px 14px;
 			border: 1px solid #e6c800;
@@ -990,7 +990,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			line-height: 1.4;
 		}
 
-		.manual-item-list {
+		:global(.manual-item-list) {
 			display: flex;
 			flex-direction: column;
 			gap: 8px;
@@ -999,7 +999,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			padding-right: 4px;
 		}
 
-		.manual-item-option {
+		:global(.manual-item-option) {
 			display: grid;
 			grid-template-columns: 40px minmax(0, 1fr);
 			align-items: center;
@@ -1015,33 +1015,33 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			cursor: pointer;
 		}
 
-		.manual-item-option:hover,
-		.manual-item-option:focus-visible {
+		:global(.manual-item-option:hover),
+		:global(.manual-item-option:focus-visible) {
 			border-color: var(--green);
 			outline: none;
 		}
 
-		.manual-item-icon {
+		:global(.manual-item-icon) {
 			width: 32px;
 			height: 32px;
 			object-fit: contain;
 			image-rendering: pixelated;
 		}
 
-		.manual-item-text {
+		:global(.manual-item-text) {
 			display: grid;
 			min-width: 0;
 			line-height: 1.25;
 		}
 
-		.manual-item-text strong,
-		.manual-item-text span {
+		:global(.manual-item-text strong),
+		:global(.manual-item-text span) {
 			overflow: hidden;
 			text-overflow: ellipsis;
 			white-space: nowrap;
 		}
 
-		.manual-item-text span {
+		:global(.manual-item-text span) {
 			margin-top: 5px;
 			padding-top: 5px;
 			border-top: 1px solid var(--line);
