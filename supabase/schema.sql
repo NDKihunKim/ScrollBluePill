@@ -73,6 +73,9 @@ alter table public.guide_content enable row level security;
 create policy "Public can read published scrolls" on public.scroll_definitions
 	for select using (published_status = 'published');
 
+grant select on public.scroll_definitions to service_role;
+grant update (published_status) on public.scroll_definitions to service_role;
+
 -- Migration for existing scroll_definitions tables that lack published_status
 alter table public.scroll_definitions
 	add column if not exists published_status text not null default 'draft';
