@@ -1,0 +1,12 @@
+{
+  "stage": "plan_execute",
+  "owner": "state_store",
+  "status": "fallback_local_artifact",
+  "generated_at": "2026-06-10T01:03:27Z",
+  "source_execution_manifest": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T010318Z-080a6242/execution-manifest.json",
+  "items": [
+    "Execution status: completed",
+    "Executed units: 3; failures: 0",
+    "Specialist execution status: direct_current_session_routed"
+  ]
+}

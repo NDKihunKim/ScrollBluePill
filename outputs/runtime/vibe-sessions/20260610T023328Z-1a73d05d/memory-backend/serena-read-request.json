@@ -1,0 +1,21 @@
+{
+  "lane": "serena",
+  "stage": "deep_interview",
+  "task": "add bright dark mode toggle button left of Korean nav buttons current UI is bright mode",
+  "top_k": 3,
+  "max_chars_per_item": 240,
+  "keywords": [
+    "add",
+    "bright",
+    "dark",
+    "mode",
+    "toggle",
+    "button",
+    "left",
+    "korean",
+    "nav",
+    "buttons",
+    "current"
+  ],
+  "project_key_source": null
+}

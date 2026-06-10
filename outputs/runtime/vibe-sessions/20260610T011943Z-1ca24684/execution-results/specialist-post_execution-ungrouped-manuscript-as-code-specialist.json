@@ -1,0 +1,13 @@
+{
+  "unit_id": "specialist-post_execution-ungrouped-manuscript-as-code-specialist",
+  "skill_id": "manuscript-as-code",
+  "resolution_state": "executed",
+  "native_skill_entrypoint": "/Users/andykim/.claude/skills/vibe/bundled/skills/manuscript-as-code/SKILL.runtime-mirror.md",
+  "findings": {
+    "version_control": {"status": "satisfied", "detail": "Changes tracked in git worktree. 2 files changed, +10/-10 lines."},
+    "build_reproducibility": {"status": "satisfied", "detail": "Single source of truth in generate-item-index.mjs applyVisibilityOverrides. Client-side defense-in-depth in index.astro."},
+    "structured_documentation": {"status": "satisfied", "detail": "TDD evidence: 1606 zero-stat removed, 2074 stat-bearing preserved across all 30 equipment kinds."}
+  },
+  "evidence_paths": ["scripts/generate-item-index.mjs", "src/pages/index.astro"],
+  "notes": "Extended previous 눈장식-only filter to all equipment kinds per user request. Variable renamed from zeroStatEyeDecorationHiddenIds to zeroStatHiddenIds."
+}

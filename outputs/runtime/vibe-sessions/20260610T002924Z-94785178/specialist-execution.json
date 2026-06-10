@@ -1,0 +1,17 @@
+{
+  "protocol_version": "v1",
+  "source_run_id": "20260610T002924Z-94785178",
+  "resolution_mode": "current_session_host_execution",
+  "units": [
+    {
+      "unit_id": "specialist-post_execution-ungrouped-manuscript-as-code-specialist",
+      "skill_id": "manuscript-as-code",
+      "resolution_state": "executed",
+      "native_skill_entrypoint": "/Users/andykim/.claude/skills/vibe/bundled/skills/manuscript-as-code/SKILL.runtime-mirror.md",
+      "evidence_paths": [
+        "src/pages/index.astro"
+      ],
+      "notes": "Specialist manuscript-as-code auto-routed by vibe recommender for scholarly-publishing-workflow pack. Actual task (grid-to-scroll-list UI change) is a direct code modification in src/pages/index.astro that does not require manuscript tooling. Specialist loaded and assessed; its workflow (manuscript versioning, reproducible builds, figure pipelines) not applicable. Code implemented directly under vibe governance: .manual-item-grid → .manual-item-list flex column, max-height 420px overflow-y auto, overflow warning for 30+ results. Build verified (astro build, 9 pages, exit 0)."
+    }
+  ]
+}

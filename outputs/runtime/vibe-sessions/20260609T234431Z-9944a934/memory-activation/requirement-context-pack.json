@@ -1,0 +1,34 @@
+{
+  "stage": "requirement_doc",
+  "source_stage": "bounded_memory_recall",
+  "owner": "state_store",
+  "disclosure_level": "decision_focused",
+  "generated_at": "2026-06-09T23:44:35Z",
+  "capsule_count": 1,
+  "selected_capsules": [
+    {
+      "capsule_id": "83d52d5712682e1c",
+      "owner": "Cognee",
+      "lane": "cognee",
+      "kind": "entity_relation_ingest",
+      "updated_at": "2026-06-09T23:14:02Z",
+      "title": "Cognee relation: job-chips-rendering-korean-labels-with-spacing-and-bright-gr-del specified_by 2026-06-09-job-chips-rendering-korean-labels-...",
+      "why_now": "Matched Cognee memory for requirement_doc.",
+      "expansion_ref": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260609T234431Z-9944a934/memory-backend/cognee-read-response.json#83d52d5712682e1c",
+      "summary_lines": [
+        "Cognee relation: job-chips-rendering-korean-labels-with-spacing-and-bright-gr-del specified_by 2026-06-09-job-chips-rendering-korean-labels-with-spacing-and-bright-gr-del.md",
+        "specified_by"
+      ]
+    }
+  ],
+  "items": [
+    "Cognee relation: job-chips-rendering-korean-labels-with-spacing-and-bright-gr-del specified_by 2026-06-09-job-chips-rendering-korean-labels-with-spacing-and-bright-gr-del.md",
+    "specified_by"
+  ],
+  "estimated_tokens": 47,
+  "budget": {
+    "top_k": 2,
+    "max_tokens": 120,
+    "max_chars_per_item": 260
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "task": "change item required level default range from 10-20 to 0-200, and when manual se... Deliverable: Governed implementation artifacts, verification evidence, and cleanup receipts. Constraints: Do not bypass the fixed six-stage governed runtime.; Do not widen scope silently beyond the frozen requirement document.. Update: change item required level default range from 10-20 to 0-200, and when manual search results exceed 100 items hide the list with warning text '검색 결과가 너무 많습니다. 위에 필터들을 더 좁혀주세요.'",
+  "relations": [
+    {
+      "source": "change-item-required-level-default-range-from-10-20-to-0-200-and",
+      "relation": "specified_by",
+      "target": "2026-06-09-change-item-required-level-default-range-from-10-20-to-0-200-and.md",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/requirements/2026-06-09-change-item-required-level-default-range-from-10-20-to-0-200-and.md"
+      ],
+      "keywords": [
+        "change",
+        "item",
+        "required",
+        "level",
+        "default",
+        "range",
+        "from",
+        "10-20",
+        "0-200",
+        "and",
+        "when",
+        "manual"
+      ]
+    },
+    {
+      "source": "change-item-required-level-default-range-from-10-20-to-0-200-and",
+      "relation": "planned_in",
+      "target": "2026-06-09-change-item-required-level-default-range-from-10-20-to-0-200-and-execution-plan.md",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/plans/2026-06-09-change-item-required-level-default-range-from-10-20-to-0-200-and-execution-plan.md"
+      ],
+      "keywords": [
+        "change",
+        "item",
+        "required",
+        "level",
+        "default",
+        "range",
+        "from",
+        "10-20",
+        "0-200",
+        "and",
+        "when",
+        "manual"
+      ]
+    },
+    {
+      "source": "change-item-required-level-default-range-from-10-20-to-0-200-and",
+      "relation": "executed_as",
+      "target": "execution-manifest.json",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T013304Z-742ac23c/execution-manifest.json"
+      ],
+      "keywords": [
+        "change",
+        "item",
+        "required",
+        "level",
+        "default",
+        "range",
+        "from",
+        "10-20",
+        "0-200",
+        "and",
+        "when",
+        "manual"
+      ]
+    }
+  ]
+}

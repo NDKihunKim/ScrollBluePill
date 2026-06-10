@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-06-09T23:11:50Z",
+  "title": "job chips rendering Korean labels 초보자 전사 마법사 궁수 도적 해적 with spacing and bright/gr...",
+  "goal": "job chips rendering Korean labels 초보자 전사 마법사 궁수 도적 해적 with spacing and bright/gr...",
+  "deliverable": "Governed implementation artifacts, verification evidence, and cleanup receipts",
+  "constraints": [
+    "Do not bypass the fixed six-stage governed runtime.",
+    "Do not widen scope silently beyond the frozen requirement document."
+  ],
+  "acceptance_criteria": [
+    "Requirement document is frozen before execution.",
+    "Execution plan exists before implementation.",
+    "Verification evidence exists before completion claims.",
+    "Phase cleanup receipt is produced."
+  ],
+  "non_goals": [
+    "Do not treat M/L/XL as user-facing entry branches.",
+    "Do not introduce a second router or control plane."
+  ],
+  "risk_tolerance": "moderate",
+  "autonomy_mode": "interactive_governed",
+  "open_questions": [],
+  "inference_notes": [
+    "This contract was derived from the raw task text.",
+    "Interactive mode may still surface explicit clarification questions outside the script path."
+  ],
+  "assumptions": [
+    "Interactive clarification is allowed if unresolved ambiguity materially changes implementation."
+  ],
+  "internal_grade": "M",
+  "source_task": "job chips rendering Korean labels 초보자 전사 마법사 궁수 도적 해적 with spacing and bright/gray coloring not working"
+}

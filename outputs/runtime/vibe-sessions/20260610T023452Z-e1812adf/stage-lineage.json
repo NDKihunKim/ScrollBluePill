@@ -1,0 +1,68 @@
+{
+  "run_id": "20260610T023452Z-e1812adf",
+  "root_run_id": "20260610T023452Z-e1812adf",
+  "stages": [
+    {
+      "stage_name": "skeleton_check",
+      "run_id": "20260610T023452Z-e1812adf",
+      "root_run_id": "20260610T023452Z-e1812adf",
+      "previous_stage_name": null,
+      "previous_stage_receipt_path": null,
+      "current_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T023452Z-e1812adf/skeleton-receipt.json",
+      "transition_validated": true,
+      "validated_at": "2026-06-10T02:34:53Z"
+    },
+    {
+      "stage_name": "deep_interview",
+      "run_id": "20260610T023452Z-e1812adf",
+      "root_run_id": "20260610T023452Z-e1812adf",
+      "previous_stage_name": "skeleton_check",
+      "previous_stage_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T023452Z-e1812adf/skeleton-receipt.json",
+      "current_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T023452Z-e1812adf/intent-contract.json",
+      "transition_validated": true,
+      "validated_at": "2026-06-10T02:34:56Z"
+    },
+    {
+      "stage_name": "requirement_doc",
+      "run_id": "20260610T023452Z-e1812adf",
+      "root_run_id": "20260610T023452Z-e1812adf",
+      "previous_stage_name": "deep_interview",
+      "previous_stage_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T023452Z-e1812adf/intent-contract.json",
+      "current_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T023452Z-e1812adf/requirement-doc-receipt.json",
+      "transition_validated": true,
+      "validated_at": "2026-06-10T02:34:57Z"
+    },
+    {
+      "stage_name": "xl_plan",
+      "run_id": "20260610T023452Z-e1812adf",
+      "root_run_id": "20260610T023452Z-e1812adf",
+      "previous_stage_name": "requirement_doc",
+      "previous_stage_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T023452Z-e1812adf/requirement-doc-receipt.json",
+      "current_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T023452Z-e1812adf/execution-plan-receipt.json",
+      "transition_validated": true,
+      "validated_at": "2026-06-10T02:34:57Z"
+    },
+    {
+      "stage_name": "plan_execute",
+      "run_id": "20260610T023452Z-e1812adf",
+      "root_run_id": "20260610T023452Z-e1812adf",
+      "previous_stage_name": "xl_plan",
+      "previous_stage_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T023452Z-e1812adf/execution-plan-receipt.json",
+      "current_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T023452Z-e1812adf/phase-execute.json",
+      "transition_validated": true,
+      "validated_at": "2026-06-10T02:35:01Z"
+    },
+    {
+      "stage_name": "phase_cleanup",
+      "run_id": "20260610T023452Z-e1812adf",
+      "root_run_id": "20260610T023452Z-e1812adf",
+      "previous_stage_name": "plan_execute",
+      "previous_stage_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T023452Z-e1812adf/phase-execute.json",
+      "current_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T023452Z-e1812adf/cleanup-receipt.json",
+      "transition_validated": true,
+      "validated_at": "2026-06-10T02:35:01Z"
+    }
+  ],
+  "last_stage_name": "phase_cleanup",
+  "updated_at": "2026-06-10T02:35:01Z"
+}

@@ -1,0 +1,23 @@
+{
+  "status": "passing",
+  "state": "passing",
+  "evidence_paths": [
+    "tdd-evidence.json",
+    "code-task-tdd-evidence.json"
+  ],
+  "red_phase_evidence_paths": [
+    "code-task-tdd-evidence.json#failing_first"
+  ],
+  "green_phase_evidence_paths": [
+    "code-task-tdd-evidence.json#green_rerun"
+  ],
+  "refactor_phase_evidence_paths": [],
+  "covered_code_task_tdd_evidence_requirements": [
+    "Record failing-first evidence for the changed behavior before implementation or defect correction.",
+    "Record the green rerun that proves the targeted behavior passed after implementation.",
+    "Map the changed behavior to targeted verification evidence; generic suite success alone is insufficient.",
+    "If automated failing-first evidence is not appropriate, freeze and honor an explicit code-task TDD exception instead of silently skipping the requirement."
+  ],
+  "covered_code_task_tdd_exceptions": [],
+  "notes": "TDD evidence verified: failing-first confirmed 72 zero-stat 눈장식 items visible in searchable data pre-change. Green rerun confirmed 0 zero-stat items remain post-filter with 3 stat-bearing items preserved. Evidence captured via direct data analysis of public/data/items-gms83-ko.json."
+}

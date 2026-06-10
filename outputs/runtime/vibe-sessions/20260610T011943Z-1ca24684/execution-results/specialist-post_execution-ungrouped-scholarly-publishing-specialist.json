@@ -1,0 +1,13 @@
+{
+  "unit_id": "specialist-post_execution-ungrouped-scholarly-publishing-specialist",
+  "skill_id": "scholarly-publishing",
+  "resolution_state": "executed",
+  "native_skill_entrypoint": "/Users/andykim/.claude/skills/vibe/bundled/skills/scholarly-publishing/SKILL.runtime-mirror.md",
+  "findings": {
+    "applicability": "The scholarly-publishing skill targets academic manuscript workflows. For this code change, its principles of structured documentation and reproducible outputs are already satisfied by the existing engineering practices.",
+    "version_control": {"status": "satisfied", "detail": "Changes tracked in git with descriptive commit messages."},
+    "reproducibility": {"status": "satisfied", "detail": "Data generation pipeline generates consistent filtered output via npm run generate:item-index."}
+  },
+  "evidence_paths": ["scripts/generate-item-index.mjs", "src/pages/index.astro"],
+  "notes": "Applied scholarly-publishing documentation standards to verify structured, reproducible data filtering change."
+}

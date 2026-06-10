@@ -1,0 +1,71 @@
+{
+  "task": "수동 검색 searched items too close together touching, grid gap 8px to 12px did not f... Deliverable: Governed implementation artifacts, verification evidence, and cleanup receipts. Constraints: Do not bypass the fixed six-stage governed runtime.; Do not widen scope silently beyond the frozen requirement document.. Update: execute the plan: diagnose and fix 수동 검색 searched items spacing, grid gap alone insufficient, apply TDD",
+  "relations": [
+    {
+      "source": "searched-items-too-close-together-touching-grid-gap-8px-to-12px",
+      "relation": "specified_by",
+      "target": "2026-06-09-searched-items-too-close-together-touching-grid-gap-8px-to-12px.md",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/requirements/2026-06-09-searched-items-too-close-together-touching-grid-gap-8px-to-12px.md"
+      ],
+      "keywords": [
+        "searched",
+        "items",
+        "too",
+        "close",
+        "together",
+        "touching",
+        "grid",
+        "gap",
+        "8px",
+        "12px",
+        "did",
+        "not"
+      ]
+    },
+    {
+      "source": "searched-items-too-close-together-touching-grid-gap-8px-to-12px",
+      "relation": "planned_in",
+      "target": "2026-06-09-searched-items-too-close-together-touching-grid-gap-8px-to-12px-execution-plan.md",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/plans/2026-06-09-searched-items-too-close-together-touching-grid-gap-8px-to-12px-execution-plan.md"
+      ],
+      "keywords": [
+        "searched",
+        "items",
+        "too",
+        "close",
+        "together",
+        "touching",
+        "grid",
+        "gap",
+        "8px",
+        "12px",
+        "did",
+        "not"
+      ]
+    },
+    {
+      "source": "searched-items-too-close-together-touching-grid-gap-8px-to-12px",
+      "relation": "executed_as",
+      "target": "execution-manifest.json",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260609T234537Z-b6cc79d8/execution-manifest.json"
+      ],
+      "keywords": [
+        "searched",
+        "items",
+        "too",
+        "close",
+        "together",
+        "touching",
+        "grid",
+        "gap",
+        "8px",
+        "12px",
+        "did",
+        "not"
+      ]
+    }
+  ]
+}

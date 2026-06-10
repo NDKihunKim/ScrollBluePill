@@ -1,0 +1,41 @@
+{
+  "command": "/opt/homebrew/Cellar/powershell/7.6.2/libexec/pwsh",
+  "resolved_command": "/opt/homebrew/Cellar/powershell/7.6.2/libexec/pwsh",
+  "resolved_arguments": [
+    "-NoProfile",
+    "-File",
+    "/Users/andykim/.codex/skills/vibe/scripts/verify/vibe-installed-runtime-freshness-gate.ps1",
+    "-TargetRoot",
+    "/Users/andykim/.codex"
+  ],
+  "resolved_working_directory": "/Users/andykim/.codex/skills/vibe",
+  "stdout_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T023452Z-e1812adf/child-lanes/lane-installed-runtime-freshness-gate/execution-logs/installed-runtime-freshness-gate.stdout.log",
+  "stderr_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T023452Z-e1812adf/child-lanes/lane-installed-runtime-freshness-gate/execution-logs/installed-runtime-freshness-gate.stderr.log",
+  "arguments_render_mode": "ArgumentList",
+  "rendered_arguments": null,
+  "preflight": {
+    "host_kind": "pwsh",
+    "resolved_command": "/opt/homebrew/Cellar/powershell/7.6.2/libexec/pwsh",
+    "resolved_arguments": [
+      "-NoProfile",
+      "-File",
+      "/Users/andykim/.codex/skills/vibe/scripts/verify/vibe-installed-runtime-freshness-gate.ps1",
+      "-TargetRoot",
+      "/Users/andykim/.codex"
+    ],
+    "resolved_working_directory": "/Users/andykim/.codex/skills/vibe",
+    "script_path": "/Users/andykim/.codex/skills/vibe/scripts/verify/vibe-installed-runtime-freshness-gate.ps1",
+    "python_command_spec": null,
+    "executable_exists": true,
+    "executable_is_file": true,
+    "working_directory_exists": true,
+    "working_directory_is_directory": true,
+    "script_exists": true,
+    "script_is_file": true,
+    "script_used_as_executable": false,
+    "python_spec_expanded": true,
+    "passed": true,
+    "failures": []
+  },
+  "generated_at": "2026-06-10T02:34:58Z"
+}

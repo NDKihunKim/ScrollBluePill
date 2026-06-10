@@ -1,0 +1,71 @@
+{
+  "task": "add bright dark mode toggle button left of Korean nav buttons current UI is brig... Deliverable: Governed implementation artifacts, verification evidence, and cleanup receipts. Constraints: Do not bypass the fixed six-stage governed runtime.; Do not widen scope silently beyond the frozen requirement document.. Update: execute approved plan for bright dark mode toggle left of Korean nav buttons",
+  "relations": [
+    {
+      "source": "add-bright-dark-mode-toggle-button-left-of-korean-nav-buttons-cu",
+      "relation": "specified_by",
+      "target": "2026-06-09-add-bright-dark-mode-toggle-button-left-of-korean-nav-buttons-cu.md",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/requirements/2026-06-09-add-bright-dark-mode-toggle-button-left-of-korean-nav-buttons-cu.md"
+      ],
+      "keywords": [
+        "add",
+        "bright",
+        "dark",
+        "mode",
+        "toggle",
+        "button",
+        "left",
+        "korean",
+        "nav",
+        "buttons",
+        "current",
+        "brig"
+      ]
+    },
+    {
+      "source": "add-bright-dark-mode-toggle-button-left-of-korean-nav-buttons-cu",
+      "relation": "planned_in",
+      "target": "2026-06-09-add-bright-dark-mode-toggle-button-left-of-korean-nav-buttons-cu-execution-plan.md",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/plans/2026-06-09-add-bright-dark-mode-toggle-button-left-of-korean-nav-buttons-cu-execution-plan.md"
+      ],
+      "keywords": [
+        "add",
+        "bright",
+        "dark",
+        "mode",
+        "toggle",
+        "button",
+        "left",
+        "korean",
+        "nav",
+        "buttons",
+        "current",
+        "brig"
+      ]
+    },
+    {
+      "source": "add-bright-dark-mode-toggle-button-left-of-korean-nav-buttons-cu",
+      "relation": "executed_as",
+      "target": "execution-manifest.json",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T023452Z-e1812adf/execution-manifest.json"
+      ],
+      "keywords": [
+        "add",
+        "bright",
+        "dark",
+        "mode",
+        "toggle",
+        "button",
+        "left",
+        "korean",
+        "nav",
+        "buttons",
+        "current",
+        "brig"
+      ]
+    }
+  ]
+}

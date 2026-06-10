@@ -1,0 +1,55 @@
+{
+  "ok": true,
+  "status": "backend_write",
+  "lane": "cognee",
+  "store_path": "/Users/andykim/.claude/skills/vibe/.vibeskills/memory/workspace-memory-plane.jsonl",
+  "project_key": "vibe",
+  "project_key_source": "workspace_plane",
+  "item_count": 3,
+  "items": [
+    "Persisted Cognee relation: extend-zero-stat-item-hiding-from-only-to-all-equipment-kinds-it specified_by 2026-06-09-extend-zero-stat-item-hiding-from-only-to-all-equipment-kinds-it.md",
+    "Persisted Cognee relation: extend-zero-stat-item-hiding-from-only-to-all-equipment-kinds-it planned_in 2026-06-09-extend-zero-stat-item-hiding-from-only-to-all-equipment-kinds-it-execution-plan.md",
+    "Persisted Cognee relation: extend-zero-stat-item-hiding-from-only-to-all-equipment-kinds-it executed_as execution-manifest.json"
+  ],
+  "capsule_count": 3,
+  "capsules": [
+    {
+      "capsule_id": "96b82f888badd852",
+      "owner": "Cognee",
+      "lane": "cognee",
+      "kind": "entity_relation_ingest",
+      "disclosure_level": "bounded",
+      "summary": "specified_by",
+      "updated_at": "2026-06-10T01:19:52Z"
+    },
+    {
+      "capsule_id": "390b5ff88c127439",
+      "owner": "Cognee",
+      "lane": "cognee",
+      "kind": "entity_relation_ingest",
+      "disclosure_level": "bounded",
+      "summary": "planned_in",
+      "updated_at": "2026-06-10T01:19:52Z"
+    },
+    {
+      "capsule_id": "9ebec6f621a47756",
+      "owner": "Cognee",
+      "lane": "cognee",
+      "kind": "entity_relation_ingest",
+      "disclosure_level": "bounded",
+      "summary": "executed_as",
+      "updated_at": "2026-06-10T01:19:52Z"
+    }
+  ],
+  "suppressed_count": 0,
+  "workspace_memory_plane": {
+    "schema_version": 1,
+    "workspace_root": "/Users/andykim/.claude/skills/vibe",
+    "workspace_sidecar_root": "/Users/andykim/.claude/skills/vibe/.vibeskills",
+    "descriptor_path": "/Users/andykim/.claude/skills/vibe/.vibeskills/project.json",
+    "workspace_id": "ws:f8c960c9f9271330a5582062",
+    "plane_path": "/Users/andykim/.claude/skills/vibe/.vibeskills/memory/workspace-memory-plane.jsonl"
+  },
+  "driver_mode": "compatibility_shell",
+  "generated_at": "2026-06-10T01:19:52Z"
+}

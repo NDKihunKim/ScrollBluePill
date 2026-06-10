@@ -1,0 +1,22 @@
+{
+  "lane": "cognee",
+  "stage": "skeleton_check",
+  "task": "change item required level default range from 10-20 to 0-200, and when manual search results exceed 100 items hide the list with warning text '검색 결과가 너무 많습니다. 위에 필터들을 더 좁혀주세요.'",
+  "top_k": 3,
+  "max_chars_per_item": 220,
+  "keywords": [
+    "change",
+    "item",
+    "required",
+    "level",
+    "default",
+    "range",
+    "from",
+    "10-20",
+    "0-200",
+    "and",
+    "when",
+    "manual"
+  ],
+  "project_key_source": null
+}

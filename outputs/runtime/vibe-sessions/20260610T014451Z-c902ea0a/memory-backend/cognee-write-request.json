@@ -1,0 +1,71 @@
+{
+  "task": "change project UI theme using #018FC7 as darkest color Deliverable: Governed imp... Deliverable: Governed implementation artifacts, verification evidence, and cleanup receipts. Constraints: Do not bypass the fixed six-stage governed runtime.; Do not widen scope silently beyond the frozen requirement document.. Update: approve execution plan and implement UI theme change preserving protected selector",
+  "relations": [
+    {
+      "source": "change-project-ui-theme-using-018fc7-as-darkest-color-deliverabl",
+      "relation": "specified_by",
+      "target": "2026-06-09-change-project-ui-theme-using-018fc7-as-darkest-color-deliverabl.md",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/requirements/2026-06-09-change-project-ui-theme-using-018fc7-as-darkest-color-deliverabl.md"
+      ],
+      "keywords": [
+        "change",
+        "project",
+        "theme",
+        "using",
+        "018fc7",
+        "darkest",
+        "color",
+        "deliverable",
+        "governed",
+        "imp",
+        "implementation",
+        "artifacts"
+      ]
+    },
+    {
+      "source": "change-project-ui-theme-using-018fc7-as-darkest-color-deliverabl",
+      "relation": "planned_in",
+      "target": "2026-06-09-change-project-ui-theme-using-018fc7-as-darkest-color-deliverabl-execution-plan.md",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/plans/2026-06-09-change-project-ui-theme-using-018fc7-as-darkest-color-deliverabl-execution-plan.md"
+      ],
+      "keywords": [
+        "change",
+        "project",
+        "theme",
+        "using",
+        "018fc7",
+        "darkest",
+        "color",
+        "deliverable",
+        "governed",
+        "imp",
+        "implementation",
+        "artifacts"
+      ]
+    },
+    {
+      "source": "change-project-ui-theme-using-018fc7-as-darkest-color-deliverabl",
+      "relation": "executed_as",
+      "target": "execution-manifest.json",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T014451Z-c902ea0a/execution-manifest.json"
+      ],
+      "keywords": [
+        "change",
+        "project",
+        "theme",
+        "using",
+        "018fc7",
+        "darkest",
+        "color",
+        "deliverable",
+        "governed",
+        "imp",
+        "implementation",
+        "artifacts"
+      ]
+    }
+  ]
+}

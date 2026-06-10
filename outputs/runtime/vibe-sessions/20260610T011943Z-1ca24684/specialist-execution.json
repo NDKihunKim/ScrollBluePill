@@ -1,0 +1,23 @@
+{
+  "protocol_version": "v1",
+  "source_run_id": "20260610T011943Z-1ca24684",
+  "resolution_mode": "current_session_host_execution",
+  "units": [
+    {
+      "unit_id": "specialist-post_execution-ungrouped-manuscript-as-code-specialist",
+      "skill_id": "manuscript-as-code",
+      "resolution_state": "executed",
+      "native_skill_entrypoint": "/Users/andykim/.claude/skills/vibe/bundled/skills/manuscript-as-code/SKILL.runtime-mirror.md",
+      "evidence_paths": ["execution-results/specialist-post_execution-ungrouped-manuscript-as-code-specialist.json"],
+      "notes": "Manuscript-as-code principles applied to verify version control, build reproducibility, and structured documentation."
+    },
+    {
+      "unit_id": "specialist-post_execution-ungrouped-scholarly-publishing-specialist",
+      "skill_id": "scholarly-publishing",
+      "resolution_state": "executed",
+      "native_skill_entrypoint": "/Users/andykim/.claude/skills/vibe/bundled/skills/scholarly-publishing/SKILL.runtime-mirror.md",
+      "evidence_paths": ["execution-results/specialist-post_execution-ungrouped-scholarly-publishing-specialist.json"],
+      "notes": "Scholarly-publishing documentation standards applied to verify structured, reproducible data filtering change."
+    }
+  ]
+}

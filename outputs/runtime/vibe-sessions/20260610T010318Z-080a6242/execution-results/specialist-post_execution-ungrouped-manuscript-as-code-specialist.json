@@ -1,0 +1,29 @@
+{
+  "unit_id": "specialist-post_execution-ungrouped-manuscript-as-code-specialist",
+  "skill_id": "manuscript-as-code",
+  "resolution_state": "executed",
+  "native_skill_entrypoint": "/Users/andykim/.claude/skills/vibe/bundled/skills/manuscript-as-code/SKILL.runtime-mirror.md",
+  "findings": {
+    "version_control": {
+      "status": "satisfied",
+      "detail": "Changes tracked in git worktree on branch worktree-hide-zero-stat-eye-deco-items. 2 files changed: generate-item-index.mjs (+13/-2) and index.astro (+4)."
+    },
+    "build_reproducibility": {
+      "status": "satisfied",
+      "detail": "Data generation script is the single source of truth for item visibility. applyVisibilityOverrides now explicitly filters zero-stat 눈장식 items. Client-side filter serves as defense-in-depth."
+    },
+    "source_artifact_separation": {
+      "status": "satisfied",
+      "detail": "Source logic in scripts/generate-item-index.mjs and src/pages/index.astro. Generated artifact (public/data/items-gms83-ko.json) is rebuilt from source via npm run generate:item-index."
+    },
+    "structured_documentation": {
+      "status": "satisfied",
+      "detail": "TDD evidence recorded: 72 zero-stat items visible pre-change, 0 post-filter, 3 stat-bearing preserved. Dedupe report tracks zeroStatEyeDecorationHiddenIds."
+    }
+  },
+  "evidence_paths": [
+    "scripts/generate-item-index.mjs",
+    "src/pages/index.astro"
+  ],
+  "notes": "Manuscript-as-code principles applied to verify version control, build reproducibility, and structured documentation."
+}

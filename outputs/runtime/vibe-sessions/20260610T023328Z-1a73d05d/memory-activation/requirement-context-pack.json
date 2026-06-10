@@ -1,0 +1,34 @@
+{
+  "stage": "requirement_doc",
+  "source_stage": "bounded_memory_recall",
+  "owner": "state_store",
+  "disclosure_level": "decision_focused",
+  "generated_at": "2026-06-10T02:33:33Z",
+  "capsule_count": 1,
+  "selected_capsules": [
+    {
+      "capsule_id": "cbee1b7d8864e105",
+      "owner": "Cognee",
+      "lane": "cognee",
+      "kind": "entity_relation_ingest",
+      "updated_at": "2026-06-01T00:43:41Z",
+      "title": "Cognee relation: add-match-scoreboard-toggle-below-verdict-subject-cards-through specified_by 2026-05-31-add-match-scoreboard-toggle-below-v...",
+      "why_now": "Matched Cognee memory for requirement_doc.",
+      "expansion_ref": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T023328Z-1a73d05d/memory-backend/cognee-read-response.json#cbee1b7d8864e105",
+      "summary_lines": [
+        "Cognee relation: add-match-scoreboard-toggle-below-verdict-subject-cards-through specified_by 2026-05-31-add-match-scoreboard-toggle-below-verdict-subject-cards-through.md",
+        "specified_by"
+      ]
+    }
+  ],
+  "items": [
+    "Cognee relation: add-match-scoreboard-toggle-below-verdict-subject-cards-through specified_by 2026-05-31-add-match-scoreboard-toggle-below-verdict-subject-cards-through.md",
+    "specified_by"
+  ],
+  "estimated_tokens": 46,
+  "budget": {
+    "top_k": 2,
+    "max_tokens": 120,
+    "max_chars_per_item": 260
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "task": "modify searchable items of type 눈장식: items with no stats should be treated as ca... Deliverable: Governed implementation artifacts, verification evidence, and cleanup receipts. Constraints: Do not bypass the fixed six-stage governed runtime.; Do not widen scope silently beyond the frozen requirement document.. Update: modify searchable items of type 눈장식: items with no stats should be treated as cash items and hidden from the search list",
+  "relations": [
+    {
+      "source": "modify-searchable-items-of-type-items-with-no-stats-should-be-tr",
+      "relation": "specified_by",
+      "target": "2026-06-09-modify-searchable-items-of-type-items-with-no-stats-should-be-tr.md",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/requirements/2026-06-09-modify-searchable-items-of-type-items-with-no-stats-should-be-tr.md"
+      ],
+      "keywords": [
+        "modify",
+        "searchable",
+        "items",
+        "type",
+        "with",
+        "stats",
+        "should",
+        "treated",
+        "deliverable",
+        "governed",
+        "implementation",
+        "artifacts"
+      ]
+    },
+    {
+      "source": "modify-searchable-items-of-type-items-with-no-stats-should-be-tr",
+      "relation": "planned_in",
+      "target": "2026-06-09-modify-searchable-items-of-type-items-with-no-stats-should-be-tr-execution-plan.md",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/plans/2026-06-09-modify-searchable-items-of-type-items-with-no-stats-should-be-tr-execution-plan.md"
+      ],
+      "keywords": [
+        "modify",
+        "searchable",
+        "items",
+        "type",
+        "with",
+        "stats",
+        "should",
+        "treated",
+        "deliverable",
+        "governed",
+        "implementation",
+        "artifacts"
+      ]
+    },
+    {
+      "source": "modify-searchable-items-of-type-items-with-no-stats-should-be-tr",
+      "relation": "executed_as",
+      "target": "execution-manifest.json",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T010318Z-080a6242/execution-manifest.json"
+      ],
+      "keywords": [
+        "modify",
+        "searchable",
+        "items",
+        "type",
+        "with",
+        "stats",
+        "should",
+        "treated",
+        "deliverable",
+        "governed",
+        "implementation",
+        "artifacts"
+      ]
+    }
+  ]
+}

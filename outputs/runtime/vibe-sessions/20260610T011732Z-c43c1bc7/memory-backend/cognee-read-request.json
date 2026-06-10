@@ -1,0 +1,22 @@
+{
+  "lane": "cognee",
+  "stage": "skeleton_check",
+  "task": "extend zero-stat item hiding from 눈장식 only to all equipment kinds: items with empty stats across all types should be hidden from search list",
+  "top_k": 3,
+  "max_chars_per_item": 220,
+  "keywords": [
+    "extend",
+    "zero-stat",
+    "item",
+    "hiding",
+    "from",
+    "only",
+    "all",
+    "equipment",
+    "kinds",
+    "items",
+    "with",
+    "empty"
+  ],
+  "project_key_source": null
+}

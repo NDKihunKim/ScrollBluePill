@@ -1,0 +1,17 @@
+{
+  "stage": "skeleton_check",
+  "owner": "state_store",
+  "status": "fallback_local_digest",
+  "generated_at": "2026-06-10T01:32:05Z",
+  "source_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T013203Z-01005830/skeleton-receipt.json",
+  "items": [
+    "Task focus: change item required level default range from 10-20 to 0-200, and when manual search results exceed 100 items hide the list with warning text '검색 결과가 너무 많습니다. 위에 필터들을 더 좁혀주세요.'",
+    "Git branch: ",
+    "All required governed runtime prerequisite paths are present."
+  ],
+  "budget": {
+    "top_k": 3,
+    "max_tokens": 96,
+    "max_chars_per_item": 220
+  }
+}

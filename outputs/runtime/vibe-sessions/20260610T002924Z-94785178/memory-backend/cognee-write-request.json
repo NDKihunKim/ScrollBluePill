@@ -1,0 +1,71 @@
+{
+  "task": "change manual search results from grid format to scrollable list format with ove... Deliverable: Governed implementation artifacts, verification evidence, and cleanup receipts. Constraints: Do not bypass the fixed six-stage governed runtime.; Do not widen scope silently beyond the frozen requirement document.. Update: change manual search results from grid format to scrollable list format with overflow warning when too many results — execute implementation",
+  "relations": [
+    {
+      "source": "change-manual-search-results-from-grid-format-to-scrollable-list",
+      "relation": "specified_by",
+      "target": "2026-06-09-change-manual-search-results-from-grid-format-to-scrollable-list.md",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/requirements/2026-06-09-change-manual-search-results-from-grid-format-to-scrollable-list.md"
+      ],
+      "keywords": [
+        "change",
+        "manual",
+        "search",
+        "results",
+        "from",
+        "grid",
+        "format",
+        "scrollable",
+        "list",
+        "with",
+        "ove",
+        "deliverable"
+      ]
+    },
+    {
+      "source": "change-manual-search-results-from-grid-format-to-scrollable-list",
+      "relation": "planned_in",
+      "target": "2026-06-09-change-manual-search-results-from-grid-format-to-scrollable-list-execution-plan.md",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/docs/plans/2026-06-09-change-manual-search-results-from-grid-format-to-scrollable-list-execution-plan.md"
+      ],
+      "keywords": [
+        "change",
+        "manual",
+        "search",
+        "results",
+        "from",
+        "grid",
+        "format",
+        "scrollable",
+        "list",
+        "with",
+        "ove",
+        "deliverable"
+      ]
+    },
+    {
+      "source": "change-manual-search-results-from-grid-format-to-scrollable-list",
+      "relation": "executed_as",
+      "target": "execution-manifest.json",
+      "evidence_paths": [
+        "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T002924Z-94785178/execution-manifest.json"
+      ],
+      "keywords": [
+        "change",
+        "manual",
+        "search",
+        "results",
+        "from",
+        "grid",
+        "format",
+        "scrollable",
+        "list",
+        "with",
+        "ove",
+        "deliverable"
+      ]
+    }
+  ]
+}

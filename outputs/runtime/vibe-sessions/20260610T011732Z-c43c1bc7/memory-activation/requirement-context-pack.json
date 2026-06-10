@@ -1,0 +1,34 @@
+{
+  "stage": "requirement_doc",
+  "source_stage": "bounded_memory_recall",
+  "owner": "state_store",
+  "disclosure_level": "decision_focused",
+  "generated_at": "2026-06-10T01:17:37Z",
+  "capsule_count": 1,
+  "selected_capsules": [
+    {
+      "capsule_id": "b265e96a294c641b",
+      "owner": "Cognee",
+      "lane": "cognee",
+      "kind": "entity_relation_ingest",
+      "updated_at": "2026-06-10T01:03:27Z",
+      "title": "Cognee relation: modify-searchable-items-of-type-items-with-no-stats-should-be-tr specified_by 2026-06-09-modify-searchable-items-of-type-it...",
+      "why_now": "Matched Cognee memory for requirement_doc.",
+      "expansion_ref": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T011732Z-c43c1bc7/memory-backend/cognee-read-response.json#b265e96a294c641b",
+      "summary_lines": [
+        "Cognee relation: modify-searchable-items-of-type-items-with-no-stats-should-be-tr specified_by 2026-06-09-modify-searchable-items-of-type-items-with-no-stats-should-be-tr.md",
+        "specified_by"
+      ]
+    }
+  ],
+  "items": [
+    "Cognee relation: modify-searchable-items-of-type-items-with-no-stats-should-be-tr specified_by 2026-06-09-modify-searchable-items-of-type-items-with-no-stats-should-be-tr.md",
+    "specified_by"
+  ],
+  "estimated_tokens": 47,
+  "budget": {
+    "top_k": 2,
+    "max_tokens": 120,
+    "max_chars_per_item": 260
+  }
+}
