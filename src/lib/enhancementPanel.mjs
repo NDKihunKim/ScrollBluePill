@@ -250,17 +250,34 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
         scrollsByEquipmentKind.get(kind).push(scroll);
       });
 
+            // Stat priority order by Korean stat name in scroll title
+      const STAT_PRIORITY = [
+        '공격력',
+        '마력',
+        '힘',
+        '민첩',
+        '지력',
+        '행운',
+      ];
+
+      const getStatPriority = (nameKo) => {
+        for (let p = 0; p < STAT_PRIORITY.length; p++) {
+          if (nameKo?.includes(STAT_PRIORITY[p])) return p;
+        }
+        return STAT_PRIORITY.length;
+      };
+
       const percentPattern = /(\d+)%$/;
       const extractPercent = (name) => {
         const match = name?.match(percentPattern);
         return match ? Number(match[1]) : 0;
       };
-      const stemName = (name) => String(name ?? '').replace(percentPattern, '').trimEnd();
 
       for (const s of scrollsByEquipmentKind.values()) {
         s.sort((a, b) =>
-          stemName(a.nameKo).localeCompare(stemName(b.nameKo), 'ko-KR') ||
-          extractPercent(b.nameKo) - extractPercent(a.nameKo),
+          getStatPriority(a.nameKo) - getStatPriority(b.nameKo) ||
+          extractPercent(b.nameKo) - extractPercent(a.nameKo) ||
+          a.nameKo.localeCompare(b.nameKo, 'ko-KR'),
         );
       }
     })
