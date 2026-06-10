@@ -1589,7 +1589,7 @@
   },
   {
     "id": 2040623,
-    "nameKo": "하의 민첩성 주문서 100%",
+    "nameKo": "하의 민첩 주문서 100%",
     "equipmentKind": "하의",
     "behavior_type": "fixed",
     "stats": {
@@ -1598,9 +1598,9 @@
   },
   {
     "id": 2040625,
-    "nameKo": "하의 민첩성 주문서 60%",
+    "nameKo": "하의 민첩 주문서 60%",
     "equipmentKind": "하의",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 2,
       "accuracy": 1
@@ -1608,9 +1608,9 @@
   },
   {
     "id": 2040627,
-    "nameKo": "하의 민첩성 주문서 10%",
+    "nameKo": "하의 민첩 주문서 10%",
     "equipmentKind": "하의",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 3,
       "speed": 1,
@@ -1618,18 +1618,38 @@
     }
   },
   {
-    "id": 2040630,
+    "id": 2040600,
     "nameKo": "하의 방어력 주문서 100%",
     "equipmentKind": "하의",
     "behavior_type": "fixed",
     "stats": {
-      "magicDefense": 3,
+      "weaponDefense": 1
+    }
+  },
+  {
+    "id": 2040601,
+    "nameKo": "하의 방어력 주문서 60%",
+    "equipmentKind": "하의",
+    "behavior_type": "fixed",
+    "stats": {
+      "magicDefense": 1,
       "weaponDefense": 2
     }
   },
   {
+    "id": 2040602,
+    "nameKo": "하의 방어력 주문서 10%",
+    "equipmentKind": "하의",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxHp": 10,
+      "magicDefense": 3,
+      "weaponDefense": 5
+    }
+  },
+  {
     "id": 2040617,
-    "nameKo": "하의 점프력 주문서 100%",
+    "nameKo": "하의 점프 주문서 100%",
     "equipmentKind": "하의",
     "behavior_type": "fixed",
     "stats": {
@@ -1638,9 +1658,9 @@
   },
   {
     "id": 2040618,
-    "nameKo": "하의 점프력 주문서 60%",
+    "nameKo": "하의 점프 주문서 60%",
     "equipmentKind": "하의",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "jump": 2,
       "avoidability": 1
@@ -1648,9 +1668,9 @@
   },
   {
     "id": 2040619,
-    "nameKo": "하의 점프력 주문서 10%",
+    "nameKo": "하의 점프 주문서 10%",
     "equipmentKind": "하의",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "jump": 4,
       "avoidability": 2
@@ -1658,7 +1678,7 @@
   },
   {
     "id": 2040620,
-    "nameKo": "하의 HP 주문서 100%",
+    "nameKo": "하의 체력 주문서 100%",
     "equipmentKind": "하의",
     "behavior_type": "fixed",
     "stats": {
@@ -1667,18 +1687,18 @@
   },
   {
     "id": 2040621,
-    "nameKo": "하의 HP 주문서 60%",
+    "nameKo": "하의 체력 주문서 60%",
     "equipmentKind": "하의",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "maxHp": 15
     }
   },
   {
     "id": 2040622,
-    "nameKo": "하의 HP 주문서 10%",
+    "nameKo": "하의 체력 주문서 10%",
     "equipmentKind": "하의",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "maxHp": 30
     }
