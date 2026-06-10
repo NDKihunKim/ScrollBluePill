@@ -96,6 +96,24 @@ test('parseScrollSelection accepts single numbers, comma lists, ranges, and UUID
 	);
 });
 
+test('parseScrollSelection accepts canonical UUIDs beyond older version nibbles', () => {
+	const scrolls = [
+		{
+			id: '77777777-7777-7777-9777-777777777777',
+			name_ko: '테스트 주문서',
+			category: '테스트',
+			behavior_type: 'fixed',
+			published_status: 'draft',
+			affected_stats: [],
+		},
+	];
+
+	assert.deepEqual(
+		parseScrollSelection('77777777-7777-7777-9777-777777777777', scrolls).map((scroll) => scroll.id),
+		['77777777-7777-7777-9777-777777777777'],
+	);
+});
+
 test('parseScrollSelection rejects unsafe or unknown input before writes', () => {
 	assert.throws(() => parseScrollSelection('', sampleScrolls), /Select at least one scroll/);
 	assert.throws(() => parseScrollSelection('0', sampleScrolls), /Selection number out of range/);
