@@ -144,7 +144,7 @@ export function initMakerPanel({
         item.classList.add('maker-picker-item--disabled');
       }
 
-      const step1IconId = GEM_ITEM_IDS[gem.key]?.mid ?? 0;
+      const step1IconId = GEM_ITEM_IDS[gem.key]?.base ?? 0;
       const img = createGemIconElement(gem.key, gem.stat, step1IconId);
 
       const nameSpan = document.createElement('span');

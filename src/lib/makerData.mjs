@@ -88,18 +88,18 @@ export function getGemStatPriority(gemKey) {
 }
 
 export const GEM_ITEM_IDS = {
-  diamond:     { low: 0, mid: 0, high: 0 },
-  sapphire:    { low: 0, mid: 0, high: 0 },
-  strCrystal:  { low: 0, mid: 0, high: 0 },
-  dexCrystal:  { low: 0, mid: 0, high: 0 },
-  intCrystal:  { low: 0, mid: 0, high: 0 },
-  lukCrystal:  { low: 0, mid: 0, high: 0 },
-  garnet:      { low: 0, mid: 0, high: 0 },
-  opal:        { low: 0, mid: 0, high: 0 },
-  amethyst:    { low: 0, mid: 0, high: 0 },
-  aquamarine:  { low: 0, mid: 0, high: 0 },
-  topaz:       { low: 0, mid: 0, high: 0 },
-  emerald:     { low: 0, mid: 0, high: 0 },
+  diamond:     { base: 4021007, low: 4250000, mid: 4250001, high: 4250002 },
+  sapphire:    { base: 4021005, low: 4250100, mid: 4250101, high: 4250102 },
+  garnet:      { base: 4021000, low: 4250200, mid: 4250201, high: 4250202 },
+  opal:        { base: 4021004, low: 4250300, mid: 4250301, high: 4250302 },
+  amethyst:    { base: 4021001, low: 4250400, mid: 4250401, high: 4250402 },
+  aquamarine:  { base: 4021002, low: 4250500, mid: 4250501, high: 4250502 },
+  topaz:       { base: 4021006, low: 4250600, mid: 4250601, high: 4250602 },
+  emerald:     { base: 4021003, low: 4250700, mid: 4250701, high: 4250702 },
+  strCrystal:  { base: 4005000, low: 4250800, mid: 4250801, high: 4250802 },
+  dexCrystal:  { base: 4005002, low: 4251100, mid: 4251101, high: 4251102 },
+  intCrystal:  { base: 4005001, low: 4250900, mid: 4250901, high: 4250902 },
+  lukCrystal:  { base: 4005003, low: 4251000, mid: 4251001, high: 4251002 },
 };
 
 /** Background colors for gem icon placeholders, keyed by stat */
