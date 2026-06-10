@@ -1,7 +1,7 @@
 [
   {
     "id": 2040316,
-    "nameKo": "귀고리 민첩성 주문서 100%",
+    "nameKo": "귀 장식 민첩 주문서 100%",
     "equipmentKind": "귀고리",
     "behavior_type": "fixed",
     "stats": {
@@ -10,34 +10,25 @@
   },
   {
     "id": 2040317,
-    "nameKo": "귀고리 민첩성 주문서 60%",
+    "nameKo": "귀 장식 민첩 주문서 60%",
     "equipmentKind": "귀고리",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 2
     }
   },
   {
     "id": 2040318,
-    "nameKo": "귀고리 민첩성 주문서 10%",
+    "nameKo": "귀 장식 민첩 주문서 10%",
     "equipmentKind": "귀고리",
-    "behavior_type": "random",
-    "stats": {
-      "dex": 3
-    }
-  },
-  {
-    "id": 2040329,
-    "nameKo": "귀고리 민첩성 주문서 10%",
-    "equipmentKind": "귀고리",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 3
     }
   },
   {
     "id": 2040334,
-    "nameKo": "귀고리 지력 주문서 100%",
+    "nameKo": "귀 장식 지력 주문서 100%",
     "equipmentKind": "귀고리",
     "behavior_type": "fixed",
     "stats": {
@@ -46,10 +37,20 @@
     }
   },
   {
-    "id": 2040330,
-    "nameKo": "귀고리 지력 주문서 10%",
+    "id": 2040301,
+    "nameKo": "귀 장식 지력 주문서 60%",
     "equipmentKind": "귀고리",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
+    "stats": {
+      "int": 1,
+      "magicAttack": 2
+    }
+  },
+  {
+    "id": 2040302,
+    "nameKo": "귀 장식 지력 주문서 10%",
+    "equipmentKind": "귀고리",
+    "behavior_type": "fixed",
     "stats": {
       "int": 3,
       "magicAttack": 5,
@@ -57,44 +58,8 @@
     }
   },
   {
-    "id": 2040319,
-    "nameKo": "귀고리 행운 주문서 100%",
-    "equipmentKind": "귀고리",
-    "behavior_type": "fixed",
-    "stats": {
-      "luk": 1
-    }
-  },
-  {
-    "id": 2040321,
-    "nameKo": "귀고리 행운 주문서 60%",
-    "equipmentKind": "귀고리",
-    "behavior_type": "random",
-    "stats": {
-      "luk": 2
-    }
-  },
-  {
-    "id": 2040323,
-    "nameKo": "귀고리 행운 주문서 10%",
-    "equipmentKind": "귀고리",
-    "behavior_type": "random",
-    "stats": {
-      "luk": 3
-    }
-  },
-  {
-    "id": 2040331,
-    "nameKo": "귀고리 행운 주문서 10%",
-    "equipmentKind": "귀고리",
-    "behavior_type": "random",
-    "stats": {
-      "luk": 3
-    }
-  },
-  {
     "id": 2040324,
-    "nameKo": "귀고리 HP 주문서 100%",
+    "nameKo": "귀 장식 체력 주문서 100%",
     "equipmentKind": "귀고리",
     "behavior_type": "fixed",
     "stats": {
@@ -103,20 +68,47 @@
   },
   {
     "id": 2040326,
-    "nameKo": "귀고리 HP 주문서 60%",
+    "nameKo": "귀 장식 체력 주문서 60%",
     "equipmentKind": "귀고리",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "maxHp": 15
     }
   },
   {
     "id": 2040328,
-    "nameKo": "귀고리 HP 주문서 10%",
+    "nameKo": "귀 장식 체력 주문서 10%",
     "equipmentKind": "귀고리",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "maxHp": 30
+    }
+  },
+  {
+    "id": 2040319,
+    "nameKo": "귀 장식 행운 주문서 100%",
+    "equipmentKind": "귀고리",
+    "behavior_type": "fixed",
+    "stats": {
+      "luk": 1
+    }
+  },
+  {
+    "id": 2040321,
+    "nameKo": "귀 장식 행운 주문서 60%",
+    "equipmentKind": "귀고리",
+    "behavior_type": "fixed",
+    "stats": {
+      "luk": 2
+    }
+  },
+  {
+    "id": 2040323,
+    "nameKo": "귀 장식 행운 주문서 10%",
+    "equipmentKind": "귀고리",
+    "behavior_type": "fixed",
+    "stats": {
+      "luk": 3
     }
   },
   {
@@ -180,13 +172,33 @@
     }
   },
   {
-    "id": 2043312,
+    "id": 2043300,
     "nameKo": "단검 공격력 주문서 100%",
     "equipmentKind": "단검",
     "behavior_type": "fixed",
     "stats": {
-      "luk": 2,
+      "weaponAttack": 1
+    }
+  },
+  {
+    "id": 2043301,
+    "nameKo": "단검 공격력 주문서 60%",
+    "equipmentKind": "단검",
+    "behavior_type": "fixed",
+    "stats": {
+      "luk": 1,
       "weaponAttack": 2
+    }
+  },
+  {
+    "id": 2043302,
+    "nameKo": "단검 공격력 주문서 10%",
+    "equipmentKind": "단검",
+    "behavior_type": "fixed",
+    "stats": {
+      "luk": 3,
+      "weaponAttack": 5,
+      "weaponDefense": 1
     }
   },
   {
@@ -584,6 +596,54 @@
     }
   },
   {
+    "id": 2040901,
+    "nameKo": "방패 방어력 주문서 60%",
+    "equipmentKind": "방패",
+    "behavior_type": "fixed",
+    "stats": {
+      "magicDefense": 1,
+      "weaponDefense": 2
+    }
+  },
+  {
+    "id": 2040902,
+    "nameKo": "방패 방어력 주문서 10%",
+    "equipmentKind": "방패",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxHp": 10,
+      "magicDefense": 3,
+      "weaponDefense": 5
+    }
+  },
+  {
+    "id": 2040926,
+    "nameKo": "방패 체력 주문서 100%",
+    "equipmentKind": "방패",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxHp": 5
+    }
+  },
+  {
+    "id": 2040927,
+    "nameKo": "방패 체력 주문서 60%",
+    "equipmentKind": "방패",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxHp": 15
+    }
+  },
+  {
+    "id": 2040928,
+    "nameKo": "방패 체력 주문서 10%",
+    "equipmentKind": "방패",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxHp": 30
+    }
+  },
+  {
     "id": 2040923,
     "nameKo": "방패 행운 주문서 100%",
     "equipmentKind": "방패",
@@ -596,7 +656,7 @@
     "id": 2040924,
     "nameKo": "방패 행운 주문서 60%",
     "equipmentKind": "방패",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "luk": 2
     }
@@ -605,7 +665,7 @@
     "id": 2040925,
     "nameKo": "방패 행운 주문서 10%",
     "equipmentKind": "방패",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "luk": 3
     }
@@ -623,7 +683,7 @@
     "id": 2040931,
     "nameKo": "방패 힘 주문서 60%",
     "equipmentKind": "방패",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "str": 2
     }
@@ -632,36 +692,9 @@
     "id": 2040933,
     "nameKo": "방패 힘 주문서 10%",
     "equipmentKind": "방패",
-    "behavior_type": "random",
-    "stats": {
-      "str": 3
-    }
-  },
-  {
-    "id": 2040926,
-    "nameKo": "방패 HP 주문서 100%",
-    "equipmentKind": "방패",
     "behavior_type": "fixed",
     "stats": {
-      "maxHp": 5
-    }
-  },
-  {
-    "id": 2040927,
-    "nameKo": "방패 HP 주문서 60%",
-    "equipmentKind": "방패",
-    "behavior_type": "random",
-    "stats": {
-      "maxHp": 15
-    }
-  },
-  {
-    "id": 2040928,
-    "nameKo": "방패 HP 주문서 10%",
-    "equipmentKind": "방패",
-    "behavior_type": "random",
-    "stats": {
-      "maxHp": 30
+      "str": 3
     }
   },
   {
@@ -864,23 +897,63 @@
     }
   },
   {
-    "id": 2044612,
+    "id": 2044600,
     "nameKo": "석궁 공격력 주문서 100%",
     "equipmentKind": "석궁",
     "behavior_type": "fixed",
     "stats": {
-      "accuracy": 3,
+      "weaponAttack": 1
+    }
+  },
+  {
+    "id": 2044601,
+    "nameKo": "석궁 공격력 주문서 60%",
+    "equipmentKind": "석궁",
+    "behavior_type": "fixed",
+    "stats": {
+      "accuracy": 1,
       "weaponAttack": 2
     }
   },
   {
-    "id": 2043812,
+    "id": 2044602,
+    "nameKo": "석궁 공격력 주문서 10%",
+    "equipmentKind": "석궁",
+    "behavior_type": "fixed",
+    "stats": {
+      "dex": 1,
+      "accuracy": 3,
+      "weaponAttack": 5
+    }
+  },
+  {
+    "id": 2043800,
     "nameKo": "스태프 마력 주문서 100%",
     "equipmentKind": "스태프",
     "behavior_type": "fixed",
     "stats": {
-      "int": 2,
+      "magicAttack": 1
+    }
+  },
+  {
+    "id": 2043801,
+    "nameKo": "스태프 마력 주문서 60%",
+    "equipmentKind": "스태프",
+    "behavior_type": "fixed",
+    "stats": {
+      "int": 1,
       "magicAttack": 2
+    }
+  },
+  {
+    "id": 2043802,
+    "nameKo": "스태프 마력 주문서 10%",
+    "equipmentKind": "스태프",
+    "behavior_type": "fixed",
+    "stats": {
+      "int": 3,
+      "magicAttack": 5,
+      "magicDefense": 1
     }
   },
   {
@@ -913,23 +986,63 @@
     }
   },
   {
-    "id": 2044712,
+    "id": 2044700,
     "nameKo": "아대 공격력 주문서 100%",
     "equipmentKind": "아대",
     "behavior_type": "fixed",
     "stats": {
-      "accuracy": 3,
+      "weaponAttack": 1
+    }
+  },
+  {
+    "id": 2044701,
+    "nameKo": "아대 공격력 주문서 60%",
+    "equipmentKind": "아대",
+    "behavior_type": "fixed",
+    "stats": {
+      "accuracy": 1,
       "weaponAttack": 2
     }
   },
   {
-    "id": 2043712,
+    "id": 2044702,
+    "nameKo": "아대 공격력 주문서 10%",
+    "equipmentKind": "아대",
+    "behavior_type": "fixed",
+    "stats": {
+      "luk": 1,
+      "accuracy": 3,
+      "weaponAttack": 5
+    }
+  },
+  {
+    "id": 2043700,
     "nameKo": "완드 마력 주문서 100%",
     "equipmentKind": "완드",
     "behavior_type": "fixed",
     "stats": {
-      "int": 2,
+      "magicAttack": 1
+    }
+  },
+  {
+    "id": 2043701,
+    "nameKo": "완드 마력 주문서 60%",
+    "equipmentKind": "완드",
+    "behavior_type": "fixed",
+    "stats": {
+      "int": 1,
       "magicAttack": 2
+    }
+  },
+  {
+    "id": 2043702,
+    "nameKo": "완드 마력 주문서 10%",
+    "equipmentKind": "완드",
+    "behavior_type": "fixed",
+    "stats": {
+      "int": 3,
+      "magicAttack": 5,
+      "magicDefense": 1
     }
   },
   {
@@ -1497,13 +1610,33 @@
     }
   },
   {
-    "id": 2044512,
+    "id": 2044500,
     "nameKo": "활 공격력 주문서 100%",
     "equipmentKind": "활",
     "behavior_type": "fixed",
     "stats": {
-      "accuracy": 3,
+      "weaponAttack": 1
+    }
+  },
+  {
+    "id": 2044501,
+    "nameKo": "활 공격력 주문서 60%",
+    "equipmentKind": "활",
+    "behavior_type": "fixed",
+    "stats": {
+      "accuracy": 1,
       "weaponAttack": 2
+    }
+  },
+  {
+    "id": 2044502,
+    "nameKo": "활 공격력 주문서 10%",
+    "equipmentKind": "활",
+    "behavior_type": "fixed",
+    "stats": {
+      "dex": 1,
+      "accuracy": 3,
+      "weaponAttack": 5
     }
   }
 ]
