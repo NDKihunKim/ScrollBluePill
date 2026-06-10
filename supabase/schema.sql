@@ -106,3 +106,4 @@ create policy "Public can read published items" on public.item_definitions
 
 -- Expose item_definitions to the Data API
 grant select on public.item_definitions to anon, authenticated;
+grant select, insert, update, delete on public.item_definitions to service_role;
