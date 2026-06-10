@@ -80,3 +80,26 @@ alter table public.scroll_definitions
 alter table public.scroll_definitions
 	add constraint scroll_definitions_published_status_check
 	check (published_status in ('draft', 'published', 'hidden'));
+
+create table if not exists public.item_definitions (
+    id integer primary key,
+    version_tag_id uuid not null references public.version_tags(id),
+    name_ko text not null,
+    name_en text,
+    equipment_kind text not null,
+    required_level integer not null default 0,
+    required_jobs text[] not null default '{}',
+    requirements jsonb not null default '{}'::jsonb,
+    stats jsonb not null default '{}'::jsonb,
+    aliases text[] not null default '{}',
+    published_status text not null default 'draft'
+        check (published_status in ('draft', 'published', 'hidden')),
+    source_note text,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+);
+
+alter table public.item_definitions enable row level security;
+
+create policy "Public can read published items" on public.item_definitions
+    for select using (published_status = 'published');
