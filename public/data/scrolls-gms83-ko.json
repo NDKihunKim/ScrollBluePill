@@ -27,7 +27,7 @@
     }
   },
   {
-    "id": 2040334,
+    "id": 2040300,
     "nameKo": "귀 장식 지력 주문서 100%",
     "equipmentKind": "귀고리",
     "behavior_type": "fixed",
@@ -585,7 +585,7 @@
     }
   },
   {
-    "id": 2040936,
+    "id": 2040900,
     "nameKo": "방패 방어력 주문서 100%",
     "equipmentKind": "방패",
     "behavior_type": "fixed",
