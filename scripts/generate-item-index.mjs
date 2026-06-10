@@ -120,6 +120,7 @@ function mapStats(metaInfo = {}) {
 		['avoidability', definedNumber(metaInfo.incEVA)],
 		['speed', definedNumber(metaInfo.incSpeed)],
 		['jump', definedNumber(metaInfo.incJump)],
+		['attackSpeed', definedNumber(metaInfo.attackSpeed)],
 		['upgradeSlots', definedNumber(metaInfo.tuc)],
 	]);
 }
