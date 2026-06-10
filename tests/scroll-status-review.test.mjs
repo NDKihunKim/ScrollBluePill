@@ -136,3 +136,12 @@ test('review script source uses service role and patches only published_status',
 		/const\s+payload\s*=\s*buildStatusUpdatePayload\([^)]*\);[\s\S]*method:\s*'PATCH'[\s\S]*body:\s*JSON\.stringify\(payload\)/,
 	);
 });
+
+test('package exposes review:scrolls and env example documents service role use', async () => {
+	const packageJson = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+	const envExample = await readFile(new URL('../.env.example', import.meta.url), 'utf8');
+
+	assert.equal(packageJson.scripts['review:scrolls'], 'node --env-file=.env scripts/review-scroll-status.mjs');
+	assert.match(envExample, /review:scrolls admin workflows/);
+	assert.match(envExample, /SUPABASE_SERVICE_ROLE_KEY=/);
+});
