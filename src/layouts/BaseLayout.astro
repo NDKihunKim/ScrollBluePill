@@ -478,10 +478,14 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
 			justify-content: flex-start;
 		}
 
-		.grid.two,
 		.grid.three,
 		.field-grid {
 			grid-template-columns: 1fr;
+		}
+
+		.grid.two {
+			grid-template-columns: minmax(0, 550px);
+			justify-content: center;
 		}
 	}
 </style>
