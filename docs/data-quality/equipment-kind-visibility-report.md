@@ -11,10 +11,10 @@ Hidden equipment kinds: Cash, Face, Hair, Medal, Mount, Pet Equipment, Skill Eff
 | equipmentKind | Item count |
 | --- | ---: |
 | 귀고리 | 42 |
-| 너클 | 21 |
+| 너클 | 24 |
 | 눈장식 | 3 |
-| 단검 | 49 |
-| 두손검 | 25 |
+| 단검 | 50 |
+| 두손검 | 32 |
 | 두손도끼 | 23 |
 | 두손둔기 | 25 |
 | 망토 | 48 |
@@ -24,16 +24,16 @@ Hidden equipment kinds: Cash, Face, Hair, Medal, Mount, Pet Equipment, Skill Eff
 | 벨트 | 14 |
 | 상의 | 209 |
 | 석궁 | 33 |
-| 스태프 | 30 |
+| 스태프 | 31 |
 | 신발 | 238 |
 | 아대 | 48 |
 | 얼굴장식 | 35 |
 | 완드 | 26 |
 | 장갑 | 164 |
 | 창 | 30 |
-| 총 | 19 |
+| 총 | 26 |
 | 펜던트 | 8 |
-| 폴암 | 51 |
+| 폴암 | 52 |
 | 하의 | 203 |
 | 한벌옷 | 177 |
 | 한손검 | 50 |

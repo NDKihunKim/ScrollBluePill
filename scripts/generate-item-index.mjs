@@ -229,11 +229,26 @@ async function main() {
     const visibilityOverrides = JSON.parse(await readFile(visibilityOverridesPath, 'utf8'));
 
     console.log('Fetching item definitions from Supabase...');
-    const rawRows = await fetchSupabase(supabaseRestUrl);
-    console.log(`Fetched ${rawRows.length} item definitions (RLS-filtered to published only).`);
+
+    // Paginate through all published items (Supabase defaults to 1000 rows/page)
+    const allRows = [];
+    let offset = 0;
+    const pageSize = 1000;
+    while (true) {
+        const pageUrl = new URL(supabaseRestUrl);
+        pageUrl.searchParams.set('limit', String(pageSize));
+        pageUrl.searchParams.set('offset', String(offset));
+        const page = await fetchSupabase(pageUrl);
+        allRows.push(...page);
+        console.log(`Fetched page with ${page.length} items (total so far: ${allRows.length})`);
+        if (page.length < pageSize) break;
+        offset += pageSize;
+    }
+
+    console.log(`Fetched ${allRows.length} item definitions (RLS-filtered to published only).`);
 
     // Transform snake_case DB rows to camelCase frontend shape
-    const rawIndex = rawRows
+    const rawIndex = allRows
         .map(transformSupabaseRow)
         .sort((a, b) => a.id - b.id);
 
