@@ -38,6 +38,21 @@
       "upgradeSlots": 5
     }
   },
+  "1402006": {
+    "nameKo": "하이랜더",
+    "requirements": {
+      "str": 115,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "pop": 0
+    },
+    "stats": {
+      "attackSpeed": 5,
+      "weaponAttack": 55,
+      "upgradeSlots": 7
+    }
+  },
   "1482008": {
     "nameKo": "세라핌즈",
     "requirements": {

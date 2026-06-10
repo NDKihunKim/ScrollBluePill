@@ -40348,9 +40348,17 @@
     "requiredJobs": [
       "Warrior"
     ],
-    "requirements": {},
+    "requirements": {
+      "str": 115,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "pop": 0
+    },
     "stats": {
-      "attackSpeed": 6
+      "attackSpeed": 5,
+      "weaponAttack": 55,
+      "upgradeSlots": 7
     },
     "aliases": []
   },
@@ -40859,28 +40867,6 @@
       "attackSpeed": 5,
       "upgradeSlots": 7,
       "weaponAttack": 83
-    },
-    "aliases": []
-  },
-  {
-    "id": 1402064,
-    "nameKo": "페페킹의 하이랜더",
-    "nameEn": "King Pepe Highlander",
-    "equipmentKind": "두손검",
-    "requiredLevel": 35,
-    "requiredJobs": [
-      "Warrior"
-    ],
-    "requirements": {
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "str": 115
-    },
-    "stats": {
-      "attackSpeed": 6,
-      "upgradeSlots": 7,
-      "weaponAttack": 60
     },
     "aliases": []
   },
