@@ -884,12 +884,12 @@
     }
   },
   {
-    "id": 2040830,
+    "id": 2040803,
     "nameKo": "장갑 공격력 주문서 100%",
     "equipmentKind": "장갑",
     "behavior_type": "fixed",
     "stats": {
-      "weaponAttack": 2
+      "weaponAttack": 1
     }
   },
   {
@@ -902,39 +902,42 @@
     }
   },
   {
-    "id": 2040821,
+    "id": 2040807,
     "nameKo": "장갑 공격력 주문서 10%",
     "equipmentKind": "장갑",
     "behavior_type": "fixed",
     "stats": {
-      "weaponAttack": 5
+      "weaponAttack": 3
     }
   },
   {
-    "id": 2040829,
+    "id": 2040800,
     "nameKo": "장갑 민첩 주문서 100%",
     "equipmentKind": "장갑",
     "behavior_type": "fixed",
     "stats": {
-      "dex": 2
+      "accuracy": 1
     }
   },
   {
-    "id": 2040801,
+    "id": 2040819,
     "nameKo": "장갑 민첩 주문서 60%",
     "equipmentKind": "장갑",
     "behavior_type": "fixed",
     "stats": {
-      "dex": 2
+      "dex": 1,
+      "accuracy": 2
     }
   },
   {
-    "id": 2040802,
+    "id": 2040806,
     "nameKo": "장갑 민첩 주문서 10%",
     "equipmentKind": "장갑",
     "behavior_type": "fixed",
     "stats": {
-      "dex": 5
+      "dex": 3,
+      "accuracy": 5,
+      "avoidability": 1
     }
   },
   {
