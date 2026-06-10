@@ -1664,28 +1664,128 @@
     }
   },
   {
-    "id": 2040538,
-    "nameKo": "한벌옷 민첩성 주문서 100%",
+    "id": 2040500,
+    "nameKo": "전신 갑옷 민첩 주문서 100%",
+    "equipmentKind": "한벌옷",
+    "behavior_type": "fixed",
+    "stats": {
+      "dex": 1
+    }
+  },
+  {
+    "id": 2040501,
+    "nameKo": "전신 갑옷 민첩 주문서 60%",
     "equipmentKind": "한벌옷",
     "behavior_type": "fixed",
     "stats": {
       "dex": 2,
+      "accuracy": 1
+    }
+  },
+  {
+    "id": 2040502,
+    "nameKo": "전신 갑옷 민첩 주문서 10%",
+    "equipmentKind": "한벌옷",
+    "behavior_type": "fixed",
+    "stats": {
+      "dex": 5,
+      "speed": 1,
       "accuracy": 3
     }
   },
   {
-    "id": 2040539,
-    "nameKo": "한벌옷 방어력 주문서 100%",
+    "id": 2040503,
+    "nameKo": "전신 갑옷 방어력 주문서 100%",
     "equipmentKind": "한벌옷",
     "behavior_type": "fixed",
     "stats": {
-      "magicDefense": 3,
+      "weaponDefense": 1
+    }
+  },
+  {
+    "id": 2040504,
+    "nameKo": "전신 갑옷 방어력 주문서 60%",
+    "equipmentKind": "한벌옷",
+    "behavior_type": "fixed",
+    "stats": {
+      "magicDefense": 1,
       "weaponDefense": 2
     }
   },
   {
+    "id": 2040505,
+    "nameKo": "전신 갑옷 방어력 주문서 10%",
+    "equipmentKind": "한벌옷",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxHp": 10,
+      "magicDefense": 3,
+      "weaponDefense": 5
+    }
+  },
+  {
+    "id": 2040512,
+    "nameKo": "전신 갑옷 지력 주문서 100%",
+    "equipmentKind": "한벌옷",
+    "behavior_type": "fixed",
+    "stats": {
+      "int": 1
+    }
+  },
+  {
+    "id": 2040513,
+    "nameKo": "전신 갑옷 지력 주문서 60%",
+    "equipmentKind": "한벌옷",
+    "behavior_type": "fixed",
+    "stats": {
+      "int": 2,
+      "magicDefense": 1
+    }
+  },
+  {
+    "id": 2040514,
+    "nameKo": "전신 갑옷 지력 주문서 10%",
+    "equipmentKind": "한벌옷",
+    "behavior_type": "fixed",
+    "stats": {
+      "int": 5,
+      "maxMp": 10,
+      "magicDefense": 3
+    }
+  },
+  {
+    "id": 2040515,
+    "nameKo": "전신 갑옷 행운 주문서 100%",
+    "equipmentKind": "한벌옷",
+    "behavior_type": "fixed",
+    "stats": {
+      "luk": 1
+    }
+  },
+  {
+    "id": 2040516,
+    "nameKo": "전신 갑옷 행운 주문서 60%",
+    "equipmentKind": "한벌옷",
+    "behavior_type": "fixed",
+    "stats": {
+      "luk": 2,
+      "avoidability": 1
+    }
+  },
+  {
+    "id": 2040517,
+    "nameKo": "전신 갑옷 행운 주문서 10%",
+    "equipmentKind": "한벌옷",
+    "behavior_type": "fixed",
+    "stats": {
+      "luk": 5,
+      "accuracy": 1,
+      "avoidability": 3
+    }
+  },
+  {
     "id": 2040530,
-    "nameKo": "한벌옷 힘 주문서 100%",
+    "nameKo": "전신 갑옷 힘 주문서 100%",
     "equipmentKind": "한벌옷",
     "behavior_type": "fixed",
     "stats": {
@@ -1694,9 +1794,9 @@
   },
   {
     "id": 2040532,
-    "nameKo": "한벌옷 힘 주문서 60%",
+    "nameKo": "전신 갑옷 힘 주문서 60%",
     "equipmentKind": "한벌옷",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "str": 2,
       "weaponDefense": 1
@@ -1704,9 +1804,9 @@
   },
   {
     "id": 2040534,
-    "nameKo": "한벌옷 힘 주문서 10%",
+    "nameKo": "전신 갑옷 힘 주문서 10%",
     "equipmentKind": "한벌옷",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "str": 5,
       "maxHp": 5,
