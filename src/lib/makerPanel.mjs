@@ -1,6 +1,25 @@
-import { GEM_GRADES, GEM_ITEM_IDS, getVisibleGemTypes, getGemTypeByKey, statLabelByKey } from './makerData.mjs';
+import { GEM_GRADES, GEM_ITEM_IDS, GEM_STAT_COLORS, getVisibleGemTypes, getGemTypeByKey, statLabelByKey } from './makerData.mjs';
 import { activateMaker, deactivateMaker, applyGem, revertGemSlot, computeAccumulatedStats, computeGradeColor, computeAppliedScrollCount, computeRemainingSlots } from './enhancementState.mjs';
 import { buildItemIconUrl } from './maplestoryIo.mjs';
+
+function createGemIconElement(gemKey, stat, iconId) {
+  if (iconId !== 0) {
+    const img = document.createElement('img');
+    img.src = buildItemIconUrl(iconId);
+    img.alt = '';
+    img.loading = 'lazy';
+    return img;
+  }
+
+  const placeholder = document.createElement('span');
+  placeholder.className = 'maker-gem-icon';
+  const color = GEM_STAT_COLORS[stat] ?? '#666';
+  placeholder.style.backgroundColor = color;
+  const label = statLabelByKey[stat] ?? stat;
+  placeholder.textContent = label.slice(0, 2);
+  return placeholder;
+}
+
 
 export function initMakerPanel({
   makerSection,
@@ -64,10 +83,7 @@ export function initMakerPanel({
           const gradeKey = gemSlot.gradeIndex === 2 ? 'high' : gemSlot.gradeIndex === 1 ? 'mid' : 'low';
           const iconId = GEM_ITEM_IDS[gem.key]?.[gradeKey] ?? 0;
 
-          const img = document.createElement('img');
-          img.src = buildItemIconUrl(iconId);
-          img.alt = '';
-          img.loading = 'lazy';
+          const img = createGemIconElement(gem.key, gem.stat, iconId);
 
           const nameSpan = document.createElement('span');
           nameSpan.className = 'maker-gem-slot-name';
@@ -128,11 +144,8 @@ export function initMakerPanel({
         item.classList.add('maker-picker-item--disabled');
       }
 
-      const img = document.createElement('img');
       const step1IconId = GEM_ITEM_IDS[gem.key]?.mid ?? 0;
-      img.src = buildItemIconUrl(step1IconId);
-      img.alt = '';
-      img.loading = 'lazy';
+      const img = createGemIconElement(gem.key, gem.stat, step1IconId);
 
       const nameSpan = document.createElement('span');
       nameSpan.textContent = gem.nameKo;
@@ -179,10 +192,7 @@ export function initMakerPanel({
       const gradeKey = gradeIndex === 2 ? 'high' : gradeIndex === 1 ? 'mid' : 'low';
       const step2IconId = GEM_ITEM_IDS[gem.key]?.[gradeKey] ?? 0;
 
-      const img = document.createElement('img');
-      img.src = buildItemIconUrl(step2IconId);
-      img.alt = '';
-      img.loading = 'lazy';
+      const img = createGemIconElement(gem.key, gem.stat, step2IconId);
 
       const gradeSpan = document.createElement('span');
       gradeSpan.textContent = gradeLabel;
