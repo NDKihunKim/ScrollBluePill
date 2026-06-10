@@ -74,7 +74,7 @@ create policy "Public can read published scrolls" on public.scroll_definitions
 	for select using (published_status = 'published');
 
 grant select on public.scroll_definitions to service_role;
-grant update (published_status) on public.scroll_definitions to service_role;
+grant update (published_status, name_ko, affected_stats, behavior_type) on public.scroll_definitions to service_role;
 
 -- Migration for existing scroll_definitions tables that lack published_status
 alter table public.scroll_definitions
