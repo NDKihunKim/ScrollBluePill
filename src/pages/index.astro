@@ -416,7 +416,34 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		return row;
 	};
 
-	const formatStatValue = (key, value) => {
+	const weaponAttackSpeedBySubCategory = {
+			'One-Handed Sword': 5,
+			'Two-Handed Sword': 6,
+			'One-Handed Axe': 5,
+			'Two-Handed Axe': 6,
+			'One-Handed Blunt Weapon': 5,
+			'Two-Handed Blunt': 6,
+			Spear: 7,
+			'Pole Arm': 8,
+			Wand: 6,
+			Staff: 8,
+			Bow: 6,
+			Crossbow: 6,
+			Claw: 4,
+			Dagger: 4,
+			Knuckle: 5,
+			Gun: 5,
+		};
+
+		const resolveAttackSpeed = (item) => {
+			if (Number.isFinite(item.stats?.attackSpeed)) {
+				return item.stats.attackSpeed;
+			}
+
+			return weaponAttackSpeedBySubCategory[item.typeInfo?.subCategory] ?? null;
+		};
+
+		const formatStatValue = (key, value) => {
 			if (key === 'attackSpeed') {
 				const speedLabelByValue = {
 					2: '매우 빠름',
@@ -467,7 +494,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		});
 
 		statRows.forEach(([label, key]) => {
-			const value = item.stats?.[key];
+			const value = key === 'attackSpeed' ? resolveAttackSpeed(item) : item.stats?.[key];
 			if (Number.isFinite(value)) {
 				selectedItemStats.append(createItemLine(label, formatStatValue(key, value)));
 			}
@@ -605,7 +632,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 				return;
 			}
 
-			const value = accumulatedStats?.[key];
+			const value = key === 'attackSpeed' ? resolveAttackSpeed(item) : accumulatedStats?.[key];
 			if (Number.isFinite(value)) {
 				selectedItemStats.append(createItemLine(label, formatStatValue(key, value)));
 			}
