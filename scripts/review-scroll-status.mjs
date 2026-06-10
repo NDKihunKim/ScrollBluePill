@@ -3,6 +3,7 @@ import { createInterface } from 'node:readline/promises';
 
 import {
 	buildStatusUpdatePayload,
+	filterDesiredPercentScrolls,
 	formatAffectedStats,
 	groupScrollsByCategory,
 	parseScrollSelection,
@@ -153,10 +154,17 @@ async function main() {
 
 	try {
 		console.log('Fetching all scroll definitions from Supabase...');
-		const scrolls = await fetchAllScrolls();
+		const allScrolls = await fetchAllScrolls();
+
+		if (allScrolls.length === 0) {
+			throw new Error('No scroll definitions found.');
+		}
+
+		const scrolls = filterDesiredPercentScrolls(allScrolls);
+		console.log(`Filtered to ${scrolls.length} scrolls (kept 10%, 60%, 100% only; removed ${allScrolls.length - scrolls.length}).`);
 
 		if (scrolls.length === 0) {
-			throw new Error('No scroll definitions found.');
+			throw new Error('No scroll definitions remaining after percent filter.');
 		}
 
 		const groups = groupScrollsByCategory(scrolls);

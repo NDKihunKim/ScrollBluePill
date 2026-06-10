@@ -1,5 +1,20 @@
 export const allowedScrollStatuses = ['draft', 'published', 'hidden'];
 
+export const DESIRED_PERCENTS = new Set([10, 60, 100]);
+const PERCENT_PATTERN = /(\d+)%$/;
+
+export function filterDesiredPercentScrolls(scrolls) {
+	return scrolls.filter((scroll) => {
+		const match = scroll.name_ko?.match(PERCENT_PATTERN);
+		if (!match) {
+			return false;
+		}
+
+		const percent = Number(match[1]);
+		return DESIRED_PERCENTS.has(percent);
+	});
+}
+
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function validateScrollStatus(status) {
