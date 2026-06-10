@@ -13,7 +13,7 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
 ---
 
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-theme="bright">
 	<head>
 		<meta charset="utf-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -29,6 +29,16 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
 		<meta property="og:title" content={pageTitle} />
 		<meta property="og:description" content={description} />
 		<meta property="og:url" content={canonical} />
+		<script is:inline>
+			try {
+				const savedTheme = localStorage.getItem('scrollbluepill-theme');
+				if (savedTheme === 'bright' || savedTheme === 'dark') {
+					document.documentElement.dataset.theme = savedTheme;
+				}
+			} catch {
+				document.documentElement.dataset.theme = 'bright';
+			}
+		</script>
 	</head>
 	<body>
 		<header class="site-header">
@@ -36,15 +46,27 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
 				<span class="brand-mark">S</span>
 				<span>{site.name}</span>
 			</a>
-			<nav aria-label="주요 메뉴">
-				{
-					site.nav.map((item) => (
-						<a href={item.href} class={Astro.url.pathname === item.href ? 'active' : ''}>
-							{item.label}
-						</a>
-					))
-				}
-			</nav>
+			<div class="site-actions">
+				<button
+					class="theme-toggle"
+					type="button"
+					aria-label="어두운 모드로 전환"
+					aria-pressed="false"
+					data-theme-toggle
+				>
+					<span aria-hidden="true" data-theme-icon>☀</span>
+					<span data-theme-label>밝은 모드</span>
+				</button>
+				<nav aria-label="주요 메뉴">
+					{
+						site.nav.map((item) => (
+							<a href={item.href} class={Astro.url.pathname === item.href ? 'active' : ''}>
+								{item.label}
+							</a>
+						))
+					}
+				</nav>
+			</div>
 		</header>
 		<main>
 			<slot />
@@ -60,6 +82,44 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
 				<a href="/contact/">문의</a>
 			</div>
 		</footer>
+		<script is:inline>
+			const themeToggle = document.querySelector('[data-theme-toggle]');
+			const themeIcon = document.querySelector('[data-theme-icon]');
+			const themeLabel = document.querySelector('[data-theme-label]');
+
+			const setTheme = (theme) => {
+				const nextTheme = theme === 'dark' ? 'dark' : 'bright';
+				document.documentElement.dataset.theme = nextTheme;
+
+				try {
+					localStorage.setItem('scrollbluepill-theme', nextTheme);
+				} catch {
+					/* Theme still works for this page load when storage is unavailable. */
+				}
+
+				if (themeToggle instanceof HTMLButtonElement) {
+					const isDark = nextTheme === 'dark';
+					themeToggle.setAttribute('aria-pressed', String(isDark));
+					themeToggle.setAttribute(
+						'aria-label',
+						isDark ? '밝은 모드로 전환' : '어두운 모드로 전환',
+					);
+				}
+
+				if (themeIcon instanceof HTMLElement) {
+					themeIcon.textContent = nextTheme === 'dark' ? '◐' : '☀';
+				}
+
+				if (themeLabel instanceof HTMLElement) {
+					themeLabel.textContent = nextTheme === 'dark' ? '어두운 모드' : '밝은 모드';
+				}
+			};
+
+			setTheme(document.documentElement.dataset.theme);
+			themeToggle?.addEventListener('click', () => {
+				setTheme(document.documentElement.dataset.theme === 'dark' ? 'bright' : 'dark');
+			});
+		</script>
 	</body>
 </html>
 
@@ -75,9 +135,30 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
 		--line: #cfe6ef;
 		--green: var(--brand-dark);
 		--blue: var(--brand-dark);
+		--header-bg: rgb(241 249 252 / 92%);
+		--nav-hover: #dff2f8;
+		--secondary-bg: #ffffff;
+		--ad-border: #91cfe3;
+		--ad-bg: #e6f6fb;
 		--shadow: 0 12px 30px rgb(1 143 199 / 12%);
 		font-family:
 			Inter, Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	}
+
+	:root[data-theme='dark'] {
+		color-scheme: dark;
+		--bg: #071e29;
+		--surface: #0f2f3d;
+		--surface-soft: #123b4d;
+		--ink: #f5fbfd;
+		--muted: #a8c5d0;
+		--line: #285365;
+		--header-bg: rgb(7 30 41 / 92%);
+		--nav-hover: #16465a;
+		--secondary-bg: #123b4d;
+		--ad-border: #2b6175;
+		--ad-bg: #0f3444;
+		--shadow: 0 12px 30px rgb(0 0 0 / 24%);
 	}
 
 	* {
@@ -112,7 +193,7 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
 		gap: 24px;
 		padding: 14px clamp(16px, 4vw, 56px);
 		border-bottom: 1px solid var(--line);
-		background: rgb(241 249 252 / 92%);
+		background: var(--header-bg);
 		backdrop-filter: blur(12px);
 	}
 
@@ -132,6 +213,13 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
 		border-radius: 8px;
 		background: var(--green);
 		color: white;
+	}
+
+	.site-actions {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 8px;
 	}
 
 	nav {
@@ -157,7 +245,21 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
 	nav a:hover,
 	.footer-links a:hover {
 		color: var(--ink);
-		background: #dff2f8;
+		background: var(--nav-hover);
+	}
+
+	.theme-toggle {
+		gap: 6px;
+		min-height: 38px;
+		border: 1px solid var(--line);
+		background: var(--surface);
+		color: var(--ink);
+		padding: 7px 10px;
+		white-space: nowrap;
+	}
+
+	.theme-toggle:hover {
+		background: var(--nav-hover);
 	}
 
 	main {
@@ -291,7 +393,7 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
 
 	.button.secondary {
 		border: 1px solid var(--line);
-		background: white;
+		background: var(--secondary-bg);
 		color: var(--ink);
 	}
 
@@ -318,9 +420,9 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
 		display: grid;
 		min-height: 96px;
 		place-items: center;
-		border: 1px dashed #91cfe3;
+		border: 1px dashed var(--ad-border);
 		border-radius: 8px;
-		background: #e6f6fb;
+		background: var(--ad-bg);
 		color: var(--muted);
 		font-size: 0.9rem;
 		font-weight: 700;
@@ -369,6 +471,7 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
 		}
 
 		nav,
+		.site-actions,
 		.footer-links {
 			justify-content: flex-start;
 		}
