@@ -1035,13 +1035,60 @@
     }
   },
   {
-    "id": 2040430,
+    "id": 2040400,
     "nameKo": "상의 방어력 주문서 100%",
     "equipmentKind": "상의",
     "behavior_type": "fixed",
     "stats": {
-      "magicDefense": 3,
+      "weaponDefense": 1
+    }
+  },
+  {
+    "id": 2040401,
+    "nameKo": "상의 방어력 주문서 60%",
+    "equipmentKind": "상의",
+    "behavior_type": "fixed",
+    "stats": {
+      "magicDefense": 1,
       "weaponDefense": 2
+    }
+  },
+  {
+    "id": 2040402,
+    "nameKo": "상의 방어력 주문서 10%",
+    "equipmentKind": "상의",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxHp": 10,
+      "magicDefense": 3,
+      "weaponDefense": 5
+    }
+  },
+  {
+    "id": 2040420,
+    "nameKo": "상의 체력 주문서 100%",
+    "equipmentKind": "상의",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxHp": 5
+    }
+  },
+  {
+    "id": 2040421,
+    "nameKo": "상의 체력 주문서 60%",
+    "equipmentKind": "상의",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxHp": 15
+    }
+  },
+  {
+    "id": 2040422,
+    "nameKo": "상의 체력 주문서 10%",
+    "equipmentKind": "상의",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxHp": 30
     }
   },
   {
@@ -1057,7 +1104,7 @@
     "id": 2040425,
     "nameKo": "상의 행운 주문서 60%",
     "equipmentKind": "상의",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "luk": 2
     }
@@ -1066,7 +1113,7 @@
     "id": 2040427,
     "nameKo": "상의 행운 주문서 10%",
     "equipmentKind": "상의",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "luk": 3
     }
@@ -1084,7 +1131,7 @@
     "id": 2040418,
     "nameKo": "상의 힘 주문서 60%",
     "equipmentKind": "상의",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "str": 2
     }
@@ -1093,36 +1140,9 @@
     "id": 2040419,
     "nameKo": "상의 힘 주문서 10%",
     "equipmentKind": "상의",
-    "behavior_type": "random",
-    "stats": {
-      "str": 3
-    }
-  },
-  {
-    "id": 2040420,
-    "nameKo": "상의 HP 주문서 100%",
-    "equipmentKind": "상의",
     "behavior_type": "fixed",
     "stats": {
-      "maxHp": 5
-    }
-  },
-  {
-    "id": 2040421,
-    "nameKo": "상의 HP 주문서 60%",
-    "equipmentKind": "상의",
-    "behavior_type": "random",
-    "stats": {
-      "maxHp": 15
-    }
-  },
-  {
-    "id": 2040422,
-    "nameKo": "상의 HP 주문서 10%",
-    "equipmentKind": "상의",
-    "behavior_type": "random",
-    "stats": {
-      "maxHp": 30
+      "str": 3
     }
   },
   {
