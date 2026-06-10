@@ -172,21 +172,24 @@ async function main() {
 		console.log(`Dropped ${droppedNullIds} scrolls with null maplestory_io_item_id.`);
 	}
 
-	// Stat priority order by Korean stat name in scroll title
-	const STAT_PRIORITY = [
-		'공격력',
-		'마력',
-		'힘',
-		'민첩',
-		'지력',
-		'행운',
-	];
+	// Stat priority by stats object keys: weaponAttack > magicAttack > str > dex > int > luk > rest
+	const STAT_KEY_RANK = {
+		weaponAttack: 0,
+		magicAttack: 1,
+		str: 2,
+		dex: 3,
+		int: 4,
+		luk: 5,
+	};
 
-	const getStatPriority = (nameKo) => {
-		for (let p = 0; p < STAT_PRIORITY.length; p++) {
-			if (nameKo?.includes(STAT_PRIORITY[p])) return p;
+	const getStatPriority = (stats) => {
+		const keys = Object.keys(stats ?? {});
+		let best = 99;
+		for (const key of keys) {
+			const rank = STAT_KEY_RANK[key];
+			if (rank !== undefined && rank < best) best = rank;
 		}
-		return STAT_PRIORITY.length;
+		return best;
 	};
 
 	const stemName = (name) => String(name ?? '').replace(PERCENT_PATTERN, '').trimEnd();
@@ -199,7 +202,7 @@ async function main() {
 
 	frontendScrolls.sort((a, b) =>
 		String(a.equipmentKind).localeCompare(String(b.equipmentKind), 'ko-KR') ||
-		getStatPriority(a.nameKo) - getStatPriority(b.nameKo) ||
+		getStatPriority(a.stats) - getStatPriority(b.stats) ||
 		stemName(a.nameKo).localeCompare(stemName(b.nameKo), 'ko-KR') ||
 		extractPercent(b.nameKo) - extractPercent(a.nameKo),
 	);
