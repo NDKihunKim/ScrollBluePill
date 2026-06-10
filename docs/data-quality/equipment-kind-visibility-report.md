@@ -14,7 +14,7 @@ Hidden equipment kinds: Cash, Face, Hair, Medal, Mount, Pet Equipment, Skill Eff
 | 너클 | 24 |
 | 눈장식 | 3 |
 | 단검 | 50 |
-| 두손검 | 32 |
+| 두손검 | 31 |
 | 두손도끼 | 23 |
 | 두손둔기 | 25 |
 | 망토 | 48 |
