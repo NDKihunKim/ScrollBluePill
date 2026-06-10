@@ -1,31 +1,9 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
-// Load .env file manually (no dotenv dependency)
-const envPath = resolve('.env');
-let supabaseUrl = process.env.SUPABASE_URL;
-let supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-
-try {
-  const envRaw = await readFile(envPath, 'utf8');
-  for (const line of envRaw.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const eqIdx = trimmed.indexOf('=');
-    if (eqIdx === -1) continue;
-    const key = trimmed.slice(0, eqIdx).trim();
-    const value = trimmed.slice(eqIdx + 1).trim();
-    if (!process.env[key]) {
-      process.env[key] = value;
-    }
-  }
-  supabaseUrl = supabaseUrl || process.env.SUPABASE_URL;
-  supabaseAnonKey = supabaseAnonKey || process.env.SUPABASE_ANON_KEY;
-} catch {
-  // .env file doesn't exist, rely on process.env
-}
-
-const outputPath = resolve('public/data/scrolls-gms83-ko.json');
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+const outputPath = resolve('public/data/scrolls.json');
 const overridesPath = resolve('data/scroll-visibility-overrides.json');
 const reportPath = resolve('docs/data-quality/scroll-visibility-report.md');
 
@@ -155,29 +133,11 @@ async function main() {
 	const visibilityResult = applyVisibilityOverrides(rawScrolls, overrides);
 	const { scrolls } = visibilityResult;
 
-	// Filter out rows missing maplestory_io_item_id (needed for icon lookup)
-	const withItemId = scrolls.filter((scroll) => {
-		if (scroll.maplestory_io_item_id == null) {
-			console.warn(`Skipping scroll "${scroll.name_ko}" — missing maplestory_io_item_id`);
-			return false;
-		}
-		return true;
-	});
-
-	// Transform Supabase row format to frontend format
-	const transformed = withItemId.map((scroll) => ({
-		id: scroll.maplestory_io_item_id,
-		nameKo: scroll.name_ko,
-		equipmentKind: scroll.category,
-		behavior_type: scroll.behavior_type,
-		stats: scroll.stat_effect_frame ?? {},
-	}));
-
-	const sorted = [...transformed].sort((a, b) => a.nameKo.localeCompare(b.nameKo, 'ko-KR'));
+	const sorted = [...scrolls].sort((a, b) => a.name_ko.localeCompare(b.name_ko, 'ko-KR'));
 
 	await mkdir(dirname(outputPath), { recursive: true });
 	await writeFile(outputPath, `${JSON.stringify(sorted, null, 2)}\n`);
-	await writeReport(scrolls, visibilityResult);
+	await writeReport(sorted, visibilityResult);
 
 	console.log(`Generated ${outputPath} with ${sorted.length}/${rawScrolls.length} scrolls.`);
 	console.log(
