@@ -590,8 +590,7 @@
     "equipmentKind": "방패",
     "behavior_type": "fixed",
     "stats": {
-      "magicDefense": 3,
-      "weaponDefense": 2
+      "weaponDefense": 1
     }
   },
   {
@@ -610,7 +609,9 @@
     "equipmentKind": "방패",
     "behavior_type": "fixed",
     "stats": {
-      "weaponDefense": 1
+      "maxHp": 10,
+      "magicDefense": 3,
+      "weaponDefense": 5
     }
   },
   {
