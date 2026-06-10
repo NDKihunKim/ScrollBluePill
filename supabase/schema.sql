@@ -15,6 +15,7 @@ create table if not exists public.scroll_definitions (
 	name_ko text not null,
 	category text not null,
 	behavior_type text not null check (behavior_type in ('fixed', 'random', 'unknown')),
+	published_status text not null default 'draft' check (published_status in ('draft', 'published', 'hidden')),
 	affected_stats text[] not null default '{}',
 	stat_effect_frame jsonb not null default '{}'::jsonb,
 	source_note text,
@@ -67,3 +68,15 @@ alter table public.scroll_definitions enable row level security;
 alter table public.item_categories enable row level security;
 alter table public.probability_sets enable row level security;
 alter table public.guide_content enable row level security;
+
+-- RLS: only published scrolls are visible to the public anon role
+create policy "Public can read published scrolls" on public.scroll_definitions
+	for select using (published_status = 'published');
+
+-- Migration for existing scroll_definitions tables that lack published_status
+alter table public.scroll_definitions
+	add column if not exists published_status text not null default 'draft';
+
+alter table public.scroll_definitions
+	add constraint scroll_definitions_published_status_check
+	check (published_status in ('draft', 'published', 'hidden'));

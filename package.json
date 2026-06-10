@@ -8,6 +8,7 @@
 	"scripts": {
 		"dev": "astro dev",
 		"generate:item-index": "node scripts/generate-item-index.mjs",
+		"generate:scroll-index": "node scripts/generate-scroll-index.mjs",
 		"audit:duplicate-items": "node scripts/audit-duplicate-items.mjs",
 		"build": "astro build",
 		"preview": "astro preview",

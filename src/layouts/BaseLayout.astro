@@ -320,6 +320,10 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
 		justify-content: center;
 	}
 
+	.grid.two > * {
+		min-width: 0;
+	}
+
 	.grid.three {
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
@@ -478,14 +482,10 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
 			justify-content: flex-start;
 		}
 
+		.grid.two,
 		.grid.three,
 		.field-grid {
 			grid-template-columns: 1fr;
-		}
-
-		.grid.two {
-			grid-template-columns: minmax(0, 550px);
-			justify-content: center;
 		}
 	}
 </style>

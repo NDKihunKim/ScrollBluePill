@@ -1,0 +1,228 @@
+[
+  {
+    "id": 2040001,
+    "nameKo": "장갑 공격력 주문서 10%",
+    "equipmentKind": "장갑",
+    "stats": {
+      "weaponAttack": 5
+    }
+  },
+  {
+    "id": 2040002,
+    "nameKo": "장갑 공격력 주문서 60%",
+    "equipmentKind": "장갑",
+    "stats": {
+      "weaponAttack": 2
+    }
+  },
+  {
+    "id": 2040003,
+    "nameKo": "장갑 공격력 주문서 100%",
+    "equipmentKind": "장갑",
+    "stats": {
+      "weaponAttack": 1
+    }
+  },
+  {
+    "id": 2040100,
+    "nameKo": "장갑 마력 주문서 10%",
+    "equipmentKind": "장갑",
+    "stats": {
+      "magicAttack": 5
+    }
+  },
+  {
+    "id": 2040101,
+    "nameKo": "장갑 마력 주문서 60%",
+    "equipmentKind": "장갑",
+    "stats": {
+      "magicAttack": 2
+    }
+  },
+  {
+    "id": 2040200,
+    "nameKo": "장갑 HP 주문서 10%",
+    "equipmentKind": "장갑",
+    "stats": {
+      "maxHp": 30
+    }
+  },
+  {
+    "id": 2040300,
+    "nameKo": "한손검 공격력 주문서 10%",
+    "equipmentKind": "한손검",
+    "stats": {
+      "weaponAttack": 5
+    }
+  },
+  {
+    "id": 2040301,
+    "nameKo": "한손검 공격력 주문서 60%",
+    "equipmentKind": "한손검",
+    "stats": {
+      "weaponAttack": 2
+    }
+  },
+  {
+    "id": 2040500,
+    "nameKo": "망토 힘 주문서 10%",
+    "equipmentKind": "망토",
+    "stats": {
+      "str": 5
+    }
+  },
+  {
+    "id": 2040501,
+    "nameKo": "망토 힘 주문서 60%",
+    "equipmentKind": "망토",
+    "stats": {
+      "str": 2
+    }
+  },
+  {
+    "id": 2040600,
+    "nameKo": "망토 덱스 주문서 10%",
+    "equipmentKind": "망토",
+    "stats": {
+      "dex": 5
+    }
+  },
+  {
+    "id": 2040601,
+    "nameKo": "망토 덱스 주문서 60%",
+    "equipmentKind": "망토",
+    "stats": {
+      "dex": 2
+    }
+  },
+  {
+    "id": 2040700,
+    "nameKo": "망토 인트 주문서 10%",
+    "equipmentKind": "망토",
+    "stats": {
+      "int": 5
+    }
+  },
+  {
+    "id": 2040701,
+    "nameKo": "망토 인트 주문서 60%",
+    "equipmentKind": "망토",
+    "stats": {
+      "int": 2
+    }
+  },
+  {
+    "id": 2040800,
+    "nameKo": "망토 럭 주문서 10%",
+    "equipmentKind": "망토",
+    "stats": {
+      "luk": 5
+    }
+  },
+  {
+    "id": 2040801,
+    "nameKo": "망토 럭 주문서 60%",
+    "equipmentKind": "망토",
+    "stats": {
+      "luk": 2
+    }
+  },
+  {
+    "id": 2040900,
+    "nameKo": "신발 스피드 주문서 10%",
+    "equipmentKind": "신발",
+    "stats": {
+      "speed": 5
+    }
+  },
+  {
+    "id": 2040901,
+    "nameKo": "신발 스피드 주문서 60%",
+    "equipmentKind": "신발",
+    "stats": {
+      "speed": 2
+    }
+  },
+  {
+    "id": 2041000,
+    "nameKo": "신발 점프 주문서 10%",
+    "equipmentKind": "신발",
+    "stats": {
+      "jump": 5
+    }
+  },
+  {
+    "id": 2041001,
+    "nameKo": "신발 점프 주문서 60%",
+    "equipmentKind": "신발",
+    "stats": {
+      "jump": 2
+    }
+  },
+  {
+    "id": 2041100,
+    "nameKo": "모자 HP 주문서 10%",
+    "equipmentKind": "모자",
+    "stats": {
+      "maxHp": 30
+    }
+  },
+  {
+    "id": 2041101,
+    "nameKo": "모자 HP 주문서 60%",
+    "equipmentKind": "모자",
+    "stats": {
+      "maxHp": 10
+    }
+  },
+  {
+    "id": 2041200,
+    "nameKo": "상의 힘 주문서 10%",
+    "equipmentKind": "상의",
+    "stats": {
+      "str": 5
+    }
+  },
+  {
+    "id": 2041201,
+    "nameKo": "상의 힘 주문서 60%",
+    "equipmentKind": "상의",
+    "stats": {
+      "str": 2
+    }
+  },
+  {
+    "id": 2041300,
+    "nameKo": "하의 덱스 주문서 10%",
+    "equipmentKind": "하의",
+    "stats": {
+      "dex": 5
+    }
+  },
+  {
+    "id": 2041301,
+    "nameKo": "하의 덱스 주문서 60%",
+    "equipmentKind": "하의",
+    "stats": {
+      "dex": 2
+    }
+  },
+  {
+    "id": 2041400,
+    "nameKo": "한벌옷 방어력 주문서 10%",
+    "equipmentKind": "한벌옷",
+    "stats": {
+      "weaponDefense": 10,
+      "magicDefense": 10
+    }
+  },
+  {
+    "id": 2041401,
+    "nameKo": "한벌옷 방어력 주문서 60%",
+    "equipmentKind": "한벌옷",
+    "stats": {
+      "weaponDefense": 3,
+      "magicDefense": 3
+    }
+  }
+]
