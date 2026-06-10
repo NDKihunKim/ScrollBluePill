@@ -40,6 +40,34 @@ async function upsertScroll(scroll) {
   return [];
 }
 
+async function fetchVersionTagId() {
+  const url = new URL('/rest/v1/version_tags', supabaseUrl);
+  url.searchParams.set('select', 'id');
+  url.searchParams.set('is_active', 'is.true');
+  url.searchParams.set('limit', '1');
+
+  const response = await fetch(url, {
+    headers: {
+      apikey: supabaseAnonKey,
+      authorization: `Bearer ${supabaseAnonKey}`,
+    },
+  });
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`Failed to fetch version_tags: ${response.status} ${body}`);
+  }
+
+  const tags = await response.json();
+  if (!Array.isArray(tags) || tags.length === 0) {
+    throw new Error(
+      'No active version_tags found in Supabase. Please create at least one version tag before seeding scrolls.'
+    );
+  }
+
+  return tags[0].id;
+}
+
 async function main() {
   const raw = await readFile(seedPath, 'utf8');
   const scrolls = JSON.parse(raw);
@@ -52,14 +80,23 @@ async function main() {
   console.log(`Seeding ${scrolls.length} scrolls to Supabase...`);
   console.log(`Supabase URL: ${supabaseUrl}`);
 
+  // Fetch the version tag to associate scrolls with
+  let versionTagId;
+  try {
+    versionTagId = await fetchVersionTagId();
+    console.log(`Using version_tag_id: ${versionTagId}`);
+  } catch (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
+
   let inserted = 0;
   let updated = 0;
   let failed = 0;
 
   for (const scroll of scrolls) {
-    // Only include fields that exist in the Supabase table schema
-    // version_tag_id is required but we don't have it yet — use a default
     const row = {
+      version_tag_id: versionTagId,
       name_ko: scroll.name_ko,
       category: scroll.category,
       behavior_type: scroll.behavior_type,
