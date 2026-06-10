@@ -34,3 +34,7 @@ Use these settings:
 
 If no custom domain is ready, the config falls back to
 `https://scrollbluepill.pages.dev`.
+
+---
+
+Test commit to verify author configuration.
