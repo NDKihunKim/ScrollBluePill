@@ -149,7 +149,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 											<input
 												type="number"
 												name="requiredLevelMin"
-												value="10"
+												value="0"
 												min="0"
 												step="5"
 												inputmode="numeric"
@@ -169,7 +169,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 											<input
 												type="number"
 												name="requiredLevelMax"
-												value="20"
+												value="200"
 												min="0"
 												step="5"
 												inputmode="numeric"
@@ -588,12 +588,14 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 				return;
 			}
 
-			const OVERFLOW_THRESHOLD = 30;
-			if (results.length >= OVERFLOW_THRESHOLD) {
+			const MAX_RESULTS = 100;
+			if (results.length > MAX_RESULTS) {
 				const warning = document.createElement('div');
 				warning.className = 'manual-item-overflow-warning';
-				warning.textContent = `검색 결과가 ${results.length}개로 많습니다. 아래 목록을 스크롤하여 확인하세요.`;
+				warning.textContent = '검색 결과가 너무 많습니다. 위에 필터들을 더 좁혀주세요.';
 				manualItemResults.append(warning);
+				manualItemResults.hidden = false;
+				return;
 			}
 
 			const list = document.createElement('div');
