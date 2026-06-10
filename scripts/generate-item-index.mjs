@@ -170,13 +170,13 @@ function applyVisibilityOverrides(items, visibilityOverrides) {
 	const equipmentKindHiddenIds = new Set(
 		koreanNamedItems.filter((item) => hiddenEquipmentKinds.has(item.equipmentKind)).map((item) => item.id),
 	);
-	const zeroStatEyeDecorationHiddenIds = new Set(
+	const zeroStatHiddenIds = new Set(
 		koreanNamedItems
-			.filter((item) => item.equipmentKind === '눈장식' && Object.keys(item.stats ?? {}).length === 0)
+			.filter((item) => Object.keys(item.stats ?? {}).length === 0)
 			.map((item) => item.id),
 	);
 	const visibleItems = koreanNamedItems.filter(
-		(item) => !equipmentKindHiddenIds.has(item.id) && !zeroStatEyeDecorationHiddenIds.has(item.id),
+		(item) => !equipmentKindHiddenIds.has(item.id) && !zeroStatHiddenIds.has(item.id),
 	);
 
 	return {
@@ -184,7 +184,7 @@ function applyVisibilityOverrides(items, visibilityOverrides) {
 		hiddenIds,
 		missingKoreanNameHiddenIds,
 		equipmentKindHiddenIds,
-		zeroStatEyeDecorationHiddenIds,
+		zeroStatHiddenIds,
 		hiddenEquipmentKinds,
 		renamedIds,
 	};
@@ -199,7 +199,7 @@ async function writeDedupeReport(resolutions, sourceCount, dedupeInputCount, aft
 	const visibilityHiddenIds = [...visibilitySummary.hiddenIds].sort((a, b) => a - b);
 	const missingKoreanNameHiddenIds = [...visibilitySummary.missingKoreanNameHiddenIds].sort((a, b) => a - b);
 	const equipmentKindHiddenIds = [...visibilitySummary.equipmentKindHiddenIds].sort((a, b) => a - b);
-	const zeroStatEyeDecorationHiddenIds = [...visibilitySummary.zeroStatEyeDecorationHiddenIds].sort((a, b) => a - b);
+	const zeroStatHiddenIds = [...visibilitySummary.zeroStatHiddenIds].sort((a, b) => a - b);
 	const hiddenEquipmentKinds = [...visibilitySummary.hiddenEquipmentKinds].sort();
 	const visibilityRenamedIds = [...visibilitySummary.renamedIds].sort((a, b) => Number(a) - Number(b));
 	const lines = [
@@ -211,7 +211,7 @@ async function writeDedupeReport(resolutions, sourceCount, dedupeInputCount, aft
 		`Visibility-hidden item count: ${visibilityHiddenIds.length}`,
 		`Missing-Korean-name hidden item count: ${missingKoreanNameHiddenIds.length}`,
 		`Equipment-kind hidden item count: ${equipmentKindHiddenIds.length}`,
-		`Zero-stat eye-decoration hidden item count: ${zeroStatEyeDecorationHiddenIds.length}`,
+		`Zero-stat hidden item count: ${zeroStatHiddenIds.length}`,
 		`Visibility-renamed item count: ${visibilityRenamedIds.length}`,
 		`Dedupe input item count: ${dedupeInputCount}`,
 		`Deduped item count: ${afterCount}`,
@@ -230,7 +230,7 @@ async function writeDedupeReport(resolutions, sourceCount, dedupeInputCount, aft
 		`- Missing-Korean-name hidden item ids: ${missingKoreanNameHiddenIds.join(', ') || '-'}`,
 		`- Hidden equipment kinds: ${hiddenEquipmentKinds.join(', ') || '-'}`,
 		`- Equipment-kind hidden item ids: ${equipmentKindHiddenIds.join(', ') || '-'}`,
-		`- Zero-stat eye-decoration hidden item ids: ${zeroStatEyeDecorationHiddenIds.join(', ') || '-'}`,
+		`- Zero-stat hidden item ids: ${zeroStatHiddenIds.join(', ') || '-'}`,
 		`- Renamed item ids: ${visibilityRenamedIds.join(', ') || '-'}`,
 		'',
 	];
@@ -391,7 +391,7 @@ async function main() {
 	console.log(`Missing detail records: ${missingDetailCount}.`);
 	console.log(`Alias overrides: ${aliasCount}; override records: ${overriddenCount}.`);
 	console.log(
-		`Visibility overrides: ${visibilityResult.hiddenIds.size} hidden; ${visibilityResult.missingKoreanNameHiddenIds.size} missing Korean names hidden; ${visibilityResult.equipmentKindHiddenIds.size} equipment-kind hidden; ${visibilityResult.zeroStatEyeDecorationHiddenIds.size} zero-stat eye-decoration hidden; ${visibilityResult.renamedIds.size} renamed from ${visibilityOverridesPath}.`,
+		`Visibility overrides: ${visibilityResult.hiddenIds.size} hidden; ${visibilityResult.missingKoreanNameHiddenIds.size} missing Korean names hidden; ${visibilityResult.equipmentKindHiddenIds.size} equipment-kind hidden; ${visibilityResult.zeroStatHiddenIds.size} zero-stat hidden; ${visibilityResult.renamedIds.size} renamed from ${visibilityOverridesPath}.`,
 	);
 	console.log(`Dedupe report: ${dedupeReportPath}`);
 	console.log(`Equipment kind report: ${equipmentKindReportPath}`);
