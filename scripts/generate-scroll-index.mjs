@@ -189,7 +189,9 @@ async function main() {
 		return STAT_PRIORITY.length;
 	};
 
-	// Sort: equipmentKind → stat priority → percent descending (100→60→10)
+	const stemName = (name) => String(name ?? '').replace(PERCENT_PATTERN, '').trimEnd();
+
+	// Sort: equipmentKind → stat priority → name stem → percent descending (100→60→10)
 	const extractPercent = (name) => {
 		const match = name?.match(PERCENT_PATTERN);
 		return match ? Number(match[1]) : 0;
@@ -198,8 +200,8 @@ async function main() {
 	frontendScrolls.sort((a, b) =>
 		String(a.equipmentKind).localeCompare(String(b.equipmentKind), 'ko-KR') ||
 		getStatPriority(a.nameKo) - getStatPriority(b.nameKo) ||
-		extractPercent(b.nameKo) - extractPercent(a.nameKo) ||
-		String(a.nameKo).localeCompare(String(b.nameKo), 'ko-KR'),
+		stemName(a.nameKo).localeCompare(stemName(b.nameKo), 'ko-KR') ||
+		extractPercent(b.nameKo) - extractPercent(a.nameKo),
 	);
 
 	await mkdir(dirname(outputPath), { recursive: true });

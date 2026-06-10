@@ -267,6 +267,8 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
         return STAT_PRIORITY.length;
       };
 
+      const stemName = (n) => String(n ?? '').replace(/(\d+)%$/, '').trimEnd();
+
       const percentPattern = /(\d+)%$/;
       const extractPercent = (name) => {
         const match = name?.match(percentPattern);
@@ -276,8 +278,8 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       for (const s of scrollsByEquipmentKind.values()) {
         s.sort((a, b) =>
           getStatPriority(a.nameKo) - getStatPriority(b.nameKo) ||
-          extractPercent(b.nameKo) - extractPercent(a.nameKo) ||
-          a.nameKo.localeCompare(b.nameKo, 'ko-KR'),
+          stemName(a.nameKo).localeCompare(stemName(b.nameKo), 'ko-KR') ||
+          extractPercent(b.nameKo) - extractPercent(a.nameKo),
         );
       }
     })
