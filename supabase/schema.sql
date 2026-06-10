@@ -103,3 +103,6 @@ alter table public.item_definitions enable row level security;
 
 create policy "Public can read published items" on public.item_definitions
     for select using (published_status = 'published');
+
+-- Expose item_definitions to the Data API
+grant select on public.item_definitions to anon, authenticated;
