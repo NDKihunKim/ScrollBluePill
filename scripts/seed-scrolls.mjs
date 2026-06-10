@@ -1,8 +1,30 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+// Load .env file manually (no dotenv dependency)
+const envPath = resolve('.env');
+let supabaseUrl = process.env.SUPABASE_URL;
+let supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+
+try {
+  const envRaw = await readFile(envPath, 'utf8');
+  for (const line of envRaw.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eqIdx = trimmed.indexOf('=');
+    if (eqIdx === -1) continue;
+    const key = trimmed.slice(0, eqIdx).trim();
+    const value = trimmed.slice(eqIdx + 1).trim();
+    if (!process.env[key]) {
+      process.env[key] = value;
+    }
+  }
+  supabaseUrl = supabaseUrl || process.env.SUPABASE_URL;
+  supabaseAnonKey = supabaseAnonKey || process.env.SUPABASE_ANON_KEY;
+} catch {
+  // .env file doesn't exist, rely on process.env
+}
+
 const seedPath = resolve('data/scroll-seed.json');
 
 if (!supabaseUrl || !supabaseAnonKey) {
