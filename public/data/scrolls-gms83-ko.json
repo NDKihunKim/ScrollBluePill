@@ -384,28 +384,230 @@
     }
   },
   {
-    "id": 2041066,
-    "nameKo": "망토 방어력 주문서 100%",
+    "id": 2041009,
+    "nameKo": "망토 마나 주문서 100%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxMp": 5
+    }
+  },
+  {
+    "id": 2041010,
+    "nameKo": "망토 마나 주문서 60%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxMp": 10
+    }
+  },
+  {
+    "id": 2041011,
+    "nameKo": "망토 마나 주문서 10%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxMp": 20
+    }
+  },
+  {
+    "id": 2041000,
+    "nameKo": "망토 마법방어력 주문서 100%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "magicDefense": 1
+    }
+  },
+  {
+    "id": 2041001,
+    "nameKo": "망토 마법방어력 주문서 60%",
     "equipmentKind": "망토",
     "behavior_type": "fixed",
     "stats": {
       "magicDefense": 3,
-      "weaponDefense": 2
+      "weaponDefense": 1
     }
   },
   {
-    "id": 2041067,
-    "nameKo": "망토 방어력 주문서 100%",
+    "id": 2041002,
+    "nameKo": "망토 마법방어력 주문서 10%",
     "equipmentKind": "망토",
     "behavior_type": "fixed",
     "stats": {
-      "magicDefense": 2,
+      "maxMp": 10,
+      "magicDefense": 5,
       "weaponDefense": 3
     }
   },
   {
+    "id": 2041003,
+    "nameKo": "망토 물리방어력 주문서 100%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "weaponDefense": 1
+    }
+  },
+  {
+    "id": 2041004,
+    "nameKo": "망토 물리방어력 주문서 60%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "magicDefense": 1,
+      "weaponDefense": 3
+    }
+  },
+  {
+    "id": 2041005,
+    "nameKo": "망토 물리방어력 주문서 10%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxHp": 10,
+      "magicDefense": 3,
+      "weaponDefense": 5
+    }
+  },
+  {
+    "id": 2041018,
+    "nameKo": "망토 민첩 주문서 100%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "dex": 1
+    }
+  },
+  {
+    "id": 2041019,
+    "nameKo": "망토 민첩 주문서 60%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "dex": 2
+    }
+  },
+  {
+    "id": 2041020,
+    "nameKo": "망토 민첩 주문서 10%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "dex": 3
+    }
+  },
+  {
+    "id": 2041015,
+    "nameKo": "망토 지력 주문서 100%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "int": 1
+    }
+  },
+  {
+    "id": 2041016,
+    "nameKo": "망토 지력 주문서 60%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "int": 2
+    }
+  },
+  {
+    "id": 2041017,
+    "nameKo": "망토 지력 주문서 10%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "int": 3
+    }
+  },
+  {
+    "id": 2041006,
+    "nameKo": "망토 체력 주문서 100%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxHp": 5
+    }
+  },
+  {
+    "id": 2041007,
+    "nameKo": "망토 체력 주문서 60%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxHp": 10
+    }
+  },
+  {
+    "id": 2041008,
+    "nameKo": "망토 체력 주문서 10%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxHp": 20
+    }
+  },
+  {
+    "id": 2041021,
+    "nameKo": "망토 행운 주문서 100%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "luk": 1
+    }
+  },
+  {
+    "id": 2041022,
+    "nameKo": "망토 행운 주문서 60%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "luk": 2
+    }
+  },
+  {
+    "id": 2041023,
+    "nameKo": "망토 행운 주문서 10%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "luk": 3
+    }
+  },
+  {
+    "id": 2041012,
+    "nameKo": "망토 힘 주문서 100%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "str": 1
+    }
+  },
+  {
+    "id": 2041013,
+    "nameKo": "망토 힘 주문서 60%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "str": 2
+    }
+  },
+  {
+    "id": 2041014,
+    "nameKo": "망토 힘 주문서 10%",
+    "equipmentKind": "망토",
+    "behavior_type": "fixed",
+    "stats": {
+      "str": 3
+    }
+  },
+  {
     "id": 2040027,
-    "nameKo": "모자 민첩성 주문서 100%",
+    "nameKo": "투구 민첩 주문서 100%",
     "equipmentKind": "모자",
     "behavior_type": "fixed",
     "stats": {
@@ -414,35 +616,46 @@
   },
   {
     "id": 2040029,
-    "nameKo": "모자 민첩성 주문서 60%",
+    "nameKo": "투구 민첩 주문서 60%",
     "equipmentKind": "모자",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 2
     }
   },
   {
     "id": 2040031,
-    "nameKo": "모자 민첩성 주문서 10%",
+    "nameKo": "투구 민첩 주문서 10%",
     "equipmentKind": "모자",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 3
     }
   },
   {
-    "id": 2040041,
-    "nameKo": "모자 방어력 주문서 100%",
+    "id": 2040001,
+    "nameKo": "투구 방어력 주문서 60%",
     "equipmentKind": "모자",
     "behavior_type": "fixed",
     "stats": {
-      "magicDefense": 3,
+      "magicDefense": 1,
       "weaponDefense": 2
     }
   },
   {
+    "id": 2040002,
+    "nameKo": "투구 방어력 주문서 10%",
+    "equipmentKind": "모자",
+    "behavior_type": "fixed",
+    "stats": {
+      "accuracy": 1,
+      "magicDefense": 3,
+      "weaponDefense": 5
+    }
+  },
+  {
     "id": 2040024,
-    "nameKo": "모자 지력 주문서 100%",
+    "nameKo": "투구 지력 주문서 100%",
     "equipmentKind": "모자",
     "behavior_type": "fixed",
     "stats": {
@@ -451,29 +664,47 @@
   },
   {
     "id": 2040025,
-    "nameKo": "모자 지력 주문서 60%",
+    "nameKo": "투구 지력 주문서 60%",
     "equipmentKind": "모자",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "int": 2
     }
   },
   {
     "id": 2040026,
-    "nameKo": "모자 지력 주문서 10%",
+    "nameKo": "투구 지력 주문서 10%",
     "equipmentKind": "모자",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "int": 3
     }
   },
   {
-    "id": 2040042,
-    "nameKo": "모자 HP 주문서 100%",
+    "id": 2040003,
+    "nameKo": "투구 체력 주문서 100%",
     "equipmentKind": "모자",
     "behavior_type": "fixed",
     "stats": {
-      "maxHp": 15
+      "maxHp": 5
+    }
+  },
+  {
+    "id": 2040004,
+    "nameKo": "투구 체력 주문서 60%",
+    "equipmentKind": "모자",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxHp": 10
+    }
+  },
+  {
+    "id": 2040005,
+    "nameKo": "투구 체력 주문서 10%",
+    "equipmentKind": "모자",
+    "behavior_type": "fixed",
+    "stats": {
+      "maxHp": 30
     }
   },
   {
@@ -955,18 +1186,48 @@
     }
   },
   {
-    "id": 2040740,
-    "nameKo": "신발 명중률 주문서 100%",
+    "id": 2040720,
+    "nameKo": "신발 민첩 주문서 100%",
     "equipmentKind": "신발",
     "behavior_type": "fixed",
     "stats": {
-      "accuracy": 3,
+      "dex": 1,
+      "jump": 2
+    }
+  },
+  {
+    "id": 2040701,
+    "nameKo": "신발 민첩 주문서 60%",
+    "equipmentKind": "신발",
+    "behavior_type": "fixed",
+    "stats": {
+      "accuracy": 1,
       "avoidability": 2
     }
   },
   {
-    "id": 2040742,
+    "id": 2040702,
+    "nameKo": "신발 민첩 주문서 10%",
+    "equipmentKind": "신발",
+    "behavior_type": "fixed",
+    "stats": {
+      "speed": 1,
+      "accuracy": 3,
+      "avoidability": 5
+    }
+  },
+  {
+    "id": 2040706,
     "nameKo": "신발 이동속도 주문서 100%",
+    "equipmentKind": "신발",
+    "behavior_type": "fixed",
+    "stats": {
+      "speed": 1
+    }
+  },
+  {
+    "id": 2040707,
+    "nameKo": "신발 이동속도 주문서 60%",
     "equipmentKind": "신발",
     "behavior_type": "fixed",
     "stats": {
@@ -974,13 +1235,42 @@
     }
   },
   {
-    "id": 2040741,
+    "id": 2040708,
+    "nameKo": "신발 이동속도 주문서 10%",
+    "equipmentKind": "신발",
+    "behavior_type": "fixed",
+    "stats": {
+      "speed": 3
+    }
+  },
+  {
+    "id": 2040703,
     "nameKo": "신발 점프력 주문서 100%",
     "equipmentKind": "신발",
     "behavior_type": "fixed",
     "stats": {
-      "dex": 2,
+      "jump": 1
+    }
+  },
+  {
+    "id": 2040704,
+    "nameKo": "신발 점프력 주문서 60%",
+    "equipmentKind": "신발",
+    "behavior_type": "fixed",
+    "stats": {
+      "dex": 1,
       "jump": 2
+    }
+  },
+  {
+    "id": 2040705,
+    "nameKo": "신발 점프력 주문서 10%",
+    "equipmentKind": "신발",
+    "behavior_type": "fixed",
+    "stats": {
+      "dex": 3,
+      "jump": 5,
+      "speed": 1
     }
   },
   {
