@@ -32,8 +32,7 @@
     "equipmentKind": "귀고리",
     "behavior_type": "fixed",
     "stats": {
-      "int": 2,
-      "magicAttack": 2
+      "magicAttack": 1
     }
   },
   {
@@ -611,9 +610,7 @@
     "equipmentKind": "방패",
     "behavior_type": "fixed",
     "stats": {
-      "maxHp": 10,
-      "magicDefense": 3,
-      "weaponDefense": 5
+      "weaponDefense": 1
     }
   },
   {
