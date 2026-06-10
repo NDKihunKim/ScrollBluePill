@@ -1,4 +1,6 @@
-import { createScrollState, applyScroll, revertToSlot, resetState, computeAccumulatedStats, formatScrollStatLine, computeAppliedScrollCount, computeRemainingSlots, computeGradeColor } from './scrollState.mjs';
+import { formatScrollStatLine } from './scrollState.mjs';
+import { createEnhancementState, applyScroll, revertToSlot, resetState, computeAccumulatedStats, computeAppliedScrollCount, computeRemainingSlots, computeGradeColor } from './enhancementState.mjs';
+import { initMakerPanel } from './makerPanel.mjs';
 import { buildItemIconUrl } from './maplestoryIo.mjs';
 
 export function initEnhancementPanel(renderEnhancedItemCard) {
@@ -13,10 +15,30 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   const resetButton = enhancementPanel?.querySelector('[data-enhancement-reset]');
   const scrollList = enhancementPanel?.querySelector('[data-scroll-list]');
   const enhancementMessage = enhancementPanel?.querySelector('[data-enhancement-message]');
+  const makerSection = enhancementPanel?.querySelector('[data-maker-section]');
+  const makerToggle = enhancementPanel?.querySelector('[data-maker-toggle]');
+  const makerGemArea = enhancementPanel?.querySelector('[data-maker-gem-area]');
+  const makerGemSlots = enhancementPanel?.querySelector('[data-maker-gem-slots]');
+  const makerPicker = enhancementPanel?.querySelector('[data-maker-picker]');
+  const makerPickerLabel = enhancementPanel?.querySelector('[data-maker-picker-label]');
+  const makerPickerGrid = enhancementPanel?.querySelector('[data-maker-picker-grid]');
+  const makerPickerBack = enhancementPanel?.querySelector('[data-maker-picker-back]');
+
+  const makerPanel = initMakerPanel({
+    makerSection,
+    makerToggle,
+    makerGemArea,
+    makerGemSlots,
+    makerPicker,
+    makerPickerLabel,
+    makerPickerGrid,
+    makerPickerBack,
+    renderEnhancedItemCard,
+  });
 
   let scrollIndex = [];
   let scrollsByEquipmentKind = new Map();
-  let scrollState = null;
+  let enhancementState = null;
   let selectedBaseItem = null;
 
   const showEnhancementDormant = () => {
@@ -49,20 +71,20 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   };
 
   const renderSlotRow = () => {
-    if (!(slotCheckpointRow instanceof HTMLElement) || !scrollState) {
+    if (!(slotCheckpointRow instanceof HTMLElement) || !enhancementState) {
       return;
     }
 
     slotCheckpointRow.replaceChildren();
 
-    for (let i = 0; i < scrollState.slotCount; i++) {
+    for (let i = 0; i < enhancementState.scrollState.slotCount; i++) {
       const box = document.createElement('button');
       box.type = 'button';
       box.className = 'slot-box';
       box.textContent = String(i + 1);
 
-      const scroll = scrollState.slots[i];
-      const isCurrent = i === scrollState.currentSlot;
+      const scroll = enhancementState.scrollState.slots[i];
+      const isCurrent = i === enhancementState.scrollState.currentSlot;
 
       if (scroll) {
         box.classList.add('slot-box--filled');
@@ -75,7 +97,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       if (scroll || isCurrent) {
         box.addEventListener('click', () => {
           if (scroll) {
-            revertToSlot(scrollState, i);
+            revertToSlot(enhancementState, i);
             renderSlotRow();
             showScrollDetail(scroll);
             refreshEnhancedCard();
@@ -154,11 +176,11 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       option.append(icon, text);
 
       option.addEventListener('click', () => {
-        if (!scrollState || !selectedBaseItem) {
+        if (!enhancementState || !selectedBaseItem) {
           return;
         }
 
-        const applied = applyScroll(scrollState, scroll);
+        const applied = applyScroll(enhancementState, scroll);
         if (!applied) {
           return;
         }
@@ -173,14 +195,14 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   };
 
   const refreshEnhancedCard = () => {
-    if (!selectedBaseItem || !scrollState) {
+    if (!selectedBaseItem || !enhancementState) {
       return;
     }
 
-    const accumulatedStats = computeAccumulatedStats(selectedBaseItem.stats, scrollState);
-    const remaining = computeRemainingSlots(scrollState);
-    const appliedCount = computeAppliedScrollCount(scrollState);
-    const gradeColor = computeGradeColor(scrollState);
+    const accumulatedStats = computeAccumulatedStats(selectedBaseItem.stats, enhancementState);
+    const remaining = computeRemainingSlots(enhancementState);
+    const appliedCount = computeAppliedScrollCount(enhancementState);
+    const gradeColor = computeGradeColor(enhancementState);
 
     renderEnhancedItemCard(selectedBaseItem, accumulatedStats, remaining, appliedCount, gradeColor);
   };
@@ -204,11 +226,12 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
         enhancementMessage.textContent = '강화 불가능한 아이템입니다';
         enhancementMessage.hidden = false;
       }
+      makerPanel.deactivate();
       return;
     }
 
     selectedBaseItem = item;
-    scrollState = createScrollState(upgradeSlots);
+    enhancementState = createEnhancementState(upgradeSlots, item.requiredLevel ?? 0);
 
     enhancementPanel.hidden = false;
     enhancementDormant.hidden = true;
@@ -218,17 +241,19 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     hideScrollDetail();
     renderSlotRow();
     renderScrollList(item.equipmentKind);
+    makerPanel.activate(enhancementState, item);
     refreshEnhancedCard();
   };
 
   resetButton?.addEventListener('click', () => {
-    if (!scrollState || !selectedBaseItem) {
+    if (!enhancementState || !selectedBaseItem) {
       return;
     }
 
-    resetState(scrollState);
+    resetState(enhancementState);
     hideScrollDetail();
     renderSlotRow();
+    makerPanel.resetMakerUI();
     refreshEnhancedCard();
   });
 
