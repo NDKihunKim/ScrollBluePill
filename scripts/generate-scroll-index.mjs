@@ -172,9 +172,15 @@ async function main() {
 		console.log(`Dropped ${droppedNullIds} scrolls with null maplestory_io_item_id.`);
 	}
 
-	// Sort Korean-locale
+	// Sort: equipmentKind (Korean), then percent descending (100→60→10), then name
+	const extractPercent = (name) => {
+		const match = name?.match(PERCENT_PATTERN);
+		return match ? Number(match[1]) : 0;
+	};
+
 	frontendScrolls.sort((a, b) =>
 		String(a.equipmentKind).localeCompare(String(b.equipmentKind), 'ko-KR') ||
+		extractPercent(b.nameKo) - extractPercent(a.nameKo) ||
 		String(a.nameKo).localeCompare(String(b.nameKo), 'ko-KR'),
 	);
 
