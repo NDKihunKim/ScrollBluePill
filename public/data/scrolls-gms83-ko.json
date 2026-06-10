@@ -190,20 +190,29 @@
     }
   },
   {
-    "id": 2044025,
+    "id": 2044000,
     "nameKo": "두손검 공격력 주문서 100%",
     "equipmentKind": "두손검",
     "behavior_type": "fixed",
     "stats": {
-      "str": 2,
+      "weaponAttack": 1
+    }
+  },
+  {
+    "id": 2044001,
+    "nameKo": "두손검 공격력 주문서 60%",
+    "equipmentKind": "두손검",
+    "behavior_type": "fixed",
+    "stats": {
+      "str": 1,
       "weaponAttack": 2
     }
   },
   {
-    "id": 2044015,
+    "id": 2044002,
     "nameKo": "두손검 공격력 주문서 10%",
     "equipmentKind": "두손검",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "str": 3,
       "weaponAttack": 5,
@@ -212,7 +221,7 @@
   },
   {
     "id": 2044010,
-    "nameKo": "두손검 명중률 주문서 100%",
+    "nameKo": "두손검 명중치 주문서 100%",
     "equipmentKind": "두손검",
     "behavior_type": "fixed",
     "stats": {
@@ -221,9 +230,9 @@
   },
   {
     "id": 2044012,
-    "nameKo": "두손검 명중률 주문서 60%",
+    "nameKo": "두손검 명중치 주문서 60%",
     "equipmentKind": "두손검",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 2,
       "accuracy": 3,
@@ -232,9 +241,9 @@
   },
   {
     "id": 2044014,
-    "nameKo": "두손검 명중률 주문서 10%",
+    "nameKo": "두손검 명중치 주문서 10%",
     "equipmentKind": "두손검",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 3,
       "accuracy": 5,
@@ -242,18 +251,38 @@
     }
   },
   {
-    "id": 2044117,
+    "id": 2044100,
     "nameKo": "두손도끼 공격력 주문서 100%",
     "equipmentKind": "두손도끼",
     "behavior_type": "fixed",
     "stats": {
-      "str": 2,
+      "weaponAttack": 1
+    }
+  },
+  {
+    "id": 2044101,
+    "nameKo": "두손도끼 공격력 주문서 60%",
+    "equipmentKind": "두손도끼",
+    "behavior_type": "fixed",
+    "stats": {
+      "str": 1,
       "weaponAttack": 2
     }
   },
   {
+    "id": 2044102,
+    "nameKo": "두손도끼 공격력 주문서 10%",
+    "equipmentKind": "두손도끼",
+    "behavior_type": "fixed",
+    "stats": {
+      "str": 3,
+      "weaponAttack": 5,
+      "weaponDefense": 1
+    }
+  },
+  {
     "id": 2044110,
-    "nameKo": "두손도끼 명중률 주문서 100%",
+    "nameKo": "두손도끼 명중치 주문서 100%",
     "equipmentKind": "두손도끼",
     "behavior_type": "fixed",
     "stats": {
@@ -262,9 +291,9 @@
   },
   {
     "id": 2044112,
-    "nameKo": "두손도끼 명중률 주문서 60%",
+    "nameKo": "두손도끼 명중치 주문서 60%",
     "equipmentKind": "두손도끼",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 2,
       "accuracy": 3,
@@ -273,9 +302,9 @@
   },
   {
     "id": 2044114,
-    "nameKo": "두손도끼 명중률 주문서 10%",
+    "nameKo": "두손도끼 명중치 주문서 10%",
     "equipmentKind": "두손도끼",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 3,
       "accuracy": 5,
@@ -283,18 +312,38 @@
     }
   },
   {
-    "id": 2044217,
+    "id": 2044200,
     "nameKo": "두손둔기 공격력 주문서 100%",
     "equipmentKind": "두손둔기",
     "behavior_type": "fixed",
     "stats": {
-      "str": 2,
+      "weaponAttack": 1
+    }
+  },
+  {
+    "id": 2044201,
+    "nameKo": "두손둔기 공격력 주문서 60%",
+    "equipmentKind": "두손둔기",
+    "behavior_type": "fixed",
+    "stats": {
+      "str": 1,
       "weaponAttack": 2
     }
   },
   {
+    "id": 2044202,
+    "nameKo": "두손둔기 공격력 주문서 10%",
+    "equipmentKind": "두손둔기",
+    "behavior_type": "fixed",
+    "stats": {
+      "str": 3,
+      "weaponAttack": 5,
+      "weaponDefense": 1
+    }
+  },
+  {
     "id": 2044210,
-    "nameKo": "두손둔기 명중률 주문서 100%",
+    "nameKo": "두손둔기 명중치 주문서 100%",
     "equipmentKind": "두손둔기",
     "behavior_type": "fixed",
     "stats": {
@@ -303,9 +352,9 @@
   },
   {
     "id": 2044212,
-    "nameKo": "두손둔기 명중률 주문서 60%",
+    "nameKo": "두손둔기 명중치 주문서 60%",
     "equipmentKind": "두손둔기",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 2,
       "accuracy": 3,
@@ -314,9 +363,9 @@
   },
   {
     "id": 2044214,
-    "nameKo": "두손둔기 명중률 주문서 10%",
+    "nameKo": "두손둔기 명중치 주문서 10%",
     "equipmentKind": "두손둔기",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 3,
       "accuracy": 5,
@@ -968,18 +1017,38 @@
     }
   },
   {
-    "id": 2044317,
+    "id": 2044300,
     "nameKo": "창 공격력 주문서 100%",
     "equipmentKind": "창",
     "behavior_type": "fixed",
     "stats": {
-      "str": 2,
+      "weaponAttack": 1
+    }
+  },
+  {
+    "id": 2044301,
+    "nameKo": "창 공격력 주문서 60%",
+    "equipmentKind": "창",
+    "behavior_type": "fixed",
+    "stats": {
+      "str": 1,
       "weaponAttack": 2
     }
   },
   {
+    "id": 2044302,
+    "nameKo": "창 공격력 주문서 10%",
+    "equipmentKind": "창",
+    "behavior_type": "fixed",
+    "stats": {
+      "str": 3,
+      "weaponAttack": 5,
+      "weaponDefense": 1
+    }
+  },
+  {
     "id": 2044310,
-    "nameKo": "창 명중률 주문서 100%",
+    "nameKo": "창 명중치 주문서 100%",
     "equipmentKind": "창",
     "behavior_type": "fixed",
     "stats": {
@@ -988,9 +1057,9 @@
   },
   {
     "id": 2044312,
-    "nameKo": "창 명중률 주문서 60%",
+    "nameKo": "창 명중치 주문서 60%",
     "equipmentKind": "창",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 2,
       "accuracy": 3,
@@ -999,9 +1068,9 @@
   },
   {
     "id": 2044314,
-    "nameKo": "창 명중률 주문서 10%",
+    "nameKo": "창 명중치 주문서 10%",
     "equipmentKind": "창",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 3,
       "accuracy": 5,
@@ -1038,18 +1107,38 @@
     }
   },
   {
-    "id": 2044417,
+    "id": 2044400,
     "nameKo": "폴암 공격력 주문서 100%",
     "equipmentKind": "폴암",
     "behavior_type": "fixed",
     "stats": {
-      "str": 2,
+      "weaponAttack": 1
+    }
+  },
+  {
+    "id": 2044401,
+    "nameKo": "폴암 공격력 주문서 60%",
+    "equipmentKind": "폴암",
+    "behavior_type": "fixed",
+    "stats": {
+      "str": 1,
       "weaponAttack": 2
     }
   },
   {
+    "id": 2044402,
+    "nameKo": "폴암 공격력 주문서 10%",
+    "equipmentKind": "폴암",
+    "behavior_type": "fixed",
+    "stats": {
+      "str": 3,
+      "weaponAttack": 5,
+      "weaponDefense": 1
+    }
+  },
+  {
     "id": 2044410,
-    "nameKo": "폴암 명중률 주문서 100%",
+    "nameKo": "폴암 명중치 주문서 100%",
     "equipmentKind": "폴암",
     "behavior_type": "fixed",
     "stats": {
@@ -1058,9 +1147,9 @@
   },
   {
     "id": 2044412,
-    "nameKo": "폴암 명중률 주문서 60%",
+    "nameKo": "폴암 명중치 주문서 60%",
     "equipmentKind": "폴암",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 2,
       "accuracy": 3,
@@ -1069,9 +1158,9 @@
   },
   {
     "id": 2044414,
-    "nameKo": "폴암 명중률 주문서 10%",
+    "nameKo": "폴암 명중치 주문서 10%",
     "equipmentKind": "폴암",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 3,
       "accuracy": 5,
@@ -1225,18 +1314,38 @@
     }
   },
   {
-    "id": 2043023,
+    "id": 2043000,
     "nameKo": "한손검 공격력 주문서 100%",
     "equipmentKind": "한손검",
     "behavior_type": "fixed",
     "stats": {
-      "str": 2,
+      "weaponAttack": 1
+    }
+  },
+  {
+    "id": 2043001,
+    "nameKo": "한손검 공격력 주문서 60%",
+    "equipmentKind": "한손검",
+    "behavior_type": "fixed",
+    "stats": {
+      "str": 1,
       "weaponAttack": 2
     }
   },
   {
+    "id": 2043002,
+    "nameKo": "한손검 공격력 주문서 10%",
+    "equipmentKind": "한손검",
+    "behavior_type": "fixed",
+    "stats": {
+      "str": 3,
+      "weaponAttack": 5,
+      "weaponDefense": 1
+    }
+  },
+  {
     "id": 2043015,
-    "nameKo": "한손검 명중률 주문서 100%",
+    "nameKo": "한손검 명중치 주문서 100%",
     "equipmentKind": "한손검",
     "behavior_type": "fixed",
     "stats": {
@@ -1245,9 +1354,9 @@
   },
   {
     "id": 2043017,
-    "nameKo": "한손검 명중률 주문서 60%",
+    "nameKo": "한손검 명중치 주문서 60%",
     "equipmentKind": "한손검",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 2,
       "accuracy": 3,
@@ -1256,9 +1365,9 @@
   },
   {
     "id": 2043019,
-    "nameKo": "한손검 명중률 주문서 10%",
+    "nameKo": "한손검 명중치 주문서 10%",
     "equipmentKind": "한손검",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 3,
       "accuracy": 5,
@@ -1266,18 +1375,38 @@
     }
   },
   {
-    "id": 2043117,
+    "id": 2043100,
     "nameKo": "한손도끼 공격력 주문서 100%",
     "equipmentKind": "한손도끼",
     "behavior_type": "fixed",
     "stats": {
-      "str": 2,
+      "weaponAttack": 1
+    }
+  },
+  {
+    "id": 2043101,
+    "nameKo": "한손도끼 공격력 주문서 60%",
+    "equipmentKind": "한손도끼",
+    "behavior_type": "fixed",
+    "stats": {
+      "str": 1,
       "weaponAttack": 2
     }
   },
   {
+    "id": 2043102,
+    "nameKo": "한손도끼 공격력 주문서 10%",
+    "equipmentKind": "한손도끼",
+    "behavior_type": "fixed",
+    "stats": {
+      "str": 3,
+      "weaponAttack": 5,
+      "weaponDefense": 1
+    }
+  },
+  {
     "id": 2043110,
-    "nameKo": "한손도끼 명중률 주문서 100%",
+    "nameKo": "한손도끼 명중치 주문서 100%",
     "equipmentKind": "한손도끼",
     "behavior_type": "fixed",
     "stats": {
@@ -1286,9 +1415,9 @@
   },
   {
     "id": 2043112,
-    "nameKo": "한손도끼 명중률 주문서 60%",
+    "nameKo": "한손도끼 명중치 주문서 60%",
     "equipmentKind": "한손도끼",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 2,
       "accuracy": 3,
@@ -1297,9 +1426,9 @@
   },
   {
     "id": 2043114,
-    "nameKo": "한손도끼 명중률 주문서 10%",
+    "nameKo": "한손도끼 명중치 주문서 10%",
     "equipmentKind": "한손도끼",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 3,
       "accuracy": 5,
@@ -1307,18 +1436,38 @@
     }
   },
   {
-    "id": 2043217,
+    "id": 2043200,
     "nameKo": "한손둔기 공격력 주문서 100%",
     "equipmentKind": "한손둔기",
     "behavior_type": "fixed",
     "stats": {
-      "str": 2,
+      "weaponAttack": 1
+    }
+  },
+  {
+    "id": 2043201,
+    "nameKo": "한손둔기 공격력 주문서 60%",
+    "equipmentKind": "한손둔기",
+    "behavior_type": "fixed",
+    "stats": {
+      "str": 1,
       "weaponAttack": 2
     }
   },
   {
+    "id": 2043202,
+    "nameKo": "한손둔기 공격력 주문서 10%",
+    "equipmentKind": "한손둔기",
+    "behavior_type": "fixed",
+    "stats": {
+      "str": 3,
+      "weaponAttack": 5,
+      "weaponDefense": 1
+    }
+  },
+  {
     "id": 2043210,
-    "nameKo": "한손둔기 명중률 주문서 100%",
+    "nameKo": "한손둔기 명중치 주문서 100%",
     "equipmentKind": "한손둔기",
     "behavior_type": "fixed",
     "stats": {
@@ -1327,9 +1476,9 @@
   },
   {
     "id": 2043212,
-    "nameKo": "한손둔기 명중률 주문서 60%",
+    "nameKo": "한손둔기 명중치 주문서 60%",
     "equipmentKind": "한손둔기",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 2,
       "accuracy": 3,
@@ -1338,9 +1487,9 @@
   },
   {
     "id": 2043214,
-    "nameKo": "한손둔기 명중률 주문서 10%",
+    "nameKo": "한손둔기 명중치 주문서 10%",
     "equipmentKind": "한손둔기",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
       "dex": 3,
       "accuracy": 5,
