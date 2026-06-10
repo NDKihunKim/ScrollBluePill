@@ -312,7 +312,7 @@ export function initMakerPanel({
       if (makerToggle instanceof HTMLElement) {
         makerToggle.classList.remove('maker-toggle-button--active');
         makerToggle.textContent = '메이커';
-        makerToggle.disabled = true;
+        makerToggle.disabled = !enhancementState || enhancementState.gemSlotCount <= 0;
         if (makerSection instanceof HTMLElement) {
           makerSection.hidden = false;
         }
