@@ -885,6 +885,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		})
 		.then((items) => {
 			itemIndex = Array.isArray(items) ? items : [];
+			// Zero-stat 눈장식 items are cosmetic cash items — hide them from search.
+			itemIndex = itemIndex.filter(
+				(item) => !(item.equipmentKind === '눈장식' && Object.keys(item.stats ?? {}).length === 0),
+			);
 			itemById = new Map(itemIndex.map((item) => [item.id, item]));
 
 			const initialSelectedItemId =
