@@ -1576,6 +1576,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	.slot-checkpoint-row {
 		display: flex;
 		flex-wrap: wrap;
+		justify-content: center;
 		gap: 8px;
 		margin-bottom: 10px;
 	}
@@ -1599,6 +1600,13 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	:global(.slot-box-number) {
 		pointer-events: none;
 		user-select: none;
+	}
+
+	:global(.slot-box-icon) {
+		width: 28px;
+		height: 28px;
+		object-fit: contain;
+		image-rendering: pixelated;
 	}
 
 	:global(.slot-box:hover) {

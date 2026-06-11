@@ -103,6 +103,15 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       if (scroll) {
         box.classList.add('slot-box--filled');
 
+        // Replace the number with the scroll's icon
+        number.replaceChildren();
+        const icon = document.createElement('img');
+        icon.className = 'slot-box-icon';
+        icon.src = buildItemIconUrl(scroll.id);
+        icon.alt = scroll.nameKo;
+        icon.loading = 'lazy';
+        number.append(icon);
+
         // × clear button — <span> avoids <button> grid-stretch quirk
         const xBtn = document.createElement('span');
         xBtn.setAttribute('role', 'button');
