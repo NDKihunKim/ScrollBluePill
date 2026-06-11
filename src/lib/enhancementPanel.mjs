@@ -1,4 +1,4 @@
-import { formatScrollStatLine, statLabelByKey } from './scrollState.mjs';
+import { formatScrollStatLine, statLabelByKey, clearSlot } from './scrollState.mjs';
 import { createEnhancementState, applyScroll, revertToSlot, resetState, computeAccumulatedStats, computeAppliedScrollCount, computeRemainingSlots, computeGradeColor } from './enhancementState.mjs';
 import { initMakerPanel } from './makerPanel.mjs';
 import { buildItemIconUrl } from './maplestoryIo.mjs';
@@ -86,16 +86,38 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     slotCheckpointRow.replaceChildren();
 
     for (let i = 0; i < enhancementState.scrollState.slotCount; i++) {
-      const box = document.createElement('button');
-      box.type = 'button';
+      const box = document.createElement('div');
+      box.setAttribute('role', 'button');
+      box.setAttribute('tabindex', '0');
       box.className = 'slot-box';
-      box.textContent = String(i + 1);
+      box.dataset.slotIndex = String(i);
+
+      const number = document.createElement('span');
+      number.className = 'slot-box-number';
+      number.textContent = String(i + 1);
+      box.append(number);
 
       const scroll = enhancementState.scrollState.slots[i];
       const isCurrent = i === enhancementState.scrollState.currentSlot;
 
       if (scroll) {
         box.classList.add('slot-box--filled');
+
+        // × button to clear this slot
+        const xBtn = document.createElement('button');
+        xBtn.type = 'button';
+        xBtn.className = 'slot-box-x';
+        xBtn.setAttribute('aria-label', `슬롯 ${i + 1} 지우기`);
+        xBtn.textContent = '×';
+        xBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          collapseChaosPanel();
+          clearSlot(enhancementState.scrollState, i);
+          hideScrollDetail();
+          renderSlotRow();
+          refreshEnhancedCard();
+        });
+        box.append(xBtn);
       }
 
       if (isCurrent) {
@@ -114,6 +136,14 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
           hideScrollDetail();
         }
         refreshEnhancedCard();
+      });
+
+      // Keyboard support for Enter/Space on the div[role=button]
+      box.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          box.click();
+        }
       });
 
       slotCheckpointRow.append(box);

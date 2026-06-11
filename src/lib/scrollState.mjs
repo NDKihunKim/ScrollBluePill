@@ -51,6 +51,18 @@ export function selectSlot(state, slotIndex) {
   state.currentSlot = slotIndex;
 }
 
+export function clearSlot(state, slotIndex) {
+  if (slotIndex < 0 || slotIndex >= state.slotCount) {
+    return;
+  }
+  state.slots[slotIndex] = null;
+  // If the cleared slot was before or at the current marker,
+  // rewind to it so the next apply fills the gap.
+  if (slotIndex <= state.currentSlot) {
+    state.currentSlot = slotIndex;
+  }
+}
+
 // Kept for compatibility — clicking a slot no longer cascades
 export function revertToSlot(state, slotIndex) {
   selectSlot(state, slotIndex);
