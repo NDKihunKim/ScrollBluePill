@@ -161,7 +161,6 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       activeChaosOptionEl = null;
     }
     activeChaosScroll = null;
-    chaosStepperValues = new Map();
   };
 
   const updateChaosStepperDisplay = (rowEl, key) => {
@@ -228,7 +227,10 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       const valueDisplay = document.createElement('span');
       valueDisplay.className = 'chaos-stepper-value';
       valueDisplay.dataset.chaosStatKey = key;
-      updateChaosStepperDisplay(row, key); // set initial text via helper
+      // Set initial text directly — updateChaosStepperDisplay uses
+      // querySelector which can't find this element before it's in the DOM
+      const initialVal = chaosStepperValues.get(key) ?? 0;
+      valueDisplay.textContent = initialVal > 0 ? `+${initialVal}` : String(initialVal);
 
       const plusBtn = document.createElement('button');
       plusBtn.type = 'button';
@@ -366,6 +368,9 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
         }
 
         if (scroll.behavior_type === 'chaos') {
+          // Save existing stepper values so they survive a re-expand
+          const savedValues = new Map(chaosStepperValues);
+
           // Collapse any existing chaos panel first
           collapseChaosPanel();
 
@@ -373,11 +378,12 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
           activeChaosScroll = scroll;
           activeChaosOptionEl = option;
 
-          // Initialize stepper values to 0 for all current stat keys
+          // Initialize stepper values: restore saved values for keys
+          // that still exist, default new keys to 0
           const statKeys = getCurrentStatKeys();
           chaosStepperValues = new Map();
           statKeys.forEach((key) => {
-            chaosStepperValues.set(key, 0);
+            chaosStepperValues.set(key, savedValues.has(key) ? savedValues.get(key) : 0);
           });
 
           // Render the chaos input panel
@@ -441,6 +447,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     selectedBaseItem = item;
     enhancementState = createEnhancementState(upgradeSlots, item.requiredLevel ?? 0);
     collapseChaosPanel();
+    chaosStepperValues = new Map();
 
     enhancementPanel.hidden = false;
     enhancementDormant.hidden = true;
@@ -461,6 +468,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
 
     resetState(enhancementState);
     collapseChaosPanel();
+    chaosStepperValues = new Map();
     hideScrollDetail();
     renderSlotRow();
     makerPanel.resetMakerUI();
