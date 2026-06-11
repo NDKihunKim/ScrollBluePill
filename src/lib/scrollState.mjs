@@ -1,4 +1,4 @@
-const statLabelByKey = {
+export const statLabelByKey = {
   str: 'STR',
   dex: 'DEX',
   int: 'INT',
