@@ -105,6 +105,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       if (scroll || isCurrent) {
         box.addEventListener('click', () => {
           if (scroll) {
+            collapseChaosPanel();
             revertToSlot(enhancementState, i);
             renderSlotRow();
             showScrollDetail(scroll);
