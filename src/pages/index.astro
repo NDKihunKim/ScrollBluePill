@@ -1805,6 +1805,17 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		opacity: 0.35;
 		cursor: not-allowed;
 	}
+	:global(.maker-gem-slot)::after {
+		content: '(추가)';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		color: var(--muted);
+		font-size: 0.75rem;
+		pointer-events: none;
+	}
+
 	:global(.maker-gem-slot--disabled::after) {
 		content: '✗';
 		position: absolute;
@@ -1814,9 +1825,19 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		left: 50%;
 		transform: translate(-50%, -50%);
 	}
+	:global(.maker-gem-slot--filled)::after,
+	:global(.maker-gem-slot--active)::after {
+		content: none;
+	}
+
 	:global(.maker-gem-slot--filled) {
 		border-color: var(--green);
 	}
+	:global(.maker-gem-slot--active) {
+		border-color: #5b9bd5;
+		background: rgba(91, 155, 213, 0.08);
+	}
+
 	:global(.maker-gem-slot img) {
 		width: 28px;
 		height: 28px;
