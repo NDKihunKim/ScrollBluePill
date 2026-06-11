@@ -163,6 +163,150 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     chaosStepperValues = new Map();
   };
 
+  const updateChaosStepperDisplay = (rowEl, key) => {
+    const valueDisplay = rowEl.querySelector('.chaos-stepper-value');
+    if (!valueDisplay) return;
+    const value = chaosStepperValues.get(key) ?? 0;
+    if (value > 0) {
+      valueDisplay.textContent = `+${value}`;
+    } else {
+      valueDisplay.textContent = String(value);
+    }
+  };
+
+  const renderChaosInputPanel = (optionEl) => {
+    if (!activeChaosScroll || !enhancementState) {
+      return;
+    }
+
+    // Remove any existing panel
+    const existingPanel = optionEl.querySelector('.chaos-input-panel');
+    if (existingPanel) {
+      existingPanel.remove();
+    }
+
+    const panel = document.createElement('div');
+    panel.className = 'chaos-input-panel';
+
+    const statKeys = getCurrentStatKeys();
+
+    if (statKeys.length === 0) {
+      const msg = document.createElement('p');
+      msg.className = 'chaos-empty-message';
+      msg.textContent = '적용할 스탯이 없습니다';
+      panel.append(msg);
+      optionEl.append(panel);
+      return;
+    }
+
+    // Create stepper rows
+    statKeys.forEach((key) => {
+      const currentValue = chaosStepperValues.get(key) ?? 0;
+
+      const row = document.createElement('div');
+      row.className = 'chaos-stat-row';
+
+      const label = document.createElement('span');
+      label.className = 'chaos-stat-label';
+      label.textContent = statLabelByKey[key] ?? key;
+
+      const minusBtn = document.createElement('button');
+      minusBtn.type = 'button';
+      minusBtn.className = 'chaos-stepper-btn';
+      minusBtn.textContent = '−';
+      minusBtn.addEventListener('click', () => {
+        const cur = chaosStepperValues.get(key) ?? 0;
+        if (cur > -5) {
+          chaosStepperValues.set(key, cur - 1);
+          updateChaosStepperDisplay(row, key);
+        }
+      });
+
+      const valueDisplay = document.createElement('span');
+      valueDisplay.className = 'chaos-stepper-value';
+      valueDisplay.dataset.chaosStatKey = key;
+      updateChaosStepperDisplay(row, key); // set initial text via helper
+
+      const plusBtn = document.createElement('button');
+      plusBtn.type = 'button';
+      plusBtn.className = 'chaos-stepper-btn';
+      plusBtn.textContent = '+';
+      plusBtn.addEventListener('click', () => {
+        const cur = chaosStepperValues.get(key) ?? 0;
+        if (cur < 5) {
+          chaosStepperValues.set(key, cur + 1);
+          updateChaosStepperDisplay(row, key);
+        }
+      });
+
+      row.append(label, minusBtn, valueDisplay, plusBtn);
+      panel.append(row);
+    });
+
+    // 적용 button
+    const applyBtn = document.createElement('button');
+    applyBtn.type = 'button';
+    applyBtn.className = 'chaos-apply-button';
+    applyBtn.textContent = '적용';
+
+    const remaining = computeRemainingSlots(enhancementState);
+    if (remaining <= 0) {
+      applyBtn.disabled = true;
+    }
+
+    applyBtn.addEventListener('click', () => {
+      if (!enhancementState || !activeChaosScroll) {
+        return;
+      }
+
+      // Build stats object from non-zero deltas
+      const stats = {};
+      for (const [key, value] of chaosStepperValues.entries()) {
+        if (value !== 0 && Number.isFinite(value)) {
+          stats[key] = value;
+        }
+      }
+
+      // If all deltas are 0, do nothing
+      if (Object.keys(stats).length === 0) {
+        return;
+      }
+
+      // Create a scroll entry with user-provided stats
+      const scrollEntry = {
+        id: activeChaosScroll.id,
+        nameKo: activeChaosScroll.nameKo,
+        equipmentKind: activeChaosScroll.equipmentKind,
+        behavior_type: 'chaos',
+        stats,
+      };
+
+      const applied = applyScroll(enhancementState, scrollEntry);
+      if (!applied) {
+        return;
+      }
+
+      hideScrollDetail();
+      renderSlotRow();
+      refreshEnhancedCard();
+
+      // Re-render the chaos panel to include any new stats
+      renderChaosInputPanel(optionEl);
+
+      // Disable 적용 button if no more slots
+      const newRemaining = computeRemainingSlots(enhancementState);
+      if (newRemaining <= 0) {
+        const btn = optionEl.querySelector('.chaos-apply-button');
+        if (btn) {
+          btn.disabled = true;
+        }
+      }
+    });
+
+    panel.append(applyBtn);
+    optionEl.append(panel);
+  };
+
   const renderScrollList = (equipmentKind) => {
     if (!(scrollList instanceof HTMLElement) || !(enhancementMessage instanceof HTMLElement)) {
       return;
