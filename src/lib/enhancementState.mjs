@@ -15,8 +15,9 @@ export function createEnhancementState(upgradeSlots, requiredLevel) {
   const gemSlotCount = computeGemSlotCount(requiredLevel);
   const gemSlots = new Array(gemSlotCount).fill(null);
   const makerActive = false;
+  const stimulantSlot = null;
 
-  return { scrollState, gemSlots, gemSlotCount, makerActive };
+  return { scrollState, gemSlots, gemSlotCount, makerActive, stimulantSlot };
 }
 
 export function activateMaker(state) {
@@ -28,6 +29,27 @@ export function deactivateMaker(state) {
   for (let i = 0; i < state.gemSlots.length; i++) {
     state.gemSlots[i] = null;
   }
+  clearStimulant(state);
+}
+
+export function applyStimulant(state, stats) {
+  if (!stats || typeof stats !== 'object') {
+    return false;
+  }
+
+  const normalizedStats = {};
+  for (const [key, value] of Object.entries(stats)) {
+    if (Number.isFinite(value)) {
+      normalizedStats[key] = value;
+    }
+  }
+
+  state.stimulantSlot = { stats: normalizedStats };
+  return true;
+}
+
+export function clearStimulant(state) {
+  state.stimulantSlot = null;
 }
 
 export function applyGem(state, slotIndex, gemKey, gradeIndex) {
@@ -56,6 +78,7 @@ export function resetGems(state) {
   for (let i = 0; i < state.gemSlots.length; i++) {
     state.gemSlots[i] = null;
   }
+  clearStimulant(state);
 }
 
 export function isGemSlotAvailable(state, gemKey) {
@@ -105,6 +128,14 @@ export function computeAccumulatedStats(baseStats, state) {
     }
   }
 
+  if (state.stimulantSlot?.stats) {
+    for (const [key, value] of Object.entries(state.stimulantSlot.stats)) {
+      if (Number.isFinite(value)) {
+        accumulated[key] = (accumulated[key] ?? 0) + value;
+      }
+    }
+  }
+
   return accumulated;
 }
 
@@ -142,6 +173,18 @@ export function computeGradeColor(state) {
       totalAddedConstants += Math.round(value / 10);
     } else {
       totalAddedConstants += value;
+    }
+  }
+
+  if (state.stimulantSlot?.stats) {
+    for (const [key, value] of Object.entries(state.stimulantSlot.stats)) {
+      if (!Number.isFinite(value)) continue;
+
+      if (HP_MP_KEYS.has(key)) {
+        totalAddedConstants += Math.round(value / 10);
+      } else {
+        totalAddedConstants += value;
+      }
     }
   }
 
