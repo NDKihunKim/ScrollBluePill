@@ -445,6 +445,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
 
           // Render the chaos input panel
           renderChaosInputPanel(option);
+          option.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           return;
         }
 
