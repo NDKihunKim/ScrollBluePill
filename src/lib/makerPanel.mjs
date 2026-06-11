@@ -113,6 +113,7 @@ export function initMakerPanel({
           }
 
           editingSlotIndex = i;
+          renderGemSlots();
           renderStep1Picker();
         });
       }
@@ -132,6 +133,7 @@ export function initMakerPanel({
     makerPickerLabel.textContent = '보석 종류 선택';
     makerPickerGrid.replaceChildren();
     makerPicker.hidden = false;
+    if (makerPickerBack instanceof HTMLElement) makerPickerBack.hidden = true;
 
     const usedKeys = enhancementState.gemSlots
       .filter((s) => s !== null)
@@ -183,6 +185,7 @@ export function initMakerPanel({
 
     makerPickerLabel.textContent = `등급 선택 — ${gem.nameKo}`;
     makerPickerGrid.replaceChildren();
+    if (makerPickerBack instanceof HTMLElement) makerPickerBack.hidden = false;
 
     for (let gradeIndex = 2; gradeIndex >= 0; gradeIndex--) {
       const value = gem.values[gradeIndex];
@@ -213,9 +216,25 @@ export function initMakerPanel({
         const ok = applyGem(enhancementState, editingSlotIndex, gem.key, gradeIndex);
         if (!ok) return;
 
-        hidePicker();
+        pendingGemKey = null;
+
+        let nextEmpty = -1;
+        for (let i = 0; i < enhancementState.gemSlotCount; i++) {
+          const s = i < enhancementState.gemSlots.length ? enhancementState.gemSlots[i] : null;
+          if (!s) { nextEmpty = i; break; }
+        }
+
         renderGemSlots();
         refreshEnhancedCard();
+
+        if (nextEmpty >= 0) {
+          editingSlotIndex = nextEmpty;
+          renderGemSlots();
+          renderStep1Picker();
+        } else {
+          hidePicker();
+          renderGemSlots();
+        }
       });
 
       makerPickerGrid.append(item);
@@ -260,8 +279,22 @@ export function initMakerPanel({
       }
       makerToggle.classList.add('maker-toggle-button--active');
       if (makerGemArea instanceof HTMLElement) makerGemArea.hidden = false;
+
+      let firstEmpty = -1;
+      for (let i = 0; i < enhancementState.gemSlotCount; i++) {
+        const s = i < enhancementState.gemSlots.length ? enhancementState.gemSlots[i] : null;
+        if (!s) { firstEmpty = i; break; }
+      }
+      if (firstEmpty >= 0) {
+        editingSlotIndex = firstEmpty;
+      }
+
       renderGemSlots();
       makerToggle.textContent = '메이커 ✓';
+
+      if (firstEmpty >= 0) {
+        renderStep1Picker();
+      }
     };
 
     makerToggle.addEventListener('click', () => {
