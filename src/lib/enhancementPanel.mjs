@@ -261,6 +261,15 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       label.className = 'chaos-stat-label';
       label.textContent = statLabelByKey[key] ?? key;
 
+      const minMaxBtn = document.createElement('button');
+      minMaxBtn.type = 'button';
+      minMaxBtn.className = 'chaos-stepper-btn chaos-stepper-btn--max';
+      minMaxBtn.textContent = 'MIN';
+      minMaxBtn.addEventListener('click', () => {
+        chaosStepperValues.set(key, -5);
+        updateChaosStepperDisplay(row, key);
+      });
+
       const minusBtn = document.createElement('button');
       minusBtn.type = 'button';
       minusBtn.className = 'chaos-stepper-btn';
@@ -293,7 +302,16 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
         }
       });
 
-      row.append(label, minusBtn, valueDisplay, plusBtn);
+      const maxBtn = document.createElement('button');
+      maxBtn.type = 'button';
+      maxBtn.className = 'chaos-stepper-btn chaos-stepper-btn--max';
+      maxBtn.textContent = 'MAX';
+      maxBtn.addEventListener('click', () => {
+        chaosStepperValues.set(key, 5);
+        updateChaosStepperDisplay(row, key);
+      });
+
+      row.append(label, minMaxBtn, minusBtn, valueDisplay, plusBtn, maxBtn);
       panel.append(row);
     });
 

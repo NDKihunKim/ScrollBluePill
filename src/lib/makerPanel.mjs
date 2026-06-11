@@ -1,5 +1,5 @@
 import { GEM_GRADES, GEM_ITEM_IDS, GEM_STAT_COLORS, getVisibleGemTypes, getGemTypeByKey, statLabelByKey } from './makerData.mjs';
-import { activateMaker, deactivateMaker, applyGem, revertGemSlot, computeAccumulatedStats, computeStatBreakdown, computeGradeColor, computeAppliedScrollCount, computeRemainingSlots } from './enhancementState.mjs';
+import { activateMaker, deactivateMaker, applyGem, revertGemSlot, applyStimulant, clearStimulant, computeAccumulatedStats, computeStatBreakdown, computeGradeColor, computeAppliedScrollCount, computeRemainingSlots } from './enhancementState.mjs';
 import { buildItemIconUrl } from './maplestoryIo.mjs';
 
 function createGemIconElement(gemKey, stat, iconId) {
@@ -38,10 +38,17 @@ export function initMakerPanel({
   let pendingGemKey = null;
 
   const SLOT_COUNT = 3;
+  const STIMULANT_ITEM_ID = 4130000;
+  const STIMULANT_STAT_LIMIT = 5;
+  const NON_STIMULANT_STAT_KEYS = new Set(['upgradeSlots', 'attackSpeed']);
+  let stimulantValues = new Map();
 
   const hidePicker = () => {
     if (makerPicker instanceof HTMLElement) {
       makerPicker.hidden = true;
+    }
+    if (makerPickerGrid instanceof HTMLElement) {
+      makerPickerGrid.classList.remove('maker-stimulant-input-panel');
     }
     pendingGemKey = null;
     editingSlotIndex = -1;
@@ -59,10 +66,198 @@ export function initMakerPanel({
     renderEnhancedItemCard(selectedBaseItem, accumulatedStats, remaining, appliedCount, gradeColor, statBreakdown);
   };
 
+  const getStimulantStatKeys = () => {
+    if (!selectedBaseItem || !enhancementState) return [];
+
+    const accumulatedStats = computeAccumulatedStats(selectedBaseItem.stats, enhancementState);
+    return Object.keys(accumulatedStats)
+      .filter((key) => !NON_STIMULANT_STAT_KEYS.has(key))
+      .filter((key) => Number.isFinite(accumulatedStats[key]))
+      .filter((key) => accumulatedStats[key] > 0);
+  };
+
+  const updateStimulantStepperDisplay = (rowEl, key) => {
+    const valueDisplay = rowEl.querySelector('.maker-stimulant-stepper-value');
+    if (!valueDisplay) return;
+
+    const value = stimulantValues.get(key) ?? 0;
+    valueDisplay.textContent = value > 0 ? `+${value}` : String(value);
+  };
+
+  const renderStimulantInputPanel = () => {
+    if (!(makerPicker instanceof HTMLElement) ||
+        !(makerPickerGrid instanceof HTMLElement) ||
+        !(makerPickerLabel instanceof HTMLElement) ||
+        !enhancementState) {
+      return;
+    }
+
+    pendingGemKey = null;
+    editingSlotIndex = -1;
+    makerPickerLabel.textContent = '촉진제 스탯 입력';
+    makerPickerGrid.replaceChildren();
+    makerPickerGrid.classList.add('maker-stimulant-input-panel');
+    makerPicker.hidden = false;
+    if (makerPickerBack instanceof HTMLElement) makerPickerBack.hidden = true;
+
+    const existingStats = enhancementState.stimulantSlot?.stats ?? {};
+    const statKeys = getStimulantStatKeys();
+    stimulantValues = new Map();
+    statKeys.forEach((key) => {
+      stimulantValues.set(key, Number.isFinite(existingStats[key]) ? existingStats[key] : 0);
+    });
+
+    if (statKeys.length === 0) {
+      const msg = document.createElement('p');
+      msg.className = 'chaos-empty-message';
+      msg.textContent = '적용할 스탯이 없습니다';
+      makerPickerGrid.append(msg);
+      return;
+    }
+
+    statKeys.forEach((key) => {
+      const row = document.createElement('div');
+      row.className = 'chaos-stat-row maker-stimulant-stat-row';
+
+      const label = document.createElement('span');
+      label.className = 'chaos-stat-label';
+      label.textContent = statLabelByKey[key] ?? key;
+
+      const minMaxBtn = document.createElement('button');
+      minMaxBtn.type = 'button';
+      minMaxBtn.className = 'chaos-stepper-btn chaos-stepper-btn--max';
+      minMaxBtn.textContent = 'MIN';
+      minMaxBtn.addEventListener('click', () => {
+        stimulantValues.set(key, -STIMULANT_STAT_LIMIT);
+        updateStimulantStepperDisplay(row, key);
+      });
+
+      const minusBtn = document.createElement('button');
+      minusBtn.type = 'button';
+      minusBtn.className = 'chaos-stepper-btn';
+      minusBtn.textContent = '−';
+      minusBtn.addEventListener('click', () => {
+        const cur = stimulantValues.get(key) ?? 0;
+        if (cur > -STIMULANT_STAT_LIMIT) {
+          stimulantValues.set(key, cur - 1);
+          updateStimulantStepperDisplay(row, key);
+        }
+      });
+
+      const valueDisplay = document.createElement('span');
+      valueDisplay.className = 'chaos-stepper-value maker-stimulant-stepper-value';
+      const initialVal = stimulantValues.get(key) ?? 0;
+      valueDisplay.textContent = initialVal > 0 ? `+${initialVal}` : String(initialVal);
+
+      const plusBtn = document.createElement('button');
+      plusBtn.type = 'button';
+      plusBtn.className = 'chaos-stepper-btn';
+      plusBtn.textContent = '+';
+      plusBtn.addEventListener('click', () => {
+        const cur = stimulantValues.get(key) ?? 0;
+        if (cur < STIMULANT_STAT_LIMIT) {
+          stimulantValues.set(key, cur + 1);
+          updateStimulantStepperDisplay(row, key);
+        }
+      });
+
+      const maxBtn = document.createElement('button');
+      maxBtn.type = 'button';
+      maxBtn.className = 'chaos-stepper-btn chaos-stepper-btn--max';
+      maxBtn.textContent = 'MAX';
+      maxBtn.addEventListener('click', () => {
+        stimulantValues.set(key, STIMULANT_STAT_LIMIT);
+        updateStimulantStepperDisplay(row, key);
+      });
+
+      row.append(label, minMaxBtn, minusBtn, valueDisplay, plusBtn, maxBtn);
+      makerPickerGrid.append(row);
+    });
+
+    const applyBtn = document.createElement('button');
+    applyBtn.type = 'button';
+    applyBtn.className = 'chaos-apply-button maker-stimulant-apply-button';
+    applyBtn.textContent = '적용';
+    applyBtn.addEventListener('click', () => {
+      const stats = {};
+      for (const key of statKeys) {
+        stats[key] = stimulantValues.get(key) ?? 0;
+      }
+      applyStimulant(enhancementState, stats);
+      hidePicker();
+      renderGemSlots();
+      refreshEnhancedCard();
+    });
+
+    makerPickerGrid.append(applyBtn);
+  };
+
+  const renderStimulantSlot = () => {
+    if (!(makerGemSlots instanceof HTMLElement)) return;
+
+    const box = document.createElement('div');
+    box.setAttribute('role', 'button');
+    box.setAttribute('tabindex', '0');
+    box.className = 'maker-gem-slot maker-gem-slot--stimulant';
+
+    if (enhancementState?.stimulantSlot) {
+      box.classList.add('maker-gem-slot--filled');
+
+      const img = document.createElement('img');
+      img.src = buildItemIconUrl(STIMULANT_ITEM_ID);
+      img.alt = '';
+      img.loading = 'lazy';
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'maker-gem-slot-name';
+      nameSpan.textContent = '촉진제';
+
+      box.append(img, nameSpan);
+
+      const xBtn = document.createElement('span');
+      xBtn.setAttribute('role', 'button');
+      xBtn.setAttribute('tabindex', '0');
+      xBtn.className = 'slot-box-x';
+      xBtn.setAttribute('aria-label', '촉진제 슬롯 지우기');
+      xBtn.textContent = '×';
+      xBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        clearStimulant(enhancementState);
+        stimulantValues = new Map();
+        hidePicker();
+        renderGemSlots();
+        refreshEnhancedCard();
+      });
+      xBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          xBtn.click();
+        }
+      });
+      box.append(xBtn);
+    }
+
+    box.addEventListener('click', () => {
+      pendingGemKey = null;
+      editingSlotIndex = -1;
+      renderGemSlots();
+      renderStimulantInputPanel();
+    });
+    box.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        box.click();
+      }
+    });
+
+    makerGemSlots.append(box);
+  };
+
   const renderGemSlots = () => {
     if (!(makerGemSlots instanceof HTMLElement) || !enhancementState) return;
 
     makerGemSlots.replaceChildren();
+    renderStimulantSlot();
 
     for (let i = 0; i < SLOT_COUNT; i++) {
       const box = document.createElement('div');
@@ -159,6 +354,7 @@ export function initMakerPanel({
 
     makerPickerLabel.textContent = '보석 종류 선택';
     makerPickerGrid.replaceChildren();
+    makerPickerGrid.classList.remove('maker-stimulant-input-panel');
     makerPicker.hidden = false;
     if (makerPickerBack instanceof HTMLElement) makerPickerBack.hidden = true;
 
@@ -212,6 +408,7 @@ export function initMakerPanel({
 
     makerPickerLabel.textContent = `등급 선택 — ${gem.nameKo}`;
     makerPickerGrid.replaceChildren();
+    makerPickerGrid.classList.remove('maker-stimulant-input-panel');
     if (makerPickerBack instanceof HTMLElement) makerPickerBack.hidden = false;
 
     for (let gradeIndex = 2; gradeIndex >= 0; gradeIndex--) {
@@ -292,6 +489,7 @@ export function initMakerPanel({
       if (enhancementState) {
         deactivateMaker(enhancementState);
       }
+      stimulantValues = new Map();
       makerToggle.classList.remove('maker-toggle-button--active');
       if (makerGemArea instanceof HTMLElement) makerGemArea.hidden = true;
       hidePicker();
@@ -306,6 +504,7 @@ export function initMakerPanel({
       }
       makerToggle.classList.add('maker-toggle-button--active');
       if (makerGemArea instanceof HTMLElement) makerGemArea.hidden = false;
+      makerGemArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
       let firstEmpty = -1;
       for (let i = 0; i < enhancementState.gemSlotCount; i++) {
@@ -375,6 +574,7 @@ export function initMakerPanel({
     deactivate() {
       enhancementState = null;
       selectedBaseItem = null;
+      stimulantValues = new Map();
       hidePicker();
 
       if (makerSection instanceof HTMLElement) {
@@ -384,6 +584,7 @@ export function initMakerPanel({
 
     resetMakerUI() {
       hidePicker();
+      stimulantValues = new Map();
       if (makerToggle instanceof HTMLElement) {
         makerToggle.classList.remove('maker-toggle-button--active');
         makerToggle.textContent = '메이커';
