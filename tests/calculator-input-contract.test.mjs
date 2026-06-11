@@ -52,15 +52,15 @@ test('stat input rows expose per-row max delta buttons', async () => {
 	const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
 
 	assert.match(enhancementPanelSource, /minMaxBtn\.textContent\s*=\s*'MIN'/);
-	assert.match(enhancementPanelSource, /chaosStepperValues\.set\(key,\s*-5\)/);
+	assert.match(enhancementPanelSource, /chaosStepperValues\.set\(key,\s*-limit\)/);
 	assert.match(enhancementPanelSource, /maxBtn\.textContent\s*=\s*'MAX'/);
-	assert.match(enhancementPanelSource, /chaosStepperValues\.set\(key,\s*5\)/);
+	assert.match(enhancementPanelSource, /chaosStepperValues\.set\(key,\s*limit\)/);
 	assert.match(enhancementPanelSource, /row\.append\(label,\s*minMaxBtn,\s*minusBtn,\s*valueDisplay,\s*plusBtn,\s*maxBtn\)/);
 
 	assert.match(makerPanelSource, /minMaxBtn\.textContent\s*=\s*'MIN'/);
-	assert.match(makerPanelSource, /stimulantValues\.set\(key,\s*-STIMULANT_STAT_LIMIT\)/);
+	assert.match(makerPanelSource, /stimulantValues\.set\(key,\s*-limit\)/);
 	assert.match(makerPanelSource, /maxBtn\.textContent\s*=\s*'MAX'/);
-	assert.match(makerPanelSource, /stimulantValues\.set\(key,\s*STIMULANT_STAT_LIMIT\)/);
+	assert.match(makerPanelSource, /stimulantValues\.set\(key,\s*limit\)/);
 	assert.match(makerPanelSource, /row\.append\(label,\s*minMaxBtn,\s*minusBtn,\s*valueDisplay,\s*plusBtn,\s*maxBtn\)/);
 
 	assert.match(indexSource, /chaos-stepper-btn--max/);

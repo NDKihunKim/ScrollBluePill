@@ -1,5 +1,5 @@
 import { formatScrollStatLine, statLabelByKey, clearSlot } from './scrollState.mjs';
-import { createEnhancementState, applyScroll, revertToSlot, resetState, computeAccumulatedStats, computeStatBreakdown, computeAppliedScrollCount, computeRemainingSlots, computeGradeColor } from './enhancementState.mjs';
+import { createEnhancementState, applyScroll, revertToSlot, resetState, computeAccumulatedStats, computeStatBreakdown, computeAppliedScrollCount, computeRemainingSlots, computeGradeColor, HP_MP_KEYS } from './enhancementState.mjs';
 import { initMakerPanel } from './makerPanel.mjs';
 import { buildItemIconUrl } from './maplestoryIo.mjs';
 
@@ -253,6 +253,9 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     // Create stepper rows
     statKeys.forEach((key) => {
       const currentValue = chaosStepperValues.get(key) ?? 0;
+      const isHpMp = HP_MP_KEYS.has(key);
+      const step = isHpMp ? 10 : 1;
+      const limit = isHpMp ? 50 : 5;
 
       const row = document.createElement('div');
       row.className = 'chaos-stat-row';
@@ -266,7 +269,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       minMaxBtn.className = 'chaos-stepper-btn chaos-stepper-btn--max';
       minMaxBtn.textContent = 'MIN';
       minMaxBtn.addEventListener('click', () => {
-        chaosStepperValues.set(key, -5);
+        chaosStepperValues.set(key, -limit);
         updateChaosStepperDisplay(row, key);
       });
 
@@ -276,8 +279,8 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       minusBtn.textContent = '−';
       minusBtn.addEventListener('click', () => {
         const cur = chaosStepperValues.get(key) ?? 0;
-        if (cur > -5) {
-          chaosStepperValues.set(key, cur - 1);
+        if (cur > -limit) {
+          chaosStepperValues.set(key, cur - step);
           updateChaosStepperDisplay(row, key);
         }
       });
@@ -296,8 +299,8 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       plusBtn.textContent = '+';
       plusBtn.addEventListener('click', () => {
         const cur = chaosStepperValues.get(key) ?? 0;
-        if (cur < 5) {
-          chaosStepperValues.set(key, cur + 1);
+        if (cur < limit) {
+          chaosStepperValues.set(key, cur + step);
           updateChaosStepperDisplay(row, key);
         }
       });
@@ -307,7 +310,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       maxBtn.className = 'chaos-stepper-btn chaos-stepper-btn--max';
       maxBtn.textContent = 'MAX';
       maxBtn.addEventListener('click', () => {
-        chaosStepperValues.set(key, 5);
+        chaosStepperValues.set(key, limit);
         updateChaosStepperDisplay(row, key);
       });
 

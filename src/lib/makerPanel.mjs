@@ -1,5 +1,5 @@
 import { GEM_GRADES, GEM_ITEM_IDS, GEM_STAT_COLORS, getVisibleGemTypes, getGemTypeByKey, statLabelByKey } from './makerData.mjs';
-import { activateMaker, deactivateMaker, applyGem, revertGemSlot, applyStimulant, clearStimulant, computeAccumulatedStats, computeStatBreakdown, computeGradeColor, computeAppliedScrollCount, computeRemainingSlots } from './enhancementState.mjs';
+import { activateMaker, deactivateMaker, applyGem, revertGemSlot, applyStimulant, clearStimulant, computeAccumulatedStats, computeStatBreakdown, computeGradeColor, computeAppliedScrollCount, computeRemainingSlots, HP_MP_KEYS } from './enhancementState.mjs';
 import { buildItemIconUrl } from './maplestoryIo.mjs';
 
 function createGemIconElement(gemKey, stat, iconId) {
@@ -39,7 +39,6 @@ export function initMakerPanel({
 
   const SLOT_COUNT = 3;
   const STIMULANT_ITEM_ID = 4130000;
-  const STIMULANT_STAT_LIMIT = 5;
   const NON_STIMULANT_STAT_KEYS = new Set(['upgradeSlots', 'attackSpeed']);
   let stimulantValues = new Map();
 
@@ -116,6 +115,10 @@ export function initMakerPanel({
     }
 
     statKeys.forEach((key) => {
+      const isHpMp = HP_MP_KEYS.has(key);
+      const step = isHpMp ? 10 : 1;
+      const limit = isHpMp ? 50 : 5;
+
       const row = document.createElement('div');
       row.className = 'chaos-stat-row maker-stimulant-stat-row';
 
@@ -128,7 +131,7 @@ export function initMakerPanel({
       minMaxBtn.className = 'chaos-stepper-btn chaos-stepper-btn--max';
       minMaxBtn.textContent = 'MIN';
       minMaxBtn.addEventListener('click', () => {
-        stimulantValues.set(key, -STIMULANT_STAT_LIMIT);
+        stimulantValues.set(key, -limit);
         updateStimulantStepperDisplay(row, key);
       });
 
@@ -138,8 +141,8 @@ export function initMakerPanel({
       minusBtn.textContent = '−';
       minusBtn.addEventListener('click', () => {
         const cur = stimulantValues.get(key) ?? 0;
-        if (cur > -STIMULANT_STAT_LIMIT) {
-          stimulantValues.set(key, cur - 1);
+        if (cur > -limit) {
+          stimulantValues.set(key, cur - step);
           updateStimulantStepperDisplay(row, key);
         }
       });
@@ -155,8 +158,8 @@ export function initMakerPanel({
       plusBtn.textContent = '+';
       plusBtn.addEventListener('click', () => {
         const cur = stimulantValues.get(key) ?? 0;
-        if (cur < STIMULANT_STAT_LIMIT) {
-          stimulantValues.set(key, cur + 1);
+        if (cur < limit) {
+          stimulantValues.set(key, cur + step);
           updateStimulantStepperDisplay(row, key);
         }
       });
@@ -166,7 +169,7 @@ export function initMakerPanel({
       maxBtn.className = 'chaos-stepper-btn chaos-stepper-btn--max';
       maxBtn.textContent = 'MAX';
       maxBtn.addEventListener('click', () => {
-        stimulantValues.set(key, STIMULANT_STAT_LIMIT);
+        stimulantValues.set(key, limit);
         updateStimulantStepperDisplay(row, key);
       });
 

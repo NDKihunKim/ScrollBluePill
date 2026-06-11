@@ -8,7 +8,7 @@ import {
 } from './scrollState.mjs';
 import { computeGemSlotCount, getGemTypeByKey } from './makerData.mjs';
 
-const HP_MP_KEYS = new Set(['maxHp', 'maxMp']);
+export const HP_MP_KEYS = new Set(['maxHp', 'maxMp']);
 
 export function createEnhancementState(upgradeSlots, requiredLevel) {
   const scrollState = _createScrollState(upgradeSlots);

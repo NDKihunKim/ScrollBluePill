@@ -134,3 +134,35 @@ test('maker stimulant grade color includes stimulant deltas', () => {
   assert.equal(state.stimulantSlot, null);
   assert.equal(computeGradeColor(state), '#ffffff');
 });
+
+test('maxHp and maxMp use 10x scale — applied at 50, grade color divides by 10', () => {
+  const state = createEnhancementState(7, 80);
+
+  // Simulate what the chaos/stimulant stepper would produce: +50 for HP, -30 for MP
+  assert.equal(applyStimulant(state, { maxHp: 50, maxMp: -30 }), true);
+  assert.equal(applyScroll(state, {
+    id: 2040000,
+    nameKo: '테스트 주문서',
+    stats: { maxHp: 20, str: 5 },
+  }), true);
+
+  // Accumulated: HP = 50(stim) + 20(scroll) = 70, MP = -30
+  assert.deepEqual(
+    computeAccumulatedStats({ maxHp: 100, maxMp: 80, str: 15 }, state),
+    { maxHp: 170, maxMp: 50, str: 20 },
+  );
+
+  // Breakdown
+  assert.deepEqual(
+    computeStatBreakdown({ maxHp: 100, maxMp: 80, str: 15, upgradeSlots: 7 }, state),
+    {
+      maxHp: { original: 100, maker: 50, scroll: 20, total: 170 },
+      maxMp: { original: 80, maker: -30, scroll: 0, total: 50 },
+      str: { original: 15, maker: 0, scroll: 5, total: 20 },
+      upgradeSlots: { original: 7, maker: 0, scroll: 0, total: 7 },
+    },
+  );
+
+  // Grade color: HP+MP contribute (50-30+20) / 10 = 4, plus STR 5 = 9 total → #3366ff
+  assert.equal(computeGradeColor(state), '#3366ff');
+});
