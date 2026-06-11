@@ -325,7 +325,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       }
 
       renderSlotRow();
-      showScrollDetail(scrollEntry);
+      hideScrollDetail();
       refreshEnhancedCard();
 
       // Re-render the chaos panel to include any new stats
@@ -441,7 +441,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
         }
 
         renderSlotRow();
-        showScrollDetail(scroll);
+        hideScrollDetail();
         refreshEnhancedCard();
       });
 
