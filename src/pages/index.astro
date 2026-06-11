@@ -1868,6 +1868,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		transition: background 0.15s, border-color 0.15s;
 	}
 
+	:global(.chaos-stepper-btn--max) {
+		width: 34px;
+		font-size: 0.78rem;
+	}
+
 	:global(.chaos-stepper-btn:hover),
 	:global(.chaos-stepper-btn:focus-visible) {
 		border-color: var(--green);
@@ -1892,7 +1897,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	}
 
 	:global(.chaos-apply-button) {
-		align-self: flex-end;
+		align-self: center;
 		padding: 6px 20px;
 		border: 1px solid var(--green);
 		border-radius: 6px;

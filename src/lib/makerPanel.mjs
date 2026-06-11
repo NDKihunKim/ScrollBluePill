@@ -122,6 +122,15 @@ export function initMakerPanel({
       label.className = 'chaos-stat-label';
       label.textContent = statLabelByKey[key] ?? key;
 
+      const minMaxBtn = document.createElement('button');
+      minMaxBtn.type = 'button';
+      minMaxBtn.className = 'chaos-stepper-btn chaos-stepper-btn--max';
+      minMaxBtn.textContent = 'MIN';
+      minMaxBtn.addEventListener('click', () => {
+        stimulantValues.set(key, -STIMULANT_STAT_LIMIT);
+        updateStimulantStepperDisplay(row, key);
+      });
+
       const minusBtn = document.createElement('button');
       minusBtn.type = 'button';
       minusBtn.className = 'chaos-stepper-btn';
@@ -151,7 +160,16 @@ export function initMakerPanel({
         }
       });
 
-      row.append(label, minusBtn, valueDisplay, plusBtn);
+      const maxBtn = document.createElement('button');
+      maxBtn.type = 'button';
+      maxBtn.className = 'chaos-stepper-btn chaos-stepper-btn--max';
+      maxBtn.textContent = 'MAX';
+      maxBtn.addEventListener('click', () => {
+        stimulantValues.set(key, STIMULANT_STAT_LIMIT);
+        updateStimulantStepperDisplay(row, key);
+      });
+
+      row.append(label, minMaxBtn, minusBtn, valueDisplay, plusBtn, maxBtn);
       makerPickerGrid.append(row);
     });
 
@@ -485,6 +503,7 @@ export function initMakerPanel({
       }
       makerToggle.classList.add('maker-toggle-button--active');
       if (makerGemArea instanceof HTMLElement) makerGemArea.hidden = false;
+      makerGemArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
       let firstEmpty = -1;
       for (let i = 0; i < enhancementState.gemSlotCount; i++) {
