@@ -430,6 +430,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
 
     selectedBaseItem = item;
     enhancementState = createEnhancementState(upgradeSlots, item.requiredLevel ?? 0);
+    collapseChaosPanel();
 
     enhancementPanel.hidden = false;
     enhancementDormant.hidden = true;
@@ -449,6 +450,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     }
 
     resetState(enhancementState);
+    collapseChaosPanel();
     hideScrollDetail();
     renderSlotRow();
     makerPanel.resetMakerUI();
