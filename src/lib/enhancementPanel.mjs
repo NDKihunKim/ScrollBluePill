@@ -331,8 +331,16 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     scrollList.hidden = false;
 
     scrolls.forEach((scroll) => {
-      const option = document.createElement('button');
-      option.type = 'button';
+      const isChaos = scroll.behavior_type === 'chaos';
+      // Use <div> for chaos scrolls — <button> is a replaced element and
+      // its box won't expand to contain grid children (the input panel).
+      const option = document.createElement(isChaos ? 'div' : 'button');
+      if (!isChaos) {
+        option.type = 'button';
+      } else {
+        option.setAttribute('role', 'button');
+        option.setAttribute('tabindex', '0');
+      }
       option.className = 'scroll-option';
 
       const icon = document.createElement('img');
@@ -403,6 +411,16 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
         renderSlotRow();
         refreshEnhancedCard();
       });
+
+      // For chaos scroll <div role="button">, add keyboard support
+      if (isChaos) {
+        option.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            option.click();
+          }
+        });
+      }
 
       scrollList.append(option);
     });
