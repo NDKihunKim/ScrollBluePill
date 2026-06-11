@@ -149,7 +149,8 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     const accumulatedStats = computeAccumulatedStats(selectedBaseItem.stats, enhancementState);
     return Object.keys(accumulatedStats)
       .filter((key) => !NON_STAT_KEYS.has(key))
-      .filter((key) => Number.isFinite(accumulatedStats[key]));
+      .filter((key) => Number.isFinite(accumulatedStats[key]))
+      .filter((key) => accumulatedStats[key] > 0);
   };
 
   const collapseChaosPanel = () => {
