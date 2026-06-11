@@ -103,9 +103,10 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       if (scroll) {
         box.classList.add('slot-box--filled');
 
-        // × button to clear this slot
-        const xBtn = document.createElement('button');
-        xBtn.type = 'button';
+        // × clear button — <span> avoids <button> grid-stretch quirk
+        const xBtn = document.createElement('span');
+        xBtn.setAttribute('role', 'button');
+        xBtn.setAttribute('tabindex', '0');
         xBtn.className = 'slot-box-x';
         xBtn.setAttribute('aria-label', `슬롯 ${i + 1} 지우기`);
         xBtn.textContent = '×';
@@ -116,6 +117,12 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
           hideScrollDetail();
           renderSlotRow();
           refreshEnhancedCard();
+        });
+        xBtn.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            xBtn.click();
+          }
         });
         box.append(xBtn);
       }
