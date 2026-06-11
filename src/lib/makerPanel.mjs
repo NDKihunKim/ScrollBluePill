@@ -75,6 +75,10 @@ export function initMakerPanel({
         box.classList.add('maker-gem-slot--disabled');
       }
 
+      if (!isDisabled && !gemSlot && editingSlotIndex === i) {
+        box.classList.add('maker-gem-slot--active');
+      }
+
       if (gemSlot) {
         box.classList.add('maker-gem-slot--filled');
 
@@ -223,6 +227,7 @@ export function initMakerPanel({
       renderStep1Picker();
     } else {
       hidePicker();
+      renderGemSlots();
     }
   };
 
