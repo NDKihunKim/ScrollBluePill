@@ -1,5 +1,5 @@
 import { GEM_GRADES, GEM_ITEM_IDS, GEM_STAT_COLORS, getVisibleGemTypes, getGemTypeByKey, statLabelByKey } from './makerData.mjs';
-import { activateMaker, deactivateMaker, applyGem, revertGemSlot, computeAccumulatedStats, computeGradeColor, computeAppliedScrollCount, computeRemainingSlots } from './enhancementState.mjs';
+import { activateMaker, deactivateMaker, applyGem, revertGemSlot, computeAccumulatedStats, computeStatBreakdown, computeGradeColor, computeAppliedScrollCount, computeRemainingSlots } from './enhancementState.mjs';
 import { buildItemIconUrl } from './maplestoryIo.mjs';
 
 function createGemIconElement(gemKey, stat, iconId) {
@@ -51,11 +51,12 @@ export function initMakerPanel({
     if (!selectedBaseItem || !enhancementState) return;
 
     const accumulatedStats = computeAccumulatedStats(selectedBaseItem.stats, enhancementState);
+    const statBreakdown = computeStatBreakdown(selectedBaseItem.stats, enhancementState);
     const remaining = computeRemainingSlots(enhancementState);
     const appliedCount = computeAppliedScrollCount(enhancementState);
     const gradeColor = computeGradeColor(enhancementState);
 
-    renderEnhancedItemCard(selectedBaseItem, accumulatedStats, remaining, appliedCount, gradeColor);
+    renderEnhancedItemCard(selectedBaseItem, accumulatedStats, remaining, appliedCount, gradeColor, statBreakdown);
   };
 
   const renderGemSlots = () => {

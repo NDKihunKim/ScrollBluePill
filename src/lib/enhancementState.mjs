@@ -15,8 +15,9 @@ export function createEnhancementState(upgradeSlots, requiredLevel) {
   const gemSlotCount = computeGemSlotCount(requiredLevel);
   const gemSlots = new Array(gemSlotCount).fill(null);
   const makerActive = false;
+  const stimulantSlot = null;
 
-  return { scrollState, gemSlots, gemSlotCount, makerActive };
+  return { scrollState, gemSlots, gemSlotCount, makerActive, stimulantSlot };
 }
 
 export function activateMaker(state) {
@@ -56,6 +57,18 @@ export function resetGems(state) {
   for (let i = 0; i < state.gemSlots.length; i++) {
     state.gemSlots[i] = null;
   }
+}
+
+export function applyStimulant(state, stats) {
+  if (!stats || typeof stats !== 'object') {
+    return false;
+  }
+  state.stimulantSlot = { stats: { ...stats } };
+  return true;
+}
+
+export function clearStimulant(state) {
+  state.stimulantSlot = null;
 }
 
 export function isGemSlotAvailable(state, gemKey) {
@@ -105,7 +118,76 @@ export function computeAccumulatedStats(baseStats, state) {
     }
   }
 
+  if (state.stimulantSlot?.stats) {
+    for (const [key, value] of Object.entries(state.stimulantSlot.stats)) {
+      if (Number.isFinite(value)) {
+        accumulated[key] = (accumulated[key] ?? 0) + value;
+      }
+    }
+  }
+
   return accumulated;
+}
+
+export function computeStatBreakdown(baseStats, state) {
+  const breakdown = {};
+
+  const ensureEntry = (key) => {
+    if (!breakdown[key]) {
+      breakdown[key] = { original: 0, maker: 0, scroll: 0, total: 0 };
+    }
+    return breakdown[key];
+  };
+
+  if (baseStats) {
+    for (const [key, value] of Object.entries(baseStats)) {
+      if (!Number.isFinite(value)) continue;
+      const entry = ensureEntry(key);
+      entry.original += value;
+      entry.total += value;
+    }
+  }
+
+  const { scrollState } = state;
+
+  for (let i = 0; i < scrollState.slotCount; i++) {
+    const scroll = scrollState.slots[i];
+    if (!scroll?.stats) continue;
+
+    for (const [key, value] of Object.entries(scroll.stats)) {
+      if (!Number.isFinite(value)) continue;
+      const entry = ensureEntry(key);
+      entry.scroll += value;
+      entry.total += value;
+    }
+  }
+
+  for (let i = 0; i < state.gemSlots.length; i++) {
+    const gemSlot = state.gemSlots[i];
+    if (!gemSlot) continue;
+
+    const gem = getGemTypeByKey(gemSlot.gemKey);
+    if (!gem) continue;
+
+    const statKey = gem.stat;
+    const value = gem.values[gemSlot.gradeIndex];
+    if (!statKey || !Number.isFinite(value)) continue;
+
+    const entry = ensureEntry(statKey);
+    entry.maker += value;
+    entry.total += value;
+  }
+
+  if (state.stimulantSlot?.stats) {
+    for (const [key, value] of Object.entries(state.stimulantSlot.stats)) {
+      if (!Number.isFinite(value)) continue;
+      const entry = ensureEntry(key);
+      entry.maker += value;
+      entry.total += value;
+    }
+  }
+
+  return breakdown;
 }
 
 export function computeGradeColor(state) {
