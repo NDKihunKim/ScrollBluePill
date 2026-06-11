@@ -1750,10 +1750,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 
 	/* Maker gem section */
-	.maker-section {
+	:global(.maker-section) {
 		padding-top: 16px;
 	}
-	.maker-toggle-button {
+	:global(.maker-toggle-button) {
 		display: inline-flex;
 		align-items: center;
 		gap: 6px;
@@ -1767,21 +1767,21 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		cursor: pointer;
 		transition: background 0.15s, border-color 0.15s;
 	}
-	.maker-toggle-button:disabled {
+	:global(.maker-toggle-button:disabled) {
 		opacity: 0.4;
 		cursor: not-allowed;
 	}
-	.maker-toggle-button.maker-toggle-button--active {
+	:global(.maker-toggle-button.maker-toggle-button--active) {
 		border-color: var(--green);
 		background: var(--green);
 		color: white;
 	}
-	.maker-gem-slots {
+	:global(.maker-gem-slots) {
 		display: flex;
 		gap: 10px;
 		margin-bottom: 14px;
 	}
-	.maker-gem-slot {
+	:global(.maker-gem-slot) {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -1798,14 +1798,14 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		position: relative;
 		transition: border-color 0.15s;
 	}
-	.maker-gem-slot:hover:not(.maker-gem-slot--disabled) {
+	:global(.maker-gem-slot:hover:not(.maker-gem-slot--disabled)) {
 		border-color: var(--green);
 	}
-	.maker-gem-slot--disabled {
+	:global(.maker-gem-slot--disabled) {
 		opacity: 0.35;
 		cursor: not-allowed;
 	}
-	.maker-gem-slot--disabled::after {
+	:global(.maker-gem-slot--disabled::after) {
 		content: '✗';
 		position: absolute;
 		font-size: 1.5rem;
@@ -1814,30 +1814,30 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		left: 50%;
 		transform: translate(-50%, -50%);
 	}
-	.maker-gem-slot--filled {
+	:global(.maker-gem-slot--filled) {
 		border-color: var(--green);
 	}
-	.maker-gem-slot img {
+	:global(.maker-gem-slot img) {
 		width: 28px;
 		height: 28px;
 		object-fit: contain;
 	}
-	.maker-gem-slot .maker-gem-slot-name {
+	:global(.maker-gem-slot .maker-gem-slot-name) {
 		font-size: 0.7rem;
 		line-height: 1.15;
 	}
-	.maker-gem-slot .maker-gem-slot-grade {
+	:global(.maker-gem-slot .maker-gem-slot-grade) {
 		font-size: 0.7rem;
 		color: var(--green);
 		font-weight: 600;
 	}
-	.maker-picker-grid {
+	:global(.maker-picker-grid) {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
 		gap: 8px;
 		margin-bottom: 10px;
 	}
-	.maker-picker-item {
+	:global(.maker-picker-item) {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -1851,28 +1851,28 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		text-align: center;
 		transition: border-color 0.15s;
 	}
-	.maker-picker-item:hover:not(.maker-picker-item--disabled) {
+	:global(.maker-picker-item:hover:not(.maker-picker-item--disabled)) {
 		border-color: var(--green);
 	}
-	.maker-picker-item--disabled {
+	:global(.maker-picker-item--disabled) {
 		opacity: 0.35;
 		cursor: not-allowed;
 	}
-	.maker-picker-item img {
+	:global(.maker-picker-item img) {
 		width: 28px;
 		height: 28px;
 		object-fit: contain;
 	}
-	.maker-picker-item .maker-picker-item-stat {
+	:global(.maker-picker-item .maker-picker-item-stat) {
 		font-size: 0.7rem;
 		color: var(--muted);
 	}
-	.maker-picker-back {
+	:global(.maker-picker-back) {
 		display: block;
 		margin: 0 auto;
 	}
 
-	.maker-gem-icon {
+	:global(.maker-gem-icon) {
 		display: flex;
 		align-items: center;
 		justify-content: center;
