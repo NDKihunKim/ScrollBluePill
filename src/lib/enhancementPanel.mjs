@@ -188,6 +188,8 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
 
     const panel = document.createElement('div');
     panel.className = 'chaos-input-panel';
+    // Prevent clicks inside the panel from bubbling to the scroll-option button
+    panel.addEventListener('click', (e) => e.stopPropagation());
 
     const statKeys = getCurrentStatKeys();
 
@@ -351,8 +353,15 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       text.append(name, stat);
       option.append(icon, text);
 
-      option.addEventListener('click', () => {
+      option.addEventListener('click', (event) => {
         if (!enhancementState || !selectedBaseItem) {
+          return;
+        }
+
+        // Ignore clicks that originated inside the chaos input panel
+        // (steppers, 적용 button, labels, empty space) — those are
+        // handled by their own listeners and should not re-init the panel.
+        if (event.target.closest('.chaos-input-panel')) {
           return;
         }
 
