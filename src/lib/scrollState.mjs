@@ -28,20 +28,32 @@ export function applyScroll(state, scroll) {
     return false;
   }
 
+  const wasFilled = state.slots[state.currentSlot] !== null;
   state.slots[state.currentSlot] = scroll;
-  state.currentSlot += 1;
+
+  if (wasFilled) {
+    // Replacement: advance to the next empty slot
+    let next = state.currentSlot + 1;
+    while (next < state.slotCount && state.slots[next] !== null) {
+      next++;
+    }
+    state.currentSlot = next;
+  } else {
+    state.currentSlot += 1;
+  }
   return true;
 }
 
-export function revertToSlot(state, slotIndex) {
+export function selectSlot(state, slotIndex) {
   if (slotIndex < 0 || slotIndex >= state.slotCount) {
     return;
   }
+  state.currentSlot = slotIndex;
+}
 
-  for (let i = slotIndex + 1; i < state.slotCount; i++) {
-    state.slots[i] = null;
-  }
-  state.currentSlot = slotIndex + 1;
+// Kept for compatibility — clicking a slot no longer cascades
+export function revertToSlot(state, slotIndex) {
+  selectSlot(state, slotIndex);
 }
 
 export function resetState(state) {
