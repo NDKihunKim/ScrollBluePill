@@ -41,6 +41,14 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   let enhancementState = null;
   let selectedBaseItem = null;
 
+  // Internal keys that are item metadata, not stats chaos can modify
+  const NON_STAT_KEYS = new Set(['upgradeSlots', 'attackSpeed']);
+
+  // Chaos scroll state
+  let chaosStepperValues = new Map();   // statKey → number (-5..5)
+  let activeChaosScroll = null;          // the chaos scroll definition currently expanded
+  let activeChaosOptionEl = null;        // the DOM element of the expanded scroll option
+
   const showEnhancementDormant = () => {
     if (!(enhancementPanel instanceof HTMLElement) ||
         !(enhancementDormant instanceof HTMLElement) ||
@@ -132,6 +140,29 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     }
   };
 
+  const getCurrentStatKeys = () => {
+    if (!selectedBaseItem || !enhancementState) {
+      return [];
+    }
+
+    const accumulatedStats = computeAccumulatedStats(selectedBaseItem.stats, enhancementState);
+    return Object.keys(accumulatedStats)
+      .filter((key) => !NON_STAT_KEYS.has(key))
+      .filter((key) => Number.isFinite(accumulatedStats[key]));
+  };
+
+  const collapseChaosPanel = () => {
+    if (activeChaosOptionEl) {
+      const existingPanel = activeChaosOptionEl.querySelector('.chaos-input-panel');
+      if (existingPanel) {
+        existingPanel.remove();
+      }
+      activeChaosOptionEl = null;
+    }
+    activeChaosScroll = null;
+    chaosStepperValues = new Map();
+  };
+
   const renderScrollList = (equipmentKind) => {
     if (!(scrollList instanceof HTMLElement) || !(enhancementMessage instanceof HTMLElement)) {
       return;
@@ -179,6 +210,29 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
         if (!enhancementState || !selectedBaseItem) {
           return;
         }
+
+        if (scroll.behavior_type === 'chaos') {
+          // Collapse any existing chaos panel first
+          collapseChaosPanel();
+
+          // Set this as the active chaos scroll
+          activeChaosScroll = scroll;
+          activeChaosOptionEl = option;
+
+          // Initialize stepper values to 0 for all current stat keys
+          const statKeys = getCurrentStatKeys();
+          chaosStepperValues = new Map();
+          statKeys.forEach((key) => {
+            chaosStepperValues.set(key, 0);
+          });
+
+          // Render the chaos input panel
+          renderChaosInputPanel(option);
+          return;
+        }
+
+        // Non-chaos scroll: collapse chaos panel and apply normally
+        collapseChaosPanel();
 
         const applied = applyScroll(enhancementState, scroll);
         if (!applied) {
