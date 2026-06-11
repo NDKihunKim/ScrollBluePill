@@ -1,4 +1,4 @@
-import { formatScrollStatLine } from './scrollState.mjs';
+import { formatScrollStatLine, statLabelByKey } from './scrollState.mjs';
 import { createEnhancementState, applyScroll, revertToSlot, resetState, computeAccumulatedStats, computeAppliedScrollCount, computeRemainingSlots, computeGradeColor } from './enhancementState.mjs';
 import { initMakerPanel } from './makerPanel.mjs';
 import { buildItemIconUrl } from './maplestoryIo.mjs';
@@ -257,17 +257,75 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     refreshEnhancedCard();
   });
 
-  fetch('/data/scrolls-gms83-ko.json')
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`Unable to load scroll index: ${response.status}`);
+  const sortScrollList = (list) => {
+    const STAT_KEY_RANK = {
+      weaponAttack: 0,
+      magicAttack: 1,
+      str: 2,
+      dex: 3,
+      int: 4,
+      luk: 5,
+    };
+
+    const getStatPriority = (stats) => {
+      const keys = Object.keys(stats ?? {});
+      let best = 99;
+      for (const key of keys) {
+        const rank = STAT_KEY_RANK[key];
+        if (rank !== undefined && rank < best) best = rank;
       }
-      return response.json();
-    })
-    .then((scrolls) => {
+      return best;
+    };
+
+    const stemName = (n) => String(n ?? '').replace(/(\d+)%$/, '').trimEnd();
+
+    const percentPattern = /(\d+)%$/;
+    const extractPercent = (name) => {
+      const match = name?.match(percentPattern);
+      return match ? Number(match[1]) : 0;
+    };
+
+    // Split chaos and non-chaos; sort non-chaos normally, append chaos at end
+    const nonChaos = [];
+    const chaos = [];
+    for (const s of list) {
+      if (s.behavior_type === 'chaos') {
+        chaos.push(s);
+      } else {
+        nonChaos.push(s);
+      }
+    }
+
+    nonChaos.sort((a, b) =>
+      getStatPriority(a.stats) - getStatPriority(b.stats) ||
+      stemName(a.nameKo).localeCompare(stemName(b.nameKo), 'ko-KR') ||
+      extractPercent(b.nameKo) - extractPercent(a.nameKo),
+    );
+
+    // Replace list contents: sorted non-chaos, then chaos at end
+    list.length = 0;
+    list.push(...nonChaos, ...chaos);
+  };
+
+  Promise.all([
+    fetch('/data/scrolls-gms83-ko.json').then((r) => {
+      if (!r.ok) throw new Error(`Unable to load scroll index: ${r.status}`);
+      return r.json();
+    }),
+    fetch('/data/scroll-overrides.local.json').then((r) => {
+      if (!r.ok) {
+        // Overrides file is optional — 404 is fine
+        return [];
+      }
+      return r.json();
+    }).catch(() => []),
+  ])
+    .then(([scrolls, overrides]) => {
       scrollIndex = Array.isArray(scrolls) ? scrolls : [];
+      const overrideList = Array.isArray(overrides) ? overrides : [];
       scrollsByEquipmentKind = new Map();
 
+      // Build equipment kind lists from main scroll index
       scrollIndex.forEach((scroll) => {
         const kind = scroll.equipmentKind;
         if (!scrollsByEquipmentKind.has(kind)) {
@@ -276,40 +334,31 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
         scrollsByEquipmentKind.get(kind).push(scroll);
       });
 
-            // Stat priority by stats object keys: weaponAttack > magicAttack > str > dex > int > luk > rest
-      const STAT_KEY_RANK = {
-        weaponAttack: 0,
-        magicAttack: 1,
-        str: 2,
-        dex: 3,
-        int: 4,
-        luk: 5,
-      };
+      // Merge wildcard overrides (equipmentKind: "*") into every kind
+      const wildcardOverrides = overrideList.filter((s) => s.equipmentKind === '*');
+      if (wildcardOverrides.length > 0) {
+        const allKinds = [...scrollsByEquipmentKind.keys()];
+        allKinds.forEach((kind) => {
+          wildcardOverrides.forEach((override) => {
+            scrollsByEquipmentKind.get(kind).push({ ...override, equipmentKind: kind });
+          });
+        });
+      }
 
-      const getStatPriority = (stats) => {
-        const keys = Object.keys(stats ?? {});
-        let best = 99;
-        for (const key of keys) {
-          const rank = STAT_KEY_RANK[key];
-          if (rank !== undefined && rank < best) best = rank;
-        }
-        return best;
-      };
+      // Merge non-wildcard overrides into their specific kind
+      overrideList
+        .filter((s) => s.equipmentKind !== '*')
+        .forEach((override) => {
+          const kind = override.equipmentKind;
+          if (!scrollsByEquipmentKind.has(kind)) {
+            scrollsByEquipmentKind.set(kind, []);
+          }
+          scrollsByEquipmentKind.get(kind).push(override);
+        });
 
-      const stemName = (n) => String(n ?? '').replace(/(\d+)%$/, '').trimEnd();
-
-      const percentPattern = /(\d+)%$/;
-      const extractPercent = (name) => {
-        const match = name?.match(percentPattern);
-        return match ? Number(match[1]) : 0;
-      };
-
-      for (const s of scrollsByEquipmentKind.values()) {
-        s.sort((a, b) =>
-          getStatPriority(a.stats) - getStatPriority(b.stats) ||
-          stemName(a.nameKo).localeCompare(stemName(b.nameKo), 'ko-KR') ||
-          extractPercent(b.nameKo) - extractPercent(a.nameKo),
-        );
+      // Sort each equipment kind's list (chaos always at end)
+      for (const list of scrollsByEquipmentKind.values()) {
+        sortScrollList(list);
       }
     })
     .catch((error) => {
