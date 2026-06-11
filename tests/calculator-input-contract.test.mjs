@@ -26,6 +26,18 @@ test('calculator input helper clamps item level at zero', async () => {
 	assert.equal(nextItemLevel('abc', 5), 5);
 });
 
+test('maker stimulant slot source contract is present', async () => {
+	const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
+
+	assert.match(indexSource, /maker-gem-slot--stimulant/);
+	assert.match(indexSource, /content:\s*'\(촉진제\)'/);
+	assert.match(makerPanelSource, /STIMULANT_ITEM_ID\s*=\s*4130000/);
+	assert.match(makerPanelSource, /buildItemIconUrl\(STIMULANT_ITEM_ID\)/);
+	assert.match(makerPanelSource, /nameSpan\.textContent\s*=\s*'촉진제'/);
+	assert.match(makerPanelSource, /applyStimulant/);
+	assert.match(makerPanelSource, /clearStimulant/);
+});
+
 test('calculator first step renders MapleStory input candidates', async () => {
 	const { armorKinds, jobKinds, weaponKinds } = await import('../src/lib/calculatorInput.mjs');
 	const { equipmentKindApiFilters } = await import('../src/lib/maplestoryIo.mjs');

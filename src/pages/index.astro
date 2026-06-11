@@ -1976,6 +1976,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	:global(.maker-gem-slot:hover:not(.maker-gem-slot--disabled)) {
 		border-color: var(--green);
 	}
+	:global(.maker-gem-slot--stimulant) {
+		border-style: dashed;
+		background: var(--surface-soft);
+	}
 	:global(.maker-gem-slot--disabled) {
 		opacity: 0.35;
 		cursor: not-allowed;
@@ -1989,6 +1993,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		color: var(--muted);
 		font-size: 0.75rem;
 		pointer-events: none;
+	}
+
+	:global(.maker-gem-slot--stimulant)::after {
+		content: '(촉진제)';
 	}
 
 	:global(.maker-gem-slot--disabled::after) {
@@ -2007,6 +2015,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 	:global(.maker-gem-slot--filled) {
 		border-color: var(--green);
+	}
+	:global(.maker-gem-slot--stimulant.maker-gem-slot--filled) {
+		border-style: solid;
+		background: var(--surface);
 	}
 	:global(.maker-gem-slot--active) {
 		border-color: #5b9bd5;
@@ -2068,6 +2080,16 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		margin: 0 auto;
 	}
 
+	:global(.maker-stimulant-input-panel) {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	:global(.maker-stimulant-apply-button) {
+		align-self: flex-end;
+	}
+
 	:global(.maker-gem-icon) {
 		display: flex;
 		align-items: center;
@@ -2083,4 +2105,3 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	}
 
 </style>
-
