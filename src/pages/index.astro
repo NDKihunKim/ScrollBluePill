@@ -670,7 +670,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			}
 
 			const value = key === 'attackSpeed' ? resolveAttackSpeed(item) : accumulatedStats?.[key];
-			if (Number.isFinite(value)) {
+			// Hide stats that dropped to 0 or below (e.g. from negative chaos scrolls).
+			// attackSpeed and upgradeSlots are metadata, not chaos-modifiable stats.
+			if (Number.isFinite(value) && (key === 'attackSpeed' || key === 'upgradeSlots' || value > 0)) {
 				selectedItemStats.append(createItemLine(label, formatStatValue(key, value)));
 			}
 		});
