@@ -1667,7 +1667,12 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		transform: scale(1.12);
 	}
 
-	/* × on gem slots — same animation, triggered by gem slot hover */
+	/* × on gem slots — positioned inside the larger 80×80 box */
+	:global(.maker-gem-slot--filled .slot-box-x) {
+		top: 2px;
+		right: 2px;
+	}
+
 	:global(.maker-gem-slot--filled:hover .slot-box-x) {
 		opacity: 1;
 		transform: scale(1);
