@@ -26,6 +26,53 @@ test('calculator input helper clamps item level at zero', async () => {
 	assert.equal(nextItemLevel('abc', 5), 5);
 });
 
+test('maker stimulant slot source contract is present', async () => {
+	const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
+
+	assert.match(indexSource, /maker-gem-slot--stimulant/);
+	assert.match(indexSource, /content:\s*'\(촉진제\)'/);
+	assert.match(makerPanelSource, /STIMULANT_ITEM_ID\s*=\s*4130000/);
+	assert.match(makerPanelSource, /buildItemIconUrl\(STIMULANT_ITEM_ID\)/);
+	assert.match(makerPanelSource, /nameSpan\.textContent\s*=\s*'촉진제'/);
+	assert.match(makerPanelSource, /applyStimulant/);
+	assert.match(makerPanelSource, /clearStimulant/);
+});
+
+test('maker button smoothly scrolls to expanded maker controls', async () => {
+	const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
+
+	assert.match(
+		makerPanelSource,
+		/makerGemArea\.scrollIntoView\(\{\s*behavior:\s*'smooth',\s*block:\s*'start'\s*\}\s*\);/,
+	);
+});
+
+test('stat input rows expose per-row max delta buttons', async () => {
+	const enhancementPanelSource = await readFile(new URL('../src/lib/enhancementPanel.mjs', import.meta.url), 'utf8');
+	const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
+
+	assert.match(enhancementPanelSource, /minMaxBtn\.textContent\s*=\s*'MIN'/);
+	assert.match(enhancementPanelSource, /chaosStepperValues\.set\(key,\s*-5\)/);
+	assert.match(enhancementPanelSource, /maxBtn\.textContent\s*=\s*'MAX'/);
+	assert.match(enhancementPanelSource, /chaosStepperValues\.set\(key,\s*5\)/);
+	assert.match(enhancementPanelSource, /row\.append\(label,\s*minMaxBtn,\s*minusBtn,\s*valueDisplay,\s*plusBtn,\s*maxBtn\)/);
+
+	assert.match(makerPanelSource, /minMaxBtn\.textContent\s*=\s*'MIN'/);
+	assert.match(makerPanelSource, /stimulantValues\.set\(key,\s*-STIMULANT_STAT_LIMIT\)/);
+	assert.match(makerPanelSource, /maxBtn\.textContent\s*=\s*'MAX'/);
+	assert.match(makerPanelSource, /stimulantValues\.set\(key,\s*STIMULANT_STAT_LIMIT\)/);
+	assert.match(makerPanelSource, /row\.append\(label,\s*minMaxBtn,\s*minusBtn,\s*valueDisplay,\s*plusBtn,\s*maxBtn\)/);
+
+	assert.match(indexSource, /chaos-stepper-btn--max/);
+});
+
+test('chaos apply button is horizontally centered in its input panel', () => {
+	assert.match(
+		indexSource,
+		/:global\(\.chaos-apply-button\)\s*\{[^}]*align-self:\s*center;/,
+	);
+});
+
 test('calculator first step renders MapleStory input candidates', async () => {
 	const { armorKinds, jobKinds, weaponKinds } = await import('../src/lib/calculatorInput.mjs');
 	const { equipmentKindApiFilters } = await import('../src/lib/maplestoryIo.mjs');
