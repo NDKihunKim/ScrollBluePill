@@ -37,6 +37,7 @@ behaviorType: 'fixed' | 'random' | 'chaos' | 'unknown';
 
 - `equipmentKind: "*"` means the scroll appears for **all** equipment kinds. When merging, the loader clones the scroll into every equipment kind's list in `scrollsByEquipmentKind`.
 - `stats: {}` is empty because stat values come from user input at application time.
+- **Sorting:** Chaos scrolls are always sorted to the **end** of each equipment kind's scroll list (after all fixed/random scrolls). This keeps the expandable UI at the bottom where it won't push other scroll options around.
 
 ### 2. Runtime Data Injection
 
