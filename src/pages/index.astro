@@ -1740,6 +1740,101 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		display: none;
 	}
 
+	/* Chaos scroll input panel */
+	:global(.chaos-input-panel) {
+		margin-top: 8px;
+		padding: 10px 8px;
+		border-top: 1px solid var(--line);
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	:global(.chaos-empty-message) {
+		color: var(--muted);
+		font-size: 0.85rem;
+		text-align: center;
+		padding: 8px 0;
+	}
+
+	:global(.chaos-stat-row) {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	:global(.chaos-stat-label) {
+		min-width: 80px;
+		font-size: 0.88rem;
+		font-weight: 650;
+		color: var(--ink);
+	}
+
+	:global(.chaos-stepper-btn) {
+		width: 28px;
+		height: 28px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		background: var(--surface);
+		color: var(--ink);
+		font-size: 1rem;
+		font-weight: 700;
+		cursor: pointer;
+		line-height: 1;
+		padding: 0;
+		transition: background 0.15s, border-color 0.15s;
+	}
+
+	:global(.chaos-stepper-btn:hover),
+	:global(.chaos-stepper-btn:focus-visible) {
+		border-color: var(--green);
+		background: var(--surface-soft);
+		outline: none;
+	}
+
+	:global(.chaos-stepper-value) {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 36px;
+		padding: 0 6px;
+		height: 28px;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		background: var(--surface);
+		color: var(--ink);
+		font-size: 0.9rem;
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
+	}
+
+	:global(.chaos-apply-button) {
+		align-self: flex-end;
+		padding: 6px 20px;
+		border: 1px solid var(--green);
+		border-radius: 6px;
+		background: var(--green);
+		color: #fff;
+		font-size: 0.9rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: opacity 0.15s;
+	}
+
+	:global(.chaos-apply-button:hover),
+	:global(.chaos-apply-button:focus-visible) {
+		opacity: 0.85;
+		outline: none;
+	}
+
+	:global(.chaos-apply-button:disabled) {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
 	@media (max-width: 760px) {
 		:global(.slot-box) {
 			width: 36px;
