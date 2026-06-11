@@ -287,6 +287,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 <script>
 	import { nextItemLevel, normalizeItemLevel, normalizeItemLevelRange } from '../lib/calculatorInput.mjs';
+	import { computeStatBreakdown } from '../lib/enhancementState.mjs';
 	import { searchKoreanItems } from '../lib/itemSearch.mjs';
 	import { buildItemIconUrl, buildItemSearchUrl } from '../lib/maplestoryIo.mjs';
 
@@ -500,6 +501,29 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			return `+${value}`;
 		};
 
+		const formatBreakdownPart = (value, index) => {
+			if (index === 0) {
+				return String(value);
+			}
+			return value > 0 ? `+${value}` : String(value);
+		};
+
+		const formatStatBreakdownValue = (key, breakdown) => {
+			if (!breakdown || !Number.isFinite(breakdown.total)) {
+				return '';
+			}
+
+			const hasEnhancement = breakdown.maker !== 0 || breakdown.scroll !== 0;
+			if (!hasEnhancement) {
+				return formatStatValue(key, breakdown.total);
+			}
+
+			const parts = [breakdown.original, breakdown.maker, breakdown.scroll]
+				.filter((value, index) => index === 0 || value !== 0);
+
+			return `${formatStatValue(key, breakdown.total)} (${parts.map(formatBreakdownPart).join('')})`;
+		};
+
 	const renderSelectedItemCard = (item) => {
 		if (
 			!(selectedItemCard instanceof HTMLElement) ||
@@ -529,10 +553,21 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			selectedItemRequirements.append(createItemLine(label, value));
 		});
 
+		const baseStatBreakdown = computeStatBreakdown(item.stats, {
+			scrollState: { slotCount: 0, slots: [] },
+			gemSlots: [],
+			stimulantSlot: null,
+		});
+
 		statRows.forEach(([label, key]) => {
-			const value = key === 'attackSpeed' ? resolveAttackSpeed(item) : item.stats?.[key];
+			const breakdown = baseStatBreakdown[key];
+			const value = key === 'attackSpeed' ? resolveAttackSpeed(item) : breakdown?.total;
 			if (Number.isFinite(value)) {
-				selectedItemStats.append(createItemLine(label, formatStatValue(key, value)));
+				const displayValue =
+					key === 'attackSpeed'
+						? formatStatValue(key, value)
+						: formatStatBreakdownValue(key, breakdown);
+				selectedItemStats.append(createItemLine(label, displayValue));
 			}
 		});
 
@@ -632,7 +667,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			}
 		};
 
-		const renderEnhancedItemCard = (item, accumulatedStats, remainingSlots, appliedCount, gradeColor) => {
+		const renderEnhancedItemCard = (item, accumulatedStats, remainingSlots, appliedCount, gradeColor, statBreakdown = {}) => {
 		if (
 			!(selectedItemCard instanceof HTMLElement) ||
 			!(selectedItemName instanceof HTMLElement) ||
@@ -669,11 +704,21 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 				return;
 			}
 
-			const value = key === 'attackSpeed' ? resolveAttackSpeed(item) : accumulatedStats?.[key];
+			const breakdown = statBreakdown?.[key];
+			const value = key === 'attackSpeed' ? resolveAttackSpeed(item) : (breakdown?.total ?? accumulatedStats?.[key]);
 			// Hide stats that dropped to 0 or below (e.g. from negative chaos scrolls).
 			// attackSpeed and upgradeSlots are metadata, not chaos-modifiable stats.
 			if (Number.isFinite(value) && (key === 'attackSpeed' || key === 'upgradeSlots' || value > 0)) {
-				selectedItemStats.append(createItemLine(label, formatStatValue(key, value)));
+				const displayValue =
+					key === 'attackSpeed'
+						? formatStatValue(key, value)
+						: formatStatBreakdownValue(key, breakdown ?? {
+							original: item.stats?.[key] ?? 0,
+							maker: 0,
+							scroll: value - (item.stats?.[key] ?? 0),
+							total: value,
+						});
+				selectedItemStats.append(createItemLine(label, displayValue));
 			}
 		});
 
