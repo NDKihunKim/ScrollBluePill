@@ -68,11 +68,11 @@ export function initMakerPanel({
   const getStimulantStatKeys = () => {
     if (!selectedBaseItem || !enhancementState) return [];
 
-    const accumulatedStats = computeAccumulatedStats(selectedBaseItem.stats, enhancementState);
-    return Object.keys(accumulatedStats)
+    const cleanStats = selectedBaseItem.stats ?? {};
+    return Object.keys(cleanStats)
       .filter((key) => !NON_STIMULANT_STAT_KEYS.has(key))
-      .filter((key) => Number.isFinite(accumulatedStats[key]))
-      .filter((key) => accumulatedStats[key] > 0);
+      .filter((key) => Number.isFinite(cleanStats[key]))
+      .filter((key) => cleanStats[key] > 0);
   };
 
   const updateStimulantStepperDisplay = (rowEl, key) => {
