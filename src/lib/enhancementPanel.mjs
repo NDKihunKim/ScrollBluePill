@@ -102,17 +102,19 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
         box.classList.add('slot-box--current');
       }
 
-      if (scroll || isCurrent) {
-        box.addEventListener('click', () => {
-          if (scroll) {
-            collapseChaosPanel();
-            revertToSlot(enhancementState, i);
-            renderSlotRow();
-            showScrollDetail(scroll);
-            refreshEnhancedCard();
-          }
-        });
-      }
+      // All slots are clickable — clicking selects the slot without
+      // deleting later scrolls. Picking a new scroll replaces only this slot.
+      box.addEventListener('click', () => {
+        collapseChaosPanel();
+        revertToSlot(enhancementState, i);
+        renderSlotRow();
+        if (scroll) {
+          showScrollDetail(scroll);
+        } else {
+          hideScrollDetail();
+        }
+        refreshEnhancedCard();
+      });
 
       slotCheckpointRow.append(box);
     }
@@ -292,8 +294,8 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
         return;
       }
 
-      hideScrollDetail();
       renderSlotRow();
+      showScrollDetail(scrollEntry);
       refreshEnhancedCard();
 
       // Re-render the chaos panel to include any new stats
@@ -408,8 +410,8 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
           return;
         }
 
-        hideScrollDetail();
         renderSlotRow();
+        showScrollDetail(scroll);
         refreshEnhancedCard();
       });
 
