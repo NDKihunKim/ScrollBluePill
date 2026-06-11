@@ -372,3 +372,24 @@ test('item dedupe report records collapsed and unresolved groups', () => {
 	assert.match(duplicateGroupsReport, /Variant-signature groups: 0/);
 	assert.match(duplicateGroupsReport, /Exact-signature groups: 0/);
 });
+
+test('item card formats enhanced stats with non-zero breakdown parts', () => {
+	assert.match(indexSource, /formatStatBreakdownValue/);
+	assert.match(indexSource, /const parts = \[breakdown\.original, breakdown\.maker, breakdown\.scroll\]/);
+	assert.match(indexSource, /\.filter\(\(value, index\) => index === 0 \|\| value !== 0\)/);
+	assert.match(indexSource, /key === 'attackSpeed'/);
+	assert.match(indexSource, /key === 'upgradeSlots'/);
+});
+
+test('enhanced item card receives stat breakdown data', async () => {
+	const enhancementPanelSource = await readFile(new URL('../src/lib/enhancementPanel.mjs', import.meta.url), 'utf8');
+	const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
+
+	assert.match(enhancementPanelSource, /computeStatBreakdown/);
+	assert.match(enhancementPanelSource, /const statBreakdown = computeStatBreakdown\(selectedBaseItem\.stats, enhancementState\);/);
+	assert.match(enhancementPanelSource, /renderEnhancedItemCard\(selectedBaseItem,\s*accumulatedStats,\s*remaining,\s*appliedCount,\s*gradeColor,\s*statBreakdown\)/);
+
+	assert.match(makerPanelSource, /computeStatBreakdown/);
+	assert.match(makerPanelSource, /const statBreakdown = computeStatBreakdown\(selectedBaseItem\.stats, enhancementState\);/);
+	assert.match(makerPanelSource, /renderEnhancedItemCard\(selectedBaseItem,\s*accumulatedStats,\s*remaining,\s*appliedCount,\s*gradeColor,\s*statBreakdown\)/);
+});

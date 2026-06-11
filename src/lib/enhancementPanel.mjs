@@ -1,5 +1,5 @@
 import { formatScrollStatLine, statLabelByKey, clearSlot } from './scrollState.mjs';
-import { createEnhancementState, applyScroll, revertToSlot, resetState, computeAccumulatedStats, computeAppliedScrollCount, computeRemainingSlots, computeGradeColor } from './enhancementState.mjs';
+import { createEnhancementState, applyScroll, revertToSlot, resetState, computeAccumulatedStats, computeStatBreakdown, computeAppliedScrollCount, computeRemainingSlots, computeGradeColor } from './enhancementState.mjs';
 import { initMakerPanel } from './makerPanel.mjs';
 import { buildItemIconUrl } from './maplestoryIo.mjs';
 
@@ -482,11 +482,12 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     }
 
     const accumulatedStats = computeAccumulatedStats(selectedBaseItem.stats, enhancementState);
+    const statBreakdown = computeStatBreakdown(selectedBaseItem.stats, enhancementState);
     const remaining = computeRemainingSlots(enhancementState);
     const appliedCount = computeAppliedScrollCount(enhancementState);
     const gradeColor = computeGradeColor(enhancementState);
 
-    renderEnhancedItemCard(selectedBaseItem, accumulatedStats, remaining, appliedCount, gradeColor);
+    renderEnhancedItemCard(selectedBaseItem, accumulatedStats, remaining, appliedCount, gradeColor, statBreakdown);
   };
 
   const activatePanel2 = (item) => {
