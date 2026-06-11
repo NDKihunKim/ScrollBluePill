@@ -12,7 +12,7 @@ export type ScrollDefinition = {
 	versionTagId: string;
 	nameKo: string;
 	category: string;
-	behaviorType: 'fixed' | 'random' | 'unknown';
+	behaviorType: 'fixed' | 'random' | 'chaos' | 'unknown';
 	affectedStats: string[];
 	statEffectFrame?: Record<string, unknown>;
 	probabilitySetId?: string;
