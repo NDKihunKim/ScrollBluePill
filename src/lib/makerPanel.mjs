@@ -64,8 +64,9 @@ export function initMakerPanel({
     makerGemSlots.replaceChildren();
 
     for (let i = 0; i < SLOT_COUNT; i++) {
-      const box = document.createElement('button');
-      box.type = 'button';
+      const box = document.createElement('div');
+      box.setAttribute('role', 'button');
+      box.setAttribute('tabindex', '0');
       box.className = 'maker-gem-slot';
 
       const isDisabled = i >= enhancementState.gemSlotCount;
@@ -99,24 +100,49 @@ export function initMakerPanel({
 
           box.append(img, nameSpan, gradeSpan);
         }
+
+        // × clear button — mirror scroll slot style
+        const xBtn = document.createElement('span');
+        xBtn.setAttribute('role', 'button');
+        xBtn.setAttribute('tabindex', '0');
+        xBtn.className = 'slot-box-x';
+        xBtn.setAttribute('aria-label', `보석 슬롯 ${i + 1} 지우기`);
+        xBtn.textContent = '×';
+        xBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          revertGemSlot(enhancementState, i);
+          hidePicker();
+          renderGemSlots();
+          refreshEnhancedCard();
+        });
+        xBtn.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            xBtn.click();
+          }
+        });
+        box.append(xBtn);
       }
 
       if (!isDisabled || gemSlot) {
         box.addEventListener('click', () => {
           if (!enhancementState || isDisabled) return;
 
-          if (gemSlot) {
-            revertGemSlot(enhancementState, i);
-            renderGemSlots();
-            refreshEnhancedCard();
-            return;
-          }
-
+          // Filled or empty — select for editing / replacement.
+          // × button is the only way to clear a slot.
           editingSlotIndex = i;
           renderGemSlots();
           renderStep1Picker();
         });
       }
+
+      // Keyboard support
+      box.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          box.click();
+        }
+      });
 
       makerGemSlots.append(box);
     }
