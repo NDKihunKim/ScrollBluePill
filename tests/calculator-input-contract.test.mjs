@@ -43,7 +43,7 @@ test('maker button smoothly scrolls to expanded maker controls', async () => {
 
 	assert.match(
 		makerPanelSource,
-		/makerGemArea\.scrollIntoView\(\{\s*behavior:\s*'smooth',\s*block:\s*'start'\s*\}\s*\);/,
+		/makerGemArea\.scrollIntoView\(\{\s*behavior:\s*'smooth',\s*block:\s*'nearest'\s*\}\s*\);/,
 	);
 });
 

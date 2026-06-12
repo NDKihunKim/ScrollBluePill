@@ -23,11 +23,13 @@ export function initItemLevelUpPanel({
 	slots,
 	editor,
 	renderEnhancedItemCard,
+	onToggleOpen,
 }) {
 	let enhancementState = null;
 	let selectedBaseItem = null;
 	let definition = null;
 	let activeSlotIndex = -1;
+	let lastAppliedValues = null;
 
 	const refreshEnhancedCard = () => {
 		if (!selectedBaseItem || !enhancementState) return;
@@ -124,9 +126,16 @@ export function initItemLevelUpPanel({
 
 		const currentStats = enhancementState.itemLevelUpSlots[slotIndex]?.stats ?? {};
 		const values = new Map();
+		const slotIsEmpty = Object.keys(currentStats).length === 0;
 
 		for (const [key, range] of Object.entries(definition.statRanges ?? {})) {
-			values.set(key, Number.isFinite(currentStats[key]) ? currentStats[key] : range.min);
+			if (Number.isFinite(currentStats[key])) {
+				values.set(key, currentStats[key]);
+			} else if (slotIsEmpty && lastAppliedValues?.has(key)) {
+				values.set(key, lastAppliedValues.get(key));
+			} else {
+				values.set(key, range.min);
+			}
 
 			const row = document.createElement('div');
 			row.className = 'chaos-stat-row item-level-up-stat-row';
@@ -195,6 +204,7 @@ export function initItemLevelUpPanel({
 				stats[key] = value;
 			}
 			applyItemLevelUp(enhancementState, slotIndex, stats);
+			lastAppliedValues = new Map(values);
 			renderSlots();
 			refreshEnhancedCard();
 			const nextEmpty = findNextEmptySlotIndex();
@@ -213,9 +223,13 @@ export function initItemLevelUpPanel({
 		toggle.addEventListener('click', () => {
 			if (!definition || !enhancementState) return;
 			if (area instanceof HTMLElement) {
+				const wasHidden = area.hidden;
 				area.hidden = !area.hidden;
-				if (!area.hidden && findNextEmptySlotIndex() >= 0) {
-					renderEditor(findNextEmptySlotIndex());
+				if (!area.hidden) {
+					onToggleOpen?.();
+					if (findNextEmptySlotIndex() >= 0) {
+						renderEditor(findNextEmptySlotIndex());
+					}
 				}
 			}
 		});
@@ -245,10 +259,15 @@ export function initItemLevelUpPanel({
 			if (area instanceof HTMLElement) area.hidden = true;
 			renderSlots();
 		},
+		closeArea() {
+			hideEditor();
+			if (area instanceof HTMLElement) area.hidden = true;
+		},
 		deactivate() {
 			enhancementState = null;
 			selectedBaseItem = null;
 			definition = null;
+			lastAppliedValues = null;
 			hideEditor();
 			if (toggle instanceof HTMLElement) toggle.hidden = true;
 			if (area instanceof HTMLElement) area.hidden = true;

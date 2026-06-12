@@ -31,6 +31,7 @@ export function initMakerPanel({
   makerPickerGrid,
   makerPickerBack,
   renderEnhancedItemCard,
+  onMakerOpen,
 }) {
   let enhancementState = null;
   let selectedBaseItem = null;
@@ -660,9 +661,10 @@ export function initMakerPanel({
       if (enhancementState) {
         activateMaker(enhancementState);
       }
+      onMakerOpen?.();
       makerToggle.classList.add('maker-toggle-button--active');
       if (makerGemArea instanceof HTMLElement) makerGemArea.hidden = false;
-      makerGemArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      makerGemArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
       let firstEmpty = -1;
       for (let i = 0; i < enhancementState.gemSlotCount; i++) {
@@ -761,6 +763,20 @@ export function initMakerPanel({
 
     refreshGemView() {
       renderGemSlots();
+      refreshEnhancedCard();
+    },
+
+    closeMakerPanel() {
+      if (!enhancementState || !enhancementState.makerActive) return;
+      deactivateMaker(enhancementState);
+      stimulantValues = new Map();
+      if (makerToggle instanceof HTMLElement) {
+        makerToggle.classList.remove('maker-toggle-button--active');
+        makerToggle.textContent = '메이커';
+      }
+      if (makerGemArea instanceof HTMLElement) makerGemArea.hidden = true;
+      hidePicker();
+      if (makerGemSlots instanceof HTMLElement) makerGemSlots.replaceChildren();
       refreshEnhancedCard();
     },
   };

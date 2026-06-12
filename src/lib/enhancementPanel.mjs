@@ -40,6 +40,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     makerPickerGrid,
     makerPickerBack,
     renderEnhancedItemCard,
+    onMakerOpen: () => itemLevelUpPanel.closeArea(),
   });
 
   const itemLevelUpPanel = initItemLevelUpPanel({
@@ -48,6 +49,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     slots: itemLevelUpSlots,
     editor: itemLevelUpEditor,
     renderEnhancedItemCard,
+    onToggleOpen: () => makerPanel.closeMakerPanel(),
   });
 
   let scrollIndex = [];
