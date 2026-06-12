@@ -125,6 +125,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
           clearSlot(enhancementState.scrollState, i);
           hideScrollDetail();
           renderSlotRow();
+          renderScrollList(selectedBaseItem);
           refreshEnhancedCard();
         });
         xBtn.addEventListener('keydown', (e) => {
@@ -362,6 +363,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       }
 
       renderSlotRow();
+      renderScrollList(selectedBaseItem);
       hideScrollDetail();
       refreshEnhancedCard();
 
@@ -382,7 +384,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     optionEl.append(panel);
   };
 
-  const renderScrollList = (equipmentKind) => {
+  const renderScrollList = (item) => {
     if (!(scrollList instanceof HTMLElement) || !(enhancementMessage instanceof HTMLElement)) {
       return;
     }
@@ -390,9 +392,22 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     scrollList.replaceChildren();
     enhancementMessage.hidden = true;
 
-    const scrolls = scrollsByEquipmentKind.get(equipmentKind) ?? [];
+    const scrolls = scrollsByEquipmentKind.get(item.equipmentKind) ?? [];
 
-    if (scrolls.length === 0) {
+    // Phase 1: filter by item-specific targeting
+    const eligible = scrolls.filter(scroll => {
+      if (scroll.targetItemId == null) return true;
+      return scroll.targetItemId === item.id;
+    });
+
+    // Phase 2: filter out scrolls that have reached their max application count
+    const available = eligible.filter(scroll => {
+      if (scroll.maxApplications == null) return true;
+      const applied = enhancementState.scrollState.slots.filter(s => s?.id === scroll.id).length;
+      return applied < scroll.maxApplications;
+    });
+
+    if (available.length === 0) {
       enhancementMessage.textContent = '이 장비 종류에 해당하는 주문서가 없습니다';
       enhancementMessage.hidden = false;
       return;
@@ -400,7 +415,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
 
     scrollList.hidden = false;
 
-    scrolls.forEach((scroll) => {
+    available.forEach((scroll) => {
       const isChaos = scroll.behavior_type === 'chaos';
       // Use <div> for chaos scrolls — <button> is a replaced element and
       // its box won't expand to contain grid children (the input panel).
@@ -479,6 +494,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
         }
 
         renderSlotRow();
+        renderScrollList(selectedBaseItem);
         hideScrollDetail();
         refreshEnhancedCard();
       });
@@ -546,7 +562,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
 
     hideScrollDetail();
     renderSlotRow();
-    renderScrollList(item.equipmentKind);
+    renderScrollList(item);
     makerPanel.activate(enhancementState, item);
     refreshEnhancedCard();
   };
@@ -561,6 +577,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     chaosStepperValues = new Map();
     hideScrollDetail();
     renderSlotRow();
+    renderScrollList(selectedBaseItem);
     makerPanel.resetMakerUI();
     refreshEnhancedCard();
   });
