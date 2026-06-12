@@ -1,8 +1,17 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import {
+	knownItemLevelUpStatKeys,
+	resolveItemLevelUpRuntimeRows,
+	validateItemLevelUpSeed,
+} from '../src/lib/itemLevelUpData.mjs';
 
 const schemaSql = await readFile(new URL('../supabase/schema.sql', import.meta.url), 'utf8');
+
+async function readJson(path) {
+	return JSON.parse(await readFile(new URL(`../${path}`, import.meta.url), 'utf8'));
+}
 
 test('schema defines published item level-up definitions with RLS', () => {
 	assert.match(schemaSql, /create table if not exists public\.item_level_up_definitions/);
@@ -30,4 +39,29 @@ test('schema defines published item level-up definitions with RLS', () => {
 	);
 	assert.match(schemaSql, /grant select on public\.item_level_up_definitions to anon, authenticated;/);
 	assert.match(schemaSql, /grant select, insert, update, delete on public\.item_level_up_definitions to service_role;/);
+});
+
+test('item level-up seed validates templates and item mappings', async () => {
+	const seed = await readJson('data/item-level-up-definitions.seed.json');
+	const items = await readJson('public/data/items-gms83-ko.json');
+	const result = validateItemLevelUpSeed(seed, items);
+
+	assert.equal(result.itemCount > 0, true);
+	assert.equal(result.errors.length, 0, result.errors.join('\n'));
+	assert.ok(knownItemLevelUpStatKeys.has('weaponAttack'));
+	assert.ok(knownItemLevelUpStatKeys.has('maxHp'));
+});
+
+test('item level-up runtime rows are keyed by item id and preserve reverse/timeless slot counts', async () => {
+	const seed = await readJson('data/item-level-up-definitions.seed.json');
+	const rows = resolveItemLevelUpRuntimeRows(seed);
+	const byId = new Map(rows.map((row) => [row.itemId, row]));
+
+	assert.equal(byId.get(1302086).levelUpKind, 'reverse');
+	assert.equal(byId.get(1302086).maxLevelUps, 3);
+	assert.equal(byId.get(1302081).levelUpKind, 'timeless');
+	assert.equal(byId.get(1302081).maxLevelUps, 5);
+	assert.deepEqual(byId.get(1302086).statRanges.weaponAttack, { min: 0, max: 2 });
+	assert.deepEqual(byId.get(1302086).statRanges.str, { min: 1, max: 2 });
+	assert.deepEqual(byId.get(1302086).statRanges.dex, { min: 0, max: 1 });
 });
