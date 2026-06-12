@@ -507,6 +507,7 @@ export function initMakerPanel({
 
       makerGemSlots.append(box);
     }
+    updateMakerToggleLabel();
   };
 
   const renderStep1Picker = () => {
@@ -662,6 +663,15 @@ export function initMakerPanel({
       return;
     }
 
+    const hasMakerContributions = () =>
+      enhancementState?.gemSlots?.some((s) => s !== null) ||
+      enhancementState?.stimulantSlot !== null;
+
+    const updateMakerToggleLabel = () => {
+      if (!(makerToggle instanceof HTMLElement)) return;
+      makerToggle.textContent = hasMakerContributions() ? '메이커 ✓' : '메이커';
+    };
+
     const disableMaker = () => {
       if (enhancementState) {
         deactivateMaker(enhancementState);
@@ -672,7 +682,7 @@ export function initMakerPanel({
       hidePicker();
       renderGemSlots();
       refreshEnhancedCard();
-      makerToggle.textContent = '메이커';
+      updateMakerToggleLabel();
     };
 
     const enableMaker = () => {
@@ -694,7 +704,7 @@ export function initMakerPanel({
       }
 
       renderGemSlots();
-      makerToggle.textContent = '메이커 ✓';
+      updateMakerToggleLabel();
 
       if (firstEmpty >= 0) {
         renderStep1Picker();
@@ -735,8 +745,8 @@ export function initMakerPanel({
         }
         if (makerToggle instanceof HTMLElement) {
           makerToggle.classList.add('maker-toggle-button--active');
-          makerToggle.textContent = '메이커 ✓';
         }
+        updateMakerToggleLabel();
         renderGemSlots();
       } else {
         if (makerGemArea instanceof HTMLElement) {
@@ -744,7 +754,7 @@ export function initMakerPanel({
         }
         if (makerToggle instanceof HTMLElement) {
           makerToggle.classList.remove('maker-toggle-button--active');
-          makerToggle.textContent = '메이커';
+          updateMakerToggleLabel();
         }
       }
     },
@@ -765,7 +775,7 @@ export function initMakerPanel({
       stimulantValues = new Map();
       if (makerToggle instanceof HTMLElement) {
         makerToggle.classList.remove('maker-toggle-button--active');
-        makerToggle.textContent = '메이커';
+        updateMakerToggleLabel();
         makerToggle.disabled = !enhancementState || enhancementState.gemSlotCount <= 0;
         if (makerSection instanceof HTMLElement) {
           makerSection.hidden = false;
@@ -790,7 +800,7 @@ export function initMakerPanel({
       stimulantValues = new Map();
       if (makerToggle instanceof HTMLElement) {
         makerToggle.classList.remove('maker-toggle-button--active');
-        makerToggle.textContent = '메이커';
+        updateMakerToggleLabel();
       }
       if (makerGemArea instanceof HTMLElement) makerGemArea.hidden = true;
       hidePicker();

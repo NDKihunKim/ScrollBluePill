@@ -31,6 +31,14 @@ export function initItemLevelUpPanel({
 	let activeSlotIndex = -1;
 	let lastAppliedValues = null;
 
+	const hasItemLevelUpContributions = () =>
+		enhancementState?.itemLevelUpSlots?.some((slot) => slot !== null);
+
+	const updateItemLevelUpToggleLabel = () => {
+		if (!(toggle instanceof HTMLElement)) return;
+		toggle.textContent = hasItemLevelUpContributions() ? '아이템 레벨업 ✓' : '아이템 레벨업';
+	};
+
 	const refreshEnhancedCard = () => {
 		if (!selectedBaseItem || !enhancementState) return;
 		const accumulatedStats = computeAccumulatedStats(selectedBaseItem.stats, enhancementState);
@@ -91,6 +99,7 @@ export function initItemLevelUpPanel({
 					event.stopPropagation();
 					clearItemLevelUpSlot(enhancementState, i);
 					hideEditor();
+					updateItemLevelUpToggleLabel();
 					renderSlots();
 					refreshEnhancedCard();
 				});
@@ -205,6 +214,7 @@ export function initItemLevelUpPanel({
 			}
 			applyItemLevelUp(enhancementState, slotIndex, stats);
 			lastAppliedValues = new Map(values);
+			updateItemLevelUpToggleLabel();
 			renderSlots();
 			refreshEnhancedCard();
 			const nextEmpty = findNextEmptySlotIndex();
@@ -228,6 +238,7 @@ export function initItemLevelUpPanel({
 				if (!area.hidden) {
 					toggle.classList.add('item-level-up-toggle--active');
 					onToggleOpen?.();
+					area.scrollIntoView({ behavior: 'smooth', block: 'start' });
 					if (findNextEmptySlotIndex() >= 0) {
 						renderEditor(findNextEmptySlotIndex());
 					}
@@ -254,11 +265,13 @@ export function initItemLevelUpPanel({
 			}
 
 			if (definition) {
+				updateItemLevelUpToggleLabel();
 				renderSlots();
 			}
 		},
 		reset() {
 			hideEditor();
+			updateItemLevelUpToggleLabel();
 			if (area instanceof HTMLElement) area.hidden = true;
 			renderSlots();
 		},
@@ -272,6 +285,9 @@ export function initItemLevelUpPanel({
 			selectedBaseItem = null;
 			definition = null;
 			lastAppliedValues = null;
+			if (toggle instanceof HTMLElement) {
+				toggle.textContent = '아이템 레벨업';
+			}
 			hideEditor();
 			if (toggle instanceof HTMLElement) {
 				toggle.hidden = true;
