@@ -6,7 +6,9 @@
     "behavior_type": "fixed",
     "stats": {
       "magicAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040301,
@@ -16,7 +18,9 @@
     "stats": {
       "int": 1,
       "magicAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040302,
@@ -27,7 +31,9 @@
       "int": 3,
       "magicAttack": 5,
       "magicDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040316,
@@ -36,7 +42,9 @@
     "behavior_type": "fixed",
     "stats": {
       "dex": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040317,
@@ -45,7 +53,9 @@
     "behavior_type": "fixed",
     "stats": {
       "dex": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040318,
@@ -54,7 +64,9 @@
     "behavior_type": "fixed",
     "stats": {
       "dex": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040319,
@@ -63,7 +75,9 @@
     "behavior_type": "fixed",
     "stats": {
       "luk": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040321,
@@ -72,7 +86,9 @@
     "behavior_type": "fixed",
     "stats": {
       "luk": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040323,
@@ -81,7 +97,9 @@
     "behavior_type": "fixed",
     "stats": {
       "luk": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040324,
@@ -90,7 +108,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 5
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040326,
@@ -99,7 +119,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 15
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040328,
@@ -108,7 +130,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 30
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044800,
@@ -117,7 +141,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044815,
@@ -127,7 +153,9 @@
     "stats": {
       "str": 1,
       "weaponAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044801,
@@ -137,7 +165,9 @@
     "stats": {
       "str": 1,
       "weaponAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044807,
@@ -148,7 +178,9 @@
       "dex": 2,
       "accuracy": 3,
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044809,
@@ -159,7 +191,9 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044805,
@@ -168,7 +202,9 @@
     "behavior_type": "fixed",
     "stats": {
       "accuracy": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043300,
@@ -177,7 +213,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043301,
@@ -187,7 +225,9 @@
     "stats": {
       "luk": 1,
       "weaponAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043302,
@@ -198,7 +238,9 @@
       "luk": 3,
       "weaponAttack": 5,
       "weaponDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044000,
@@ -207,7 +249,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044001,
@@ -217,7 +261,9 @@
     "stats": {
       "str": 1,
       "weaponAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044002,
@@ -228,7 +274,9 @@
       "str": 3,
       "weaponAttack": 5,
       "weaponDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044012,
@@ -239,7 +287,9 @@
       "dex": 2,
       "accuracy": 3,
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044014,
@@ -250,7 +300,9 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044010,
@@ -259,7 +311,9 @@
     "behavior_type": "fixed",
     "stats": {
       "accuracy": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044100,
@@ -268,7 +322,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044101,
@@ -278,7 +334,9 @@
     "stats": {
       "str": 1,
       "weaponAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044102,
@@ -289,7 +347,9 @@
       "str": 3,
       "weaponAttack": 5,
       "weaponDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044112,
@@ -300,7 +360,9 @@
       "dex": 2,
       "accuracy": 3,
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044114,
@@ -311,7 +373,9 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044110,
@@ -320,7 +384,9 @@
     "behavior_type": "fixed",
     "stats": {
       "accuracy": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044200,
@@ -329,7 +395,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044201,
@@ -339,7 +407,9 @@
     "stats": {
       "str": 1,
       "weaponAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044202,
@@ -350,7 +420,9 @@
       "str": 3,
       "weaponAttack": 5,
       "weaponDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044212,
@@ -361,7 +433,9 @@
       "dex": 2,
       "accuracy": 3,
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044214,
@@ -372,7 +446,9 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044210,
@@ -381,7 +457,9 @@
     "behavior_type": "fixed",
     "stats": {
       "accuracy": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041012,
@@ -390,7 +468,9 @@
     "behavior_type": "fixed",
     "stats": {
       "str": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041013,
@@ -399,7 +479,9 @@
     "behavior_type": "fixed",
     "stats": {
       "str": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041014,
@@ -408,7 +490,9 @@
     "behavior_type": "fixed",
     "stats": {
       "str": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041018,
@@ -417,7 +501,9 @@
     "behavior_type": "fixed",
     "stats": {
       "dex": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041019,
@@ -426,7 +512,9 @@
     "behavior_type": "fixed",
     "stats": {
       "dex": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041020,
@@ -435,7 +523,9 @@
     "behavior_type": "fixed",
     "stats": {
       "dex": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041015,
@@ -444,7 +534,9 @@
     "behavior_type": "fixed",
     "stats": {
       "int": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041016,
@@ -453,7 +545,9 @@
     "behavior_type": "fixed",
     "stats": {
       "int": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041017,
@@ -462,7 +556,9 @@
     "behavior_type": "fixed",
     "stats": {
       "int": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041021,
@@ -471,7 +567,9 @@
     "behavior_type": "fixed",
     "stats": {
       "luk": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041022,
@@ -480,7 +578,9 @@
     "behavior_type": "fixed",
     "stats": {
       "luk": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041023,
@@ -489,7 +589,9 @@
     "behavior_type": "fixed",
     "stats": {
       "luk": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041009,
@@ -498,7 +600,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxMp": 5
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041010,
@@ -507,7 +611,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxMp": 10
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041011,
@@ -516,7 +622,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxMp": 20
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041000,
@@ -525,7 +633,9 @@
     "behavior_type": "fixed",
     "stats": {
       "magicDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041001,
@@ -535,7 +645,9 @@
     "stats": {
       "magicDefense": 3,
       "weaponDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041002,
@@ -546,7 +658,9 @@
       "maxMp": 10,
       "magicDefense": 5,
       "weaponDefense": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041003,
@@ -555,7 +669,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041004,
@@ -565,7 +681,9 @@
     "stats": {
       "magicDefense": 1,
       "weaponDefense": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041005,
@@ -576,7 +694,9 @@
       "maxHp": 10,
       "magicDefense": 3,
       "weaponDefense": 5
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041006,
@@ -585,7 +705,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 5
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041007,
@@ -594,7 +716,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 10
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041008,
@@ -603,7 +727,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 20
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040027,
@@ -612,7 +738,9 @@
     "behavior_type": "fixed",
     "stats": {
       "dex": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040029,
@@ -621,7 +749,9 @@
     "behavior_type": "fixed",
     "stats": {
       "dex": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040031,
@@ -630,7 +760,9 @@
     "behavior_type": "fixed",
     "stats": {
       "dex": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040024,
@@ -639,7 +771,9 @@
     "behavior_type": "fixed",
     "stats": {
       "int": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040025,
@@ -648,7 +782,9 @@
     "behavior_type": "fixed",
     "stats": {
       "int": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040026,
@@ -657,7 +793,9 @@
     "behavior_type": "fixed",
     "stats": {
       "int": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040001,
@@ -667,7 +805,9 @@
     "stats": {
       "magicDefense": 1,
       "weaponDefense": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040002,
@@ -678,7 +818,9 @@
       "accuracy": 1,
       "magicDefense": 3,
       "weaponDefense": 5
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040003,
@@ -687,7 +829,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 5
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040004,
@@ -696,7 +840,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 10
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040005,
@@ -705,7 +851,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 30
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041100,
@@ -714,7 +862,9 @@
     "behavior_type": "fixed",
     "stats": {
       "str": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041101,
@@ -723,7 +873,9 @@
     "behavior_type": "random",
     "stats": {
       "str": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041102,
@@ -732,7 +884,9 @@
     "behavior_type": "random",
     "stats": {
       "str": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041106,
@@ -741,7 +895,9 @@
     "behavior_type": "fixed",
     "stats": {
       "dex": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041107,
@@ -750,7 +906,9 @@
     "behavior_type": "random",
     "stats": {
       "dex": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041108,
@@ -759,7 +917,9 @@
     "behavior_type": "random",
     "stats": {
       "dex": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041103,
@@ -768,7 +928,9 @@
     "behavior_type": "fixed",
     "stats": {
       "int": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041104,
@@ -777,7 +939,9 @@
     "behavior_type": "random",
     "stats": {
       "int": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041105,
@@ -786,7 +950,9 @@
     "behavior_type": "random",
     "stats": {
       "int": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041109,
@@ -795,7 +961,9 @@
     "behavior_type": "fixed",
     "stats": {
       "luk": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041110,
@@ -804,7 +972,9 @@
     "behavior_type": "random",
     "stats": {
       "luk": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041111,
@@ -813,7 +983,9 @@
     "behavior_type": "random",
     "stats": {
       "luk": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040929,
@@ -822,7 +994,9 @@
     "behavior_type": "fixed",
     "stats": {
       "str": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040931,
@@ -831,7 +1005,9 @@
     "behavior_type": "fixed",
     "stats": {
       "str": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040933,
@@ -840,7 +1016,9 @@
     "behavior_type": "fixed",
     "stats": {
       "str": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040923,
@@ -849,7 +1027,9 @@
     "behavior_type": "fixed",
     "stats": {
       "luk": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040924,
@@ -858,7 +1038,9 @@
     "behavior_type": "fixed",
     "stats": {
       "luk": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040925,
@@ -867,7 +1049,9 @@
     "behavior_type": "fixed",
     "stats": {
       "luk": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040900,
@@ -876,7 +1060,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040901,
@@ -886,7 +1072,9 @@
     "stats": {
       "magicDefense": 1,
       "weaponDefense": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040902,
@@ -897,7 +1085,9 @@
       "maxHp": 10,
       "magicDefense": 3,
       "weaponDefense": 5
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040926,
@@ -906,7 +1096,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 5
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040927,
@@ -915,7 +1107,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 15
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040928,
@@ -924,7 +1118,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 30
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041300,
@@ -933,7 +1129,9 @@
     "behavior_type": "fixed",
     "stats": {
       "str": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041301,
@@ -942,7 +1140,9 @@
     "behavior_type": "random",
     "stats": {
       "str": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041302,
@@ -951,7 +1151,9 @@
     "behavior_type": "random",
     "stats": {
       "str": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041306,
@@ -960,7 +1162,9 @@
     "behavior_type": "fixed",
     "stats": {
       "dex": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041307,
@@ -969,7 +1173,9 @@
     "behavior_type": "random",
     "stats": {
       "dex": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041308,
@@ -978,7 +1184,9 @@
     "behavior_type": "random",
     "stats": {
       "dex": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041303,
@@ -987,7 +1195,9 @@
     "behavior_type": "fixed",
     "stats": {
       "int": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041304,
@@ -996,7 +1206,9 @@
     "behavior_type": "random",
     "stats": {
       "int": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041305,
@@ -1005,7 +1217,9 @@
     "behavior_type": "random",
     "stats": {
       "int": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041309,
@@ -1014,7 +1228,9 @@
     "behavior_type": "fixed",
     "stats": {
       "luk": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041310,
@@ -1023,7 +1239,9 @@
     "behavior_type": "random",
     "stats": {
       "luk": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2041311,
@@ -1032,7 +1250,9 @@
     "behavior_type": "random",
     "stats": {
       "luk": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040417,
@@ -1041,7 +1261,9 @@
     "behavior_type": "fixed",
     "stats": {
       "str": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040418,
@@ -1050,7 +1272,9 @@
     "behavior_type": "fixed",
     "stats": {
       "str": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040419,
@@ -1059,7 +1283,9 @@
     "behavior_type": "fixed",
     "stats": {
       "str": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040423,
@@ -1068,7 +1294,9 @@
     "behavior_type": "fixed",
     "stats": {
       "luk": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040425,
@@ -1077,7 +1305,9 @@
     "behavior_type": "fixed",
     "stats": {
       "luk": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040427,
@@ -1086,7 +1316,9 @@
     "behavior_type": "fixed",
     "stats": {
       "luk": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040400,
@@ -1095,7 +1327,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040401,
@@ -1105,7 +1339,9 @@
     "stats": {
       "magicDefense": 1,
       "weaponDefense": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040402,
@@ -1116,7 +1352,9 @@
       "maxHp": 10,
       "magicDefense": 3,
       "weaponDefense": 5
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040420,
@@ -1125,7 +1363,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 5
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040421,
@@ -1134,7 +1374,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 15
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040422,
@@ -1143,7 +1385,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 30
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044600,
@@ -1152,7 +1396,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044601,
@@ -1162,7 +1408,9 @@
     "stats": {
       "accuracy": 1,
       "weaponAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044602,
@@ -1173,7 +1421,9 @@
       "dex": 1,
       "accuracy": 3,
       "weaponAttack": 5
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043800,
@@ -1182,7 +1432,9 @@
     "behavior_type": "fixed",
     "stats": {
       "magicAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043801,
@@ -1192,7 +1444,9 @@
     "stats": {
       "int": 1,
       "magicAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043802,
@@ -1203,7 +1457,9 @@
       "int": 3,
       "magicAttack": 5,
       "magicDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040704,
@@ -1213,7 +1469,9 @@
     "stats": {
       "dex": 1,
       "jump": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040705,
@@ -1224,7 +1482,9 @@
       "dex": 3,
       "jump": 5,
       "speed": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040700,
@@ -1233,7 +1493,9 @@
     "behavior_type": "fixed",
     "stats": {
       "avoidability": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040701,
@@ -1243,7 +1505,9 @@
     "stats": {
       "accuracy": 1,
       "avoidability": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040702,
@@ -1254,7 +1518,9 @@
       "speed": 1,
       "accuracy": 3,
       "avoidability": 5
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040706,
@@ -1263,7 +1529,9 @@
     "behavior_type": "fixed",
     "stats": {
       "speed": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040707,
@@ -1272,7 +1540,9 @@
     "behavior_type": "fixed",
     "stats": {
       "speed": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040708,
@@ -1281,7 +1551,9 @@
     "behavior_type": "fixed",
     "stats": {
       "speed": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040703,
@@ -1290,7 +1562,9 @@
     "behavior_type": "fixed",
     "stats": {
       "jump": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044700,
@@ -1299,7 +1573,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044701,
@@ -1309,7 +1585,9 @@
     "stats": {
       "accuracy": 1,
       "weaponAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044702,
@@ -1320,7 +1598,9 @@
       "luk": 1,
       "accuracy": 3,
       "weaponAttack": 5
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043700,
@@ -1329,7 +1609,9 @@
     "behavior_type": "fixed",
     "stats": {
       "magicAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043701,
@@ -1339,7 +1621,9 @@
     "stats": {
       "int": 1,
       "magicAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043702,
@@ -1350,7 +1634,9 @@
       "int": 3,
       "magicAttack": 5,
       "magicDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040803,
@@ -1359,7 +1645,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040826,
@@ -1368,7 +1656,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040807,
@@ -1377,7 +1667,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponAttack": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040824,
@@ -1387,7 +1679,9 @@
     "stats": {
       "dex": 1,
       "accuracy": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040806,
@@ -1398,7 +1692,9 @@
       "dex": 3,
       "accuracy": 5,
       "avoidability": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040800,
@@ -1407,7 +1703,9 @@
     "behavior_type": "fixed",
     "stats": {
       "accuracy": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040823,
@@ -1416,7 +1714,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 5
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040824,
@@ -1425,7 +1725,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 15
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040825,
@@ -1434,7 +1736,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 30
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044300,
@@ -1443,7 +1747,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044301,
@@ -1453,7 +1759,9 @@
     "stats": {
       "str": 1,
       "weaponAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044302,
@@ -1464,7 +1772,9 @@
       "str": 3,
       "weaponAttack": 5,
       "weaponDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044312,
@@ -1475,7 +1785,9 @@
       "dex": 2,
       "accuracy": 3,
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044314,
@@ -1486,7 +1798,9 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044310,
@@ -1495,7 +1809,9 @@
     "behavior_type": "fixed",
     "stats": {
       "accuracy": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044900,
@@ -1504,7 +1820,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044908,
@@ -1514,7 +1832,9 @@
     "stats": {
       "accuracy": 1,
       "weaponAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044901,
@@ -1524,7 +1844,26 @@
     "stats": {
       "accuracy": 1,
       "weaponAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
+    "id": 2041200,
+    "nameKo": "드래곤의 돌",
+    "equipmentKind": "펜던트",
+    "behavior_type": "fixed",
+    "stats": {
+      "dex": 15,
+      "int": 15,
+      "luk": 15,
+      "str": 15,
+      "avoidability": 15,
+      "magicDefense": 140,
+      "weaponDefense": 140
+    },
+    "targetItemId": 1122000,
+    "maxApplications": 1
   },
   {
     "id": 2044400,
@@ -1533,7 +1872,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044401,
@@ -1543,7 +1884,9 @@
     "stats": {
       "str": 1,
       "weaponAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044402,
@@ -1554,7 +1897,9 @@
       "str": 3,
       "weaponAttack": 5,
       "weaponDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044412,
@@ -1565,7 +1910,9 @@
       "dex": 2,
       "accuracy": 3,
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044414,
@@ -1576,7 +1923,9 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044410,
@@ -1585,7 +1934,9 @@
     "behavior_type": "fixed",
     "stats": {
       "accuracy": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040623,
@@ -1594,7 +1945,9 @@
     "behavior_type": "fixed",
     "stats": {
       "dex": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040625,
@@ -1604,7 +1957,9 @@
     "stats": {
       "dex": 2,
       "accuracy": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040627,
@@ -1615,7 +1970,9 @@
       "dex": 3,
       "speed": 1,
       "accuracy": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040600,
@@ -1624,7 +1981,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040601,
@@ -1634,7 +1993,9 @@
     "stats": {
       "magicDefense": 1,
       "weaponDefense": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040602,
@@ -1645,7 +2006,9 @@
       "maxHp": 10,
       "magicDefense": 3,
       "weaponDefense": 5
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040617,
@@ -1654,7 +2017,9 @@
     "behavior_type": "fixed",
     "stats": {
       "jump": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040618,
@@ -1664,7 +2029,9 @@
     "stats": {
       "jump": 2,
       "avoidability": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040619,
@@ -1674,7 +2041,9 @@
     "stats": {
       "jump": 4,
       "avoidability": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040620,
@@ -1683,7 +2052,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 5
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040621,
@@ -1692,7 +2063,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 15
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040622,
@@ -1701,7 +2074,9 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 30
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040530,
@@ -1710,7 +2085,9 @@
     "behavior_type": "fixed",
     "stats": {
       "str": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040532,
@@ -1720,7 +2097,9 @@
     "stats": {
       "str": 2,
       "weaponDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040534,
@@ -1731,7 +2110,9 @@
       "str": 5,
       "maxHp": 5,
       "weaponDefense": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040500,
@@ -1740,7 +2121,9 @@
     "behavior_type": "fixed",
     "stats": {
       "dex": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040501,
@@ -1750,7 +2133,9 @@
     "stats": {
       "dex": 2,
       "accuracy": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040502,
@@ -1761,7 +2146,9 @@
       "dex": 5,
       "speed": 1,
       "accuracy": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040512,
@@ -1770,7 +2157,9 @@
     "behavior_type": "fixed",
     "stats": {
       "int": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040513,
@@ -1780,7 +2169,9 @@
     "stats": {
       "int": 2,
       "magicDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040514,
@@ -1791,7 +2182,9 @@
       "int": 5,
       "maxMp": 10,
       "magicDefense": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040515,
@@ -1800,7 +2193,9 @@
     "behavior_type": "fixed",
     "stats": {
       "luk": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040516,
@@ -1810,7 +2205,9 @@
     "stats": {
       "luk": 2,
       "avoidability": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040517,
@@ -1821,7 +2218,9 @@
       "luk": 5,
       "accuracy": 1,
       "avoidability": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040503,
@@ -1830,7 +2229,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040504,
@@ -1840,7 +2241,9 @@
     "stats": {
       "magicDefense": 1,
       "weaponDefense": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2040505,
@@ -1851,7 +2254,9 @@
       "maxHp": 10,
       "magicDefense": 3,
       "weaponDefense": 5
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043000,
@@ -1860,7 +2265,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043001,
@@ -1870,7 +2277,9 @@
     "stats": {
       "str": 1,
       "weaponAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043002,
@@ -1881,7 +2290,9 @@
       "str": 3,
       "weaponAttack": 5,
       "weaponDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043017,
@@ -1892,7 +2303,9 @@
       "dex": 2,
       "accuracy": 3,
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043019,
@@ -1903,7 +2316,9 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043015,
@@ -1912,7 +2327,9 @@
     "behavior_type": "fixed",
     "stats": {
       "accuracy": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043100,
@@ -1921,7 +2338,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043101,
@@ -1931,7 +2350,9 @@
     "stats": {
       "str": 1,
       "weaponAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043102,
@@ -1942,7 +2363,9 @@
       "str": 3,
       "weaponAttack": 5,
       "weaponDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043112,
@@ -1953,7 +2376,9 @@
       "dex": 2,
       "accuracy": 3,
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043114,
@@ -1964,7 +2389,9 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043110,
@@ -1973,7 +2400,9 @@
     "behavior_type": "fixed",
     "stats": {
       "accuracy": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043200,
@@ -1982,7 +2411,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043201,
@@ -1992,7 +2423,9 @@
     "stats": {
       "str": 1,
       "weaponAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043202,
@@ -2003,7 +2436,9 @@
       "str": 3,
       "weaponAttack": 5,
       "weaponDefense": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043212,
@@ -2014,7 +2449,9 @@
       "dex": 2,
       "accuracy": 3,
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043214,
@@ -2025,7 +2462,9 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2043210,
@@ -2034,7 +2473,9 @@
     "behavior_type": "fixed",
     "stats": {
       "accuracy": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044500,
@@ -2043,7 +2484,9 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponAttack": 1
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044501,
@@ -2053,7 +2496,9 @@
     "stats": {
       "accuracy": 1,
       "weaponAttack": 2
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044502,
@@ -2064,6 +2509,8 @@
       "dex": 1,
       "accuracy": 3,
       "weaponAttack": 5
-    }
+    },
+    "targetItemId": null,
+    "maxApplications": null
   }
 ]

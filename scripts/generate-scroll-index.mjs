@@ -36,11 +36,14 @@ async function fetchSupabase(url, options = {}) {
 
 function filterDesiredPercentScrolls(scrolls) {
 	return scrolls.filter((scroll) => {
+		// Item-specific scrolls always pass — they are explicitly curated
+		if (scroll.target_item_id != null) {
+			return true;
+		}
 		const match = scroll.name_ko?.match(PERCENT_PATTERN);
 		if (!match) {
 			return false;
 		}
-
 		const percent = Number(match[1]);
 		return DESIRED_PERCENTS.has(percent);
 	});
@@ -53,6 +56,8 @@ function transformToFrontendSchema(row) {
 		equipmentKind: row.category,
 		behavior_type: row.behavior_type,
 		stats: row.stat_effect_frame ?? {},
+		targetItemId: row.target_item_id ?? null,
+		maxApplications: row.max_applications ?? null,
 	};
 }
 
