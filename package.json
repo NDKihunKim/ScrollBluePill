@@ -8,8 +8,10 @@
   "scripts": {
     "dev": "astro dev",
     "generate:item-index": "node --env-file=.env scripts/generate-item-index.mjs",
+    "generate:item-level-ups": "node --env-file=.env scripts/generate-item-level-up-index.mjs",
     "generate:scroll-index": "node --env-file=.env scripts/generate-scroll-index.mjs",
     "review:scrolls": "node --env-file=.env scripts/review-scroll-status.mjs",
+    "seed:item-level-ups": "node --env-file=.env scripts/seed-item-level-up-definitions.mjs",
     "audit:duplicate-items": "node scripts/audit-duplicate-items.mjs",
     "build": "astro build",
     "preview": "astro preview",

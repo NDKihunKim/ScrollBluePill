@@ -65,3 +65,28 @@ test('item level-up runtime rows are keyed by item id and preserve reverse/timel
 	assert.deepEqual(byId.get(1302086).statRanges.str, { min: 1, max: 2 });
 	assert.deepEqual(byId.get(1302086).statRanges.dex, { min: 0, max: 1 });
 });
+
+test('package exposes item level-up seed and generate scripts', async () => {
+	const packageJson = await readJson('package.json');
+
+	assert.equal(
+		packageJson.scripts['seed:item-level-ups'],
+		'node --env-file=.env scripts/seed-item-level-up-definitions.mjs',
+	);
+	assert.equal(
+		packageJson.scripts['generate:item-level-ups'],
+		'node --env-file=.env scripts/generate-item-level-up-index.mjs',
+	);
+});
+
+test('item level-up scripts use the correct Supabase keys', async () => {
+	const seedSource = await readFile(new URL('../scripts/seed-item-level-up-definitions.mjs', import.meta.url), 'utf8');
+	const generateSource = await readFile(new URL('../scripts/generate-item-level-up-index.mjs', import.meta.url), 'utf8');
+
+	assert.match(seedSource, /process\.env\.SUPABASE_SERVICE_ROLE_KEY/);
+	assert.match(seedSource, /item_level_up_definitions/);
+	assert.match(seedSource, /resolution=merge-duplicates/);
+	assert.match(generateSource, /process\.env\.SUPABASE_ANON_KEY/);
+	assert.match(generateSource, /published_status/);
+	assert.match(generateSource, /public\/data\/item-level-ups-gms83-ko\.json/);
+});
