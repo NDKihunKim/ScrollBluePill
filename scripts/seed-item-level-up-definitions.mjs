@@ -20,6 +20,12 @@ if (!supabaseServiceRoleKey && process.env.SEED_DRY_RUN !== '1') {
 	process.exit(1);
 }
 
+async function jsonOrEmpty(response) {
+	const text = await response.text().catch(() => '');
+	if (!text.trim()) return [];
+	return JSON.parse(text);
+}
+
 function fetchSupabaseServiceRole(url, options = {}) {
 	return fetch(url, {
 		...options,
@@ -34,7 +40,7 @@ function fetchSupabaseServiceRole(url, options = {}) {
 			const body = await response.text().catch(() => '');
 			throw new Error(`Supabase API error ${response.status}: ${body}`);
 		}
-		return response.json();
+		return jsonOrEmpty(response);
 	});
 }
 
@@ -49,7 +55,7 @@ function fetchSupabaseAnon(url) {
 			const body = await response.text().catch(() => '');
 			throw new Error(`Supabase API error ${response.status}: ${body}`);
 		}
-		return response.json();
+		return jsonOrEmpty(response);
 	});
 }
 
