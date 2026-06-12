@@ -200,14 +200,30 @@ async function main() {
 	const stemName = (name) => String(name ?? '').replace(PERCENT_PATTERN, '').trimEnd();
 
 	// Sort: equipmentKind → stat priority → name stem → percent descending (100→60→10)
+	//
+	// Normalize stat priority within name-stem groups so same-named scrolls
+	// (e.g. 점프력 100% and 점프력 60%) stay together even when their secondary
+	// stats differ (60% version has dex which pulls it into a higher tier).
 	const extractPercent = (name) => {
 		const match = name?.match(PERCENT_PATTERN);
 		return match ? Number(match[1]) : 0;
 	};
 
+	const stemBestPriority = new Map();
+	for (const scroll of frontendScrolls) {
+		const stem = stemName(scroll.nameKo);
+		const priority = getStatPriority(scroll.stats);
+		const current = stemBestPriority.get(stem);
+		if (current === undefined || priority < current) {
+			stemBestPriority.set(stem, priority);
+		}
+	}
+
+	const sortPriority = (scroll) => stemBestPriority.get(stemName(scroll.nameKo)) ?? 99;
+
 	frontendScrolls.sort((a, b) =>
 		String(a.equipmentKind).localeCompare(String(b.equipmentKind), 'ko-KR') ||
-		getStatPriority(a.stats) - getStatPriority(b.stats) ||
+		sortPriority(a) - sortPriority(b) ||
 		stemName(a.nameKo).localeCompare(stemName(b.nameKo), 'ko-KR') ||
 		extractPercent(b.nameKo) - extractPercent(a.nameKo),
 	);
