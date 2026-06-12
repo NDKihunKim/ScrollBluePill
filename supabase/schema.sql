@@ -144,12 +144,33 @@ create table if not exists public.item_level_up_definitions (
         )
 );
 
+-- Backfill: schema.sql may rerun after this table already exists without the constraint.
+do $$
+begin
+    alter table public.item_level_up_definitions
+        add constraint item_level_up_definitions_kind_max_level_ups_check
+        check (
+            (level_up_kind = 'reverse' and max_level_ups = 3)
+            or (level_up_kind = 'timeless' and max_level_ups = 5)
+        );
+exception
+    when duplicate_object then null;
+end $$;
+
 alter table public.item_level_up_definitions enable row level security;
 
 create policy "Public can read published item level-up definitions"
 on public.item_level_up_definitions
 for select
-using (published_status = 'published');
+using (
+    published_status = 'published'
+    and exists (
+        select 1
+        from public.item_definitions
+        where item_definitions.id = item_level_up_definitions.item_id
+        and item_definitions.published_status = 'published'
+    )
+);
 
 grant select on public.item_level_up_definitions to anon, authenticated;
 grant select, insert, update, delete on public.item_level_up_definitions to service_role;
