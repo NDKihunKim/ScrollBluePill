@@ -23,5 +23,8 @@ pnpm-debug.log*
 # Supabase CLI temp files
 supabase/.temp/
 
+# local feature worktrees
+.worktrees/
+
 # jetbrains setting folder
 .idea/
