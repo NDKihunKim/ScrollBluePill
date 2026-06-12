@@ -663,11 +663,20 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       }
       return r.json();
     }).catch(() => []),
+    fetch('/data/item-level-ups-gms83-ko.json').then((r) => {
+      if (!r.ok) return [];
+      return r.json();
+    }).catch(() => []),
   ])
-    .then(([scrolls, overrides]) => {
+    .then(([scrolls, overrides, itemLevelUps]) => {
       scrollIndex = Array.isArray(scrolls) ? scrolls : [];
       const overrideList = Array.isArray(overrides) ? overrides : [];
       scrollsByEquipmentKind = new Map();
+      itemLevelUpByItemId = new Map(
+        (Array.isArray(itemLevelUps) ? itemLevelUps : [])
+          .filter((levelUpDefinition) => Number.isInteger(levelUpDefinition.itemId))
+          .map((levelUpDefinition) => [levelUpDefinition.itemId, levelUpDefinition]),
+      );
 
       // Build equipment kind lists from main scroll index
       scrollIndex.forEach((scroll) => {

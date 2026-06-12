@@ -467,3 +467,11 @@ test('item level-up panel applies bounded slot values and auto-advances', async 
 	assert.match(panelSource, /renderEditor\(nextEmpty\)/);
 	assert.match(panelSource, /editor\.hidden\s*=\s*true/);
 });
+
+test('enhancement panel loads item level-up runtime data', async () => {
+	const enhancementPanelSource = await readFile(new URL('../src/lib/enhancementPanel.mjs', import.meta.url), 'utf8');
+
+	assert.match(enhancementPanelSource, /fetch\('\/data\/item-level-ups-gms83-ko\.json'\)/);
+	assert.match(enhancementPanelSource, /itemLevelUpByItemId\s*=\s*new Map/);
+	assert.match(enhancementPanelSource, /levelUpDefinition\.itemId/);
+});
