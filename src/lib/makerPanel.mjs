@@ -664,7 +664,7 @@ export function initMakerPanel({
       onMakerOpen?.();
       makerToggle.classList.add('maker-toggle-button--active');
       if (makerGemArea instanceof HTMLElement) makerGemArea.hidden = false;
-      makerGemArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      makerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
       let firstEmpty = -1;
       for (let i = 0; i < enhancementState.gemSlotCount; i++) {

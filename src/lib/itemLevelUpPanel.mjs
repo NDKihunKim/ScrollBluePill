@@ -226,10 +226,13 @@ export function initItemLevelUpPanel({
 				const wasHidden = area.hidden;
 				area.hidden = !area.hidden;
 				if (!area.hidden) {
+					toggle.classList.add('item-level-up-toggle--active');
 					onToggleOpen?.();
 					if (findNextEmptySlotIndex() >= 0) {
 						renderEditor(findNextEmptySlotIndex());
 					}
+				} else {
+					toggle.classList.remove('item-level-up-toggle--active');
 				}
 			}
 		});
@@ -262,6 +265,7 @@ export function initItemLevelUpPanel({
 		closeArea() {
 			hideEditor();
 			if (area instanceof HTMLElement) area.hidden = true;
+			if (toggle instanceof HTMLElement) toggle.classList.remove('item-level-up-toggle--active');
 		},
 		deactivate() {
 			enhancementState = null;
@@ -269,7 +273,10 @@ export function initItemLevelUpPanel({
 			definition = null;
 			lastAppliedValues = null;
 			hideEditor();
-			if (toggle instanceof HTMLElement) toggle.hidden = true;
+			if (toggle instanceof HTMLElement) {
+				toggle.hidden = true;
+				toggle.classList.remove('item-level-up-toggle--active');
+			}
 			if (area instanceof HTMLElement) area.hidden = true;
 			if (slots instanceof HTMLElement) slots.replaceChildren();
 		},
