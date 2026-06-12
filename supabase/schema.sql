@@ -23,6 +23,18 @@ create table if not exists public.scroll_definitions (
 	updated_at timestamptz not null default now()
 );
 
+-- Backfill: column already exists in live DB but was missing from schema.sql
+alter table public.scroll_definitions
+	add column if not exists maplestory_io_item_id integer;
+
+-- Item-specific scroll targeting (NULL = works on all items of the category)
+alter table public.scroll_definitions
+	add column if not exists target_item_id integer;
+
+-- Maximum times this scroll can be applied to a single item (NULL = unlimited)
+alter table public.scroll_definitions
+	add column if not exists max_applications integer;
+
 create table if not exists public.item_categories (
 	id uuid primary key default gen_random_uuid(),
 	version_tag_id uuid not null references public.version_tags(id),
@@ -74,7 +86,7 @@ create policy "Public can read published scrolls" on public.scroll_definitions
 	for select using (published_status = 'published');
 
 grant select on public.scroll_definitions to service_role;
-grant update (published_status, name_ko, affected_stats, behavior_type) on public.scroll_definitions to service_role;
+grant update (published_status, name_ko, affected_stats, behavior_type, maplestory_io_item_id, target_item_id, max_applications) on public.scroll_definitions to service_role;
 
 -- Migration for existing scroll_definitions tables that lack published_status
 alter table public.scroll_definitions
