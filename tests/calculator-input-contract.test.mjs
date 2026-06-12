@@ -43,7 +43,7 @@ test('maker button smoothly scrolls to expanded maker controls', async () => {
 
 	assert.match(
 		makerPanelSource,
-		/makerGemArea\.scrollIntoView\(\{\s*behavior:\s*'smooth',\s*block:\s*'nearest'\s*\}\s*\);/,
+		/makerSection\.scrollIntoView\(\{\s*behavior:\s*'smooth',\s*block:\s*'start'\s*\}\s*\);/,
 	);
 });
 
@@ -466,6 +466,8 @@ test('item level-up panel applies bounded slot values and auto-advances', async 
 	assert.match(panelSource, /findNextEmptySlotIndex/);
 	assert.match(panelSource, /renderEditor\(nextEmpty\)/);
 	assert.match(panelSource, /editor\.hidden\s*=\s*true/);
+	assert.match(panelSource, /item-level-up-toggle--active/);
+	assert.match(indexSource, /:global\(\.item-level-up-toggle--active\)/);
 });
 
 test('enhancement panel loads item level-up runtime data', async () => {
