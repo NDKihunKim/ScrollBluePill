@@ -75,8 +75,7 @@ export function getVisibleGemTypes(equipmentKind, usedGemKeys) {
     .map((gem) => ({
       ...gem,
       disabled: used.has(gem.key),
-    }))
-    .sort((a, b) => (STAT_KEY_RANK[a.stat] ?? 99) - (STAT_KEY_RANK[b.stat] ?? 99));
+    }));
 }
 
 export function getGemTypeByKey(key) {
