@@ -520,16 +520,19 @@ export function initMakerPanel({
       const nameSpan = document.createElement('span');
       nameSpan.textContent = gem.nameKo;
 
-      const statSpan = document.createElement('span');
-      statSpan.className = 'maker-picker-item-stat';
-      if (gem.behavior === 'variable') {
-        const keyLabels = (gem.variableKeys ?? []).map((k) => statLabelByKey[k] ?? k);
-        statSpan.textContent = `(${keyLabels.join('/')})`;
+      if (gem.key !== 'darkCrystal') {
+        const statSpan = document.createElement('span');
+        statSpan.className = 'maker-picker-item-stat';
+        if (gem.behavior === 'variable') {
+          const keyLabels = (gem.variableKeys ?? []).map((k) => statLabelByKey[k] ?? k);
+          statSpan.textContent = `(${keyLabels.join('/')})`;
+        } else {
+          statSpan.textContent = `(${statLabelByKey[gem.stat] ?? gem.stat})`;
+        }
+        item.append(img, nameSpan, statSpan);
       } else {
-        statSpan.textContent = `(${statLabelByKey[gem.stat] ?? gem.stat})`;
+        item.append(img, nameSpan);
       }
-
-      item.append(img, nameSpan, statSpan);
 
       if (!gem.disabled) {
         item.addEventListener('click', () => {
