@@ -440,3 +440,17 @@ test('enhanced item card receives stat breakdown data', async () => {
 	assert.match(makerPanelSource, /const statBreakdown = computeStatBreakdown\(selectedBaseItem\.stats, enhancementState\);/);
 	assert.match(makerPanelSource, /renderEnhancedItemCard\(selectedBaseItem,\s*accumulatedStats,\s*remaining,\s*appliedCount,\s*gradeColor,\s*statBreakdown\)/);
 });
+
+test('item level-up panel source contract is present beside maker controls', async () => {
+	const enhancementPanelSource = await readFile(new URL('../src/lib/enhancementPanel.mjs', import.meta.url), 'utf8');
+
+	assert.match(indexSource, /data-item-level-up-toggle/);
+	assert.match(indexSource, /아이템 레벨업/);
+	assert.match(indexSource, /data-item-level-up-area/);
+	assert.match(indexSource, /data-item-level-up-slots/);
+	assert.match(indexSource, /data-item-level-up-editor/);
+	assert.ok(indexSource.indexOf('data-maker-toggle') < indexSource.indexOf('data-item-level-up-toggle'));
+	assert.match(indexSource, /:global\(\.item-level-up-slot\)/);
+	assert.match(indexSource, /:global\(\.item-level-up-editor\)/);
+	assert.match(enhancementPanelSource, /initItemLevelUpPanel/);
+});

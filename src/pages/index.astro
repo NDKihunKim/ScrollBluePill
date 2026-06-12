@@ -220,10 +220,18 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 						<div class="enhancement-message" data-enhancement-message hidden></div>
 					</div>
 						<div class="maker-section" data-maker-section hidden>
-							<div class="maker-toggle-row">
+							<div class="maker-toggle-row enhancement-toggle-row">
 								<button type="button" class="maker-toggle-button" data-maker-toggle disabled>
 									메이커
 								</button>
+								<button type="button" class="maker-toggle-button item-level-up-toggle" data-item-level-up-toggle hidden>
+									아이템 레벨업
+								</button>
+							</div>
+							<div class="item-level-up-area" data-item-level-up-area hidden>
+								<p class="enhancement-section-label">아이템 레벨업</p>
+								<div class="item-level-up-slots" data-item-level-up-slots></div>
+								<div class="item-level-up-editor" data-item-level-up-editor hidden></div>
 							</div>
 							<div class="maker-gem-area" data-maker-gem-area hidden>
 								<p class="enhancement-section-label">추가 재료</p>
@@ -2168,5 +2176,74 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		text-shadow: 0 1px 1px rgba(0,0,0,0.4);
 		flex-shrink: 0;
 	}
+
+		/* Item level-up section */
+		:global(.enhancement-toggle-row) {
+			display: flex;
+			gap: 8px;
+			align-items: center;
+			flex-wrap: wrap;
+		}
+
+		:global(.item-level-up-area) {
+			margin-top: 12px;
+		}
+
+		:global(.item-level-up-slots) {
+			display: flex;
+			gap: 10px;
+			margin-bottom: 14px;
+			flex-wrap: wrap;
+		}
+
+		:global(.item-level-up-slot) {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			width: 80px;
+			height: 80px;
+			border: 1px solid var(--line);
+			border-radius: 6px;
+			background: var(--surface);
+			cursor: pointer;
+			gap: 4px;
+			font-size: 0.8rem;
+			text-align: center;
+			position: relative;
+			transition: border-color 0.15s;
+		}
+
+		:global(.item-level-up-slot:hover) {
+			border-color: var(--green);
+		}
+
+		:global(.item-level-up-slot--filled) {
+			border-color: var(--green);
+		}
+
+		:global(.item-level-up-slot--active) {
+			border-color: #5b9bd5;
+			background: rgba(91, 155, 213, 0.08);
+		}
+
+		:global(.item-level-up-slot-label) {
+			font-weight: 700;
+		}
+
+		:global(.item-level-up-slot-summary) {
+			max-width: 100%;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			font-size: 0.62rem;
+			color: var(--green);
+		}
+
+		:global(.item-level-up-editor) {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
 
 </style>
