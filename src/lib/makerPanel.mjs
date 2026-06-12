@@ -75,11 +75,12 @@ export function initMakerPanel({
       .filter((key) => cleanStats[key] > 0);
   };
 
-  const updateStimulantStepperDisplay = (rowEl, key) => {
+  const updateStimulantStepperDisplay = (rowEl, key, valuesMap = null) => {
     const valueDisplay = rowEl.querySelector('.maker-stimulant-stepper-value');
     if (!valueDisplay) return;
 
-    const value = stimulantValues.get(key) ?? 0;
+    const source = valuesMap ?? stimulantValues;
+    const value = source.get(key) ?? 0;
     valueDisplay.textContent = value > 0 ? `+${value}` : String(value);
   };
 
@@ -135,7 +136,7 @@ export function initMakerPanel({
       minBtn.textContent = 'MIN';
       minBtn.addEventListener('click', () => {
         values.set(key, -keyLimit);
-        updateStimulantStepperDisplay(row, key);
+        updateStimulantStepperDisplay(row, key, values);
       });
 
       const minusBtn = document.createElement('button');
@@ -146,7 +147,7 @@ export function initMakerPanel({
         const cur = values.get(key) ?? 0;
         if (cur > -keyLimit) {
           values.set(key, cur - step);
-          updateStimulantStepperDisplay(row, key);
+          updateStimulantStepperDisplay(row, key, values);
         }
       });
 
@@ -163,7 +164,7 @@ export function initMakerPanel({
         const cur = values.get(key) ?? 0;
         if (cur < keyLimit) {
           values.set(key, cur + step);
-          updateStimulantStepperDisplay(row, key);
+          updateStimulantStepperDisplay(row, key, values);
         }
       });
 
@@ -173,7 +174,7 @@ export function initMakerPanel({
       maxBtn.textContent = 'MAX';
       maxBtn.addEventListener('click', () => {
         values.set(key, keyLimit);
-        updateStimulantStepperDisplay(row, key);
+        updateStimulantStepperDisplay(row, key, values);
       });
 
       row.append(label, minBtn, minusBtn, valueDisplay, plusBtn, maxBtn);
