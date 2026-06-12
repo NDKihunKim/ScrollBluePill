@@ -17,12 +17,16 @@ test('schema defines published item level-up definitions with RLS', () => {
 		itemLevelUpTableSql,
 		/constraint item_level_up_definitions_kind_max_level_ups_check\s+check \(\s*\(level_up_kind = 'reverse' and max_level_ups = 3\)\s+or\s+\(level_up_kind = 'timeless' and max_level_ups = 5\)\s*\)/,
 	);
+	assert.match(
+		schemaSql,
+		/do \$\$\s+begin\s+alter table public\.item_level_up_definitions\s+add constraint item_level_up_definitions_kind_max_level_ups_check\s+check \(\s*\(level_up_kind = 'reverse' and max_level_ups = 3\)\s+or\s+\(level_up_kind = 'timeless' and max_level_ups = 5\)\s*\);\s+exception\s+when duplicate_object then null;\s+end \$\$;/,
+	);
 	assert.match(schemaSql, /stat_ranges jsonb not null/);
-	assert.match(schemaSql, /published_status text not null default 'draft'/);
+	assert.match(itemLevelUpTableSql, /published_status text not null default 'draft'/);
 	assert.match(schemaSql, /alter table public\.item_level_up_definitions enable row level security;/);
 	assert.match(
 		schemaSql,
-		/create policy "Public can read published item level-up definitions"\s+on public\.item_level_up_definitions\s+for select\s+using \(published_status = 'published'\);/,
+		/create policy "Public can read published item level-up definitions"\s+on public\.item_level_up_definitions\s+for select\s+using \(\s+published_status = 'published'\s+and exists \(\s+select 1\s+from public\.item_definitions\s+where item_definitions\.id = item_level_up_definitions\.item_id\s+and item_definitions\.published_status = 'published'\s+\)\s+\);/,
 	);
 	assert.match(schemaSql, /grant select on public\.item_level_up_definitions to anon, authenticated;/);
 	assert.match(schemaSql, /grant select, insert, update, delete on public\.item_level_up_definitions to service_role;/);
