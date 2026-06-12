@@ -2089,6 +2089,16 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		color: var(--green);
 		font-weight: 600;
 	}
+
+	:global(.maker-gem-slot .maker-gem-slot-grade--compact) {
+		font-size: 0.55rem;
+		line-height: 1.15;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 100%;
+	}
+
 	:global(.maker-picker-grid) {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
