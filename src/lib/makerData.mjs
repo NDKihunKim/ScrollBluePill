@@ -35,8 +35,10 @@ export const statLabelByKey = {
 };
 
 export const GEM_TYPES = [
+  { key: 'blackAmethyst', nameKo: '흑수정',         stat: null, weaponOnly: true,  behavior: 'variable', variableKeys: ['weaponAttack', 'magicAttack'], variableLimit: 3 },
   { key: 'diamond',     nameKo: '다이아몬드',       stat: 'weaponAttack', weaponOnly: true,  values: [1, 2, 3] },
   { key: 'sapphire',    nameKo: '사파이어',         stat: 'magicAttack',  weaponOnly: true,  values: [1, 2, 3] },
+  { key: 'darkCrystal',  nameKo: '어둠의 크리스탈', stat: null, weaponOnly: false, behavior: 'variable', variableKeys: ['str', 'dex', 'int', 'luk'], variableLimit: 5 },
   { key: 'strCrystal',  nameKo: '힘의 크리스탈',    stat: 'str',          weaponOnly: false, values: [1, 3, 5] },
   { key: 'dexCrystal',  nameKo: '민첩의 크리스탈',  stat: 'dex',          weaponOnly: false, values: [1, 3, 5] },
   { key: 'intCrystal',  nameKo: '지혜의 크리스탈',  stat: 'int',          weaponOnly: false, values: [1, 3, 5] },
@@ -47,8 +49,6 @@ export const GEM_TYPES = [
   { key: 'aquamarine',  nameKo: '아쿠아마린',       stat: 'jump',         weaponOnly: false, values: [1, 3, 5] },
   { key: 'topaz',       nameKo: '토파즈',           stat: 'maxHp',        weaponOnly: false, values: [10, 20, 30] },
   { key: 'emerald',     nameKo: '에메랄드',         stat: 'maxMp',        weaponOnly: false, values: [10, 20, 30] },
-  { key: 'darkCrystal',  nameKo: '어둠의 크리스탈', stat: null, weaponOnly: false, behavior: 'variable', variableKeys: ['str', 'dex', 'int', 'luk'], variableLimit: 5 },
-  { key: 'blackAmethyst', nameKo: '흑수정',         stat: null, weaponOnly: true,  behavior: 'variable', variableKeys: ['weaponAttack', 'magicAttack'], variableLimit: 3 },
 ];
 
 export function computeGemSlotCount(requiredLevel) {
