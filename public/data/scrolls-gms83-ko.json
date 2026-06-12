@@ -170,6 +170,17 @@
     "maxApplications": null
   },
   {
+    "id": 2044805,
+    "nameKo": "너클 명중률 주문서 100%",
+    "equipmentKind": "너클",
+    "behavior_type": "fixed",
+    "stats": {
+      "accuracy": 1
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2044807,
     "nameKo": "너클 명중률 주문서 60%",
     "equipmentKind": "너클",
@@ -191,17 +202,6 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2044805,
-    "nameKo": "너클 명중률 주문서 100%",
-    "equipmentKind": "너클",
-    "behavior_type": "fixed",
-    "stats": {
-      "accuracy": 1
     },
     "targetItemId": null,
     "maxApplications": null
@@ -279,6 +279,17 @@
     "maxApplications": null
   },
   {
+    "id": 2044010,
+    "nameKo": "두손검 명중치 주문서 100%",
+    "equipmentKind": "두손검",
+    "behavior_type": "fixed",
+    "stats": {
+      "accuracy": 1
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2044012,
     "nameKo": "두손검 명중치 주문서 60%",
     "equipmentKind": "두손검",
@@ -300,17 +311,6 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2044010,
-    "nameKo": "두손검 명중치 주문서 100%",
-    "equipmentKind": "두손검",
-    "behavior_type": "fixed",
-    "stats": {
-      "accuracy": 1
     },
     "targetItemId": null,
     "maxApplications": null
@@ -352,6 +352,17 @@
     "maxApplications": null
   },
   {
+    "id": 2044110,
+    "nameKo": "두손도끼 명중치 주문서 100%",
+    "equipmentKind": "두손도끼",
+    "behavior_type": "fixed",
+    "stats": {
+      "accuracy": 1
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2044112,
     "nameKo": "두손도끼 명중치 주문서 60%",
     "equipmentKind": "두손도끼",
@@ -373,17 +384,6 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2044110,
-    "nameKo": "두손도끼 명중치 주문서 100%",
-    "equipmentKind": "두손도끼",
-    "behavior_type": "fixed",
-    "stats": {
-      "accuracy": 1
     },
     "targetItemId": null,
     "maxApplications": null
@@ -425,6 +425,17 @@
     "maxApplications": null
   },
   {
+    "id": 2044210,
+    "nameKo": "두손둔기 명중치 주문서 100%",
+    "equipmentKind": "두손둔기",
+    "behavior_type": "fixed",
+    "stats": {
+      "accuracy": 1
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2044212,
     "nameKo": "두손둔기 명중치 주문서 60%",
     "equipmentKind": "두손둔기",
@@ -446,17 +457,6 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2044210,
-    "nameKo": "두손둔기 명중치 주문서 100%",
-    "equipmentKind": "두손둔기",
-    "behavior_type": "fixed",
-    "stats": {
-      "accuracy": 1
     },
     "targetItemId": null,
     "maxApplications": null
@@ -1462,6 +1462,17 @@
     "maxApplications": null
   },
   {
+    "id": 2040703,
+    "nameKo": "신발 점프력 주문서 100%",
+    "equipmentKind": "신발",
+    "behavior_type": "fixed",
+    "stats": {
+      "jump": 1
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2040704,
     "nameKo": "신발 점프력 주문서 60%",
     "equipmentKind": "신발",
@@ -1551,17 +1562,6 @@
     "behavior_type": "fixed",
     "stats": {
       "speed": 3
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2040703,
-    "nameKo": "신발 점프력 주문서 100%",
-    "equipmentKind": "신발",
-    "behavior_type": "fixed",
-    "stats": {
-      "jump": 1
     },
     "targetItemId": null,
     "maxApplications": null
@@ -1672,6 +1672,17 @@
     "maxApplications": null
   },
   {
+    "id": 2040800,
+    "nameKo": "장갑 민첩 주문서 100%",
+    "equipmentKind": "장갑",
+    "behavior_type": "fixed",
+    "stats": {
+      "accuracy": 1
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2040824,
     "nameKo": "장갑 민첩 주문서 60%",
     "equipmentKind": "장갑",
@@ -1692,17 +1703,6 @@
       "dex": 3,
       "accuracy": 5,
       "avoidability": 1
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2040800,
-    "nameKo": "장갑 민첩 주문서 100%",
-    "equipmentKind": "장갑",
-    "behavior_type": "fixed",
-    "stats": {
-      "accuracy": 1
     },
     "targetItemId": null,
     "maxApplications": null
@@ -1777,6 +1777,17 @@
     "maxApplications": null
   },
   {
+    "id": 2044310,
+    "nameKo": "창 명중치 주문서 100%",
+    "equipmentKind": "창",
+    "behavior_type": "fixed",
+    "stats": {
+      "accuracy": 1
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2044312,
     "nameKo": "창 명중치 주문서 60%",
     "equipmentKind": "창",
@@ -1798,17 +1809,6 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2044310,
-    "nameKo": "창 명중치 주문서 100%",
-    "equipmentKind": "창",
-    "behavior_type": "fixed",
-    "stats": {
-      "accuracy": 1
     },
     "targetItemId": null,
     "maxApplications": null
@@ -1902,6 +1902,17 @@
     "maxApplications": null
   },
   {
+    "id": 2044410,
+    "nameKo": "폴암 명중치 주문서 100%",
+    "equipmentKind": "폴암",
+    "behavior_type": "fixed",
+    "stats": {
+      "accuracy": 1
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2044412,
     "nameKo": "폴암 명중치 주문서 60%",
     "equipmentKind": "폴암",
@@ -1923,17 +1934,6 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2044410,
-    "nameKo": "폴암 명중치 주문서 100%",
-    "equipmentKind": "폴암",
-    "behavior_type": "fixed",
-    "stats": {
-      "accuracy": 1
     },
     "targetItemId": null,
     "maxApplications": null
@@ -2295,6 +2295,17 @@
     "maxApplications": null
   },
   {
+    "id": 2043015,
+    "nameKo": "한손검 명중치 주문서 100%",
+    "equipmentKind": "한손검",
+    "behavior_type": "fixed",
+    "stats": {
+      "accuracy": 1
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2043017,
     "nameKo": "한손검 명중치 주문서 60%",
     "equipmentKind": "한손검",
@@ -2316,17 +2327,6 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2043015,
-    "nameKo": "한손검 명중치 주문서 100%",
-    "equipmentKind": "한손검",
-    "behavior_type": "fixed",
-    "stats": {
-      "accuracy": 1
     },
     "targetItemId": null,
     "maxApplications": null
@@ -2368,6 +2368,17 @@
     "maxApplications": null
   },
   {
+    "id": 2043110,
+    "nameKo": "한손도끼 명중치 주문서 100%",
+    "equipmentKind": "한손도끼",
+    "behavior_type": "fixed",
+    "stats": {
+      "accuracy": 1
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2043112,
     "nameKo": "한손도끼 명중치 주문서 60%",
     "equipmentKind": "한손도끼",
@@ -2389,17 +2400,6 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2043110,
-    "nameKo": "한손도끼 명중치 주문서 100%",
-    "equipmentKind": "한손도끼",
-    "behavior_type": "fixed",
-    "stats": {
-      "accuracy": 1
     },
     "targetItemId": null,
     "maxApplications": null
@@ -2441,6 +2441,17 @@
     "maxApplications": null
   },
   {
+    "id": 2043210,
+    "nameKo": "한손둔기 명중치 주문서 100%",
+    "equipmentKind": "한손둔기",
+    "behavior_type": "fixed",
+    "stats": {
+      "accuracy": 1
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2043212,
     "nameKo": "한손둔기 명중치 주문서 60%",
     "equipmentKind": "한손둔기",
@@ -2462,17 +2473,6 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2043210,
-    "nameKo": "한손둔기 명중치 주문서 100%",
-    "equipmentKind": "한손둔기",
-    "behavior_type": "fixed",
-    "stats": {
-      "accuracy": 1
     },
     "targetItemId": null,
     "maxApplications": null
