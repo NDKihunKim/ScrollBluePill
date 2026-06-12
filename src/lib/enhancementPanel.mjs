@@ -1,6 +1,7 @@
 import { formatScrollStatLine, statLabelByKey, clearSlot } from './scrollState.mjs';
 import { createEnhancementState, applyScroll, revertToSlot, resetState, computeAccumulatedStats, computeStatBreakdown, computeAppliedScrollCount, computeRemainingSlots, computeGradeColor, HP_MP_KEYS } from './enhancementState.mjs';
 import { initMakerPanel } from './makerPanel.mjs';
+import { initItemLevelUpPanel } from './itemLevelUpPanel.mjs';
 import { buildItemIconUrl } from './maplestoryIo.mjs';
 
 export function initEnhancementPanel(renderEnhancedItemCard) {
@@ -24,6 +25,11 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   const makerPickerGrid = enhancementPanel?.querySelector('[data-maker-picker-grid]');
   const makerPickerBack = enhancementPanel?.querySelector('[data-maker-picker-back]');
 
+  const itemLevelUpToggle = enhancementPanel?.querySelector('[data-item-level-up-toggle]');
+  const itemLevelUpArea = enhancementPanel?.querySelector('[data-item-level-up-area]');
+  const itemLevelUpSlots = enhancementPanel?.querySelector('[data-item-level-up-slots]');
+  const itemLevelUpEditor = enhancementPanel?.querySelector('[data-item-level-up-editor]');
+
   const makerPanel = initMakerPanel({
     makerSection,
     makerToggle,
@@ -36,8 +42,17 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     renderEnhancedItemCard,
   });
 
+  const itemLevelUpPanel = initItemLevelUpPanel({
+    toggle: itemLevelUpToggle,
+    area: itemLevelUpArea,
+    slots: itemLevelUpSlots,
+    editor: itemLevelUpEditor,
+    renderEnhancedItemCard,
+  });
+
   let scrollIndex = [];
   let scrollsByEquipmentKind = new Map();
+  let itemLevelUpByItemId = new Map();
   let enhancementState = null;
   let selectedBaseItem = null;
 
@@ -547,11 +562,13 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
         enhancementMessage.hidden = false;
       }
       makerPanel.deactivate();
+      itemLevelUpPanel.deactivate();
       return;
     }
 
+    const itemLevelUpDefinition = itemLevelUpByItemId.get(item.id) ?? null;
     selectedBaseItem = item;
-    enhancementState = createEnhancementState(upgradeSlots, item.requiredLevel ?? 0);
+    enhancementState = createEnhancementState(upgradeSlots, item.requiredLevel ?? 0, itemLevelUpDefinition);
     collapseChaosPanel();
     chaosStepperValues = new Map();
 
@@ -564,6 +581,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     renderSlotRow();
     renderScrollList(item);
     makerPanel.activate(enhancementState, item);
+    itemLevelUpPanel.activate(enhancementState, item, itemLevelUpDefinition);
     refreshEnhancedCard();
   };
 
@@ -579,6 +597,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     renderSlotRow();
     renderScrollList(selectedBaseItem);
     makerPanel.resetMakerUI();
+    itemLevelUpPanel.reset();
     refreshEnhancedCard();
   });
 

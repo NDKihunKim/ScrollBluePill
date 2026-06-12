@@ -454,3 +454,16 @@ test('item level-up panel source contract is present beside maker controls', asy
 	assert.match(indexSource, /:global\(\.item-level-up-editor\)/);
 	assert.match(enhancementPanelSource, /initItemLevelUpPanel/);
 });
+
+test('item level-up panel applies bounded slot values and auto-advances', async () => {
+	const panelSource = await readFile(new URL('../src/lib/itemLevelUpPanel.mjs', import.meta.url), 'utf8');
+
+	assert.match(panelSource, /applyItemLevelUp/);
+	assert.match(panelSource, /clearItemLevelUpSlot/);
+	assert.match(panelSource, /Math\.max\(range\.min,\s*Math\.min\(range\.max,/);
+	assert.match(panelSource, /minBtn\.textContent\s*=\s*'MIN'/);
+	assert.match(panelSource, /maxBtn\.textContent\s*=\s*'MAX'/);
+	assert.match(panelSource, /findNextEmptySlotIndex/);
+	assert.match(panelSource, /renderEditor\(nextEmpty\)/);
+	assert.match(panelSource, /editor\.hidden\s*=\s*true/);
+});
