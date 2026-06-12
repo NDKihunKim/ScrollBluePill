@@ -10,14 +10,21 @@ import { computeGemSlotCount, getGemTypeByKey } from './makerData.mjs';
 
 export const HP_MP_KEYS = new Set(['maxHp', 'maxMp']);
 
-export function createEnhancementState(upgradeSlots, requiredLevel) {
+export function createItemLevelUpSlots(levelUpDefinition = null) {
+  const slotCount = Number.isInteger(levelUpDefinition?.maxLevelUps) ? levelUpDefinition.maxLevelUps : 0;
+  return new Array(slotCount).fill(null);
+}
+
+export function createEnhancementState(upgradeSlots, requiredLevel, levelUpDefinition = null) {
   const scrollState = _createScrollState(upgradeSlots);
   const gemSlotCount = computeGemSlotCount(requiredLevel);
   const gemSlots = new Array(gemSlotCount).fill(null);
   const makerActive = false;
   const stimulantSlot = null;
+  const itemLevelUpSlots = createItemLevelUpSlots(levelUpDefinition);
+  const itemLevelUpSlotCount = itemLevelUpSlots.length;
 
-  return { scrollState, gemSlots, gemSlotCount, makerActive, stimulantSlot };
+  return { scrollState, gemSlots, gemSlotCount, makerActive, stimulantSlot, itemLevelUpSlots, itemLevelUpSlotCount };
 }
 
 export function activateMaker(state) {
@@ -50,6 +57,35 @@ export function applyStimulant(state, stats) {
 
 export function clearStimulant(state) {
   state.stimulantSlot = null;
+}
+
+export function applyItemLevelUp(state, slotIndex, stats) {
+  if (slotIndex < 0 || slotIndex >= state.itemLevelUpSlotCount) {
+    return false;
+  }
+
+  const normalizedStats = {};
+  for (const [key, value] of Object.entries(stats ?? {})) {
+    if (Number.isFinite(value)) {
+      normalizedStats[key] = value;
+    }
+  }
+
+  state.itemLevelUpSlots[slotIndex] = { stats: normalizedStats };
+  return true;
+}
+
+export function clearItemLevelUpSlot(state, slotIndex) {
+  if (slotIndex < 0 || slotIndex >= state.itemLevelUpSlotCount) {
+    return;
+  }
+  state.itemLevelUpSlots[slotIndex] = null;
+}
+
+export function resetItemLevelUps(state) {
+  for (let i = 0; i < state.itemLevelUpSlots.length; i++) {
+    state.itemLevelUpSlots[i] = null;
+  }
 }
 
 export function applyGem(state, slotIndex, gemKey, gradeIndex) {
@@ -172,6 +208,15 @@ export function computeAccumulatedStats(baseStats, state) {
     }
   }
 
+  for (const slot of state.itemLevelUpSlots ?? []) {
+    if (!slot?.stats) continue;
+    for (const [key, value] of Object.entries(slot.stats)) {
+      if (Number.isFinite(value)) {
+        accumulated[key] = (accumulated[key] ?? 0) + value;
+      }
+    }
+  }
+
   return accumulated;
 }
 
@@ -235,6 +280,16 @@ export function computeStatBreakdown(baseStats, state) {
 
   if (state.stimulantSlot?.stats) {
     for (const [key, value] of Object.entries(state.stimulantSlot.stats)) {
+      if (!Number.isFinite(value)) continue;
+      const entry = ensureEntry(key);
+      entry.maker += value;
+      entry.total += value;
+    }
+  }
+
+  for (const slot of state.itemLevelUpSlots ?? []) {
+    if (!slot?.stats) continue;
+    for (const [key, value] of Object.entries(slot.stats)) {
       if (!Number.isFinite(value)) continue;
       const entry = ensureEntry(key);
       entry.maker += value;
@@ -306,6 +361,18 @@ export function computeGradeColor(state) {
     }
   }
 
+  for (const slot of state.itemLevelUpSlots ?? []) {
+    if (!slot?.stats) continue;
+    for (const [key, value] of Object.entries(slot.stats)) {
+      if (!Number.isFinite(value)) continue;
+      if (HP_MP_KEYS.has(key)) {
+        totalAddedConstants += Math.round(value / 10);
+      } else {
+        totalAddedConstants += value;
+      }
+    }
+  }
+
   if (totalAddedConstants < 0) return '#9e9e9e';
   if (totalAddedConstants === 0) return '#ffffff';
   if (totalAddedConstants <= 5) return '#ff8c00';
@@ -330,6 +397,7 @@ export function resetState(state) {
   _resetScrollState(state.scrollState);
   resetGems(state);
   deactivateMaker(state);
+  resetItemLevelUps(state);
 }
 
 export function computeAppliedScrollCount(state) {

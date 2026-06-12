@@ -15,6 +15,9 @@ import {
   computeGradeColor,
   computeRemainingSlots,
   computeStatBreakdown,
+  createItemLevelUpSlots,
+  applyItemLevelUp,
+  clearItemLevelUpSlot,
 } from '../src/lib/enhancementState.mjs';
 
 // --- stat breakdown tests ---
@@ -227,4 +230,61 @@ test('blackAmethyst only visible for weapon equipment kinds', async () => {
 
   assert.ok(weaponGems.some((g) => g.key === 'blackAmethyst'));
   assert.ok(!armorGems.some((g) => g.key === 'blackAmethyst'));
+});
+
+// --- item level-up tests ---
+
+test('item level-up slots initialize independently from maker slots', () => {
+  const state = createEnhancementState(7, 120, { maxLevelUps: 3 });
+
+  assert.equal(state.itemLevelUpSlotCount, 3);
+  assert.deepEqual(state.itemLevelUpSlots, [null, null, null]);
+
+  activateMaker(state);
+  applyGem(state, 0, 'strCrystal', 2);
+  assert.equal(applyItemLevelUp(state, 0, { str: 1, weaponAttack: 2 }), true);
+
+  deactivateMaker(state);
+  assert.deepEqual(state.gemSlots.every((slot) => slot === null), true);
+  assert.deepEqual(state.itemLevelUpSlots[0], { stats: { str: 1, weaponAttack: 2 } });
+});
+
+test('item level-up contributes to accumulated stats and maker breakdown bucket', () => {
+  const state = createEnhancementState(7, 120, { maxLevelUps: 3 });
+
+  applyItemLevelUp(state, 0, { str: 1, weaponAttack: 2 });
+  applyScroll(state, {
+    id: 2040000,
+    nameKo: '테스트 주문서',
+    stats: { str: 5 },
+  });
+
+  assert.deepEqual(
+    computeAccumulatedStats({ str: 10, weaponAttack: 50 }, state),
+    { str: 16, weaponAttack: 52 },
+  );
+
+  assert.deepEqual(
+    computeStatBreakdown({ str: 10, weaponAttack: 50 }, state),
+    {
+      str: { original: 10, maker: 1, scroll: 5, total: 16 },
+      weaponAttack: { original: 50, maker: 2, scroll: 0, total: 52 },
+    },
+  );
+});
+
+test('item level-up slot bounds and reset lifecycle', () => {
+  const state = createEnhancementState(7, 120, { maxLevelUps: 3 });
+
+  assert.equal(applyItemLevelUp(state, -1, { str: 1 }), false);
+  assert.equal(applyItemLevelUp(state, 3, { str: 1 }), false);
+  assert.equal(applyItemLevelUp(state, 1, { str: 2, dex: Number.NaN }), true);
+  assert.deepEqual(state.itemLevelUpSlots[1], { stats: { str: 2 } });
+
+  clearItemLevelUpSlot(state, 1);
+  assert.equal(state.itemLevelUpSlots[1], null);
+
+  applyItemLevelUp(state, 0, { str: 2 });
+  resetState(state);
+  assert.deepEqual(state.itemLevelUpSlots, [null, null, null]);
 });
