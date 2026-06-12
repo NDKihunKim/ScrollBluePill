@@ -4,6 +4,7 @@ import { resolveItemLevelUpRuntimeRows, validateItemLevelUpSeed } from '../src/l
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 const seedPath = resolve('data/item-level-up-definitions.seed.json');
 const itemsPath = resolve('public/data/items-gms83-ko.json');
 const upsertBatchSize = 250;
@@ -19,8 +20,8 @@ if (!supabaseServiceRoleKey && process.env.SEED_DRY_RUN !== '1') {
 	process.exit(1);
 }
 
-async function fetchSupabase(url, options = {}) {
-	const response = await fetch(url, {
+function fetchSupabaseServiceRole(url, options = {}) {
+	return fetch(url, {
 		...options,
 		headers: {
 			apikey: supabaseServiceRoleKey,
@@ -28,14 +29,28 @@ async function fetchSupabase(url, options = {}) {
 			'content-type': 'application/json',
 			...(options.headers ?? {}),
 		},
+	}).then(async (response) => {
+		if (!response.ok) {
+			const body = await response.text().catch(() => '');
+			throw new Error(`Supabase API error ${response.status}: ${body}`);
+		}
+		return response.json();
 	});
+}
 
-	if (!response.ok) {
-		const body = await response.text().catch(() => '');
-		throw new Error(`Supabase API error ${response.status}: ${body}`);
-	}
-
-	return response.json();
+function fetchSupabaseAnon(url) {
+	return fetch(url, {
+		headers: {
+			apikey: supabaseAnonKey,
+			authorization: `Bearer ${supabaseAnonKey}`,
+		},
+	}).then(async (response) => {
+		if (!response.ok) {
+			const body = await response.text().catch(() => '');
+			throw new Error(`Supabase API error ${response.status}: ${body}`);
+		}
+		return response.json();
+	});
 }
 
 async function resolveVersionTagId() {
@@ -43,14 +58,14 @@ async function resolveVersionTagId() {
 	url.searchParams.set('is_active', 'eq.true');
 	url.searchParams.set('limit', '1');
 	url.searchParams.set('select', 'id');
-	const tags = await fetchSupabase(url);
+	const tags = await fetchSupabaseAnon(url);
 
 	if (tags.length > 0) {
 		return tags[0].id;
 	}
 
 	const createUrl = new URL('/rest/v1/version_tags', supabaseUrl);
-	const [created] = await fetchSupabase(createUrl, {
+	const [created] = await fetchSupabaseServiceRole(createUrl, {
 		method: 'POST',
 		body: JSON.stringify({
 			label_ko: 'GMS v83 (기본)',
@@ -71,7 +86,7 @@ async function upsertRows(rows) {
 	for (let i = 0; i < rows.length; i += upsertBatchSize) {
 		const batch = rows.slice(i, i + upsertBatchSize);
 		const url = new URL('/rest/v1/item_level_up_definitions', supabaseUrl);
-		await fetchSupabase(url, {
+		await fetchSupabaseServiceRole(url, {
 			method: 'POST',
 			headers: {
 				prefer: 'resolution=merge-duplicates',
