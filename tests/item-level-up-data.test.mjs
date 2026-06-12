@@ -6,15 +6,23 @@ const schemaSql = await readFile(new URL('../supabase/schema.sql', import.meta.u
 
 test('schema defines published item level-up definitions with RLS', () => {
 	assert.match(schemaSql, /create table if not exists public\.item_level_up_definitions/);
+	const itemLevelUpTableSql = schemaSql.match(
+		/create table if not exists public\.item_level_up_definitions \([\s\S]*?\n\);/,
+	)?.[0] ?? '';
+
 	assert.match(schemaSql, /item_id integer primary key references public\.item_definitions\(id\)/);
 	assert.match(schemaSql, /level_up_kind text not null check \(level_up_kind in \('reverse', 'timeless'\)\)/);
 	assert.match(schemaSql, /max_level_ups integer not null check \(max_level_ups in \(3, 5\)\)/);
+	assert.match(
+		itemLevelUpTableSql,
+		/constraint item_level_up_definitions_kind_max_level_ups_check\s+check \(\s*\(level_up_kind = 'reverse' and max_level_ups = 3\)\s+or\s+\(level_up_kind = 'timeless' and max_level_ups = 5\)\s*\)/,
+	);
 	assert.match(schemaSql, /stat_ranges jsonb not null/);
 	assert.match(schemaSql, /published_status text not null default 'draft'/);
 	assert.match(schemaSql, /alter table public\.item_level_up_definitions enable row level security;/);
 	assert.match(
 		schemaSql,
-		/create policy "Public can read published item level-up definitions"[\s\S]*using \(published_status = 'published'\);/,
+		/create policy "Public can read published item level-up definitions"\s+on public\.item_level_up_definitions\s+for select\s+using \(published_status = 'published'\);/,
 	);
 	assert.match(schemaSql, /grant select on public\.item_level_up_definitions to anon, authenticated;/);
 	assert.match(schemaSql, /grant select, insert, update, delete on public\.item_level_up_definitions to service_role;/);
