@@ -191,10 +191,28 @@ export function initMakerPanel({
       for (const key of statKeys) {
         stats[key] = values.get(key) ?? 0;
       }
-      applyVariableGem(enhancementState, editingSlotIndex, gem.key, stats);
-      hidePicker();
+      const ok = applyVariableGem(enhancementState, editingSlotIndex, gem.key, stats);
+      if (!ok) return;
+
+      pendingGemKey = null;
+
+      let nextEmpty = -1;
+      for (let i = 0; i < enhancementState.gemSlotCount; i++) {
+        const s = i < enhancementState.gemSlots.length ? enhancementState.gemSlots[i] : null;
+        if (!s) { nextEmpty = i; break; }
+      }
+
       renderGemSlots();
       refreshEnhancedCard();
+
+      if (nextEmpty >= 0) {
+        editingSlotIndex = nextEmpty;
+        renderGemSlots();
+        renderStep1Picker();
+      } else {
+        hidePicker();
+        renderGemSlots();
+      }
     });
 
     makerPickerGrid.append(applyBtn);
