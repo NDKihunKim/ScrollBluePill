@@ -47,6 +47,8 @@ export const GEM_TYPES = [
   { key: 'aquamarine',  nameKo: '아쿠아마린',       stat: 'jump',         weaponOnly: false, values: [1, 3, 5] },
   { key: 'topaz',       nameKo: '토파즈',           stat: 'maxHp',        weaponOnly: false, values: [10, 20, 30] },
   { key: 'emerald',     nameKo: '에메랄드',         stat: 'maxMp',        weaponOnly: false, values: [10, 20, 30] },
+  { key: 'darkCrystal',  nameKo: '어둠의 크리스탈', stat: null, weaponOnly: false, behavior: 'variable', variableKeys: ['str', 'dex', 'int', 'luk'], variableLimit: 5 },
+  { key: 'blackAmethyst', nameKo: '흑수정',         stat: null, weaponOnly: true,  behavior: 'variable', variableKeys: ['weaponAttack', 'magicAttack'], variableLimit: 3 },
 ];
 
 export function computeGemSlotCount(requiredLevel) {
@@ -100,6 +102,8 @@ export const GEM_ITEM_IDS = {
   dexCrystal:  { base: 4005002, low: 4251100, mid: 4251101, high: 4251102 },
   intCrystal:  { base: 4005001, low: 4250900, mid: 4250901, high: 4250902 },
   lukCrystal:  { base: 4005003, low: 4251000, mid: 4251001, high: 4251002 },
+  darkCrystal:  { base: 4005004 },
+  blackAmethyst: { base: 4021008 },
 };
 
 /** Background colors for gem icon placeholders, keyed by stat */

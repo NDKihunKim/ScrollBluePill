@@ -6,6 +6,7 @@ import {
   activateMaker,
   deactivateMaker,
   applyGem,
+  applyVariableGem,
   applyScroll,
   applyStimulant,
   clearStimulant,
@@ -165,4 +166,65 @@ test('maxHp and maxMp use 10x scale — applied at 50, grade color divides by 10
 
   // Grade color: HP+MP contribute (50-30+20) / 10 = 4, plus STR 5 = 9 total → #3366ff
   assert.equal(computeGradeColor(state), '#3366ff');
+});
+
+// --- variable gem tests ---
+
+test('applyVariableGem stores stats on gem slot', () => {
+  const state = createEnhancementState(7, 80);
+  assert.equal(applyVariableGem(state, 0, 'darkCrystal', { str: 3, dex: -1, int: 0, luk: 5 }), true);
+  assert.deepEqual(state.gemSlots[0], { gemKey: 'darkCrystal', stats: { str: 3, dex: -1, int: 0, luk: 5 } });
+});
+
+test('applyVariableGem rejects non-variable gems', () => {
+  const state = createEnhancementState(7, 80);
+  assert.equal(applyVariableGem(state, 0, 'strCrystal', { str: 3 }), false);
+  assert.equal(state.gemSlots[0], null);
+});
+
+test('variable gem contributes to accumulated stats', () => {
+  const state = createEnhancementState(7, 80);
+  applyVariableGem(state, 0, 'darkCrystal', { str: 3, dex: -1, luk: 5 });
+
+  assert.deepEqual(
+    computeAccumulatedStats({ str: 10, dex: 10, int: 10, luk: 10 }, state),
+    { str: 13, dex: 9, int: 10, luk: 15 },
+  );
+});
+
+test('variable gem contributes to stat breakdown as maker', () => {
+  const state = createEnhancementState(7, 80);
+  applyVariableGem(state, 0, 'blackAmethyst', { weaponAttack: 2, magicAttack: -1 });
+
+  assert.deepEqual(
+    computeStatBreakdown({ weaponAttack: 50, magicAttack: 30, upgradeSlots: 7 }, state),
+    {
+      weaponAttack: { original: 50, maker: 2, scroll: 0, total: 52 },
+      magicAttack: { original: 30, maker: -1, scroll: 0, total: 29 },
+      upgradeSlots: { original: 7, maker: 0, scroll: 0, total: 7 },
+    },
+  );
+});
+
+test('variable gem grade color includes variable contributions', () => {
+  const state = createEnhancementState(7, 80);
+  applyVariableGem(state, 0, 'darkCrystal', { str: 2, dex: 2, luk: 2 });
+
+  // 2+2+2 = 6 total → #3366ff
+  assert.equal(computeGradeColor(state), '#3366ff');
+});
+
+test('variable gem rejects duplicate gem key', () => {
+  const state = createEnhancementState(7, 80);
+  assert.equal(applyVariableGem(state, 0, 'darkCrystal', { str: 1 }), true);
+  assert.equal(applyVariableGem(state, 1, 'darkCrystal', { str: 2 }), false);
+});
+
+test('blackAmethyst only visible for weapon equipment kinds', async () => {
+  const { getVisibleGemTypes } = await import('../src/lib/makerData.mjs');
+  const weaponGems = getVisibleGemTypes('한손검', []);
+  const armorGems = getVisibleGemTypes('모자', []);
+
+  assert.ok(weaponGems.some((g) => g.key === 'blackAmethyst'));
+  assert.ok(!armorGems.some((g) => g.key === 'blackAmethyst'));
 });

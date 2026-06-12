@@ -1,5 +1,5 @@
 import { GEM_GRADES, GEM_ITEM_IDS, GEM_STAT_COLORS, getVisibleGemTypes, getGemTypeByKey, statLabelByKey } from './makerData.mjs';
-import { activateMaker, deactivateMaker, applyGem, revertGemSlot, applyStimulant, clearStimulant, computeAccumulatedStats, computeStatBreakdown, computeGradeColor, computeAppliedScrollCount, computeRemainingSlots, HP_MP_KEYS } from './enhancementState.mjs';
+import { activateMaker, deactivateMaker, applyGem, applyVariableGem, revertGemSlot, applyStimulant, clearStimulant, computeAccumulatedStats, computeStatBreakdown, computeGradeColor, computeAppliedScrollCount, computeRemainingSlots, HP_MP_KEYS } from './enhancementState.mjs';
 import { buildItemIconUrl } from './maplestoryIo.mjs';
 
 function createGemIconElement(gemKey, stat, iconId) {
@@ -81,6 +81,121 @@ export function initMakerPanel({
 
     const value = stimulantValues.get(key) ?? 0;
     valueDisplay.textContent = value > 0 ? `+${value}` : String(value);
+  };
+
+  const renderVariableGemInputPanel = (gem) => {
+    if (!(makerPicker instanceof HTMLElement) ||
+        !(makerPickerGrid instanceof HTMLElement) ||
+        !(makerPickerLabel instanceof HTMLElement) ||
+        !enhancementState || !selectedBaseItem) {
+      return;
+    }
+
+    const cleanStats = selectedBaseItem.stats ?? {};
+    const statKeys = (gem.variableKeys ?? []).filter((k) => Number.isFinite(cleanStats[k]) && cleanStats[k] > 0);
+
+    makerPickerLabel.textContent = `${gem.nameKo} 스탯 입력`;
+    makerPickerGrid.replaceChildren();
+    makerPickerGrid.classList.add('maker-stimulant-input-panel');
+    makerPicker.hidden = false;
+    if (makerPickerBack instanceof HTMLElement) makerPickerBack.hidden = false;
+
+    const limit = gem.variableLimit ?? 5;
+    const existingSlot = enhancementState.gemSlots.find((s) => s?.gemKey === gem.key);
+    const existingStats = existingSlot?.stats ?? {};
+
+    const values = new Map();
+    statKeys.forEach((key) => {
+      values.set(key, Number.isFinite(existingStats[key]) ? existingStats[key] : 0);
+    });
+
+    if (statKeys.length === 0) {
+      const msg = document.createElement('p');
+      msg.className = 'chaos-empty-message';
+      msg.textContent = '적용할 스탯이 없습니다';
+      makerPickerGrid.append(msg);
+      return;
+    }
+
+    statKeys.forEach((key) => {
+      const isHpMp = HP_MP_KEYS.has(key);
+      const step = isHpMp ? 10 : 1;
+      const keyLimit = isHpMp ? 50 : limit;
+
+      const row = document.createElement('div');
+      row.className = 'chaos-stat-row maker-stimulant-stat-row';
+
+      const label = document.createElement('span');
+      label.className = 'chaos-stat-label';
+      label.textContent = statLabelByKey[key] ?? key;
+
+      const minBtn = document.createElement('button');
+      minBtn.type = 'button';
+      minBtn.className = 'chaos-stepper-btn chaos-stepper-btn--max';
+      minBtn.textContent = 'MIN';
+      minBtn.addEventListener('click', () => {
+        values.set(key, -keyLimit);
+        updateStimulantStepperDisplay(row, key);
+      });
+
+      const minusBtn = document.createElement('button');
+      minusBtn.type = 'button';
+      minusBtn.className = 'chaos-stepper-btn';
+      minusBtn.textContent = '−';
+      minusBtn.addEventListener('click', () => {
+        const cur = values.get(key) ?? 0;
+        if (cur > -keyLimit) {
+          values.set(key, cur - step);
+          updateStimulantStepperDisplay(row, key);
+        }
+      });
+
+      const valueDisplay = document.createElement('span');
+      valueDisplay.className = 'chaos-stepper-value maker-stimulant-stepper-value';
+      const initialVal = values.get(key) ?? 0;
+      valueDisplay.textContent = initialVal > 0 ? `+${initialVal}` : String(initialVal);
+
+      const plusBtn = document.createElement('button');
+      plusBtn.type = 'button';
+      plusBtn.className = 'chaos-stepper-btn';
+      plusBtn.textContent = '+';
+      plusBtn.addEventListener('click', () => {
+        const cur = values.get(key) ?? 0;
+        if (cur < keyLimit) {
+          values.set(key, cur + step);
+          updateStimulantStepperDisplay(row, key);
+        }
+      });
+
+      const maxBtn = document.createElement('button');
+      maxBtn.type = 'button';
+      maxBtn.className = 'chaos-stepper-btn chaos-stepper-btn--max';
+      maxBtn.textContent = 'MAX';
+      maxBtn.addEventListener('click', () => {
+        values.set(key, keyLimit);
+        updateStimulantStepperDisplay(row, key);
+      });
+
+      row.append(label, minBtn, minusBtn, valueDisplay, plusBtn, maxBtn);
+      makerPickerGrid.append(row);
+    });
+
+    const applyBtn = document.createElement('button');
+    applyBtn.type = 'button';
+    applyBtn.className = 'chaos-apply-button maker-stimulant-apply-button';
+    applyBtn.textContent = '적용';
+    applyBtn.addEventListener('click', () => {
+      const stats = {};
+      for (const key of statKeys) {
+        stats[key] = values.get(key) ?? 0;
+      }
+      applyVariableGem(enhancementState, editingSlotIndex, gem.key, stats);
+      hidePicker();
+      renderGemSlots();
+      refreshEnhancedCard();
+    });
+
+    makerPickerGrid.append(applyBtn);
   };
 
   const renderStimulantInputPanel = () => {
@@ -284,20 +399,43 @@ export function initMakerPanel({
 
         const gem = getGemTypeByKey(gemSlot.gemKey);
         if (gem) {
-          const gradeKey = gemSlot.gradeIndex === 2 ? 'high' : gemSlot.gradeIndex === 1 ? 'mid' : 'low';
-          const iconId = GEM_ITEM_IDS[gem.key]?.[gradeKey] ?? 0;
+          if (gem.behavior === 'variable') {
+            const iconId = GEM_ITEM_IDS[gem.key]?.base ?? 0;
+            const img = createGemIconElement(gem.key, gem.stat, iconId);
 
-          const img = createGemIconElement(gem.key, gem.stat, iconId);
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'maker-gem-slot-name';
+            nameSpan.textContent = gem.nameKo;
 
-          const nameSpan = document.createElement('span');
-          nameSpan.className = 'maker-gem-slot-name';
-          nameSpan.textContent = gem.nameKo;
+            // Show non-zero stat deltas as a summary
+            const statParts = [];
+            for (const [key, value] of Object.entries(gemSlot.stats ?? {})) {
+              if (value !== 0 && Number.isFinite(value)) {
+                statParts.push(`${statLabelByKey[key] ?? key} ${value > 0 ? '+' : ''}${value}`);
+              }
+            }
 
-          const gradeSpan = document.createElement('span');
-          gradeSpan.className = 'maker-gem-slot-grade';
-          gradeSpan.textContent = GEM_GRADES[gemSlot.gradeIndex];
+            const statSpan = document.createElement('span');
+            statSpan.className = 'maker-gem-slot-grade';
+            statSpan.textContent = statParts.join(', ') || '적용됨';
 
-          box.append(img, nameSpan, gradeSpan);
+            box.append(img, nameSpan, statSpan);
+          } else {
+            const gradeKey = gemSlot.gradeIndex === 2 ? 'high' : gemSlot.gradeIndex === 1 ? 'mid' : 'low';
+            const iconId = GEM_ITEM_IDS[gem.key]?.[gradeKey] ?? 0;
+
+            const img = createGemIconElement(gem.key, gem.stat, iconId);
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'maker-gem-slot-name';
+            nameSpan.textContent = gem.nameKo;
+
+            const gradeSpan = document.createElement('span');
+            gradeSpan.className = 'maker-gem-slot-grade';
+            gradeSpan.textContent = GEM_GRADES[gemSlot.gradeIndex];
+
+            box.append(img, nameSpan, gradeSpan);
+          }
         }
 
         // × clear button — mirror scroll slot style
@@ -384,14 +522,23 @@ export function initMakerPanel({
 
       const statSpan = document.createElement('span');
       statSpan.className = 'maker-picker-item-stat';
-      statSpan.textContent = `(${statLabelByKey[gem.stat] ?? gem.stat})`;
+      if (gem.behavior === 'variable') {
+        const keyLabels = (gem.variableKeys ?? []).map((k) => statLabelByKey[k] ?? k);
+        statSpan.textContent = `(${keyLabels.join('/')})`;
+      } else {
+        statSpan.textContent = `(${statLabelByKey[gem.stat] ?? gem.stat})`;
+      }
 
       item.append(img, nameSpan, statSpan);
 
       if (!gem.disabled) {
         item.addEventListener('click', () => {
           pendingGemKey = gem.key;
-          renderStep2Picker();
+          if (gem.behavior === 'variable') {
+            renderVariableGemInputPanel(gem);
+          } else {
+            renderStep2Picker();
+          }
         });
       }
 

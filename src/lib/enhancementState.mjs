@@ -67,6 +67,33 @@ export function applyGem(state, slotIndex, gemKey, gradeIndex) {
   return true;
 }
 
+export function applyVariableGem(state, slotIndex, gemKey, stats) {
+  if (slotIndex < 0 || slotIndex >= state.gemSlotCount) {
+    return false;
+  }
+
+  for (let i = 0; i < state.gemSlots.length; i++) {
+    if (i !== slotIndex && state.gemSlots[i]?.gemKey === gemKey) {
+      return false;
+    }
+  }
+
+  const gem = getGemTypeByKey(gemKey);
+  if (!gem || gem.behavior !== 'variable') {
+    return false;
+  }
+
+  const normalizedStats = {};
+  for (const [key, value] of Object.entries(stats ?? {})) {
+    if (Number.isFinite(value)) {
+      normalizedStats[key] = value;
+    }
+  }
+
+  state.gemSlots[slotIndex] = { gemKey, stats: normalizedStats };
+  return true;
+}
+
 export function revertGemSlot(state, slotIndex) {
   if (slotIndex < 0 || slotIndex >= state.gemSlotCount) {
     return;
@@ -122,10 +149,18 @@ export function computeAccumulatedStats(baseStats, state) {
     const gem = getGemTypeByKey(gemSlot.gemKey);
     if (!gem) continue;
 
-    const statKey = gem.stat;
-    const value = gem.values[gemSlot.gradeIndex];
-    if (statKey && Number.isFinite(value)) {
-      accumulated[statKey] = (accumulated[statKey] ?? 0) + value;
+    if (gem.behavior === 'variable') {
+      for (const [key, value] of Object.entries(gemSlot.stats ?? {})) {
+        if (Number.isFinite(value)) {
+          accumulated[key] = (accumulated[key] ?? 0) + value;
+        }
+      }
+    } else {
+      const statKey = gem.stat;
+      const value = gem.values[gemSlot.gradeIndex];
+      if (statKey && Number.isFinite(value)) {
+        accumulated[statKey] = (accumulated[statKey] ?? 0) + value;
+      }
     }
   }
 
@@ -180,13 +215,22 @@ export function computeStatBreakdown(baseStats, state) {
     const gem = getGemTypeByKey(gemSlot.gemKey);
     if (!gem) continue;
 
-    const statKey = gem.stat;
-    const value = gem.values[gemSlot.gradeIndex];
-    if (!statKey || !Number.isFinite(value)) continue;
+    if (gem.behavior === 'variable') {
+      for (const [key, value] of Object.entries(gemSlot.stats ?? {})) {
+        if (!Number.isFinite(value)) continue;
+        const entry = ensureEntry(key);
+        entry.maker += value;
+        entry.total += value;
+      }
+    } else {
+      const statKey = gem.stat;
+      const value = gem.values[gemSlot.gradeIndex];
+      if (!statKey || !Number.isFinite(value)) continue;
 
-    const entry = ensureEntry(statKey);
-    entry.maker += value;
-    entry.total += value;
+      const entry = ensureEntry(statKey);
+      entry.maker += value;
+      entry.total += value;
+    }
   }
 
   if (state.stimulantSlot?.stats) {
@@ -228,13 +272,25 @@ export function computeGradeColor(state) {
     const gem = getGemTypeByKey(gemSlot.gemKey);
     if (!gem) continue;
 
-    const value = gem.values[gemSlot.gradeIndex];
-    if (!Number.isFinite(value)) continue;
+    if (gem.behavior === 'variable') {
+      for (const [key, value] of Object.entries(gemSlot.stats ?? {})) {
+        if (!Number.isFinite(value)) continue;
 
-    if (HP_MP_KEYS.has(gem.stat)) {
-      totalAddedConstants += Math.round(value / 10);
+        if (HP_MP_KEYS.has(key)) {
+          totalAddedConstants += Math.round(value / 10);
+        } else {
+          totalAddedConstants += value;
+        }
+      }
     } else {
-      totalAddedConstants += value;
+      const value = gem.values[gemSlot.gradeIndex];
+      if (!Number.isFinite(value)) continue;
+
+      if (HP_MP_KEYS.has(gem.stat)) {
+        totalAddedConstants += Math.round(value / 10);
+      } else {
+        totalAddedConstants += value;
+      }
     }
   }
 
