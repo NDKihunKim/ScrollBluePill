@@ -67,16 +67,31 @@ INSERT INTO public.scroll_definitions
    maplestory_io_item_id, target_item_id, max_applications, source_note)
 VALUES
   ((SELECT id FROM version_tags WHERE is_active = true LIMIT 1),
-   '드래곤의 돌 100%', '펜던트', 'fixed', 'published',
+   '드래곤의 돌', '펜던트', 'fixed', 'published',
    ARRAY['weaponDefense','magicDefense','avoidability','str','dex','int','luk'],
    '{"weaponDefense":140,"magicDefense":140,"avoidability":15,"str":15,"dex":15,"int":15,"luk":15}',
    2041200, 1122000, 1,
    'Dragon Stone — Horntail Necklace only, once per item');
 ```
 
-Note: name includes "100%" suffix to pass the `filterDesiredPercentScrolls` gate in the generation script.
+Note: name is stored as `'드래곤의 돌'` without a percent suffix. The `filterDesiredPercentScrolls` function is modified so item-specific scrolls (those with `target_item_id` set) bypass the percent filter — they are always included.
 
 ### 2. Pipeline — `scripts/generate-scroll-index.mjs`
+
+**`filterDesiredPercentScrolls`** — bypass for item-specific scrolls:
+
+```javascript
+function filterDesiredPercentScrolls(scrolls) {
+    return scrolls.filter((scroll) => {
+        // Item-specific scrolls always pass — they are explicitly curated
+        if (scroll.target_item_id != null) return true;
+        const match = scroll.name_ko?.match(PERCENT_PATTERN);
+        if (!match) return false;
+        const percent = Number(match[1]);
+        return DESIRED_PERCENTS.has(percent);
+    });
+}
+```
 
 **`transformToFrontendSchema`** — add two fields:
 
