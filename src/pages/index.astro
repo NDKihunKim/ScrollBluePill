@@ -2083,6 +2083,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	:global(.maker-gem-slot .maker-gem-slot-name) {
 		font-size: 0.7rem;
 		line-height: 1.15;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 100%;
 	}
 	:global(.maker-gem-slot .maker-gem-slot-grade) {
 		font-size: 0.7rem;
