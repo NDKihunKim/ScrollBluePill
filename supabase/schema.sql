@@ -122,3 +122,29 @@ create policy "Public can read published items" on public.item_definitions
 -- Expose item_definitions to the Data API
 grant select on public.item_definitions to anon, authenticated;
 grant select, insert, update, delete on public.item_definitions to service_role;
+
+create table if not exists public.item_level_up_definitions (
+    item_id integer primary key references public.item_definitions(id),
+    version_tag_id uuid not null references public.version_tags(id),
+    level_up_kind text not null check (level_up_kind in ('reverse', 'timeless')),
+    max_level_ups integer not null check (max_level_ups in (3, 5)),
+    template_key text,
+    stat_ranges jsonb not null default '{}'::jsonb,
+    source_name_ko text not null,
+    source_url text not null,
+    source_note text,
+    published_status text not null default 'draft'
+        check (published_status in ('draft', 'published', 'hidden')),
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+);
+
+alter table public.item_level_up_definitions enable row level security;
+
+create policy "Public can read published item level-up definitions"
+on public.item_level_up_definitions
+for select
+using (published_status = 'published');
+
+grant select on public.item_level_up_definitions to anon, authenticated;
+grant select, insert, update, delete on public.item_level_up_definitions to service_role;
