@@ -28,6 +28,14 @@ export function applyScroll(state, scroll) {
     return false;
   }
 
+  // Reject if this scroll has a max-application limit and it's been reached
+  if (scroll.maxApplications != null) {
+    const alreadyApplied = state.slots.filter(s => s?.id === scroll.id).length;
+    if (alreadyApplied >= scroll.maxApplications) {
+      return false;
+    }
+  }
+
   const wasFilled = state.slots[state.currentSlot] !== null;
   state.slots[state.currentSlot] = scroll;
 
