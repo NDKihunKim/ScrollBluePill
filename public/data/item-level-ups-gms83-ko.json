@@ -1,0 +1,1720 @@
+[
+  {
+    "itemId": 1002776,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "maxHp": {
+        "min": 10,
+        "max": 20
+      }
+    },
+    "sourceNameKo": "타임리스 휀넬",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1002777,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "int": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      },
+      "maxHp": {
+        "min": 5,
+        "max": 10
+      },
+      "maxMp": {
+        "min": 5,
+        "max": 10
+      }
+    },
+    "sourceNameKo": "타임리스 코럴",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1002778,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "maxHp": {
+        "min": 20,
+        "max": 30
+      }
+    },
+    "sourceNameKo": "타임리스 라피드",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1002779,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      },
+      "maxHp": {
+        "min": 20,
+        "max": 30
+      }
+    },
+    "sourceNameKo": "타임리스 차이브",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1002790,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "maxHp": {
+        "min": 10,
+        "max": 20
+      }
+    },
+    "sourceNameKo": "리버스 휀넬",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1002791,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "int": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      },
+      "maxHp": {
+        "min": 5,
+        "max": 10
+      },
+      "maxMp": {
+        "min": 5,
+        "max": 10
+      }
+    },
+    "sourceNameKo": "리버스 코럴",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1002792,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "maxHp": {
+        "min": 20,
+        "max": 30
+      }
+    },
+    "sourceNameKo": "리버스 라피드",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1002793,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      },
+      "maxHp": {
+        "min": 20,
+        "max": 30
+      }
+    },
+    "sourceNameKo": "리버스 차이브",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1032031,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "int": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      },
+      "speed": {
+        "min": 0,
+        "max": 2
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 이어링",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1052155,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "avoidability": {
+        "min": 1,
+        "max": 2
+      }
+    },
+    "sourceNameKo": "타임리스 타라곤",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1052157,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "avoidability": {
+        "min": 1,
+        "max": 3
+      }
+    },
+    "sourceNameKo": "타임리스 에버뉴",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1052158,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      },
+      "avoidability": {
+        "min": 1,
+        "max": 3
+      }
+    },
+    "sourceNameKo": "타임리스 프린지드",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1052159,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "avoidability": {
+        "min": 1,
+        "max": 3
+      }
+    },
+    "sourceNameKo": "타임리스 부르군트",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1052160,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "avoidability": {
+        "min": 1,
+        "max": 2
+      }
+    },
+    "sourceNameKo": "리버스 타라곤",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1052162,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "avoidability": {
+        "min": 1,
+        "max": 3
+      }
+    },
+    "sourceNameKo": "리버스 에버뉴",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1052163,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      },
+      "avoidability": {
+        "min": 1,
+        "max": 3
+      }
+    },
+    "sourceNameKo": "리버스 프린지드",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1052164,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "avoidability": {
+        "min": 1,
+        "max": 3
+      }
+    },
+    "sourceNameKo": "리버스 부르군트",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1072355,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "speed": {
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 그라베",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1072356,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "int": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      },
+      "speed": {
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 카바티나",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1072357,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "speed": {
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 론타노",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1072358,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      },
+      "speed": {
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 문스티드",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1072359,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "speed": {
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 파라온",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1072361,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "speed": {
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 그라베",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1072362,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "int": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      },
+      "speed": {
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 카바티나",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1072363,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "speed": {
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 론타노",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1072364,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      },
+      "speed": {
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 문스티드",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1072365,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "speed": {
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 파라온",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1082234,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "accuracy": {
+        "min": 1,
+        "max": 2
+      }
+    },
+    "sourceNameKo": "타임리스 베르가못",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1082236,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "maxHp": {
+        "min": 5,
+        "max": 10
+      }
+    },
+    "sourceNameKo": "타임리스 프레스토",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1082237,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      },
+      "maxHp": {
+        "min": 5,
+        "max": 10
+      }
+    },
+    "sourceNameKo": "타임리스 루바브",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1082238,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "maxHp": {
+        "min": 5,
+        "max": 10
+      }
+    },
+    "sourceNameKo": "타임리스 차알스톤",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1082239,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "accuracy": {
+        "min": 1,
+        "max": 2
+      }
+    },
+    "sourceNameKo": "리버스 베르가못",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1082241,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "maxHp": {
+        "min": 5,
+        "max": 10
+      }
+    },
+    "sourceNameKo": "리버스 프레스토",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1082242,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      },
+      "maxHp": {
+        "min": 5,
+        "max": 10
+      }
+    },
+    "sourceNameKo": "리버스 루바브",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1082243,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "maxHp": {
+        "min": 5,
+        "max": 10
+      }
+    },
+    "sourceNameKo": "리버스 차알스톤",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1092057,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "weaponDefense": {
+        "min": 5,
+        "max": 10
+      },
+      "magicDefense": {
+        "min": 5,
+        "max": 10
+      },
+      "int": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 프렐류드",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1092058,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "weaponDefense": {
+        "min": 5,
+        "max": 10
+      },
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 카이트실드",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1092059,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "weaponDefense": {
+        "min": 5,
+        "max": 10
+      },
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 1,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 리스트",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1102172,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "int": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      },
+      "speed": {
+        "min": 0,
+        "max": 2
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 문라이트",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1302081,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "str": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 엑서큐서너스",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1302086,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "str": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 엑서큐서너스",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1312037,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "str": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 버디슈",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1312038,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "str": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 버디슈",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1322060,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "str": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 알라르간도",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1322061,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "str": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 알라르간도",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1332073,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "luk": {
+        "min": 1,
+        "max": 2
+      },
+      "str": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 페스카즈",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1332074,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "luk": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 킬릭",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1332075,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "luk": {
+        "min": 1,
+        "max": 2
+      },
+      "str": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 페스카즈",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1332076,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "luk": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 킬릭",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1372044,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "magicAttack": {
+        "min": 1,
+        "max": 4
+      },
+      "int": {
+        "min": 1,
+        "max": 2
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 엔릴티어",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1372045,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "magicAttack": {
+        "min": 1,
+        "max": 4
+      },
+      "int": {
+        "min": 1,
+        "max": 2
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 엔릴티어",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1382057,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "magicAttack": {
+        "min": 1,
+        "max": 4
+      },
+      "int": {
+        "min": 1,
+        "max": 2
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 에아스핸드",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1382059,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "magicAttack": {
+        "min": 1,
+        "max": 4
+      },
+      "int": {
+        "min": 1,
+        "max": 2
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 에아스핸드",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1402046,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "str": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 니플하임",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1402047,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "str": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 니플하임",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1412033,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "str": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 타바르진",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1412034,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "str": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 타바르진",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1422037,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "str": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 벨로체",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1422038,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "str": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 벨로체",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1432047,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "str": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 알슈피스",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1432049,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "str": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 알슈피스",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1442063,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "str": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 데이스이라에",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1442067,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "str": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 데이스이라에",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1452057,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "dex": {
+        "min": 1,
+        "max": 2
+      },
+      "str": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 엔가우",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1452059,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "dex": {
+        "min": 1,
+        "max": 2
+      },
+      "str": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 엔가우",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1462050,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "dex": {
+        "min": 1,
+        "max": 2
+      },
+      "str": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 블랙뷰티",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1462051,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "dex": {
+        "min": 1,
+        "max": 2
+      },
+      "str": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 블랙뷰티",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1472068,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "luk": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 람피온",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1472071,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "luk": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 람피온",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1482023,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "str": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 에퀴녹스",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1482024,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "str": {
+        "min": 1,
+        "max": 2
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 에퀴녹스",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1492023,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "dex": {
+        "min": 1,
+        "max": 2
+      },
+      "str": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 블라인드니스",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1492025,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
+      "dex": {
+        "min": 1,
+        "max": 2
+      },
+      "str": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 블라인드니스",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  }
+]
