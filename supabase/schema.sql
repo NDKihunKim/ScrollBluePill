@@ -136,7 +136,12 @@ create table if not exists public.item_level_up_definitions (
     published_status text not null default 'draft'
         check (published_status in ('draft', 'published', 'hidden')),
     created_at timestamptz not null default now(),
-    updated_at timestamptz not null default now()
+    updated_at timestamptz not null default now(),
+    constraint item_level_up_definitions_kind_max_level_ups_check
+        check (
+            (level_up_kind = 'reverse' and max_level_ups = 3)
+            or (level_up_kind = 'timeless' and max_level_ups = 5)
+        )
 );
 
 alter table public.item_level_up_definitions enable row level security;
