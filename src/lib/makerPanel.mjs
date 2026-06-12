@@ -408,17 +408,21 @@ export function initMakerPanel({
             nameSpan.className = 'maker-gem-slot-name';
             nameSpan.textContent = gem.nameKo;
 
-            // Show non-zero stat deltas as a summary
+            // Show non-zero stat deltas as a compact single-line summary
             const statParts = [];
             for (const [key, value] of Object.entries(gemSlot.stats ?? {})) {
               if (value !== 0 && Number.isFinite(value)) {
-                statParts.push(`${statLabelByKey[key] ?? key} ${value > 0 ? '+' : ''}${value}`);
+                const label = statLabelByKey[key] ?? key;
+                // Use first-character abbreviation for labels 3+ chars to fit in slot
+                const shortLabel = label.length >= 3 ? label[0] : label;
+                const signed = value > 0 ? `+${value}` : String(value);
+                statParts.push(`${shortLabel}${signed}`);
               }
             }
 
             const statSpan = document.createElement('span');
-            statSpan.className = 'maker-gem-slot-grade';
-            statSpan.textContent = statParts.join(', ') || '적용됨';
+            statSpan.className = 'maker-gem-slot-grade maker-gem-slot-grade--compact';
+            statSpan.textContent = statParts.join(' ') || '적용됨';
 
             box.append(img, nameSpan, statSpan);
           } else {
