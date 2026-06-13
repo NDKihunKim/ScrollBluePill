@@ -10,6 +10,7 @@ const koreanNameRegion = 'KMS';
 const koreanNameVersion = '284';
 const baseUrl = 'https://maplestory.io';
 const overridesPath = resolve('data/item-overrides.ko.json');
+const kmsSupplementPath = resolve('data/items-kms-supplement.json');
 const detailConcurrency = 16;
 const upsertBatchSize = 500;
 
@@ -102,7 +103,9 @@ async function fetchSupabase(url, options = {}) {
         throw new Error(`Supabase API error ${response.status} on ${url}: ${body}`);
     }
 
-    return response.json();
+    const text = await response.text().catch(() => '');
+    if (!text.trim()) return [];
+    return JSON.parse(text);
 }
 
 async function fetchEquipItems(itemRegion, itemVersion) {
@@ -254,6 +257,10 @@ async function upsertItemDefinitions(rows) {
 
 async function main() {
     const overrides = JSON.parse(await readFile(overridesPath, 'utf8'));
+    const kmsSupplement = JSON.parse(await readFile(kmsSupplementPath, 'utf8'));
+    const kmsSupplementById = new Map(
+        (kmsSupplement.items ?? []).map((item) => [item.id, item]),
+    );
 
     // 1. Fetch items from maplestory.io
     console.log('Fetching equip items from maplestory.io...');
@@ -278,7 +285,7 @@ async function main() {
     }
 
     // 4. Build rows — merge API data with overrides
-    const rows = items.map((item) => {
+    let rows = items.map((item) => {
         const override = overrides[String(item.id)] ?? {};
         const detail = detailById.get(item.id) ?? {};
         const metaInfo = detail.metaInfo ?? {};
@@ -304,6 +311,33 @@ async function main() {
             source_note: `Seeded from maplestory.io ${region}/${version}`,
         };
     });
+
+    // 4b. Merge KMS supplement items — replace rows for matching IDs, append new ones
+    const kmsSupplementRows = (kmsSupplement.items ?? []).map((item) => ({
+        id: item.id,
+        version_tag_id: null, // filled below
+        name_ko: item.nameKo,
+        name_en: item.nameEn ?? null,
+        equipment_kind: item.equipmentKind,
+        required_level: item.requiredLevel ?? 0,
+        required_jobs: item.requiredJobs ?? [],
+        requirements: item.requirements ?? {},
+        stats: item.stats ?? {},
+        aliases: item.aliases ?? [],
+        published_status: 'published',
+        source_note: 'KMS supplement — curated KMS data',
+    }));
+    if (kmsSupplementRows.length > 0) {
+        const kmsIds = new Set(kmsSupplementRows.map((r) => r.id));
+        const replaced = rows.filter((r) => kmsIds.has(r.id)).length;
+        rows = rows.filter((r) => !kmsIds.has(r.id));
+        rows.push(...kmsSupplementRows);
+        const appended = kmsSupplementRows.length - replaced;
+        console.log(
+            `Merged ${kmsSupplementRows.length} KMS supplement items ` +
+            `(${replaced} replaced, ${appended} appended).`,
+        );
+    }
 
     // 5. Resolve version tag (skip in dry-run)
     const isDryRun = process.env.SEED_DRY_RUN === '1';

@@ -15,7 +15,8 @@
     "audit:duplicate-items": "node scripts/audit-duplicate-items.mjs",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "seed:items": "node --env-file=.env scripts/seed-item-definitions.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

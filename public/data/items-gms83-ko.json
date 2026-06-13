@@ -7157,10 +7157,10 @@
       "str": 120
     },
     "stats": {
-      "str": 6,
       "dex": 6,
-      "weaponDefense": 75,
-      "upgradeSlots": 7
+      "str": 6,
+      "upgradeSlots": 7,
+      "weaponDefense": 75
     },
     "aliases": []
   },
@@ -7180,10 +7180,10 @@
       "str": 120
     },
     "stats": {
-      "str": 5,
       "dex": 5,
-      "weaponDefense": 75,
-      "upgradeSlots": 7
+      "str": 5,
+      "upgradeSlots": 7,
+      "weaponDefense": 75
     },
     "aliases": []
   },
@@ -7298,30 +7298,6 @@
     },
     "stats": {
       "weaponDefense": 3
-    },
-    "aliases": []
-  },
-  {
-    "id": 1002940,
-    "nameKo": "GMS 콘라드 헨켈2",
-    "nameEn": "GMS 콘라드 헨켈2",
-    "equipmentKind": "모자",
-    "requiredLevel": 120,
-    "requiredJobs": [
-      "Bowman"
-    ],
-    "requirements": {
-      "dex": 370,
-      "int": 0,
-      "luk": 0,
-      "str": 0
-    },
-    "stats": {
-      "dex": 7,
-      "str": 3,
-      "maxHp": 30,
-      "upgradeSlots": 7,
-      "weaponDefense": 75
     },
     "aliases": []
   },
