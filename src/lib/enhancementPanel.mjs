@@ -729,8 +729,22 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       }
     }
 
+    // Normalize stat priority within name-stem groups so same-named scrolls
+    // (e.g. 너클 명중률 주문서 100% and 너클 명중률 주문서 60%) stay together
+    // even when their secondary stats differ.
+    const stemBestPriority = new Map();
+    for (const s of nonChaos) {
+      const stem = stemName(s.nameKo);
+      const priority = getScrollStatPriority(s.stats);
+      const current = stemBestPriority.get(stem);
+      if (current === undefined || priority < current) {
+        stemBestPriority.set(stem, priority);
+      }
+    }
+    const sortPriority = (s) => stemBestPriority.get(stemName(s.nameKo)) ?? 99;
+
     nonChaos.sort((a, b) =>
-      getScrollStatPriority(a.stats) - getScrollStatPriority(b.stats) ||
+      sortPriority(a) - sortPriority(b) ||
       stemName(a.nameKo).localeCompare(stemName(b.nameKo), 'ko-KR') ||
       extractPercent(b.nameKo) - extractPercent(a.nameKo),
     );
