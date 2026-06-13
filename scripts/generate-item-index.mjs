@@ -252,15 +252,12 @@ async function main() {
         .map(transformSupabaseRow)
         .sort((a, b) => a.id - b.id);
 
-    // Validate visibility override IDs exist in the data
+    // Validate rename override IDs exist in the data (hidden items are now excluded by Supabase RLS)
     const seenIds = new Set(rawIndex.map((item) => String(item.id)));
-    const visibilityOverrideIds = [
-        ...(visibilityOverrides.hideItemIds ?? []).map((id) => String(id)),
-        ...Object.keys(visibilityOverrides.renameById ?? {}),
-    ];
-    const missingVisibilityOverrideIds = visibilityOverrideIds.filter((id) => !seenIds.has(id));
-    if (missingVisibilityOverrideIds.length > 0) {
-        throw new Error(`Visibility override item ids are missing from Supabase data: ${missingVisibilityOverrideIds.join(', ')}`);
+    const renameOverrideIds = Object.keys(visibilityOverrides.renameById ?? {});
+    const missingRenameIds = renameOverrideIds.filter((id) => !seenIds.has(id));
+    if (missingRenameIds.length > 0) {
+        throw new Error(`Rename override item ids are missing from Supabase data: ${missingRenameIds.join(', ')}`);
     }
 
     // Apply visibility overrides (unchanged logic)
