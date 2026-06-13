@@ -391,6 +391,15 @@ export function initMakerPanel({
     makerGemSlots.append(box);
   };
 
+  const hasMakerContributions = () =>
+    enhancementState?.gemSlots?.some((s) => s !== null) ||
+    enhancementState?.stimulantSlot !== null;
+
+  const updateMakerToggleLabel = () => {
+    if (!(makerToggle instanceof HTMLElement)) return;
+    makerToggle.textContent = hasMakerContributions() ? '메이커 ✓' : '메이커';
+  };
+
   const renderGemSlots = () => {
     if (!(makerGemSlots instanceof HTMLElement) || !enhancementState) return;
 
@@ -662,15 +671,6 @@ export function initMakerPanel({
         !(makerSection instanceof HTMLElement)) {
       return;
     }
-
-    const hasMakerContributions = () =>
-      enhancementState?.gemSlots?.some((s) => s !== null) ||
-      enhancementState?.stimulantSlot !== null;
-
-    const updateMakerToggleLabel = () => {
-      if (!(makerToggle instanceof HTMLElement)) return;
-      makerToggle.textContent = hasMakerContributions() ? '메이커 ✓' : '메이커';
-    };
 
     const disableMaker = () => {
       if (enhancementState) {
