@@ -305,26 +305,45 @@ function changeKey() {
 }
 
 // ── Init ──
-window.onload = function() {
+window.onload = async function() {
   const stored = getStoredKey();
   if (stored) {
     apiKey = stored;
     document.getElementById('key-input').value = stored;
     document.getElementById('key-overlay').classList.add('hidden');
-    init();
+    // Validate stored key before full fetch
+    const valid = await testKey(stored);
+    if (valid) {
+      await init();
+    } else {
+      setStoredKey(null);
+      document.getElementById('key-overlay').classList.remove('hidden');
+    }
   } else {
     document.getElementById('key-overlay').classList.remove('hidden');
   }
 };
+
+async function testKey(key) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/item_definitions?select=id&limit=1`, {
+      headers: { apikey: key, authorization: `Bearer ${key}` }
+    });
+    return res.ok;
+  } catch { return false; }
+}
 
 // ── Data Fetch ──
 async function fetchAllItems() {
   const rows = [];
   let offset = 0;
   const pageSize = 1000;
+  const maxPages = 20;
   const key = apiKey || SUPABASE_ANON_KEY;
+  let pageNum = 0;
 
-  while (true) {
+  while (pageNum < maxPages) {
+    pageNum++;
     const url = new URL('/rest/v1/item_definitions', SUPABASE_URL);
     url.searchParams.set('select', '*');
     url.searchParams.set('limit', String(pageSize));
@@ -338,6 +357,12 @@ async function fetchAllItems() {
     }
     const page = await res.json();
     rows.push(...page);
+
+    // Show progress — yield to browser so spinner animates
+    document.getElementById('tbody').innerHTML =
+      `<tr><td colspan="9" class="loading"><div class="spinner"></div><div>Loading page ${pageNum} — ${rows.length} items fetched...</div></td></tr>`;
+    await new Promise(r => setTimeout(r, 0));
+
     if (page.length < pageSize) break;
     offset += pageSize;
   }
