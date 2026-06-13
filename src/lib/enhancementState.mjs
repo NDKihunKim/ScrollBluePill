@@ -88,6 +88,23 @@ export function resetItemLevelUps(state) {
   }
 }
 
+export function computeItemLevelUpCardMeta(state, levelUpDefinition = null) {
+  const maxLevelUps = Number.isInteger(levelUpDefinition?.maxLevelUps)
+    ? levelUpDefinition.maxLevelUps
+    : 0;
+  if (!state || maxLevelUps <= 0) {
+    return null;
+  }
+
+  const filledCount = (state.itemLevelUpSlots ?? []).filter((slot) => slot !== null).length;
+  const isMax = filledCount >= maxLevelUps;
+
+  return {
+    itemLevel: isMax ? 'MAX' : String(filledCount + 1),
+    itemExp: isMax ? 'MAX' : '0 %',
+  };
+}
+
 export function applyGem(state, slotIndex, gemKey, gradeIndex) {
   if (slotIndex < 0 || slotIndex >= state.gemSlotCount) {
     return false;

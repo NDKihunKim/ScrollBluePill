@@ -68,11 +68,11 @@ function applyVisibilityOverrides(scrolls, overrides) {
 	const renameById = overrides.renameById ?? {};
 
 	const visible = scrolls
-		.filter((scroll) => !hiddenIds.has(scroll.id))
+		.filter((scroll) => !hiddenIds.has(scroll.maplestory_io_item_id))
 		.filter((scroll) => !hiddenCategories.has(scroll.category))
 		.filter((scroll) => !hiddenBehaviorTypes.has(scroll.behavior_type))
 		.map((scroll) => {
-			const rename = renameById[scroll.id];
+			const rename = renameById[scroll.maplestory_io_item_id];
 			if (!rename) {
 				return scroll;
 			}

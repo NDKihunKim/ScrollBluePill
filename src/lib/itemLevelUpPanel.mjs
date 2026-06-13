@@ -1,4 +1,4 @@
-import { applyItemLevelUp, clearItemLevelUpSlot, computeAccumulatedStats, computeStatBreakdown, computeAppliedScrollCount, computeRemainingSlots, computeGradeColor } from './enhancementState.mjs';
+import { applyItemLevelUp, clearItemLevelUpSlot, computeAccumulatedStats, computeStatBreakdown, computeItemLevelUpCardMeta, computeAppliedScrollCount, computeRemainingSlots, computeGradeColor } from './enhancementState.mjs';
 import { statLabelByKey } from './makerData.mjs';
 import { HP_MP_KEYS } from './enhancementState.mjs';
 
@@ -46,7 +46,8 @@ export function initItemLevelUpPanel({
 		const remaining = computeRemainingSlots(enhancementState);
 		const appliedCount = computeAppliedScrollCount(enhancementState);
 		const gradeColor = computeGradeColor(enhancementState);
-		renderEnhancedItemCard(selectedBaseItem, accumulatedStats, remaining, appliedCount, gradeColor, statBreakdown);
+		const itemLevelUpMeta = computeItemLevelUpCardMeta(enhancementState, definition);
+		renderEnhancedItemCard(selectedBaseItem, accumulatedStats, remaining, appliedCount, gradeColor, statBreakdown, itemLevelUpMeta);
 	};
 
 	const findNextEmptySlotIndex = () => {

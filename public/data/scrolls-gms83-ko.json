@@ -1825,10 +1825,10 @@
     "maxApplications": null
   },
   {
-    "id": 2044908,
-    "nameKo": "총 공격력 주문서 100%",
+    "id": 2044901,
+    "nameKo": "총 공격력 주문서 60%",
     "equipmentKind": "총",
-    "behavior_type": "fixed",
+    "behavior_type": "random",
     "stats": {
       "accuracy": 1,
       "weaponAttack": 2
@@ -1837,13 +1837,14 @@
     "maxApplications": null
   },
   {
-    "id": 2044901,
-    "nameKo": "총 공격력 주문서 60%",
+    "id": 2044902,
+    "nameKo": "총 공격력 주문서 10%",
     "equipmentKind": "총",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
-      "accuracy": 1,
-      "weaponAttack": 2
+      "dex": 1,
+      "accuracy": 3,
+      "weaponAttack": 5
     },
     "targetItemId": null,
     "maxApplications": null

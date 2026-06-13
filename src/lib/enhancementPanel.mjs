@@ -1,5 +1,5 @@
 import { formatScrollStatLine, statLabelByKey, clearSlot } from './scrollState.mjs';
-import { createEnhancementState, applyScroll, revertToSlot, resetState, computeAccumulatedStats, computeStatBreakdown, computeAppliedScrollCount, computeRemainingSlots, computeGradeColor, HP_MP_KEYS } from './enhancementState.mjs';
+import { createEnhancementState, applyScroll, revertToSlot, resetState, computeAccumulatedStats, computeStatBreakdown, computeItemLevelUpCardMeta, computeAppliedScrollCount, computeRemainingSlots, computeGradeColor, HP_MP_KEYS } from './enhancementState.mjs';
 import { initMakerPanel } from './makerPanel.mjs';
 import { initItemLevelUpPanel } from './itemLevelUpPanel.mjs';
 import { buildItemIconUrl } from './maplestoryIo.mjs';
@@ -13,8 +13,9 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   const scrollDetailPopup = enhancementPanel?.querySelector('[data-scroll-detail-popup]');
   const scrollDetailName = enhancementPanel?.querySelector('[data-scroll-detail-name]');
   const scrollDetailStat = enhancementPanel?.querySelector('[data-scroll-detail-stat]');
-  const resetButton = enhancementPanel?.querySelector('[data-enhancement-reset]');
+  const resetButton = document.querySelector('[data-enhancement-reset]');
   const scrollList = enhancementPanel?.querySelector('[data-scroll-list]');
+  const scrollStatFilters = enhancementPanel?.querySelector('[data-scroll-stat-filters]');
   const enhancementMessage = enhancementPanel?.querySelector('[data-enhancement-message]');
   const makerSection = enhancementPanel?.querySelector('[data-maker-section]');
   const makerToggle = enhancementPanel?.querySelector('[data-maker-toggle]');
@@ -57,9 +58,28 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   let itemLevelUpByItemId = new Map();
   let enhancementState = null;
   let selectedBaseItem = null;
+  let selectedItemLevelUpDefinition = null;
+  let activeScrollStatFilter = 'all';
 
   // Internal keys that are item metadata, not stats chaos can modify
   const NON_STAT_KEYS = new Set(['upgradeSlots', 'attackSpeed']);
+  const ITEM_LEVEL_UP_KINDS = new Set(['reverse', 'timeless']);
+  const STAT_KEY_RANK = {
+    weaponAttack: 0,
+    magicAttack: 1,
+    str: 2,
+    dex: 3,
+    int: 4,
+    luk: 5,
+    maxHp: 6,
+    maxMp: 7,
+    weaponDefense: 8,
+    magicDefense: 9,
+    accuracy: 10,
+    avoidability: 11,
+    speed: 12,
+    jump: 13,
+  };
 
   // Chaos scroll state
   let chaosStepperValues = new Map();   // statKey → number (-5..5)
@@ -76,6 +96,9 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     enhancementPanel.hidden = false;
     enhancementDormant.hidden = false;
     enhancementActive.hidden = true;
+    if (resetButton instanceof HTMLElement) {
+      resetButton.hidden = true;
+    }
   };
 
   const showEnhancementError = (message) => {
@@ -93,7 +116,13 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       enhancementMessage.textContent = message;
       enhancementMessage.hidden = false;
     }
+    if (resetButton instanceof HTMLElement) {
+      resetButton.hidden = true;
+    }
   };
+
+  const supportsItemLevelUp = (levelUpDefinition) =>
+    ITEM_LEVEL_UP_KINDS.has(levelUpDefinition?.levelUpKind);
 
   const renderSlotRow = () => {
     if (!(slotCheckpointRow instanceof HTMLElement) || !enhancementState) {
@@ -217,6 +246,48 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       .filter((key) => !NON_STAT_KEYS.has(key))
       .filter((key) => Number.isFinite(accumulatedStats[key]))
       .filter((key) => accumulatedStats[key] > 0);
+  };
+
+  const getPositiveScrollStatKeys = (scroll) =>
+    Object.keys(scroll?.stats ?? {})
+      .filter((key) => Number.isFinite(scroll.stats[key]))
+      .filter((key) => scroll.stats[key] > 0);
+
+  const getStatPriority = (key) => STAT_KEY_RANK[key] ?? 99;
+
+  const renderScrollStatFilters = (available) => {
+    if (!(scrollStatFilters instanceof HTMLElement)) {
+      return;
+    }
+
+    scrollStatFilters.replaceChildren();
+
+    const visibleStatKeys = [...new Set(
+      available.flatMap((scroll) => getPositiveScrollStatKeys(scroll)),
+    )].sort((a, b) => getStatPriority(a) - getStatPriority(b) || a.localeCompare(b, 'ko-KR'));
+
+    const filterKeys = ['all', ...visibleStatKeys];
+    if (activeScrollStatFilter !== 'all' && !visibleStatKeys.includes(activeScrollStatFilter)) {
+      activeScrollStatFilter = 'all';
+    }
+
+    filterKeys.forEach((key) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'scroll-stat-filter';
+      button.dataset.scrollStatFilter = key;
+      button.textContent = key === 'all' ? '전체' : (statLabelByKey[key] ?? key);
+      button.setAttribute('aria-pressed', String(activeScrollStatFilter === key));
+      if (activeScrollStatFilter === key) {
+        button.classList.add('scroll-stat-filter--active');
+      }
+      button.addEventListener('click', () => {
+        activeScrollStatFilter = button.dataset.scrollStatFilter;
+        collapseChaosPanel();
+        renderScrollList(selectedBaseItem);
+      });
+      scrollStatFilters.append(button);
+    });
   };
 
   const collapseChaosPanel = () => {
@@ -424,6 +495,15 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       return applied < scroll.maxApplications;
     });
 
+    renderScrollStatFilters(available);
+
+    const visible = activeScrollStatFilter === 'all'
+      ? available
+      : available.filter((scroll) => {
+        const scrollStats = new Set(getPositiveScrollStatKeys(scroll));
+        return scrollStats.has(activeScrollStatFilter);
+      });
+
     if (available.length === 0) {
       enhancementMessage.textContent = '이 장비 종류에 해당하는 주문서가 없습니다';
       enhancementMessage.hidden = false;
@@ -432,7 +512,13 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
 
     scrollList.hidden = false;
 
-    available.forEach((scroll) => {
+    if (visible.length === 0) {
+      enhancementMessage.textContent = '선택한 스탯에 해당하는 주문서가 없습니다';
+      enhancementMessage.hidden = false;
+      return;
+    }
+
+    visible.forEach((scroll) => {
       const isChaos = scroll.behavior_type === 'chaos';
       // Use <div> for chaos scrolls — <button> is a replaced element and
       // its box won't expand to contain grid children (the input panel).
@@ -540,8 +626,9 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     const remaining = computeRemainingSlots(enhancementState);
     const appliedCount = computeAppliedScrollCount(enhancementState);
     const gradeColor = computeGradeColor(enhancementState);
+    const itemLevelUpMeta = computeItemLevelUpCardMeta(enhancementState, selectedItemLevelUpDefinition);
 
-    renderEnhancedItemCard(selectedBaseItem, accumulatedStats, remaining, appliedCount, gradeColor, statBreakdown);
+    renderEnhancedItemCard(selectedBaseItem, accumulatedStats, remaining, appliedCount, gradeColor, statBreakdown, itemLevelUpMeta);
   };
 
   const activatePanel2 = (item) => {
@@ -565,19 +652,28 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       }
       makerPanel.deactivate();
       itemLevelUpPanel.deactivate();
+      if (resetButton instanceof HTMLElement) {
+        resetButton.hidden = true;
+      }
       return;
     }
 
-    const itemLevelUpDefinition = itemLevelUpByItemId.get(item.id) ?? null;
+    const levelUpDefinition = itemLevelUpByItemId.get(item.id) ?? null;
+    const itemLevelUpDefinition = supportsItemLevelUp(levelUpDefinition) ? levelUpDefinition : null;
     selectedBaseItem = item;
+    selectedItemLevelUpDefinition = itemLevelUpDefinition;
     enhancementState = createEnhancementState(upgradeSlots, item.requiredLevel ?? 0, itemLevelUpDefinition);
     collapseChaosPanel();
     chaosStepperValues = new Map();
+    activeScrollStatFilter = 'all';
 
     enhancementPanel.hidden = false;
     enhancementDormant.hidden = true;
     enhancementActive.hidden = false;
     enhancementEquipmentKind.textContent = item.equipmentKind;
+    if (resetButton instanceof HTMLElement) {
+      resetButton.hidden = false;
+    }
 
     hideScrollDetail();
     renderSlotRow();
@@ -604,16 +700,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   });
 
   const sortScrollList = (list) => {
-    const STAT_KEY_RANK = {
-      weaponAttack: 0,
-      magicAttack: 1,
-      str: 2,
-      dex: 3,
-      int: 4,
-      luk: 5,
-    };
-
-    const getStatPriority = (stats) => {
+    const getScrollStatPriority = (stats) => {
       const keys = Object.keys(stats ?? {});
       let best = 99;
       for (const key of keys) {
@@ -643,7 +730,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     }
 
     nonChaos.sort((a, b) =>
-      getStatPriority(a.stats) - getStatPriority(b.stats) ||
+      getScrollStatPriority(a.stats) - getScrollStatPriority(b.stats) ||
       stemName(a.nameKo).localeCompare(stemName(b.nameKo), 'ko-KR') ||
       extractPercent(b.nameKo) - extractPercent(a.nameKo),
     );

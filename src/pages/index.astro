@@ -209,12 +209,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 						<span data-scroll-detail-stat></span>
 					</div>
 
-					<button type="button" class="small-button secondary" data-enhancement-reset>
-						초기화
-					</button>
-
 					<div class="enhancement-scroll-section">
-						<p class="enhancement-section-label">주문서 목록</p>
+						<div class="scroll-list-heading" data-scroll-list-heading>
+							<p class="enhancement-section-label">주문서 목록</p>
+							<div class="scroll-stat-filters" data-scroll-stat-filters></div>
+						</div>
 						<div class="scroll-list" data-scroll-list>
 						</div>
 						<div class="enhancement-message" data-enhancement-message hidden></div>
@@ -265,6 +264,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 					<div class="selected-item-divider"></div>
 					<div class="selected-item-stats" data-selected-item-stats></div>
 				</div>
+				<button type="button" class="small-button secondary selected-item-reset" data-enhancement-reset hidden>
+					초기화
+				</button>
 			</aside>
 		</div>
 	</section>
@@ -331,6 +333,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	const jobClearAllButton = form?.querySelector('[data-job-clear-all]');
 	let itemIndex = [];
 	let itemById = new Map();
+	const ITEM_LEVEL_UP_META_UNCHANGED = Symbol('item-level-up-meta-unchanged');
+	let activeItemLevelUpCardMeta = null;
 
 	const syncJobButtons = () => {
 		jobInputs?.forEach((input) => {
@@ -446,9 +450,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 					return row;
 				};
 
-			const createItemLine = (label, value) => {
+	const createItemLine = (label, value, className = '') => {
 		const row = document.createElement('div');
-		row.className = 'selected-item-line';
+		row.className = `selected-item-line ${className}`.trim();
 
 		const labelElement = document.createElement('span');
 		labelElement.textContent = label;
@@ -458,6 +462,15 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 		row.append(labelElement, document.createTextNode(' : '), valueElement);
 		return row;
+	};
+
+	const appendItemLevelUpCardMeta = (meta) => {
+		if (!(selectedItemRequirements instanceof HTMLElement) || !meta) {
+			return;
+		}
+
+		selectedItemRequirements.append(createItemLine('ITEM LEV', meta.itemLevel, 'selected-item-line--item-level'));
+		selectedItemRequirements.append(createItemLine('ITEM EXP', meta.itemExp, 'selected-item-line--item-level'));
 	};
 
 	const weaponAttackSpeedBySubCategory = {
@@ -548,6 +561,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		selectedItemIcon.src = buildItemIconUrl(item.id);
 		selectedItemRequirements.replaceChildren();
 		selectedItemStats.replaceChildren();
+		activeItemLevelUpCardMeta = null;
 		if (selectedItemJobs instanceof HTMLElement) {
 			selectedItemJobs.replaceChildren();
 			selectedItemJobs.append(formatRequiredJobs(item.requiredJobs));
@@ -558,7 +572,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 						key === 'requiredLevel'
 							? item.requiredLevel
 							: (item.requirements?.[key] ?? 0);
-			selectedItemRequirements.append(createItemLine(label, value));
+			selectedItemRequirements.append(createItemLine(label, value, 'selected-item-line--requirement'));
 		});
 
 		const baseStatBreakdown = computeStatBreakdown(item.stats, {
@@ -675,7 +689,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			}
 		};
 
-		const renderEnhancedItemCard = (item, accumulatedStats, remainingSlots, appliedCount, gradeColor, statBreakdown = {}) => {
+		const renderEnhancedItemCard = (item, accumulatedStats, remainingSlots, appliedCount, gradeColor, statBreakdown = {}, itemLevelUpMeta = ITEM_LEVEL_UP_META_UNCHANGED) => {
 		if (
 			!(selectedItemCard instanceof HTMLElement) ||
 			!(selectedItemName instanceof HTMLElement) ||
@@ -692,6 +706,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		selectedItemIcon.src = buildItemIconUrl(item.id);
 		selectedItemRequirements.replaceChildren();
 		selectedItemStats.replaceChildren();
+		if (itemLevelUpMeta !== ITEM_LEVEL_UP_META_UNCHANGED) {
+			activeItemLevelUpCardMeta = itemLevelUpMeta;
+		}
 		if (selectedItemJobs instanceof HTMLElement) {
 			selectedItemJobs.replaceChildren();
 			selectedItemJobs.append(formatRequiredJobs(item.requiredJobs));
@@ -703,8 +720,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 					? item.requiredLevel
 					: (item.requirements?.[key] ?? 0);
 			const value = key === 'pop' && rawValue === 0 ? '-' : rawValue;
-			selectedItemRequirements.append(createItemLine(label, value));
+			selectedItemRequirements.append(createItemLine(label, value, 'selected-item-line--requirement'));
 		});
+		appendItemLevelUpCardMeta(activeItemLevelUpCardMeta);
 
 		statRows.forEach(([label, key]) => {
 			if (key === 'upgradeSlots') {
@@ -1430,12 +1448,28 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		line-height: 1.25;
 	}
 
+	.selected-item-requirements {
+		gap: 0;
+	}
+
 	.selected-item-stats {
+		gap: 2px;
 		justify-items: center;
 		font-size: 0.94rem;
 	}
 
-	.selected-item-line strong {
+	:global(.selected-item-line--requirement) {
+		height: 16px;
+		line-height: 16px;
+	}
+
+	:global(.selected-item-line--item-level) {
+		min-height: 16px;
+		line-height: 16px;
+		color: #c28b39;
+	}
+
+	:global(.selected-item-line strong) {
 		font-weight: 500;
 	}
 
@@ -1497,6 +1531,45 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		color: var(--ink);
 		padding: 5px 8px;
 		font-size: 0.82rem;
+	}
+
+	.selected-item-reset {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		margin-top: 10px;
+		border-color: rgb(231 76 60 / 45%);
+		border-radius: 7px;
+		color: #c84a3f;
+		font-weight: 700;
+		cursor: pointer;
+		transition:
+			transform 140ms ease,
+			border-color 140ms ease,
+			background 140ms ease,
+			color 140ms ease;
+	}
+
+	.selected-item-reset:hover {
+		border-color: #e74c3c;
+		background: rgb(231 76 60 / 10%);
+		color: #e74c3c;
+		transform: translateY(-1px);
+	}
+
+	.selected-item-reset:active {
+		transform: translateY(0);
+	}
+
+	.selected-item-reset:focus-visible {
+		border-color: #e74c3c;
+		outline: 2px solid #e74c3c;
+		outline-offset: 2px;
+	}
+
+	.selected-item-reset[hidden] {
+		display: none;
 	}
 
 	.segment.active,
@@ -1793,6 +1866,44 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		font-weight: 700;
 	}
 
+	.scroll-list-heading {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+		margin-bottom: 6px;
+	}
+
+	.scroll-list-heading .enhancement-section-label {
+		margin-bottom: 0;
+		flex-shrink: 0;
+	}
+
+	:global(.scroll-stat-filters) {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+		gap: 5px;
+	}
+
+	:global(.scroll-stat-filter) {
+		min-height: 26px;
+		padding: 3px 8px;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		background: var(--surface);
+		color: var(--ink);
+		font-size: 0.76rem;
+		font-weight: 650;
+		cursor: pointer;
+	}
+
+	:global(.scroll-stat-filter--active) {
+		border-color: var(--green);
+		background: var(--green);
+		color: white;
+	}
+
 	:global(.scroll-list) {
 		display: flex;
 		flex-direction: column;
@@ -2000,6 +2111,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		font-weight: 600;
 		cursor: pointer;
 		transition: background 0.15s, border-color 0.15s;
+	}
+	:global(.maker-toggle-button[hidden]) {
+		display: none;
 	}
 	:global(.maker-toggle-button:disabled) {
 		opacity: 0.4;
@@ -2236,6 +2350,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 		:global(.item-level-up-slot--active) {
 			border-color: #5b9bd5;
+			border-style: solid;
 			background: rgba(91, 155, 213, 0.08);
 		}
 
