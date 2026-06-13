@@ -261,6 +261,9 @@ async function main() {
     const kmsSupplementById = new Map(
         (kmsSupplement.items ?? []).map((item) => [item.id, item]),
     );
+    const visibilityOverrides = JSON.parse(await readFile(resolve('data/item-visibility-overrides.json'), 'utf8'));
+    const hiddenItemIds = new Set(visibilityOverrides.hideItemIds ?? []);
+    const hiddenEquipmentKinds = new Set(visibilityOverrides.hideEquipmentKinds ?? []);
 
     // 1. Fetch items from maplestory.io
     console.log('Fetching equip items from maplestory.io...');
@@ -296,6 +299,7 @@ async function main() {
         const generatedRequirements = mapRequirements(item, metaInfo);
         const generatedStats = mapStats(metaInfo, subCategory);
 
+        const isHidden = hiddenItemIds.has(item.id) || hiddenEquipmentKinds.has(equipmentKind);
         return {
             id: item.id,
             version_tag_id: null, // filled below
@@ -307,26 +311,33 @@ async function main() {
             requirements: { ...generatedRequirements, ...(override.requirements ?? {}) },
             stats: { ...generatedStats, ...(override.stats ?? {}) },
             aliases: override.aliases ?? [],
-            published_status: 'published',
-            source_note: `Seeded from maplestory.io ${region}/${version}`,
+            published_status: isHidden ? 'hidden' : 'published',
+            source_note: isHidden
+                ? `Seeded from maplestory.io ${region}/${version} — hidden by visibility override`
+                : `Seeded from maplestory.io ${region}/${version}`,
         };
     });
 
     // 4b. Merge KMS supplement items — replace rows for matching IDs, append new ones
-    const kmsSupplementRows = (kmsSupplement.items ?? []).map((item) => ({
-        id: item.id,
-        version_tag_id: null, // filled below
-        name_ko: item.nameKo,
-        name_en: item.nameEn ?? null,
-        equipment_kind: item.equipmentKind,
-        required_level: item.requiredLevel ?? 0,
-        required_jobs: item.requiredJobs ?? [],
-        requirements: item.requirements ?? {},
-        stats: item.stats ?? {},
-        aliases: item.aliases ?? [],
-        published_status: 'published',
-        source_note: 'KMS supplement — curated KMS data',
-    }));
+    const kmsSupplementRows = (kmsSupplement.items ?? []).map((item) => {
+        const isHidden = hiddenItemIds.has(item.id) || hiddenEquipmentKinds.has(item.equipmentKind);
+        return {
+            id: item.id,
+            version_tag_id: null,
+            name_ko: item.nameKo,
+            name_en: item.nameEn ?? null,
+            equipment_kind: item.equipmentKind,
+            required_level: item.requiredLevel ?? 0,
+            required_jobs: item.requiredJobs ?? [],
+            requirements: item.requirements ?? {},
+            stats: item.stats ?? {},
+            aliases: item.aliases ?? [],
+            published_status: isHidden ? 'hidden' : 'published',
+            source_note: isHidden
+                ? 'KMS supplement — hidden by visibility override'
+                : 'KMS supplement — curated KMS data',
+        };
+    });
     if (kmsSupplementRows.length > 0) {
         const kmsIds = new Set(kmsSupplementRows.map((r) => r.id));
         const replaced = rows.filter((r) => kmsIds.has(r.id)).length;
