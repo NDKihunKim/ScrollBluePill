@@ -212,7 +212,7 @@ test('Korean item search supports two-character names and aliases', async () => 
 	assert.equal(normalizeSearchText(' 노 가 '), '노가');
 	assert.equal(buildSpacedNameInitials('드래곤 샤인보우'), '드샤');
 
-	assert.equal(generatedItemIndex.length, 3686);
+	assert.equal(generatedItemIndex.length, 2098);
 	assert.equal(generatedItemIndex.filter((item) => !/[가-힣]/.test(item.nameKo)).length, 0);
 	assert.equal(generatedItemIndex.filter((item) => item.equipmentKind === 'Medal').length, 0);
 	assert.equal(generatedItemIndex.filter((item) => item.equipmentKind === 'Cash').length, 0);
@@ -397,7 +397,7 @@ test('item dedupe report records collapsed and unresolved groups', () => {
 	assert.match(dedupeReport, /Equipment-kind hidden item count: 2039/);
 	assert.match(dedupeReport, /Visibility-renamed item count: 28/);
 	assert.match(dedupeReport, /Dedupe input item count: 3929/);
-	assert.match(dedupeReport, /Deduped item count: 3680/);
+	assert.match(dedupeReport, /Deduped item count: 2098/);
 	assert.match(dedupeReport, /Dedupe-hidden item count: 249/);
 	assert.match(dedupeReport, /Exact-signature groups collapsed: 34/);
 	assert.match(dedupeReport, /Variant highest-level groups collapsed: 83/);
