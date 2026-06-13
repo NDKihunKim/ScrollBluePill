@@ -7142,6 +7142,52 @@
     "aliases": []
   },
   {
+    "id": 1002794,
+    "nameKo": "타임리스 콘라드헨켈",
+    "nameEn": "Timeless Conrad Henkel",
+    "equipmentKind": "모자",
+    "requiredLevel": 120,
+    "requiredJobs": [
+      "Pirate"
+    ],
+    "requirements": {
+      "dex": 120,
+      "int": 0,
+      "luk": 0,
+      "str": 120
+    },
+    "stats": {
+      "str": 6,
+      "dex": 6,
+      "weaponDefense": 75,
+      "upgradeSlots": 7
+    },
+    "aliases": []
+  },
+  {
+    "id": 1002795,
+    "nameKo": "리버스 콘라드헨켈",
+    "nameEn": "Reverse Conrad Henkel",
+    "equipmentKind": "모자",
+    "requiredLevel": 120,
+    "requiredJobs": [
+      "Pirate"
+    ],
+    "requirements": {
+      "dex": 120,
+      "int": 0,
+      "luk": 0,
+      "str": 120
+    },
+    "stats": {
+      "str": 5,
+      "dex": 5,
+      "weaponDefense": 75,
+      "upgradeSlots": 7
+    },
+    "aliases": []
+  },
+  {
     "id": 1002797,
     "nameKo": "요원 N의 일회용 리시버",
     "nameEn": "Agent N's Disposable Receiver",
@@ -18143,6 +18189,58 @@
       "magicDefense": 25,
       "upgradeSlots": 9,
       "weaponDefense": 50
+    },
+    "aliases": []
+  },
+  {
+    "id": 1052168,
+    "nameKo": "타임리스 미스트블루",
+    "nameEn": "Timeless Mistblue",
+    "equipmentKind": "한벌옷",
+    "requiredLevel": 120,
+    "requiredJobs": [
+      "Magician"
+    ],
+    "requirements": {
+      "dex": 0,
+      "int": 368,
+      "luk": 123,
+      "str": 0
+    },
+    "stats": {
+      "int": 9,
+      "luk": 4,
+      "maxMp": 50,
+      "avoidability": 2,
+      "magicDefense": 50,
+      "upgradeSlots": 10,
+      "weaponDefense": 100
+    },
+    "aliases": []
+  },
+  {
+    "id": 1052169,
+    "nameKo": "리버스 미스트블루",
+    "nameEn": "Reverse Mistblue",
+    "equipmentKind": "한벌옷",
+    "requiredLevel": 120,
+    "requiredJobs": [
+      "Magician"
+    ],
+    "requirements": {
+      "dex": 0,
+      "int": 368,
+      "luk": 123,
+      "str": 0
+    },
+    "stats": {
+      "int": 8,
+      "luk": 4,
+      "maxMp": 50,
+      "avoidability": 2,
+      "magicDefense": 50,
+      "upgradeSlots": 10,
+      "weaponDefense": 100
     },
     "aliases": []
   },
@@ -32022,6 +32120,56 @@
       "magicAttack": 2,
       "upgradeSlots": 5,
       "weaponAttack": 1
+    },
+    "aliases": []
+  },
+  {
+    "id": 1082255,
+    "nameKo": "타임리스 헤르모사",
+    "nameEn": "Timeless Hermosa",
+    "equipmentKind": "장갑",
+    "requiredLevel": 120,
+    "requiredJobs": [
+      "Magician"
+    ],
+    "requirements": {
+      "dex": 0,
+      "int": 368,
+      "luk": 123,
+      "str": 0
+    },
+    "stats": {
+      "int": 6,
+      "luk": 6,
+      "maxMp": 15,
+      "magicDefense": 17,
+      "upgradeSlots": 5,
+      "weaponDefense": 50
+    },
+    "aliases": []
+  },
+  {
+    "id": 1082256,
+    "nameKo": "리버스 헤르모사",
+    "nameEn": "Reverse Hermosa",
+    "equipmentKind": "장갑",
+    "requiredLevel": 120,
+    "requiredJobs": [
+      "Magician"
+    ],
+    "requirements": {
+      "dex": 0,
+      "int": 368,
+      "luk": 123,
+      "str": 0
+    },
+    "stats": {
+      "int": 5,
+      "luk": 6,
+      "maxMp": 15,
+      "magicDefense": 17,
+      "upgradeSlots": 5,
+      "weaponDefense": 50
     },
     "aliases": []
   },

@@ -212,7 +212,7 @@ test('Korean item search supports two-character names and aliases', async () => 
 	assert.equal(normalizeSearchText(' 노 가 '), '노가');
 	assert.equal(buildSpacedNameInitials('드래곤 샤인보우'), '드샤');
 
-	assert.equal(generatedItemIndex.length, 3680);
+	assert.equal(generatedItemIndex.length, 3686);
 	assert.equal(generatedItemIndex.filter((item) => !/[가-힣]/.test(item.nameKo)).length, 0);
 	assert.equal(generatedItemIndex.filter((item) => item.equipmentKind === 'Medal').length, 0);
 	assert.equal(generatedItemIndex.filter((item) => item.equipmentKind === 'Cash').length, 0);
