@@ -258,7 +258,6 @@ let showAll = true;
 
 function init() {
   document.getElementById('app').style.display = 'block';
-  document.getElementById('key-overlay').classList.add('hidden');
 
   if (!window.__ITEM_DATA__ || !Array.isArray(window.__ITEM_DATA__)) {
     document.getElementById('tbody').innerHTML = '<tr><td colspan="9" class="error-msg">No embedded data found. Run: npm run generate:item-review</td></tr>';
