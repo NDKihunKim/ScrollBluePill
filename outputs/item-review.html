@@ -751,7 +751,7 @@ async function verifyAndSaveKey() {
 }
 
 function ensureKey(callback) {
-  if (getEditKey()) { callback(); return; }
+  if (getEditKey()) return;
   requestKey(callback);
 }
 
