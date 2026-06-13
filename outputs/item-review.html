@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Item Review Dashboard — ScrollBluePill</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #fafaf8;
+  --surface: #fff;
+  --line: #e0e0dc;
+  --ink: #1a1a1a;
+  --muted: #888;
+  --green: #2e7d32;
+  --yellow: #f9a825;
+  --red: #c62828;
+  --blue: #1565c0;
+  --radius: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+body { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
+
+/* Overlay */
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+.overlay.hidden { display: none; }
+.overlay-box {
+  background: var(--surface); border-radius: 12px; padding: 32px;
+  max-width: 440px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+.overlay-box h2 { margin-bottom: 8px; font-size: 1.2rem; }
+.overlay-box p { color: var(--muted); margin-bottom: 16px; font-size: 0.9rem; }
+.overlay-box input {
+  width: 100%; padding: 10px 14px; border: 1px solid var(--line); border-radius: 6px;
+  font: inherit; font-size: 0.9rem;
+}
+.overlay-box button {
+  margin-top: 12px; padding: 10px 24px; border: none; border-radius: 6px;
+  background: var(--blue); color: #fff; font: inherit; font-weight: 600; cursor: pointer;
+}
+.overlay-box .error { color: var(--red); font-size: 0.85rem; margin-top: 8px; display: none; }
+
+/* Header */
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; flex-wrap: wrap; gap: 12px;
+}
+.header h1 { font-size: 1.4rem; }
+.header .key-btn {
+  padding: 6px 14px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--surface); cursor: pointer; font: inherit; font-size: 0.85rem;
+}
+
+/* Summary */
+.summary {
+  display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;
+}
+.summary-card {
+  padding: 12px 20px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); min-width: 100px;
+}
+.summary-card .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; }
+.summary-card .value { font-size: 1.4rem; font-weight: 700; }
+.summary-card.pub .value { color: var(--green); }
+.summary-card.draft .value { color: var(--yellow); }
+.summary-card.hidden-card .value { color: var(--red); }
+.summary-card.total .value { color: var(--ink); }
+
+/* Filters */
+.filters {
+  display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: flex-end;
+}
+.filters input, .filters select {
+  padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px;
+  font: inherit; font-size: 0.85rem; background: var(--surface);
+}
+.filters .search { min-width: 220px; }
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+.filter-group label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; font-weight: 600; }
+.filter-group .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  padding: 5px 12px; border: 1px solid var(--line); border-radius: 20px;
+  background: var(--surface); cursor: pointer; font-size: 0.82rem; user-select: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+.chip.on { background: var(--blue); color: #fff; border-color: var(--blue); }
+.level-inputs { display: flex; gap: 6px; align-items: center; }
+.level-inputs input { width: 64px; }
+
+/* Table */
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+thead { background: #f5f5f0; position: sticky; top: 0; z-index: 2; }
+th {
+  padding: 10px 12px; text-align: left; font-weight: 600; font-size: 0.78rem;
+  color: var(--muted); text-transform: uppercase; cursor: pointer; white-space: nowrap;
+  user-select: none; border-bottom: 1px solid var(--line);
+}
+th:hover { color: var(--ink); }
+th .sort-arrow { margin-left: 4px; font-size: 0.7rem; }
+td { padding: 8px 12px; border-bottom: 1px solid #f0f0ec; vertical-align: middle; }
+tr:hover { background: #fafaf6; }
+tr.expandable { cursor: pointer; }
+tr.detail-row { display: none; background: #fafaf6; }
+tr.detail-row.open { display: table-row; }
+tr.detail-row td { padding: 16px 24px; font-size: 0.82rem; }
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.detail-block h4 { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+.detail-block .stat { font-size: 0.82rem; font-family: monospace; }
+.icon-cell { width: 40px; text-align: center; }
+.icon-cell img { width: 32px; height: 32px; object-fit: contain; }
+.icon-cell .no-icon {
+  display: inline-flex; width: 32px; height: 32px; align-items: center; justify-content: center;
+  background: #f0f0ec; border-radius: 4px; color: var(--muted); font-size: 0.7rem;
+}
+
+.badge {
+  display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem;
+  font-weight: 600; white-space: nowrap;
+}
+.badge.pub { background: #e8f5e9; color: var(--green); }
+.badge.draft { background: #fff8e1; color: #f57f17; }
+.badge.hidden { background: #ffebee; color: var(--red); }
+
+.stats-tags { display: flex; gap: 3px; flex-wrap: wrap; max-width: 240px; }
+.stat-tag {
+  padding: 1px 6px; background: #f0f0ec; border-radius: 4px;
+  font-size: 0.72rem; font-family: monospace; white-space: nowrap;
+}
+
+/* Footer */
+.footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 16px; font-size: 0.85rem; color: var(--muted); flex-wrap: wrap; gap: 8px;
+}
+.footer button {
+  padding: 8px 18px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--surface); cursor: pointer; font: inherit; font-size: 0.85rem;
+}
+
+/* Loading */
+.loading { text-align: center; padding: 60px 0; color: var(--muted); }
+.loading .spinner {
+  display: inline-block; width: 32px; height: 32px; border: 3px solid var(--line);
+  border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite;
+  margin-bottom: 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-msg { color: var(--red); text-align: center; padding: 20px; }
+</style>
+</head>
+<body>
+
+<!-- API Key Overlay -->
+<div class="overlay" id="key-overlay">
+  <div class="overlay-box">
+    <h2>Supabase Service Role Key</h2>
+    <p>Enter your service role key to fetch all items including hidden ones. The key is stored only in your browser's localStorage.</p>
+    <input type="password" id="key-input" placeholder="eyJhbGciOiJIUzI1NiIs...">
+    <button onclick="saveKey()">Connect</button>
+    <p class="error" id="key-error">Invalid key — could not reach Supabase. Check and try again.</p>
+    <p style="margin-top:12px;font-size:0.78rem;color:var(--muted)">
+      Your anon key is pre-filled for published-only mode.
+      <br><a href="#" onclick="useAnonKey();return false" style="color:var(--blue)">Use anon key (published only)</a>
+    </p>
+  </div>
+</div>
+
+<div id="app" style="display:none">
+  <!-- Header -->
+  <div class="header">
+    <h1>Item Review Dashboard</h1>
+    <button class="key-btn" onclick="changeKey()" id="key-label">🔑 Change Key</button>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary" id="summary"></div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <input class="search" type="text" id="filter-text" placeholder="Search name or ID..." oninput="renderTable()">
+    <div class="filter-group">
+      <label>Equipment Kind</label>
+      <select id="filter-kind" onchange="renderTable()"><option value="">All</option></select>
+    </div>
+    <div class="filter-group">
+      <label>Job</label>
+      <div class="chips" id="filter-jobs"></div>
+    </div>
+    <div class="filter-group">
+      <label>Status</label>
+      <div class="chips" id="filter-status"></div>
+    </div>
+    <div class="filter-group">
+      <label>Level</label>
+      <div class="level-inputs">
+        <input type="number" id="filter-lvmin" placeholder="Min" onchange="renderTable()">
+        <span style="color:var(--muted)">–</span>
+        <input type="number" id="filter-lvmax" placeholder="Max" onchange="renderTable()">
+      </div>
+    </div>
+    <div class="filter-group">
+      <label>Korean Name</label>
+      <div class="chips" id="filter-korean"></div>
+    </div>
+    <div class="filter-group">
+      <label>Has Stats</label>
+      <div class="chips" id="filter-stats"></div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="icon-cell"></th>
+          <th onclick="sortBy('id')">ID <span class="sort-arrow"></span></th>
+          <th onclick="sortBy('nameKo')">Name KO <span class="sort-arrow"></span></th>
+          <th onclick="sortBy('nameEn')">Name EN <span class="sort-arrow"></span></th>
+          <th onclick="sortBy('equipmentKind')">Kind <span class="sort-arrow"></span></th>
+          <th onclick="sortBy('requiredLevel')">Lv <span class="sort-arrow"></span></th>
+          <th>Jobs</th>
+          <th>Stats</th>
+          <th onclick="sortBy('publishedStatus')">Status <span class="sort-arrow"></span></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span id="showing">Loading...</span>
+    <button onclick="exportCSV()">Export CSV</button>
+  </div>
+</div>
+
+<script>
+// ── Config ──
+const SUPABASE_URL = 'https://ruiyundsvqflqtcltkbv.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1aXl1bmRzdnFmbHF0Y2x0a2J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNjMzMTMsImV4cCI6MjA5NjYzOTMxM30._DNUJjM6sheyFdL7FrwKagH1MJYIbC65uYJlWaFVeJ8';
+const MAPLESTORY_IO_BASE = 'https://maplestory.io';
+
+const ICON_OVERRIDES = {
+  1002795: 1002794, 1052168: 1052156, 1052169: 1052156,
+  1082255: 1082240, 1082256: 1082240,
+};
+
+const JOB_COLORS = { Warrior: '#c62828', Magician: '#1565c0', Bowman: '#2e7d32', Thief: '#6a1b9a', Pirate: '#e65100' };
+const JOB_LABELS = { Warrior: '전사', Magician: '마법사', Bowman: '궁수', Thief: '도적', Pirate: '해적', Beginner: '초보자' };
+
+// ── State ──
+let allItems = [];
+let filteredItems = [];
+let sortCol = 'id';
+let sortDir = 1;
+let apiKey = null;
+let jobFilters = new Set(['Warrior','Magician','Bowman','Thief','Pirate']);
+let statusFilters = new Set(['published','draft','hidden']);
+let koreanFilter = 'all';
+let statsFilter = 'all';
+
+// ── Auth ──
+function getStoredKey() {
+  try { return localStorage.getItem('supabase_service_role_key'); } catch { return null; }
+}
+function setStoredKey(k) {
+  try { localStorage.setItem('supabase_service_role_key', k); } catch {}
+}
+
+function useAnonKey() {
+  document.getElementById('key-input').value = SUPABASE_ANON_KEY;
+}
+
+async function saveKey() {
+  const key = document.getElementById('key-input').value.trim();
+  if (!key) return;
+  const errEl = document.getElementById('key-error');
+  errEl.style.display = 'none';
+  // Test the key
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/item_definitions?select=id&limit=1`, {
+      headers: { apikey: key, authorization: `Bearer ${key}` }
+    });
+    if (!res.ok) throw new Error('bad key');
+    setStoredKey(key);
+    apiKey = key;
+    document.getElementById('key-overlay').classList.add('hidden');
+    await init();
+  } catch {
+    errEl.style.display = 'block';
+  }
+}
+
+function changeKey() {
+  document.getElementById('key-input').value = apiKey || '';
+  document.getElementById('key-overlay').classList.remove('hidden');
+  document.getElementById('key-error').style.display = 'none';
+}
+
+// ── Init ──
+window.onload = function() {
+  const stored = getStoredKey();
+  if (stored) {
+    apiKey = stored;
+    document.getElementById('key-input').value = stored;
+    document.getElementById('key-overlay').classList.add('hidden');
+    init();
+  } else {
+    document.getElementById('key-overlay').classList.remove('hidden');
+  }
+};
+
+// ── Data Fetch ──
+async function fetchAllItems() {
+  const rows = [];
+  let offset = 0;
+  const pageSize = 1000;
+  const key = apiKey || SUPABASE_ANON_KEY;
+
+  while (true) {
+    const url = new URL('/rest/v1/item_definitions', SUPABASE_URL);
+    url.searchParams.set('select', '*');
+    url.searchParams.set('limit', String(pageSize));
+    url.searchParams.set('offset', String(offset));
+    const res = await fetch(url, {
+      headers: { apikey: key, authorization: `Bearer ${key}` }
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new Error(`Supabase error ${res.status}: ${body}`);
+    }
+    const page = await res.json();
+    rows.push(...page);
+    if (page.length < pageSize) break;
+    offset += pageSize;
+  }
+  return rows.map(r => ({
+    id: r.id,
+    nameKo: r.name_ko,
+    nameEn: r.name_en,
+    equipmentKind: r.equipment_kind,
+    requiredLevel: r.required_level,
+    requiredJobs: r.required_jobs ?? [],
+    requirements: r.requirements ?? {},
+    stats: r.stats ?? {},
+    aliases: r.aliases ?? [],
+    publishedStatus: r.published_status,
+    sourceNote: r.source_note,
+  }));
+}
+
+async function init() {
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('tbody').innerHTML = '<tr><td colspan="9" class="loading"><div class="spinner"></div><div>Fetching items from Supabase...</div></td></tr>';
+
+  try {
+    allItems = await fetchAllItems();
+  } catch (e) {
+    document.getElementById('tbody').innerHTML = `<tr><td colspan="9" class="error-msg">Failed to load: ${e.message}<br><br><button onclick="changeKey()">Try different key</button></td></tr>`;
+    return;
+  }
+
+  buildKindSelect();
+  buildJobChips();
+  buildStatusChips();
+  buildToggles();
+  renderSummary();
+  renderTable();
+}
+
+// ── UI Builders ──
+function buildKindSelect() {
+  const kinds = [...new Set(allItems.map(i => i.equipmentKind))].sort();
+  const sel = document.getElementById('filter-kind');
+  kinds.forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k; opt.textContent = k;
+    sel.appendChild(opt);
+  });
+}
+
+function buildJobChips() {
+  const container = document.getElementById('filter-jobs');
+  ['Warrior','Magician','Bowman','Thief','Pirate','Beginner'].forEach(job => {
+    const chip = document.createElement('span');
+    chip.className = 'chip on';
+    chip.textContent = JOB_LABELS[job] || job;
+    chip.onclick = () => {
+      if (jobFilters.has(job)) jobFilters.delete(job); else jobFilters.add(job);
+      chip.classList.toggle('on');
+      renderTable();
+    };
+    container.appendChild(chip);
+  });
+}
+
+function buildStatusChips() {
+  const container = document.getElementById('filter-status');
+  [{v:'published',l:'Published'},{v:'draft',l:'Draft'},{v:'hidden',l:'Hidden'}].forEach(s => {
+    const chip = document.createElement('span');
+    chip.className = 'chip on';
+    chip.textContent = s.l;
+    chip.onclick = () => {
+      if (statusFilters.has(s.v)) statusFilters.delete(s.v); else statusFilters.add(s.v);
+      chip.classList.toggle('on');
+      renderTable();
+    };
+    container.appendChild(chip);
+  });
+}
+
+function buildToggles() {
+  // Korean name filter
+  const kc = document.getElementById('filter-korean');
+  [{v:'all',l:'All'},{v:'yes',l:'Has'},{v:'no',l:'Missing'}].forEach(o => {
+    const chip = document.createElement('span');
+    chip.className = 'chip' + (o.v === 'all' ? ' on' : '');
+    chip.textContent = o.l;
+    chip.onclick = () => {
+      koreanFilter = o.v;
+      kc.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+      chip.classList.add('on');
+      renderTable();
+    };
+    kc.appendChild(chip);
+  });
+  // Stats filter
+  const sc = document.getElementById('filter-stats');
+  [{v:'all',l:'All'},{v:'yes',l:'Has'},{v:'no',l:'None'}].forEach(o => {
+    const chip = document.createElement('span');
+    chip.className = 'chip' + (o.v === 'all' ? ' on' : '');
+    chip.textContent = o.l;
+    chip.onclick = () => {
+      statsFilter = o.v;
+      sc.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+      chip.classList.add('on');
+      renderTable();
+    };
+    sc.appendChild(chip);
+  });
+}
+
+// ── Render ──
+function renderSummary() {
+  const pub = allItems.filter(i => i.publishedStatus === 'published').length;
+  const draft = allItems.filter(i => i.publishedStatus === 'draft').length;
+  const hidden = allItems.filter(i => i.publishedStatus === 'hidden').length;
+  const noKorean = allItems.filter(i => !/[가-힣]/.test(i.nameKo)).length;
+  const noStats = allItems.filter(i => Object.keys(i.stats).length === 0).length;
+  document.getElementById('summary').innerHTML = `
+    <div class="summary-card total"><div class="label">Total</div><div class="value">${allItems.length}</div></div>
+    <div class="summary-card pub"><div class="label">Published</div><div class="value">${pub}</div></div>
+    <div class="summary-card draft"><div class="label">Draft</div><div class="value">${draft}</div></div>
+    <div class="summary-card hidden-card"><div class="label">Hidden</div><div class="value">${hidden}</div></div>
+    <div class="summary-card"><div class="label">No Korean</div><div class="value">${noKorean}</div></div>
+    <div class="summary-card"><div class="label">No Stats</div><div class="value">${noStats}</div></div>
+  `;
+}
+
+function filterItems() {
+  const text = (document.getElementById('filter-text').value || '').toLowerCase();
+  const kind = document.getElementById('filter-kind').value;
+  const lvmin = parseInt(document.getElementById('filter-lvmin').value) || 0;
+  const lvmax = parseInt(document.getElementById('filter-lvmax').value) || 999;
+
+  filteredItems = allItems.filter(i => {
+    if (!statusFilters.has(i.publishedStatus)) return false;
+    if (kind && i.equipmentKind !== kind) return false;
+    if (i.requiredLevel < lvmin || i.requiredLevel > lvmax) return false;
+    if (koreanFilter === 'yes' && !/[가-힣]/.test(i.nameKo)) return false;
+    if (koreanFilter === 'no' && /[가-힣]/.test(i.nameKo)) return false;
+    if (statsFilter === 'yes' && Object.keys(i.stats).length === 0) return false;
+    if (statsFilter === 'no' && Object.keys(i.stats).length > 0) return false;
+    // Job filter: item must match at least one selected job
+    if (i.requiredJobs.length > 0) {
+      const hasMatchingJob = i.requiredJobs.some(j => jobFilters.has(j));
+      if (!hasMatchingJob) return false;
+    }
+    // Text search
+    if (text) {
+      const searchTarget = `${i.id} ${i.nameKo} ${i.nameEn}`.toLowerCase();
+      if (!searchTarget.includes(text)) return false;
+    }
+    return true;
+  });
+}
+
+function sortBy(col) {
+  if (sortCol === col) { sortDir = -sortDir; }
+  else { sortCol = col; sortDir = 1; }
+  document.querySelectorAll('th .sort-arrow').forEach(s => s.textContent = '');
+  const idx = [...document.querySelectorAll('th')].findIndex(th => th.textContent.trim().startsWith(col === 'id' ? 'ID' : col === 'nameKo' ? 'Name KO' : col === 'nameEn' ? 'Name EN' : col === 'equipmentKind' ? 'Kind' : col === 'requiredLevel' ? 'Lv' : col === 'publishedStatus' ? 'Status' : ''));
+  if (idx >= 0) {
+    document.querySelectorAll('th .sort-arrow')[idx].textContent = sortDir === 1 ? '▲' : '▼';
+  }
+  renderTable();
+}
+
+function renderTable() {
+  filterItems();
+  filteredItems.sort((a, b) => {
+    let va = a[sortCol], vb = b[sortCol];
+    if (typeof va === 'string') va = va.toLowerCase();
+    if (typeof vb === 'string') vb = vb.toLowerCase();
+    if (va == null) va = '';
+    if (vb == null) vb = '';
+    if (va < vb) return -1 * sortDir;
+    if (va > vb) return 1 * sortDir;
+    return 0;
+  });
+
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+
+  filteredItems.forEach((item, idx) => {
+    const effectiveIconId = ICON_OVERRIDES[item.id] ?? item.id;
+    const iconUrl = `${MAPLESTORY_IO_BASE}/api/GMS/83/item/${effectiveIconId}/icon`;
+
+    const statEntries = Object.entries(item.stats).filter(([,v]) => Number.isFinite(v));
+    const statTags = statEntries.slice(0, 4).map(([k,v]) =>
+      `<span class="stat-tag">${k}: ${v > 0 ? '+' + v : v}</span>`
+    ).join('');
+    const moreStats = statEntries.length > 4 ? ` <span class="stat-tag">+${statEntries.length - 4}</span>` : '';
+
+    const jobBadges = (item.requiredJobs || []).map(j =>
+      `<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:0.7rem;background:${JOB_COLORS[j] || '#888'}11;color:${JOB_COLORS[j] || '#888'};margin-right:2px">${JOB_LABELS[j] || j}</span>`
+    ).join('') || '-';
+
+    const badgeClass = item.publishedStatus === 'published' ? 'pub' : item.publishedStatus === 'draft' ? 'draft' : 'hidden';
+    const badgeLabel = item.publishedStatus === 'published' ? 'published' : item.publishedStatus === 'draft' ? 'draft' : 'hidden';
+
+    tbody.innerHTML += `
+      <tr class="expandable" onclick="toggleDetail(${idx}, this)">
+        <td class="icon-cell">
+          <img src="${iconUrl}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'" crossorigin="anonymous">
+          <span class="no-icon" style="display:none">?</span>
+        </td>
+        <td>${item.id}</td>
+        <td>${esc(item.nameKo)}</td>
+        <td style="font-size:0.8rem;color:var(--muted)">${esc(item.nameEn || '')}</td>
+        <td>${esc(item.equipmentKind)}</td>
+        <td>${item.requiredLevel}</td>
+        <td>${jobBadges}</td>
+        <td><div class="stats-tags">${statTags}${moreStats}</div></td>
+        <td><span class="badge ${badgeClass}">${badgeLabel}</span></td>
+      </tr>
+      <tr class="detail-row" id="detail-${idx}">
+        <td colspan="9">
+          <div class="detail-grid">
+            <div class="detail-block">
+              <h4>Requirements</h4>
+              <div class="stat">${Object.entries(item.requirements).map(([k,v]) => `${k}: ${v}`).join(', ') || '-'}</div>
+            </div>
+            <div class="detail-block">
+              <h4>Full Stats</h4>
+              <div class="stat">${statEntries.map(([k,v]) => `${k}: ${v}`).join(', ') || '-'}</div>
+            </div>
+            <div class="detail-block">
+              <h4>Aliases</h4>
+              <div class="stat">${item.aliases.length ? item.aliases.join(', ') : '-'}</div>
+            </div>
+            <div class="detail-block">
+              <h4>Source</h4>
+              <div class="stat">${esc(item.sourceNote || '-')}</div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  document.getElementById('showing').textContent = `Showing ${filteredItems.length} of ${allItems.length} items`;
+}
+
+function toggleDetail(idx, row) {
+  const detailRow = document.getElementById('detail-' + idx);
+  if (detailRow) detailRow.classList.toggle('open');
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+// ── CSV Export ──
+function exportCSV() {
+  filterItems();
+  const headers = ['id','nameKo','nameEn','equipmentKind','requiredLevel','requiredJobs','requirements','stats','aliases','publishedStatus','sourceNote'];
+  const rows = filteredItems.map(i =>
+    headers.map(h => {
+      const val = i[h] ?? '';
+      if (typeof val === 'object') return JSON.stringify(val);
+      return String(val);
+    })
+  );
+  const csv = [headers.join(','), ...rows.map(r => r.map(c => `"${c.replace(/"/g,'""')}"`).join(','))].join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'items-review.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+</script>
+</body>
+</html>

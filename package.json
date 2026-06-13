@@ -16,7 +16,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "seed:items": "node --env-file=.env scripts/seed-item-definitions.mjs"
+    "seed:items": "node --env-file=.env scripts/seed-item-definitions.mjs",
+    "review:items": "open outputs/item-review.html"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
