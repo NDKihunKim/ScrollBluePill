@@ -299,12 +299,23 @@ async function main() {
         const generatedRequirements = mapRequirements(item, metaInfo);
         const generatedStats = mapStats(metaInfo, subCategory);
 
-        const isHidden = hiddenItemIds.has(item.id) || hiddenEquipmentKinds.has(equipmentKind);
+        const nameKo = override.nameKo ?? generatedKoreanName ?? item.name;
+        const nameEn = item.name ?? null;
+        const hasKoreanName = /[가-힣]/.test(nameKo ?? '');
+        const isHidden = hiddenItemIds.has(item.id) || hiddenEquipmentKinds.has(equipmentKind) || !hasKoreanName;
+        let sourceNote = `Seeded from maplestory.io ${region}/${version}`;
+        if (isHidden) {
+            const reasons = [];
+            if (hiddenItemIds.has(item.id)) reasons.push('hideItemIds');
+            if (hiddenEquipmentKinds.has(equipmentKind)) reasons.push('hidden equipment kind');
+            if (!hasKoreanName) reasons.push('missing Korean name');
+            sourceNote += ' — hidden: ' + reasons.join(', ');
+        }
         return {
             id: item.id,
             version_tag_id: null, // filled below
-            name_ko: override.nameKo ?? generatedKoreanName ?? item.name,
-            name_en: item.name ?? null,
+            name_ko: nameKo,
+            name_en: nameEn,
             equipment_kind: equipmentKind,
             required_level: metaInfo.reqLevelEquip ?? item.requiredLevel ?? 0,
             required_jobs: item.requiredJobs ?? [],
@@ -312,15 +323,22 @@ async function main() {
             stats: { ...generatedStats, ...(override.stats ?? {}) },
             aliases: override.aliases ?? [],
             published_status: isHidden ? 'hidden' : 'published',
-            source_note: isHidden
-                ? `Seeded from maplestory.io ${region}/${version} — hidden by visibility override`
-                : `Seeded from maplestory.io ${region}/${version}`,
+            source_note: sourceNote,
         };
     });
 
     // 4b. Merge KMS supplement items — replace rows for matching IDs, append new ones
     const kmsSupplementRows = (kmsSupplement.items ?? []).map((item) => {
-        const isHidden = hiddenItemIds.has(item.id) || hiddenEquipmentKinds.has(item.equipmentKind);
+        const hasKoreanName = /[가-힣]/.test(item.nameKo ?? '');
+        const isHidden = hiddenItemIds.has(item.id) || hiddenEquipmentKinds.has(item.equipmentKind) || !hasKoreanName;
+        let sourceNote = 'KMS supplement — curated KMS data';
+        if (isHidden) {
+            const reasons = [];
+            if (hiddenItemIds.has(item.id)) reasons.push('hideItemIds');
+            if (hiddenEquipmentKinds.has(item.equipmentKind)) reasons.push('hidden equipment kind');
+            if (!hasKoreanName) reasons.push('missing Korean name');
+            sourceNote += ' — hidden: ' + reasons.join(', ');
+        }
         return {
             id: item.id,
             version_tag_id: null,
@@ -333,9 +351,7 @@ async function main() {
             stats: item.stats ?? {},
             aliases: item.aliases ?? [],
             published_status: isHidden ? 'hidden' : 'published',
-            source_note: isHidden
-                ? 'KMS supplement — hidden by visibility override'
-                : 'KMS supplement — curated KMS data',
+            source_note: sourceNote,
         };
     });
     if (kmsSupplementRows.length > 0) {
