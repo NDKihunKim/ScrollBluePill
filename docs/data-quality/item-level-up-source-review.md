@@ -6,8 +6,8 @@ Skill bonus lines from final level rewards are intentionally excluded. Rows are 
 
 ## Coverage Summary
 
-- Included local rows: 73
-- Unmatched source rows: 8
+- Included local rows: 79
+- Unmatched source rows: 2
 - Templates used: 22
 
 ## Included Source Rows
@@ -92,11 +92,18 @@ Skill bonus lines from final level rewards are intentionally excluded. Rows are 
 
 | Source name | Exclusion reason |
 | --- | --- |
-| 리버스 미스트블루 | No local Reverse/Timeless item ID matched in public/data/items-gms83-ko.json. |
-| 타임리스 미스트블루 | No local Reverse/Timeless item ID matched in public/data/items-gms83-ko.json. |
-| 리버스 헤르모사 | No local Reverse/Timeless item ID matched in public/data/items-gms83-ko.json. |
-| 타임리스 헤르모사 | No local Reverse/Timeless item ID matched in public/data/items-gms83-ko.json. |
-| 리버스 코션 | No local Reverse/Timeless item ID matched in public/data/items-gms83-ko.json. |
-| 타임리스 코션 | No local Reverse/Timeless item ID matched in public/data/items-gms83-ko.json. |
-| 리버스 콘라드헨켈 | No local Reverse/Timeless item ID matched in public/data/items-gms83-ko.json. |
-| 타임리스 콘라드헨켈 | No local Reverse/Timeless item ID matched in public/data/items-gms83-ko.json. |
+| 리버스 코션 | Dual Blade katara — no 블레이드 equipment kind support in current infrastructure. |
+| 타임리스 코션 | Dual Blade katara — no 블레이드 equipment kind support in current infrastructure. |
+
+## Newly Matched KMS Items (2026-06-12)
+
+The following items were manually curated from the KMS source article after confirming they do not exist in GMS v83 data. Item IDs are KMS-specific and assigned in free ranges.
+
+| Source name | Local item ID | Local name | Template key | Status |
+| --- | ---: | --- | --- | --- |
+| 타임리스 미스트블루 | 1052168 | 타임리스 미스트블루 | magician_overall | included |
+| 리버스 미스트블루 | 1052169 | 리버스 미스트블루 | magician_overall | included |
+| 타임리스 헤르모사 | 1082255 | 타임리스 헤르모사 | magician_glove | included |
+| 리버스 헤르모사 | 1082256 | 리버스 헤르모사 | magician_glove | included |
+| 타임리스 콘라드헨켈 | 1002794 | 타임리스 콘라드헨켈 | pirate_helmet | included |
+| 리버스 콘라드헨켈 | 1002795 | 리버스 콘라드헨켈 | pirate_helmet | included |
