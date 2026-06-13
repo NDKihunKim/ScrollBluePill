@@ -182,9 +182,19 @@ export function buildItemSearchUrl({
 	return url.toString();
 }
 
+const ICON_ID_OVERRIDES = {
+	// KMS items not in GMS v83 — redirect to visually similar existing icons
+	1002795: 1002794, // Reverse Conrad Henkel → Timeless Conrad Henkel
+	1052168: 1052156, // Timeless Mistblue
+	1052169: 1052156, // Reverse Mistblue
+	1082255: 1082240, // Timeless Hermosa
+	1082256: 1082240, // Reverse Hermosa
+};
+
 export function buildItemIconUrl(
 	itemId,
 	{ region = MAPLESTORY_IO_REGION, version = MAPLESTORY_IO_VERSION } = {},
 ) {
-	return new URL(`/api/${region}/${version}/item/${itemId}/icon`, MAPLESTORY_IO_BASE_URL).toString();
+	const effectiveId = ICON_ID_OVERRIDES[itemId] ?? itemId;
+	return new URL(`/api/${region}/${version}/item/${effectiveId}/icon`, MAPLESTORY_IO_BASE_URL).toString();
 }
