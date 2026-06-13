@@ -17,7 +17,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "seed:items": "node --env-file=.env scripts/seed-item-definitions.mjs",
-    "review:items": "open outputs/item-review.html"
+    "review:items": "npm run generate:item-review && open outputs/item-review.html",
+    "generate:item-review": "node --env-file=.env scripts/generate-item-review-page.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
