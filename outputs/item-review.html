@@ -175,7 +175,7 @@ tr.detail-row td { padding: 16px 24px; font-size: 0.82rem; }
   <!-- Header -->
   <div class="header">
     <h1>Item Review Dashboard</h1>
-    <button class="key-btn" onclick="changeKey()" id="key-label">🔑 Change Key</button>
+    <button class="key-btn" onclick="changeKey()" id="key-label">🔑</button>
   </div>
 
   <!-- Summary -->
@@ -284,18 +284,10 @@ async function saveKey() {
   const errEl = document.getElementById('key-error');
   errEl.style.display = 'none';
   // Test the key
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/item_definitions?select=id&limit=1`, {
-      headers: { apikey: key, authorization: `Bearer ${key}` }
-    });
-    if (!res.ok) throw new Error('bad key');
-    setStoredKey(key);
-    apiKey = key;
-    document.getElementById('key-overlay').classList.add('hidden');
-    await init();
-  } catch {
-    errEl.style.display = 'block';
-  }
+  setStoredKey(key);
+  apiKey = key;
+  document.getElementById('key-overlay').classList.add('hidden');
+  await init();
 }
 
 function changeKey() {
@@ -305,48 +297,41 @@ function changeKey() {
 }
 
 // ── Init ──
-window.onload = async function() {
+let showAll = false;
+
+window.onload = function() {
   const stored = getStoredKey();
   if (stored) {
     apiKey = stored;
     document.getElementById('key-input').value = stored;
     document.getElementById('key-overlay').classList.add('hidden');
-    // Validate stored key before full fetch
-    const valid = await testKey(stored);
-    if (valid) {
-      await init();
-    } else {
-      setStoredKey(null);
-      document.getElementById('key-overlay').classList.remove('hidden');
-    }
+    init();
   } else {
     document.getElementById('key-overlay').classList.remove('hidden');
   }
 };
 
-async function testKey(key) {
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/item_definitions?select=id&limit=1`, {
-      headers: { apikey: key, authorization: `Bearer ${key}` }
-    });
-    return res.ok;
-  } catch { return false; }
-}
-
 // ── Data Fetch ──
-async function fetchAllItems() {
+async function fetchItems(opts = {}) {
+  const { all = false } = opts;
+  const key = all ? apiKey : (apiKey || SUPABASE_ANON_KEY);
   const rows = [];
   let offset = 0;
   const pageSize = 1000;
   const maxPages = 20;
-  const key = apiKey || SUPABASE_ANON_KEY;
   let pageNum = 0;
+
+  const baseUrl = new URL('/rest/v1/item_definitions', SUPABASE_URL);
+  // When showing published only, let RLS do the filtering
+  if (!all) {
+    baseUrl.searchParams.set('published_status', 'eq.published');
+  }
+  baseUrl.searchParams.set('select', '*');
+  baseUrl.searchParams.set('limit', String(pageSize));
 
   while (pageNum < maxPages) {
     pageNum++;
-    const url = new URL('/rest/v1/item_definitions', SUPABASE_URL);
-    url.searchParams.set('select', '*');
-    url.searchParams.set('limit', String(pageSize));
+    const url = new URL(baseUrl);
     url.searchParams.set('offset', String(offset));
     const res = await fetch(url, {
       headers: { apikey: key, authorization: `Bearer ${key}` }
@@ -356,9 +341,9 @@ async function fetchAllItems() {
       throw new Error(`Supabase error ${res.status}: ${body}`);
     }
     const page = await res.json();
+    if (!Array.isArray(page) || page.length === 0) break;
     rows.push(...page);
 
-    // Show progress — yield to browser so spinner animates
     document.getElementById('tbody').innerHTML =
       `<tr><td colspan="9" class="loading"><div class="spinner"></div><div>Loading page ${pageNum} — ${rows.length} items fetched...</div></td></tr>`;
     await new Promise(r => setTimeout(r, 0));
@@ -381,12 +366,35 @@ async function fetchAllItems() {
   }));
 }
 
+async function loadAllItems() {
+  if (!apiKey) { changeKey(); return; }
+  document.getElementById('tbody').innerHTML = '<tr><td colspan="9" class="loading"><div class="spinner"></div><div>Fetching all items (including hidden/draft)...</div></td></tr>';
+  try {
+    allItems = await fetchItems({ all: true });
+    showAll = true;
+    renderAll();
+  } catch (e) {
+    document.getElementById('tbody').innerHTML = `<tr><td colspan="9" class="error-msg">Failed to load all items: ${e.message}<br><br>Your key may not have service_role access. <button onclick="changeKey()">Try different key</button></td></tr>`;
+  }
+}
+
+function renderAll() {
+  document.getElementById('key-label').textContent = showAll ? '🔑 Service Role' : '🔑 Published Only';
+  buildKindSelect();
+  buildJobChips();
+  buildStatusChips();
+  buildToggles();
+  renderSummary();
+  renderTable();
+}
+
 async function init() {
   document.getElementById('app').style.display = 'block';
-  document.getElementById('tbody').innerHTML = '<tr><td colspan="9" class="loading"><div class="spinner"></div><div>Fetching items from Supabase...</div></td></tr>';
+  document.getElementById('tbody').innerHTML = '<tr><td colspan="9" class="loading"><div class="spinner"></div><div>Fetching published items...</div></td></tr>';
 
   try {
-    allItems = await fetchAllItems();
+    allItems = await fetchItems({ all: false });
+    showAll = false;
   } catch (e) {
     document.getElementById('tbody').innerHTML = `<tr><td colspan="9" class="error-msg">Failed to load: ${e.message}<br><br><button onclick="changeKey()">Try different key</button></td></tr>`;
     return;
@@ -479,13 +487,17 @@ function renderSummary() {
   const hidden = allItems.filter(i => i.publishedStatus === 'hidden').length;
   const noKorean = allItems.filter(i => !/[가-힣]/.test(i.nameKo)).length;
   const noStats = allItems.filter(i => Object.keys(i.stats).length === 0).length;
+  const loadAllBtn = !showAll
+    ? `<button onclick="loadAllItems()" style="padding:8px 16px;border:1px solid var(--line);border-radius:6px;background:var(--surface);cursor:pointer;font:inherit;font-size:0.82rem">🔓 Load all (incl. hidden/draft)</button>`
+    : '';
   document.getElementById('summary').innerHTML = `
-    <div class="summary-card total"><div class="label">Total</div><div class="value">${allItems.length}</div></div>
+    <div class="summary-card total"><div class="label">${showAll ? 'Total (all)' : 'Total (published)'}</div><div class="value">${allItems.length}</div></div>
     <div class="summary-card pub"><div class="label">Published</div><div class="value">${pub}</div></div>
     <div class="summary-card draft"><div class="label">Draft</div><div class="value">${draft}</div></div>
     <div class="summary-card hidden-card"><div class="label">Hidden</div><div class="value">${hidden}</div></div>
     <div class="summary-card"><div class="label">No Korean</div><div class="value">${noKorean}</div></div>
     <div class="summary-card"><div class="label">No Stats</div><div class="value">${noStats}</div></div>
+    ${loadAllBtn}
   `;
 }
 
