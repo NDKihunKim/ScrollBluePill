@@ -152,6 +152,54 @@ tr.detail-row td { padding: 16px 24px; font-size: 0.82rem; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 .error-msg { color: var(--red); text-align: center; padding: 20px; }
+
+/* Edit Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: 40px; overflow-y: auto;
+}
+.modal-overlay.hidden { display: none; }
+.modal-box {
+  background: var(--surface); border-radius: 12px; padding: 28px 32px;
+  max-width: 600px; width: 95%; box-shadow: 0 12px 48px rgba(0,0,0,0.2);
+  margin-bottom: 40px; animation: modalIn 0.15s ease-out;
+}
+@keyframes modalIn { from { opacity:0; transform: translateY(-12px); } to { opacity:1; transform: translateY(0); } }
+.modal-box h2 { font-size: 1.1rem; margin-bottom: 16px; }
+.modal-field { margin-bottom: 10px; }
+.modal-field label { display: block; font-size: 0.72rem; color: var(--muted); text-transform: uppercase; font-weight: 600; margin-bottom: 3px; }
+.modal-field input, .modal-field select {
+  width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px;
+  font: inherit; font-size: 0.85rem; background: var(--surface);
+}
+.modal-field input[type="number"] { width: 80px; }
+.modal-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.modal-row .modal-field { flex: 1; min-width: 80px; }
+.stat-row { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+.stat-row input { width: 70px; }
+.stat-row .stat-key { width: 120px; font-size: 0.8rem; font-family: monospace; }
+.chips-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+.modal-actions button {
+  padding: 8px 22px; border: 1px solid var(--line); border-radius: 6px;
+  font: inherit; font-weight: 600; cursor: pointer; font-size: 0.9rem;
+}
+.modal-actions .btn-save { background: var(--blue); color: #fff; border-color: var(--blue); }
+.modal-actions .btn-cancel { background: var(--surface); }
+.modal-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+.modal-feedback { font-size: 0.82rem; margin-top: 10px; text-align: center; display: none; }
+.modal-feedback.ok { color: var(--green); display: block; }
+.modal-feedback.err { color: var(--red); display: block; }
+#edit-spinner { text-align: center; padding: 40px 0; }
+.toast {
+  position: fixed; bottom: 24px; right: 24px; padding: 10px 20px; border-radius: 8px;
+  font-size: 0.85rem; font-weight: 600; color: #fff; z-index: 200;
+  animation: toastIn 0.3s ease-out;
+}
+.toast.ok { background: var(--green); }
+.toast.err { background: var(--red); }
+@keyframes toastIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
 </style>
 </head>
 <body>
@@ -212,6 +260,7 @@ tr.detail-row td { padding: 16px 24px; font-size: 0.82rem; }
           <th>Jobs</th>
           <th>Stats</th>
           <th onclick="sortBy('publishedStatus')">Status <span class="sort-arrow"></span></th>
+          <th></th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -455,6 +504,7 @@ function renderTable(resetPage) {
       '<td>' + jobBadges + '</td>' +
       '<td><div class="stats-tags">' + statTags + moreStats + '</div></td>' +
       '<td><span class="badge ' + badgeClass + '">' + badgeLabel + '</span></td>' +
+      '<td><button onclick="event.stopPropagation();openEdit(' + item.id + ')" style="padding:2px 8px;font:inherit;font-size:0.75rem;cursor:pointer;border:1px solid var(--line);border-radius:4px;background:var(--surface)" title="Edit item">✏️</button></td>' +
       '</tr>';
   });
 
@@ -500,6 +550,298 @@ function exportCSV() {
   a.click();
   URL.revokeObjectURL(a.href);
 }
+
+// ── Editing ──
+let editingItemId = null;
+let editServiceKey = null;
+const EDITABLE_JOB_KEYS = ['Warrior','Magician','Bowman','Thief','Pirate','Beginner'];
+const STAT_KEYS = ['str','dex','int','luk','maxHp','maxMp','weaponAttack','magicAttack','weaponDefense','magicDefense','accuracy','avoidability','speed','jump','attackSpeed','upgradeSlots'];
+
+function getEditKey() {
+  if (editServiceKey) return editServiceKey;
+  try { editServiceKey = localStorage.getItem('supabase_edit_key'); } catch {}
+  return editServiceKey;
+}
+
+function requestKey(callback) {
+  document.getElementById('key-modal').classList.remove('hidden');
+  document.getElementById('key-modal-error').style.display = 'none';
+  window._keyCallback = callback;
+}
+
+async function verifyAndSaveKey() {
+  const key = document.getElementById('key-modal-input').value.trim();
+  if (!key) return;
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/item_definitions?select=id&limit=1', {
+      headers: { apikey: key, authorization: 'Bearer ' + key }
+    });
+    if (!res.ok) throw new Error('bad key');
+    editServiceKey = key;
+    try { localStorage.setItem('supabase_edit_key', key); } catch {}
+    document.getElementById('key-modal').classList.add('hidden');
+    if (window._keyCallback) { const cb = window._keyCallback; window._keyCallback = null; cb(); }
+  } catch {
+    document.getElementById('key-modal-error').style.display = 'block';
+  }
+}
+
+function ensureKey(callback) {
+  if (getEditKey()) { callback(); return; }
+  requestKey(callback);
+}
+
+async function openEdit(itemId) {
+  ensureKey(() => openEdit(itemId));
+  if (!getEditKey()) return;
+  editingItemId = itemId;
+  document.getElementById('edit-modal').classList.remove('hidden');
+  document.getElementById('edit-form').style.display = 'none';
+  document.getElementById('edit-spinner').style.display = 'block';
+  document.getElementById('edit-feedback').className = 'modal-feedback';
+  document.getElementById('edit-title').textContent = 'Edit Item #' + itemId;
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/item_definitions?id=eq.' + itemId + '&limit=1', {
+      headers: { apikey: getEditKey(), authorization: 'Bearer ' + getEditKey() }
+    });
+    if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+    const data = await res.json();
+    if (!data.length) throw new Error('Item not found');
+    populateForm(data[0]);
+  } catch (e) {
+    document.getElementById('edit-spinner').innerHTML = '<div class="error-msg">Failed to fetch: ' + e.message + '</div>';
+  }
+}
+
+function populateForm(item) {
+  document.getElementById('edit-spinner').style.display = 'none';
+  document.getElementById('edit-form').style.display = 'block';
+  document.getElementById('edit-nameKo').value = item.name_ko || '';
+  document.getElementById('edit-nameEn').value = item.name_en || '';
+  document.getElementById('edit-level').value = item.required_level || 0;
+  document.getElementById('edit-aliases').value = (item.aliases || []).join(', ');
+
+  // Equipment kind dropdown
+  const kinds = [...new Set(allItems.map(i => i.equipmentKind))].sort();
+  const sel = document.getElementById('edit-kind');
+  sel.innerHTML = '';
+  kinds.forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = k; if (k === item.equipment_kind) o.selected = true; sel.appendChild(o); });
+
+  // Jobs
+  const jobsDiv = document.getElementById('edit-jobs');
+  jobsDiv.innerHTML = '';
+  const itemJobs = new Set(item.required_jobs || []);
+  EDITABLE_JOB_KEYS.forEach(j => {
+    const chip = document.createElement('span');
+    chip.className = 'chip' + (itemJobs.has(j) ? ' on' : '');
+    chip.textContent = JOB_LABELS[j] || j;
+    chip.onclick = () => chip.classList.toggle('on');
+    jobsDiv.appendChild(chip);
+  });
+
+  // Status
+  const statusDiv = document.getElementById('edit-status');
+  statusDiv.innerHTML = '';
+  [{v:'published',l:'Published'},{v:'draft',l:'Draft'},{v:'hidden',l:'Hidden'}].forEach(s => {
+    const chip = document.createElement('span');
+    chip.className = 'chip' + (item.published_status === s.v ? ' on' : '');
+    chip.textContent = s.l;
+    chip.dataset.value = s.v;
+    chip.onclick = () => {
+      statusDiv.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+      chip.classList.add('on');
+    };
+    statusDiv.appendChild(chip);
+  });
+
+  // Stats
+  renderKeyValueRows('edit-stats', item.stats || {}, STAT_KEYS, 'stat');
+
+  // Requirements
+  renderKeyValueRows('edit-reqs', item.requirements || {}, ['str','dex','int','luk','pop'], 'req');
+}
+
+function renderKeyValueRows(containerId, obj, knownKeys, prefix) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  const keys = [...new Set([...knownKeys, ...Object.keys(obj || {})])];
+  keys.forEach(k => {
+    const row = document.createElement('div');
+    row.className = 'stat-row';
+    const keySpan = document.createElement('span');
+    keySpan.className = 'stat-key';
+    keySpan.textContent = k;
+    const input = document.createElement('input');
+    input.type = 'number'; input.value = Number.isFinite(obj[k]) ? obj[k] : 0;
+    input.dataset.key = k; input.dataset.prefix = prefix;
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button'; delBtn.textContent = '×';
+    delBtn.style.cssText = 'font-size:0.75rem;padding:1px 6px;cursor:pointer;border:1px solid var(--line);border-radius:4px;background:var(--surface)';
+    delBtn.onclick = () => row.remove();
+    row.appendChild(keySpan); row.appendChild(input); row.appendChild(delBtn);
+    container.appendChild(row);
+  });
+}
+
+function addStatRow() {
+  const k = prompt('Stat key (e.g. str, weaponAttack):');
+  if (!k) return;
+  const container = document.getElementById('edit-stats');
+  const row = document.createElement('div'); row.className = 'stat-row';
+  const keySpan = document.createElement('span'); keySpan.className = 'stat-key'; keySpan.textContent = k;
+  const input = document.createElement('input'); input.type = 'number'; input.value = 0; input.dataset.key = k; input.dataset.prefix = 'stat';
+  const delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.textContent = '×';
+  delBtn.style.cssText = 'font-size:0.75rem;padding:1px 6px;cursor:pointer;border:1px solid var(--line);border-radius:4px;background:var(--surface)';
+  delBtn.onclick = () => row.remove();
+  row.appendChild(keySpan); row.appendChild(input); row.appendChild(delBtn);
+  container.appendChild(row);
+}
+
+function addReqRow() {
+  const k = prompt('Requirement key (e.g. str, dex):');
+  if (!k) return;
+  const container = document.getElementById('edit-reqs');
+  const row = document.createElement('div'); row.className = 'stat-row';
+  const keySpan = document.createElement('span'); keySpan.className = 'stat-key'; keySpan.textContent = k;
+  const input = document.createElement('input'); input.type = 'number'; input.value = 0; input.dataset.key = k; input.dataset.prefix = 'req';
+  const delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.textContent = '×';
+  delBtn.style.cssText = 'font-size:0.75rem;padding:1px 6px;cursor:pointer;border:1px solid var(--line);border-radius:4px;background:var(--surface)';
+  delBtn.onclick = () => row.remove();
+  row.appendChild(keySpan); row.appendChild(input); row.appendChild(delBtn);
+  container.appendChild(row);
+}
+
+async function saveItem() {
+  const fb = document.getElementById('edit-feedback');
+  fb.className = 'modal-feedback';
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true; btn.textContent = 'Saving...';
+
+  const jobs = [];
+  document.querySelectorAll('#edit-jobs .chip.on').forEach(c => jobs.push(JOB_LABELS[c.textContent] ? [...EDITABLE_JOB_KEYS].find(j => JOB_LABELS[j] === c.textContent) : c.textContent));
+  const statusChip = document.querySelector('#edit-status .chip.on');
+  const statusVal = statusChip ? statusChip.dataset.value : 'published';
+
+  const buildObj = (prefix) => {
+    const obj = {};
+    document.querySelectorAll('[data-prefix="' + prefix + '"]').forEach(input => {
+      const val = Number(input.value);
+      if (Number.isFinite(val)) obj[input.dataset.key] = val;
+    });
+    return obj;
+  };
+
+  const aliasesRaw = document.getElementById('edit-aliases').value.trim();
+  const aliases = aliasesRaw ? aliasesRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+  const patch = {
+    name_ko: document.getElementById('edit-nameKo').value.trim(),
+    name_en: document.getElementById('edit-nameEn').value.trim(),
+    equipment_kind: document.getElementById('edit-kind').value,
+    required_level: parseInt(document.getElementById('edit-level').value) || 0,
+    required_jobs: jobs,
+    published_status: statusVal,
+    stats: buildObj('stat'),
+    requirements: buildObj('req'),
+    aliases: aliases,
+  };
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/item_definitions?id=eq.' + editingItemId, {
+      method: 'PATCH',
+      headers: { apikey: getEditKey(), authorization: 'Bearer ' + getEditKey(), 'content-type': 'application/json', prefer: 'return=minimal' },
+      body: JSON.stringify(patch)
+    });
+    if (!res.ok) { const b = await res.text(); throw new Error(b); }
+
+    // Update embedded data
+    const idx = allItems.findIndex(i => i.id === editingItemId);
+    if (idx >= 0) {
+      allItems[idx] = { ...allItems[idx],
+        nameKo: patch.name_ko, nameEn: patch.name_en, equipmentKind: patch.equipment_kind,
+        requiredLevel: patch.required_level, requiredJobs: patch.required_jobs,
+        publishedStatus: patch.published_status, stats: patch.stats, requirements: patch.requirements,
+        aliases: patch.aliases
+      };
+    }
+
+    closeModal();
+    showToast('Item #' + editingItemId + ' saved ✓', 'ok');
+    renderSummary(); renderTable();
+  } catch (e) {
+    fb.className = 'modal-feedback err';
+    fb.textContent = 'Save failed: ' + e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save Changes';
+  }
+}
+
+function closeModal() {
+  document.getElementById('edit-modal').classList.add('hidden');
+  editingItemId = null;
+}
+
+function showToast(msg, type) {
+  const t = document.createElement('div');
+  t.className = 'toast ' + type; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.remove(); }, 2500);
+}
 </script>
+
+<!-- Edit Modal -->
+<div class="modal-overlay hidden" id="edit-modal">
+  <div class="modal-box">
+    <h2 id="edit-title">Edit Item</h2>
+    <div id="edit-spinner" class="loading"><div class="spinner"></div><div>Fetching item...</div></div>
+    <div id="edit-form" style="display:none">
+      <div class="modal-row">
+        <div class="modal-field"><label>Name KO</label><input id="edit-nameKo"></div>
+        <div class="modal-field"><label>Name EN</label><input id="edit-nameEn"></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-field"><label>Equipment Kind</label><select id="edit-kind"></select></div>
+        <div class="modal-field"><label>Level</label><input type="number" id="edit-level" min="0"></div>
+      </div>
+      <div class="modal-field">
+        <label>Jobs</label>
+        <div class="chips-row" id="edit-jobs"></div>
+      </div>
+      <div class="modal-field">
+        <label>Status</label>
+        <div class="chips-row" id="edit-status"></div>
+      </div>
+      <div class="modal-field">
+        <label>Stats <button type="button" onclick="addStatRow()" style="font-size:0.7rem;padding:2px 8px;cursor:pointer">+ Add</button></label>
+        <div id="edit-stats"></div>
+      </div>
+      <div class="modal-field">
+        <label>Requirements <button type="button" onclick="addReqRow()" style="font-size:0.7rem;padding:2px 8px;cursor:pointer">+ Add</button></label>
+        <div id="edit-reqs"></div>
+      </div>
+      <div class="modal-field"><label>Aliases (comma-separated)</label><input id="edit-aliases"></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-save" id="btn-save" onclick="saveItem()">Save Changes</button>
+      </div>
+      <div class="modal-feedback" id="edit-feedback"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Key Prompt -->
+<div class="modal-overlay hidden" id="key-modal">
+  <div class="modal-box" style="max-width:400px">
+    <h2>Service Role Key</h2>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:12px">Required to save edits. Stored only in your browser.</p>
+    <input type="password" id="key-modal-input" style="width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:6px;font:inherit;margin-bottom:12px" placeholder="eyJhbGciOiJIUzI1NiIs...">
+    <p class="error-msg" id="key-modal-error" style="display:none;padding:4px 0">Invalid key.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="document.getElementById('key-modal').classList.add('hidden')">Cancel</button>
+      <button class="btn-save" onclick="verifyAndSaveKey()">Connect</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
