@@ -36,6 +36,7 @@ export function initMakerPanel({
   let enhancementState = null;
   let selectedBaseItem = null;
   let editingSlotIndex = -1;
+  let activeStimulantSlot = false;
   let pendingGemKey = null;
 
   const SLOT_COUNT = 3;
@@ -52,6 +53,7 @@ export function initMakerPanel({
     }
     pendingGemKey = null;
     editingSlotIndex = -1;
+    activeStimulantSlot = false;
   };
 
   const refreshEnhancedCard = () => {
@@ -338,6 +340,10 @@ export function initMakerPanel({
     box.setAttribute('tabindex', '0');
     box.className = 'maker-gem-slot maker-gem-slot--stimulant';
 
+    if (activeStimulantSlot) {
+      box.classList.add('maker-gem-slot--active');
+    }
+
     if (enhancementState?.stimulantSlot) {
       box.classList.add('maker-gem-slot--filled');
 
@@ -377,6 +383,7 @@ export function initMakerPanel({
 
     box.addEventListener('click', () => {
       pendingGemKey = null;
+      activeStimulantSlot = true;
       editingSlotIndex = -1;
       renderGemSlots();
       renderStimulantInputPanel();
@@ -419,7 +426,7 @@ export function initMakerPanel({
         box.classList.add('maker-gem-slot--disabled');
       }
 
-      if (!isDisabled && !gemSlot && editingSlotIndex === i) {
+      if (!isDisabled && editingSlotIndex === i) {
         box.classList.add('maker-gem-slot--active');
       }
 
@@ -500,6 +507,7 @@ export function initMakerPanel({
 
           // Filled or empty — select for editing / replacement.
           // × button is the only way to clear a slot.
+          activeStimulantSlot = false;
           editingSlotIndex = i;
           renderGemSlots();
           renderStep1Picker();
@@ -796,7 +804,7 @@ export function initMakerPanel({
 
     closeMakerPanel() {
       if (!enhancementState || !enhancementState.makerActive) return;
-      deactivateMaker(enhancementState);
+      enhancementState.makerActive = false;
       stimulantValues = new Map();
       if (makerToggle instanceof HTMLElement) {
         makerToggle.classList.remove('maker-toggle-button--active');

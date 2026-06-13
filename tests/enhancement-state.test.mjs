@@ -18,6 +18,7 @@ import {
   createItemLevelUpSlots,
   applyItemLevelUp,
   clearItemLevelUpSlot,
+  computeItemLevelUpCardMeta,
 } from '../src/lib/enhancementState.mjs';
 
 // --- stat breakdown tests ---
@@ -287,4 +288,29 @@ test('item level-up slot bounds and reset lifecycle', () => {
   applyItemLevelUp(state, 0, { str: 2 });
   resetState(state);
   assert.deepEqual(state.itemLevelUpSlots, [null, null, null]);
+});
+
+test('item level-up card metadata shows current level and max exp state', () => {
+  const definition = { levelUpKind: 'reverse', maxLevelUps: 3 };
+  const state = createEnhancementState(7, 120, definition);
+
+  assert.deepEqual(computeItemLevelUpCardMeta(state, definition), {
+    itemLevel: '1',
+    itemExp: '0 %',
+  });
+
+  applyItemLevelUp(state, 0, { str: 1 });
+  applyItemLevelUp(state, 1, { str: 1 });
+  assert.deepEqual(computeItemLevelUpCardMeta(state, definition), {
+    itemLevel: '3',
+    itemExp: '0 %',
+  });
+
+  applyItemLevelUp(state, 2, { str: 1 });
+  assert.deepEqual(computeItemLevelUpCardMeta(state, definition), {
+    itemLevel: 'MAX',
+    itemExp: 'MAX',
+  });
+
+  assert.equal(computeItemLevelUpCardMeta(state, null), null);
 });

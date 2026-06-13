@@ -38,6 +38,27 @@ test('maker stimulant slot source contract is present', async () => {
 	assert.match(makerPanelSource, /clearStimulant/);
 });
 
+test('maker stimulant and gem slots share active slot selection state', async () => {
+	const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
+
+	assert.match(makerPanelSource, /let activeStimulantSlot\s*=\s*false/);
+	assert.match(makerPanelSource, /if \(activeStimulantSlot\) \{\s*box\.classList\.add\('maker-gem-slot--active'\);/);
+	assert.match(makerPanelSource, /activeStimulantSlot\s*=\s*true;\s*editingSlotIndex\s*=\s*-1;\s*renderGemSlots\(\);\s*renderStimulantInputPanel\(\);/);
+	assert.match(makerPanelSource, /if \(!isDisabled && editingSlotIndex === i\) \{\s*box\.classList\.add\('maker-gem-slot--active'\);/);
+	assert.match(indexSource, /:global\(\.maker-gem-slot--active\)\s*\{[^}]*border-style:\s*solid;/);
+	assert.match(indexSource, /:global\(\.item-level-up-slot--active\)\s*\{[^}]*border-style:\s*solid;/);
+});
+
+test('closing maker panel preserves applied maker stats when another feature opens', async () => {
+	const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
+	const closeStart = makerPanelSource.indexOf('closeMakerPanel()');
+	const closeEnd = makerPanelSource.indexOf('\n    },\n  };', closeStart);
+	const closeMethodSource = makerPanelSource.slice(closeStart, closeEnd);
+
+	assert.match(closeMethodSource, /enhancementState\.makerActive\s*=\s*false/);
+	assert.doesNotMatch(closeMethodSource, /deactivateMaker\(enhancementState\)/);
+});
+
 test('maker button smoothly scrolls to expanded maker controls', async () => {
 	const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
 
@@ -96,7 +117,7 @@ test('calculator first step renders MapleStory input candidates', async () => {
 	assert.match(indexSource, /data-selected-item-id/);
 	assert.match(indexSource, /data-item-suggestions/);
 	assert.match(indexSource, /data-manual-search-toggle/);
-	assert.match(indexSource, />\s*수동 검색\s*<\/button>/);
+	assert.match(indexSource, />\s*필터 검색\s*<\/button>/);
 	assert.match(indexSource, /aria-controls="manual-search-fields"/);
 	assert.match(indexSource, /aria-expanded="false"/);
 	assert.match(indexSource, /id="manual-search-fields"/);
@@ -121,7 +142,7 @@ test('calculator first step renders MapleStory input candidates', async () => {
 	assert.match(indexSource, /class="input-row field-block item-name-search"/);
 	assert.match(indexSource, /class="input-row job-options"/);
 	assert.match(indexSource, /class="input-row field-block equipment-block"/);
-	assert.match(indexSource, /class="input-row"/);
+	assert.match(indexSource, /class="input-row\b/);
 	assert.match(indexSource, /\.input-row \{/);
 	assert.match(indexSource, /border: 1px solid var\(--line\);/);
 	assert.match(indexSource, /border-radius: 8px;/);
@@ -434,11 +455,83 @@ test('enhanced item card receives stat breakdown data', async () => {
 
 	assert.match(enhancementPanelSource, /computeStatBreakdown/);
 	assert.match(enhancementPanelSource, /const statBreakdown = computeStatBreakdown\(selectedBaseItem\.stats, enhancementState\);/);
-	assert.match(enhancementPanelSource, /renderEnhancedItemCard\(selectedBaseItem,\s*accumulatedStats,\s*remaining,\s*appliedCount,\s*gradeColor,\s*statBreakdown\)/);
+	assert.match(enhancementPanelSource, /renderEnhancedItemCard\(selectedBaseItem,\s*accumulatedStats,\s*remaining,\s*appliedCount,\s*gradeColor,\s*statBreakdown,\s*itemLevelUpMeta\)/);
 
 	assert.match(makerPanelSource, /computeStatBreakdown/);
 	assert.match(makerPanelSource, /const statBreakdown = computeStatBreakdown\(selectedBaseItem\.stats, enhancementState\);/);
 	assert.match(makerPanelSource, /renderEnhancedItemCard\(selectedBaseItem,\s*accumulatedStats,\s*remaining,\s*appliedCount,\s*gradeColor,\s*statBreakdown\)/);
+});
+
+test('enhancement reset button is placed below the selected item card', async () => {
+	const enhancementPanelSource = await readFile(new URL('../src/lib/enhancementPanel.mjs', import.meta.url), 'utf8');
+
+	assert.ok(indexSource.indexOf('data-selected-item-card') < indexSource.indexOf('data-enhancement-reset'));
+	assert.ok(indexSource.indexOf('data-enhancement-reset') < indexSource.indexOf('</aside>'));
+	assert.doesNotMatch(
+		indexSource.slice(indexSource.indexOf('data-enhancement-active'), indexSource.indexOf('data-enhancement-reset')),
+		/data-enhancement-reset/,
+	);
+	assert.match(enhancementPanelSource, /document\.querySelector\('\[data-enhancement-reset\]'\)/);
+	assert.match(enhancementPanelSource, /resetButton\.hidden\s*=\s*false/);
+	assert.match(enhancementPanelSource, /resetButton\.hidden\s*=\s*true/);
+});
+
+test('enhancement reset button has interactive hover and focus states without shadow', () => {
+	const resetStylesStart = indexSource.indexOf('.selected-item-reset {');
+	const resetStylesEnd = indexSource.indexOf('.selected-item-reset[hidden]', resetStylesStart);
+	const resetInteractionStyles = indexSource.slice(resetStylesStart, resetStylesEnd);
+
+	assert.match(indexSource, /\.selected-item-reset\s*\{[^}]*transition:/);
+	assert.match(indexSource, /\.selected-item-reset:hover\s*\{[^}]*transform:\s*translateY\(-1px\)/);
+	assert.match(indexSource, /\.selected-item-reset:active\s*\{[^}]*transform:\s*translateY\(0\)/);
+	assert.match(indexSource, /\.selected-item-reset:focus-visible\s*\{[^}]*outline:/);
+	assert.doesNotMatch(resetInteractionStyles, /box-shadow/);
+});
+
+test('scroll list exposes single-select stat filters beside its title', async () => {
+	const enhancementPanelSource = await readFile(new URL('../src/lib/enhancementPanel.mjs', import.meta.url), 'utf8');
+
+	assert.match(indexSource, /data-scroll-list-heading/);
+	assert.match(indexSource, /data-scroll-stat-filters/);
+	assert.ok(indexSource.indexOf('data-scroll-list-heading') < indexSource.indexOf('data-scroll-list>'));
+	assert.match(enhancementPanelSource, /let activeScrollStatFilter\s*=\s*'all'/);
+	assert.match(enhancementPanelSource, /const renderScrollStatFilters\s*=\s*\(available\)\s*=>/);
+	assert.match(enhancementPanelSource, /button\.dataset\.scrollStatFilter\s*=\s*key/);
+	assert.match(enhancementPanelSource, /button\.textContent\s*=\s*key === 'all' \? '전체' : \(statLabelByKey\[key\] \?\? key\)/);
+	assert.match(enhancementPanelSource, /scrollStats\.has\(activeScrollStatFilter\)/);
+	assert.match(enhancementPanelSource, /activeScrollStatFilter\s*=\s*button\.dataset\.scrollStatFilter/);
+});
+
+test('item level-up toggle is gated to reverse and timeless definitions', async () => {
+	const enhancementPanelSource = await readFile(new URL('../src/lib/enhancementPanel.mjs', import.meta.url), 'utf8');
+
+	assert.match(enhancementPanelSource, /const supportsItemLevelUp\s*=\s*\(levelUpDefinition\)\s*=>/);
+	assert.match(enhancementPanelSource, /new Set\(\['reverse', 'timeless'\]\)/);
+	assert.match(enhancementPanelSource, /supportsItemLevelUp\(levelUpDefinition\) \? levelUpDefinition : null/);
+	assert.match(indexSource, /:global\(\.maker-toggle-button\[hidden\]\)\s*\{[^}]*display:\s*none;/);
+});
+
+test('item level-up metadata renders under requirement stats on supported item cards', async () => {
+	const enhancementPanelSource = await readFile(new URL('../src/lib/enhancementPanel.mjs', import.meta.url), 'utf8');
+
+	assert.match(indexSource, /const appendItemLevelUpCardMeta\s*=\s*\(meta\)\s*=>/);
+	assert.match(indexSource, /selectedItemRequirements\.append\(createItemLine\('ITEM LEV', meta\.itemLevel,\s*'selected-item-line--item-level'\)\)/);
+	assert.match(indexSource, /selectedItemRequirements\.append\(createItemLine\('ITEM EXP', meta\.itemExp,\s*'selected-item-line--item-level'\)\)/);
+	assert.match(enhancementPanelSource, /computeItemLevelUpCardMeta/);
+	assert.match(enhancementPanelSource, /computeItemLevelUpCardMeta\(enhancementState,\s*selectedItemLevelUpDefinition\)/);
+	assert.match(enhancementPanelSource, /renderEnhancedItemCard\(selectedBaseItem,\s*accumulatedStats,\s*remaining,\s*appliedCount,\s*gradeColor,\s*statBreakdown,\s*itemLevelUpMeta\)/);
+});
+
+test('item card requirement rows align to icon height and item level rows are accented', async () => {
+	assert.match(indexSource, /const createItemLine\s*=\s*\(label,\s*value,\s*className\s*=\s*''\)\s*=>/);
+	assert.match(indexSource, /row\.className\s*=\s*`selected-item-line \$\{className\}`\.trim\(\)/);
+	assert.match(indexSource, /createItemLine\(label,\s*value,\s*'selected-item-line--requirement'\)/);
+	assert.match(indexSource, /createItemLine\('ITEM LEV',\s*meta\.itemLevel,\s*'selected-item-line--item-level'\)/);
+	assert.match(indexSource, /createItemLine\('ITEM EXP',\s*meta\.itemExp,\s*'selected-item-line--item-level'\)/);
+	assert.match(indexSource, /\.selected-item-icon-frame\s*\{[^}]*width:\s*96px;[^}]*height:\s*96px;/);
+	assert.match(indexSource, /\.selected-item-requirements\s*\{[^}]*gap:\s*0;/);
+	assert.match(indexSource, /:global\(\.selected-item-line--requirement\)\s*\{[^}]*height:\s*16px;[^}]*line-height:\s*16px;/);
+	assert.match(indexSource, /:global\(\.selected-item-line--item-level\)\s*\{[^}]*color:\s*#c28b39;/);
 });
 
 test('item level-up panel source contract is present beside maker controls', async () => {
