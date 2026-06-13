@@ -881,7 +881,7 @@ function populateScrollForm(scroll) {
     statusDiv.appendChild(chip);
   });
 
-  renderKeyValueRows('edit-stats', scroll.stat_effect_frame || {}, SCROLL_STAT_KEYS, 'stat');
+  renderKeyValueRows('edit-stats', scroll.stat_effect_frame || {}, Object.keys(scroll.stat_effect_frame || {}), 'stat');
 
   document.getElementById('edit-targetItemId').value = scroll.target_item_id ?? '';
   document.getElementById('edit-maxApps').value = scroll.max_applications ?? '';
@@ -1018,7 +1018,7 @@ async function saveScrollItem() {
   const stats = {};
   document.querySelectorAll('#edit-stats [data-prefix="stat"]').forEach(input => {
     const val = Number(input.value);
-    if (Number.isFinite(val)) stats[input.dataset.key] = val;
+    if (Number.isFinite(val) && val !== 0) stats[input.dataset.key] = val;
   });
 
   const affectedRaw = document.getElementById('edit-aliases').value.trim();
