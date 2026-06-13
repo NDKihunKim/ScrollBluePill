@@ -302,13 +302,16 @@ async function main() {
         const nameKo = override.nameKo ?? generatedKoreanName ?? item.name;
         const nameEn = item.name ?? null;
         const hasKoreanName = /[가-힣]/.test(nameKo ?? '');
-        const isHidden = hiddenItemIds.has(item.id) || hiddenEquipmentKinds.has(equipmentKind) || !hasKoreanName;
+        const resolvedStats = { ...generatedStats, ...(override.stats ?? {}) };
+        const hasStats = Object.keys(resolvedStats).length > 0;
+        const isHidden = hiddenItemIds.has(item.id) || hiddenEquipmentKinds.has(equipmentKind) || !hasKoreanName || !hasStats;
         let sourceNote = `Seeded from maplestory.io ${region}/${version}`;
         if (isHidden) {
             const reasons = [];
             if (hiddenItemIds.has(item.id)) reasons.push('hideItemIds');
             if (hiddenEquipmentKinds.has(equipmentKind)) reasons.push('hidden equipment kind');
             if (!hasKoreanName) reasons.push('missing Korean name');
+            if (!hasStats) reasons.push('zero stats');
             sourceNote += ' — hidden: ' + reasons.join(', ');
         }
         return {
@@ -320,7 +323,7 @@ async function main() {
             required_level: metaInfo.reqLevelEquip ?? item.requiredLevel ?? 0,
             required_jobs: item.requiredJobs ?? [],
             requirements: { ...generatedRequirements, ...(override.requirements ?? {}) },
-            stats: { ...generatedStats, ...(override.stats ?? {}) },
+            stats: resolvedStats,
             aliases: override.aliases ?? [],
             published_status: isHidden ? 'hidden' : 'published',
             source_note: sourceNote,
