@@ -55,6 +55,15 @@ body { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
   padding: 6px 14px; border: 1px solid var(--line); border-radius: 6px;
   background: var(--surface); cursor: pointer; font: inherit; font-size: 0.85rem;
 }
+.type-toggle {
+  display: flex; gap: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden;
+}
+.type-toggle button {
+  padding: 6px 18px; border: none; background: var(--surface); cursor: pointer;
+  font: inherit; font-size: 0.85rem; font-weight: 600; color: var(--muted);
+  transition: background 0.15s, color 0.15s;
+}
+.type-toggle button.active { background: var(--blue); color: #fff; }
 
 /* Summary */
 .summary {
@@ -206,7 +215,13 @@ tr.detail-row td { padding: 16px 24px; font-size: 0.82rem; }
 
 <!-- Header -->
   <div class="header">
-    <h1>Item Review Dashboard</h1>
+    <div style="display:flex;align-items:center;gap:16px">
+      <h1>Item Review Dashboard</h1>
+      <div class="type-toggle" id="type-toggle">
+        <button id="toggle-equipment" class="active" onclick="switchType('equipment')">Equipment</button>
+        <button id="toggle-scrolls" onclick="switchType('scroll')">Scrolls</button>
+      </div>
+    </div>
     <span id="key-label" style="font-size:0.85rem;color:var(--muted)">All items (embedded)</span>
   </div>
 
@@ -214,37 +229,7 @@ tr.detail-row td { padding: 16px 24px; font-size: 0.82rem; }
   <div class="summary" id="summary"></div>
 
   <!-- Filters -->
-  <div class="filters">
-    <input class="search" type="text" id="filter-text" placeholder="Search name or ID..." oninput="renderTable(true)">
-    <div class="filter-group">
-      <label>Equipment Kind</label>
-      <select id="filter-kind" onchange="renderTable(true)"><option value="">All</option></select>
-    </div>
-    <div class="filter-group">
-      <label>Job</label>
-      <div class="chips" id="filter-jobs"></div>
-    </div>
-    <div class="filter-group">
-      <label>Status</label>
-      <div class="chips" id="filter-status"></div>
-    </div>
-    <div class="filter-group">
-      <label>Level</label>
-      <div class="level-inputs">
-        <input type="number" id="filter-lvmin" placeholder="Min" onchange="renderTable(true)">
-        <span style="color:var(--muted)">–</span>
-        <input type="number" id="filter-lvmax" placeholder="Max" onchange="renderTable(true)">
-      </div>
-    </div>
-    <div class="filter-group">
-      <label>Korean Name</label>
-      <div class="chips" id="filter-korean"></div>
-    </div>
-    <div class="filter-group">
-      <label>Has Stats</label>
-      <div class="chips" id="filter-stats"></div>
-    </div>
-  </div>
+  <div class="filters" id="filters"></div>
 
   <!-- Table -->
   <div class="table-wrap">
@@ -277,6 +262,7 @@ tr.detail-row td { padding: 16px 24px; font-size: 0.82rem; }
 <script>
 // ── Embedded Data ──
 /* __ITEM_DATA_PLACEHOLDER__ */
+/* __SCROLL_DATA_PLACEHOLDER__ */
 
 // ── Config ──
 const SUPABASE_URL = 'https://ruiyundsvqflqtcltkbv.supabase.co';
@@ -293,12 +279,16 @@ const JOB_LABELS = { Warrior: '전사', Magician: '마법사', Bowman: '궁수',
 
 // ── State ──
 let allItems = [];
+let allScrolls = [];
 let filteredItems = [];
+let filteredScrolls = [];
 let sortCol = 'id';
 let sortDir = 1;
 let apiKey = null;
+let activeType = 'equipment';
 let jobFilters = new Set(['Warrior','Magician','Bowman','Thief','Pirate']);
 let statusFilters = new Set(['published','draft','hidden']);
+let behaviorFilters = new Set(['fixed','random']);
 let koreanFilter = 'all';
 let statsFilter = 'all';
 let currentPage = 1;
@@ -307,123 +297,190 @@ const PAGE_SIZE = 100;
 // ── Init ──
 let showAll = true;
 
+function activeData() {
+  return activeType === 'equipment' ? allItems : allScrolls;
+}
+
+function activeFiltered() {
+  return activeType === 'equipment' ? filteredItems : filteredScrolls;
+}
+
 function init() {
   if (!window.__ITEM_DATA__ || !Array.isArray(window.__ITEM_DATA__)) {
     document.getElementById('tbody').innerHTML = '<tr><td colspan="9" class="error-msg">No embedded data found. Run: npm run generate:item-review</td></tr>';
     return;
   }
   allItems = window.__ITEM_DATA__;
+  allScrolls = window.__SCROLL_DATA__ || [];
   renderAll();
 }
 
 window.onload = init;
 
+function switchType(type) {
+  activeType = type;
+  document.getElementById('toggle-equipment').classList.toggle('active', type === 'equipment');
+  document.getElementById('toggle-scrolls').classList.toggle('active', type === 'scroll');
+  document.getElementById('key-label').textContent = type === 'equipment' ? 'All items (embedded)' : 'All scrolls (embedded)';
+  currentPage = 1;
+  sortCol = type === 'equipment' ? 'id' : 'displayId';
+  sortDir = 1;
+  renderAll();
+}
+
 function renderAll() {
-  document.getElementById('key-label').textContent = 'All items (embedded)';
-  buildKindSelect();
-  buildJobChips();
-  buildStatusChips();
-  buildToggles();
+  buildFilters();
   renderSummary();
   renderTable();
 }
 
 // ── UI Builders ──
-function buildKindSelect() {
-  const kinds = [...new Set(allItems.map(i => i.equipmentKind))].sort();
-  const sel = document.getElementById('filter-kind');
-  kinds.forEach(k => {
-    const opt = document.createElement('option');
-    opt.value = k; opt.textContent = k;
-    sel.appendChild(opt);
-  });
+function buildFilters() {
+  const container = document.getElementById('filters');
+  container.innerHTML = '';
+
+  // Text search — always present
+  const searchInput = document.createElement('input');
+  searchInput.className = 'search';
+  searchInput.type = 'text';
+  searchInput.id = 'filter-text';
+  searchInput.placeholder = 'Search name or ID...';
+  searchInput.oninput = () => renderTable(true);
+  container.appendChild(searchInput);
+
+  if (activeType === 'equipment') {
+    // Equipment Kind dropdown
+    const kindGroup = document.createElement('div');
+    kindGroup.className = 'filter-group';
+    kindGroup.innerHTML = '<label>Equipment Kind</label>';
+    const kindSel = document.createElement('select');
+    kindSel.id = 'filter-kind';
+    kindSel.onchange = () => renderTable(true);
+    const kinds = [...new Set(allItems.map(i => i.equipmentKind))].sort();
+    const allOpt = document.createElement('option');
+    allOpt.value = ''; allOpt.textContent = 'All';
+    kindSel.appendChild(allOpt);
+    kinds.forEach(k => { const opt = document.createElement('option'); opt.value = k; opt.textContent = k; kindSel.appendChild(opt); });
+    kindGroup.appendChild(kindSel);
+    container.appendChild(kindGroup);
+
+    // Job chips
+    buildChipGroup(container, 'Job', 'filter-jobs', ['Warrior','Magician','Bowman','Thief','Pirate','Beginner'], jobFilters, JOB_LABELS);
+  } else {
+    // Category dropdown
+    const catGroup = document.createElement('div');
+    catGroup.className = 'filter-group';
+    catGroup.innerHTML = '<label>Category</label>';
+    const catSel = document.createElement('select');
+    catSel.id = 'filter-category';
+    catSel.onchange = () => renderTable(true);
+    const cats = [...new Set(allScrolls.map(s => s.category))].sort();
+    const allOpt = document.createElement('option');
+    allOpt.value = ''; allOpt.textContent = 'All';
+    catSel.appendChild(allOpt);
+    cats.forEach(c => { const opt = document.createElement('option'); opt.value = c; opt.textContent = c; catSel.appendChild(opt); });
+    catGroup.appendChild(catSel);
+    container.appendChild(catGroup);
+
+    // Behavior Type chips
+    buildChipGroup(container, 'Behavior', 'filter-behavior', ['fixed','random'], behaviorFilters);
+  }
+
+  // Status chips — always present
+  buildChipGroup(container, 'Status', 'filter-status', ['published','draft','hidden'], statusFilters);
+
+  // Level range — equipment only
+  if (activeType === 'equipment') {
+    const lvGroup = document.createElement('div');
+    lvGroup.className = 'filter-group';
+    lvGroup.innerHTML = '<label>Level</label><div class="level-inputs"><input type="number" id="filter-lvmin" placeholder="Min" onchange="renderTable(true)"><span style="color:var(--muted)">–</span><input type="number" id="filter-lvmax" placeholder="Max" onchange="renderTable(true)"></div>';
+    container.appendChild(lvGroup);
+  }
+
+  // Korean Name chips — always present
+  buildToggleChips(container, 'Korean Name', 'filter-korean', [{v:'all',l:'All'},{v:'yes',l:'Has'},{v:'no',l:'Missing'}], () => koreanFilter, (v) => { koreanFilter = v; });
+
+  // Has Stats chips — always present
+  buildToggleChips(container, 'Has Stats', 'filter-stats', [{v:'all',l:'All'},{v:'yes',l:'Has'},{v:'no',l:'None'}], () => statsFilter, (v) => { statsFilter = v; });
 }
 
-function buildJobChips() {
-  const container = document.getElementById('filter-jobs');
-  ['Warrior','Magician','Bowman','Thief','Pirate','Beginner'].forEach(job => {
+function buildChipGroup(container, label, id, values, selectedSet, labelMap) {
+  const group = document.createElement('div');
+  group.className = 'filter-group';
+  group.innerHTML = `<label>${label}</label>`;
+  const chipsDiv = document.createElement('div');
+  chipsDiv.className = 'chips';
+  chipsDiv.id = id;
+  values.forEach(v => {
     const chip = document.createElement('span');
-    chip.className = 'chip on';
-    chip.textContent = JOB_LABELS[job] || job;
+    chip.className = 'chip' + (selectedSet.has(v) ? ' on' : '');
+    chip.textContent = labelMap ? (labelMap[v] || v) : v;
     chip.onclick = () => {
-      if (jobFilters.has(job)) jobFilters.delete(job); else jobFilters.add(job);
+      if (selectedSet.has(v)) selectedSet.delete(v); else selectedSet.add(v);
       chip.classList.toggle('on');
       renderTable(true);
     };
-    container.appendChild(chip);
+    chipsDiv.appendChild(chip);
   });
+  group.appendChild(chipsDiv);
+  container.appendChild(group);
 }
 
-function buildStatusChips() {
-  const container = document.getElementById('filter-status');
-  [{v:'published',l:'Published'},{v:'draft',l:'Draft'},{v:'hidden',l:'Hidden'}].forEach(s => {
+function buildToggleChips(container, label, id, options, getter, setter) {
+  const group = document.createElement('div');
+  group.className = 'filter-group';
+  group.innerHTML = `<label>${label}</label>`;
+  const chipsDiv = document.createElement('div');
+  chipsDiv.className = 'chips';
+  chipsDiv.id = id;
+  options.forEach(o => {
     const chip = document.createElement('span');
-    chip.className = 'chip on';
-    chip.textContent = s.l;
-    chip.onclick = () => {
-      if (statusFilters.has(s.v)) statusFilters.delete(s.v); else statusFilters.add(s.v);
-      chip.classList.toggle('on');
-      renderTable(true);
-    };
-    container.appendChild(chip);
-  });
-}
-
-function buildToggles() {
-  // Korean name filter
-  const kc = document.getElementById('filter-korean');
-  [{v:'all',l:'All'},{v:'yes',l:'Has'},{v:'no',l:'Missing'}].forEach(o => {
-    const chip = document.createElement('span');
-    chip.className = 'chip' + (o.v === 'all' ? ' on' : '');
+    chip.className = 'chip' + (getter() === o.v ? ' on' : '');
     chip.textContent = o.l;
     chip.onclick = () => {
-      koreanFilter = o.v;
-      kc.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+      setter(o.v);
+      chipsDiv.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
       chip.classList.add('on');
       renderTable(true);
     };
-    kc.appendChild(chip);
+    chipsDiv.appendChild(chip);
   });
-  // Stats filter
-  const sc = document.getElementById('filter-stats');
-  [{v:'all',l:'All'},{v:'yes',l:'Has'},{v:'no',l:'None'}].forEach(o => {
-    const chip = document.createElement('span');
-    chip.className = 'chip' + (o.v === 'all' ? ' on' : '');
-    chip.textContent = o.l;
-    chip.onclick = () => {
-      statsFilter = o.v;
-      sc.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
-      chip.classList.add('on');
-      renderTable();
-    };
-    sc.appendChild(chip);
-  });
+  group.appendChild(chipsDiv);
+  container.appendChild(group);
 }
 
 // ── Render ──
 function renderSummary() {
-  const pub = allItems.filter(i => i.publishedStatus === 'published').length;
-  const draft = allItems.filter(i => i.publishedStatus === 'draft').length;
-  const hidden = allItems.filter(i => i.publishedStatus === 'hidden').length;
-  const noKorean = allItems.filter(i => !/[가-힣]/.test(i.nameKo)).length;
-  const noStats = allItems.filter(i => Object.keys(i.stats).length === 0).length;
-  const loadAllBtn = '';
+  const data = activeData();
+  const pub = data.filter(i => i.publishedStatus === 'published').length;
+  const draft = data.filter(i => i.publishedStatus === 'draft').length;
+  const hidden = data.filter(i => i.publishedStatus === 'hidden').length;
+  const noKorean = data.filter(i => !/[가-힣]/.test(i.nameKo)).length;
+  const noStats = data.filter(i => Object.keys(i.stats).length === 0).length;
+  const label = activeType === 'equipment' ? 'Items' : 'Scrolls';
   document.getElementById('summary').innerHTML = `
-    <div class="summary-card total"><div class="label">${showAll ? 'Total (all)' : 'Total (published)'}</div><div class="value">${allItems.length}</div></div>
+    <div class="summary-card total"><div class="label">Total ${label}</div><div class="value">${data.length}</div></div>
     <div class="summary-card pub"><div class="label">Published</div><div class="value">${pub}</div></div>
     <div class="summary-card draft"><div class="label">Draft</div><div class="value">${draft}</div></div>
     <div class="summary-card hidden-card"><div class="label">Hidden</div><div class="value">${hidden}</div></div>
     <div class="summary-card"><div class="label">No Korean</div><div class="value">${noKorean}</div></div>
     <div class="summary-card"><div class="label">No Stats</div><div class="value">${noStats}</div></div>
-    ${loadAllBtn}
   `;
 }
 
 function filterItems() {
-  const text = (document.getElementById('filter-text').value || '').toLowerCase();
-  const kind = document.getElementById('filter-kind').value;
-  const lvmin = parseInt(document.getElementById('filter-lvmin').value) || 0;
-  const lvmax = parseInt(document.getElementById('filter-lvmax').value) || 999;
+  if (activeType === 'equipment') {
+    filterEquipment();
+  } else {
+    filterScrolls();
+  }
+}
+
+function filterEquipment() {
+  const text = (document.getElementById('filter-text')?.value || '').toLowerCase();
+  const kind = document.getElementById('filter-kind')?.value || '';
+  const lvmin = parseInt(document.getElementById('filter-lvmin')?.value) || 0;
+  const lvmax = parseInt(document.getElementById('filter-lvmax')?.value) || 999;
 
   filteredItems = allItems.filter(i => {
     if (!statusFilters.has(i.publishedStatus)) return false;
@@ -433,14 +490,32 @@ function filterItems() {
     if (koreanFilter === 'no' && /[가-힣]/.test(i.nameKo)) return false;
     if (statsFilter === 'yes' && Object.keys(i.stats).length === 0) return false;
     if (statsFilter === 'no' && Object.keys(i.stats).length > 0) return false;
-    // Job filter: item must match at least one selected job
     if (i.requiredJobs.length > 0) {
       const hasMatchingJob = i.requiredJobs.some(j => jobFilters.has(j));
       if (!hasMatchingJob) return false;
     }
-    // Text search
     if (text) {
       const searchTarget = `${i.id} ${i.nameKo} ${i.nameEn}`.toLowerCase();
+      if (!searchTarget.includes(text)) return false;
+    }
+    return true;
+  });
+}
+
+function filterScrolls() {
+  const text = (document.getElementById('filter-text')?.value || '').toLowerCase();
+  const category = document.getElementById('filter-category')?.value || '';
+
+  filteredScrolls = allScrolls.filter(s => {
+    if (!statusFilters.has(s.publishedStatus)) return false;
+    if (category && s.category !== category) return false;
+    if (!behaviorFilters.has(s.behaviorType)) return false;
+    if (koreanFilter === 'yes' && !/[가-힣]/.test(s.nameKo)) return false;
+    if (koreanFilter === 'no' && /[가-힣]/.test(s.nameKo)) return false;
+    if (statsFilter === 'yes' && Object.keys(s.stats).length === 0) return false;
+    if (statsFilter === 'no' && Object.keys(s.stats).length > 0) return false;
+    if (text) {
+      const searchTarget = `${s.displayId} ${s.nameKo}`.toLowerCase();
       if (!searchTarget.includes(text)) return false;
     }
     return true;
@@ -450,19 +525,57 @@ function filterItems() {
 function sortBy(col) {
   if (sortCol === col) { sortDir = -sortDir; }
   else { sortCol = col; sortDir = 1; }
+
+  const labelMap = activeType === 'equipment'
+    ? { id:'ID', nameKo:'Name KO', nameEn:'Name EN', equipmentKind:'Kind', requiredLevel:'Lv', publishedStatus:'Status' }
+    : { displayId:'ID', nameKo:'Name KO', category:'Category', publishedStatus:'Status' };
+
+  const label = labelMap[col] || '';
   document.querySelectorAll('th .sort-arrow').forEach(s => s.textContent = '');
-  const idx = [...document.querySelectorAll('th')].findIndex(th => th.textContent.trim().startsWith(col === 'id' ? 'ID' : col === 'nameKo' ? 'Name KO' : col === 'nameEn' ? 'Name EN' : col === 'equipmentKind' ? 'Kind' : col === 'requiredLevel' ? 'Lv' : col === 'publishedStatus' ? 'Status' : ''));
-  if (idx >= 0) {
-    document.querySelectorAll('th .sort-arrow')[idx].textContent = sortDir === 1 ? '▲' : '▼';
-  }
+  document.querySelectorAll('th').forEach(th => {
+    if (th.textContent.trim().startsWith(label)) {
+      th.querySelector('.sort-arrow').textContent = sortDir === 1 ? '▲' : '▼';
+    }
+  });
   renderTable(true);
+}
+
+function updateTableHeader() {
+  const thead = document.querySelector('thead tr');
+  if (activeType === 'equipment') {
+    thead.innerHTML =
+      '<th class="icon-cell"></th>' +
+      '<th onclick="sortBy(\'id\')">ID <span class="sort-arrow"></span></th>' +
+      '<th onclick="sortBy(\'nameKo\')">Name KO <span class="sort-arrow"></span></th>' +
+      '<th onclick="sortBy(\'nameEn\')">Name EN <span class="sort-arrow"></span></th>' +
+      '<th onclick="sortBy(\'equipmentKind\')">Kind <span class="sort-arrow"></span></th>' +
+      '<th onclick="sortBy(\'requiredLevel\')">Lv <span class="sort-arrow"></span></th>' +
+      '<th>Jobs</th>' +
+      '<th>Stats</th>' +
+      '<th onclick="sortBy(\'publishedStatus\')">Status <span class="sort-arrow"></span></th>' +
+      '<th></th>';
+  } else {
+    thead.innerHTML =
+      '<th class="icon-cell"></th>' +
+      '<th onclick="sortBy(\'displayId\')">ID <span class="sort-arrow"></span></th>' +
+      '<th onclick="sortBy(\'nameKo\')">Name KO <span class="sort-arrow"></span></th>' +
+      '<th onclick="sortBy(\'category\')">Category <span class="sort-arrow"></span></th>' +
+      '<th>Behavior</th>' +
+      '<th>Affected Stats</th>' +
+      '<th onclick="sortBy(\'publishedStatus\')">Status <span class="sort-arrow"></span></th>' +
+      '<th></th>';
+  }
 }
 
 function renderTable(resetPage) {
   if (resetPage) currentPage = 1;
   filterItems();
-  filteredItems.sort((a, b) => {
-    let va = a[sortCol], vb = b[sortCol];
+
+  const filtered = activeFiltered();
+  const col = sortCol;
+
+  filtered.sort((a, b) => {
+    let va = a[col], vb = b[col];
     if (typeof va === 'string') va = va.toLowerCase();
     if (typeof vb === 'string') vb = vb.toLowerCase();
     if (va == null) va = '';
@@ -472,45 +585,28 @@ function renderTable(resetPage) {
     return 0;
   });
 
-  const totalPages = Math.ceil(filteredItems.length / PAGE_SIZE) || 1;
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
   if (currentPage > totalPages) currentPage = totalPages;
   const start = (currentPage - 1) * PAGE_SIZE;
-  const pageItems = filteredItems.slice(start, start + PAGE_SIZE);
+  const pageItems = filtered.slice(start, start + PAGE_SIZE);
 
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
 
-  pageItems.forEach((item, pageIdx) => {
-    const effectiveIconId = ICON_OVERRIDES[item.id] ?? item.id;
-    const iconUrl = `${MAPLESTORY_IO_BASE}/api/GMS/83/item/${effectiveIconId}/icon`;
-    const statEntries = Object.entries(item.stats).filter(([,v]) => Number.isFinite(v));
-    const statTags = statEntries.slice(0, 4).map(([k,v]) =>
-      `<span class="stat-tag">${k}: ${v > 0 ? '+' + v : v}</span>`
-    ).join('');
-    const moreStats = statEntries.length > 4 ? ` <span class="stat-tag">+${statEntries.length - 4}</span>` : '';
-    const jobBadges = (item.requiredJobs || []).map(j =>
-      `<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:0.7rem;background:${JOB_COLORS[j] || '#888'}11;color:${JOB_COLORS[j] || '#888'};margin-right:2px">${JOB_LABELS[j] || j}</span>`
-    ).join('') || '-';
-    const badgeClass = item.publishedStatus === 'published' ? 'pub' : item.publishedStatus === 'draft' ? 'draft' : 'hidden';
-    const badgeLabel = item.publishedStatus === 'published' ? 'published' : item.publishedStatus === 'draft' ? 'draft' : 'hidden';
+  updateTableHeader();
 
-    tbody.innerHTML += '<tr class="expandable" onclick="toggleDetail(' + start + '+' + pageIdx + ', this)">' +
-      '<td class="icon-cell"><img src="' + iconUrl + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline-flex\'" crossorigin="anonymous"><span class="no-icon" style="display:none">?</span></td>' +
-      '<td>' + item.id + '</td>' +
-      '<td>' + esc(item.nameKo) + '</td>' +
-      '<td style="font-size:0.8rem;color:var(--muted)">' + esc(item.nameEn || '') + '</td>' +
-      '<td>' + esc(item.equipmentKind) + '</td>' +
-      '<td>' + item.requiredLevel + '</td>' +
-      '<td>' + jobBadges + '</td>' +
-      '<td><div class="stats-tags">' + statTags + moreStats + '</div></td>' +
-      '<td><span class="badge ' + badgeClass + '">' + badgeLabel + '</span></td>' +
-      '<td><button onclick="event.stopPropagation();openEdit(' + item.id + ')" style="padding:2px 8px;font:inherit;font-size:0.75rem;cursor:pointer;border:1px solid var(--line);border-radius:4px;background:var(--surface)" title="Edit item">✏️</button></td>' +
-      '</tr>';
+  pageItems.forEach((item, pageIdx) => {
+    if (activeType === 'equipment') {
+      renderEquipmentRow(tbody, item, start, pageIdx);
+    } else {
+      renderScrollRow(tbody, item, start, pageIdx);
+    }
   });
 
+  const typeLabel = activeType === 'equipment' ? 'items' : 'scrolls';
   document.getElementById('showing').innerHTML =
-    'Showing ' + (start + 1) + '–' + Math.min(start + PAGE_SIZE, filteredItems.length) +
-    ' of ' + filteredItems.length + ' items (total: ' + allItems.length + ') ' +
+    'Showing ' + (start + 1) + '–' + Math.min(start + PAGE_SIZE, filtered.length) +
+    ' of ' + filtered.length + ' ' + typeLabel + ' (total: ' + activeData().length + ') ' +
     (totalPages > 1
       ? '<button onclick="currentPage=1;renderTable()" style="margin-left:8px;padding:2px 8px;font:inherit;font-size:0.8rem;cursor:pointer;border:1px solid var(--line);border-radius:4px;background:var(--surface)"' + (currentPage===1?' disabled':'') + '>« First</button> ' +
         '<button onclick="currentPage--;renderTable()" style="padding:2px 8px;font:inherit;font-size:0.8rem;cursor:pointer;border:1px solid var(--line);border-radius:4px;background:var(--surface)"' + (currentPage===1?' disabled':'') + '>‹ Prev</button> ' +
@@ -518,6 +614,58 @@ function renderTable(resetPage) {
         '<button onclick="currentPage++;renderTable()" style="padding:2px 8px;font:inherit;font-size:0.8rem;cursor:pointer;border:1px solid var(--line);border-radius:4px;background:var(--surface)"' + (currentPage===totalPages?' disabled':'') + '>Next ›</button> ' +
         '<button onclick="currentPage=totalPages;renderTable()" style="padding:2px 8px;font:inherit;font-size:0.8rem;cursor:pointer;border:1px solid var(--line);border-radius:4px;background:var(--surface)"' + (currentPage===totalPages?' disabled':'') + '>Last »</button>'
       : '');
+}
+
+function renderEquipmentRow(tbody, item, start, pageIdx) {
+  const effectiveIconId = ICON_OVERRIDES[item.id] ?? item.id;
+  const iconUrl = `${MAPLESTORY_IO_BASE}/api/GMS/83/item/${effectiveIconId}/icon`;
+  const statEntries = Object.entries(item.stats).filter(([,v]) => Number.isFinite(v));
+  const statTags = statEntries.slice(0, 4).map(([k,v]) =>
+    `<span class="stat-tag">${k}: ${v > 0 ? '+' + v : v}</span>`
+  ).join('');
+  const moreStats = statEntries.length > 4 ? ` <span class="stat-tag">+${statEntries.length - 4}</span>` : '';
+  const jobBadges = (item.requiredJobs || []).map(j =>
+    `<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:0.7rem;background:${JOB_COLORS[j] || '#888'}11;color:${JOB_COLORS[j] || '#888'};margin-right:2px">${JOB_LABELS[j] || j}</span>`
+  ).join('') || '-';
+  const badgeClass = item.publishedStatus === 'published' ? 'pub' : item.publishedStatus === 'draft' ? 'draft' : 'hidden';
+  const badgeLabel = item.publishedStatus === 'published' ? 'published' : item.publishedStatus === 'draft' ? 'draft' : 'hidden';
+
+  tbody.innerHTML += '<tr class="expandable" onclick="toggleDetail(' + start + '+' + pageIdx + ', this)">' +
+    '<td class="icon-cell"><img src="' + iconUrl + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline-flex\'" crossorigin="anonymous"><span class="no-icon" style="display:none">?</span></td>' +
+    '<td>' + item.id + '</td>' +
+    '<td>' + esc(item.nameKo) + '</td>' +
+    '<td style="font-size:0.8rem;color:var(--muted)">' + esc(item.nameEn || '') + '</td>' +
+    '<td>' + esc(item.equipmentKind) + '</td>' +
+    '<td>' + item.requiredLevel + '</td>' +
+    '<td>' + jobBadges + '</td>' +
+    '<td><div class="stats-tags">' + statTags + moreStats + '</div></td>' +
+    '<td><span class="badge ' + badgeClass + '">' + badgeLabel + '</span></td>' +
+    '<td><button onclick="event.stopPropagation();openEdit(' + item.id + ')" style="padding:2px 8px;font:inherit;font-size:0.75rem;cursor:pointer;border:1px solid var(--line);border-radius:4px;background:var(--surface)" title="Edit item">✏️</button></td>' +
+    '</tr>';
+}
+
+function renderScrollRow(tbody, scroll, start, pageIdx) {
+  const iconUrl = `${MAPLESTORY_IO_BASE}/api/GMS/83/item/${scroll.displayId}/icon`;
+  const affectedTags = (scroll.affectedStats || []).slice(0, 4).map(s =>
+    `<span class="stat-tag">${s}</span>`
+  ).join('');
+  const moreAffected = (scroll.affectedStats || []).length > 4 ? ` <span class="stat-tag">+${scroll.affectedStats.length - 4}</span>` : '';
+  const behaviorTag = scroll.behaviorType === 'fixed'
+    ? '<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.72rem;background:#e3f2fd;color:#1565c0">fixed</span>'
+    : '<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.72rem;background:#e8f5e9;color:#2e7d32">random</span>';
+  const badgeClass = scroll.publishedStatus === 'published' ? 'pub' : scroll.publishedStatus === 'draft' ? 'draft' : 'hidden';
+  const badgeLabel = scroll.publishedStatus === 'published' ? 'published' : scroll.publishedStatus === 'draft' ? 'draft' : 'hidden';
+
+  tbody.innerHTML += '<tr class="expandable" onclick="toggleDetail(' + start + '+' + pageIdx + ', this)">' +
+    '<td class="icon-cell"><img src="' + iconUrl + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline-flex\'" crossorigin="anonymous"><span class="no-icon" style="display:none">?</span></td>' +
+    '<td>' + scroll.displayId + '</td>' +
+    '<td>' + esc(scroll.nameKo) + '</td>' +
+    '<td>' + esc(scroll.category) + '</td>' +
+    '<td>' + behaviorTag + '</td>' +
+    '<td><div class="stats-tags">' + affectedTags + moreAffected + '</div></td>' +
+    '<td><span class="badge ' + badgeClass + '">' + badgeLabel + '</span></td>' +
+    '<td><button onclick="event.stopPropagation();openEdit(\'' + scroll.id + '\')" style="padding:2px 8px;font:inherit;font-size:0.75rem;cursor:pointer;border:1px solid var(--line);border-radius:4px;background:var(--surface)" title="Edit scroll">✏️</button></td>' +
+    '</tr>';
 }
 
 function toggleDetail(idx, row) {
@@ -534,19 +682,34 @@ function esc(s) {
 // ── CSV Export ──
 function exportCSV() {
   filterItems();
-  const headers = ['id','nameKo','nameEn','equipmentKind','requiredLevel','requiredJobs','requirements','stats','aliases','publishedStatus','sourceNote'];
-  const rows = filteredItems.map(i =>
-    headers.map(h => {
-      const val = i[h] ?? '';
-      if (typeof val === 'object') return JSON.stringify(val);
-      return String(val);
-    })
-  );
+  const filtered = activeFiltered();
+  let headers, rows;
+
+  if (activeType === 'equipment') {
+    headers = ['id','nameKo','nameEn','equipmentKind','requiredLevel','requiredJobs','requirements','stats','aliases','publishedStatus','sourceNote'];
+    rows = filtered.map(i =>
+      headers.map(h => {
+        const val = i[h] ?? '';
+        if (typeof val === 'object') return JSON.stringify(val);
+        return String(val);
+      })
+    );
+  } else {
+    headers = ['displayId','nameKo','category','behaviorType','affectedStats','publishedStatus','stats','targetItemId','maxApplications'];
+    rows = filtered.map(s =>
+      headers.map(h => {
+        const val = s[h] ?? '';
+        if (typeof val === 'object') return JSON.stringify(val);
+        return String(val);
+      })
+    );
+  }
+
   const csv = [headers.join(','), ...rows.map(r => r.map(c => `"${c.replace(/"/g,'""')}"`).join(','))].join('\n');
   const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'items-review.csv';
+  a.download = activeType === 'equipment' ? 'items-review.csv' : 'scrolls-review.csv';
   a.click();
   URL.revokeObjectURL(a.href);
 }
@@ -556,6 +719,7 @@ let editingItemId = null;
 let editServiceKey = null;
 const EDITABLE_JOB_KEYS = ['Warrior','Magician','Bowman','Thief','Pirate','Beginner'];
 const STAT_KEYS = ['str','dex','int','luk','maxHp','maxMp','weaponAttack','magicAttack','weaponDefense','magicDefense','accuracy','avoidability','speed','jump','attackSpeed','upgradeSlots'];
+const SCROLL_STAT_KEYS = ['str','dex','int','luk','maxHp','maxMp','weaponAttack','magicAttack','weaponDefense','magicDefense','accuracy','avoidability','speed','jump','attackSpeed'];
 
 function getEditKey() {
   if (editServiceKey) return editServiceKey;
@@ -599,36 +763,58 @@ async function openEdit(itemId) {
   document.getElementById('edit-form').style.display = 'none';
   document.getElementById('edit-spinner').style.display = 'block';
   document.getElementById('edit-feedback').className = 'modal-feedback';
-  document.getElementById('edit-title').textContent = 'Edit Item #' + itemId;
+
+  const isEquip = activeType === 'equipment';
+  document.getElementById('edit-title').textContent = isEquip ? 'Edit Item #' + itemId : 'Edit Scroll';
+  document.getElementById('edit-nameEn-group').style.display = isEquip ? '' : 'none';
+  document.getElementById('edit-kind-group').style.display = isEquip ? '' : 'none';
+  document.getElementById('edit-category-group').style.display = isEquip ? 'none' : '';
+  document.getElementById('edit-level-group').style.display = isEquip ? '' : 'none';
+  document.getElementById('edit-jobs-group').style.display = isEquip ? '' : 'none';
+  document.getElementById('edit-behavior-group').style.display = isEquip ? 'none' : '';
+  document.getElementById('edit-reqs-group').style.display = isEquip ? '' : 'none';
+  document.getElementById('edit-scroll-extra-group').style.display = isEquip ? 'none' : '';
+  document.getElementById('edit-aliases-label').textContent = isEquip ? 'Aliases (comma-separated)' : 'Affected Stats (comma-separated)';
+  document.getElementById('edit-stats-label').innerHTML = (isEquip ? 'Stats' : 'Stat Effect Frame') +
+    ' <button type="button" onclick="addStatRow()" style="font-size:0.7rem;padding:2px 8px;cursor:pointer">+ Add</button>';
+
+  const table = isEquip ? 'item_definitions' : 'scroll_definitions';
 
   try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/item_definitions?id=eq.' + itemId + '&limit=1', {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/' + table + '?id=eq.' + encodeURIComponent(itemId) + '&limit=1', {
       headers: { apikey: getEditKey(), authorization: 'Bearer ' + getEditKey() }
     });
     if (!res.ok) throw new Error('Fetch failed: ' + res.status);
     const data = await res.json();
-    if (!data.length) throw new Error('Item not found');
+    if (!data.length) throw new Error('Not found');
     populateForm(data[0]);
   } catch (e) {
     document.getElementById('edit-spinner').innerHTML = '<div class="error-msg">Failed to fetch: ' + e.message + '</div>';
   }
 }
 
-function populateForm(item) {
+function populateForm(data) {
   document.getElementById('edit-spinner').style.display = 'none';
   document.getElementById('edit-form').style.display = 'block';
+
+  if (activeType === 'equipment') {
+    populateEquipmentForm(data);
+  } else {
+    populateScrollForm(data);
+  }
+}
+
+function populateEquipmentForm(item) {
   document.getElementById('edit-nameKo').value = item.name_ko || '';
   document.getElementById('edit-nameEn').value = item.name_en || '';
   document.getElementById('edit-level').value = item.required_level || 0;
   document.getElementById('edit-aliases').value = (item.aliases || []).join(', ');
 
-  // Equipment kind dropdown
   const kinds = [...new Set(allItems.map(i => i.equipmentKind))].sort();
   const sel = document.getElementById('edit-kind');
   sel.innerHTML = '';
   kinds.forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = k; if (k === item.equipment_kind) o.selected = true; sel.appendChild(o); });
 
-  // Jobs
   const jobsDiv = document.getElementById('edit-jobs');
   jobsDiv.innerHTML = '';
   const itemJobs = new Set(item.required_jobs || []);
@@ -640,7 +826,6 @@ function populateForm(item) {
     jobsDiv.appendChild(chip);
   });
 
-  // Status
   const statusDiv = document.getElementById('edit-status');
   statusDiv.innerHTML = '';
   [{v:'published',l:'Published'},{v:'draft',l:'Draft'},{v:'hidden',l:'Hidden'}].forEach(s => {
@@ -655,11 +840,51 @@ function populateForm(item) {
     statusDiv.appendChild(chip);
   });
 
-  // Stats
   renderKeyValueRows('edit-stats', item.stats || {}, STAT_KEYS, 'stat');
-
-  // Requirements
   renderKeyValueRows('edit-reqs', item.requirements || {}, ['str','dex','int','luk','pop'], 'req');
+}
+
+function populateScrollForm(scroll) {
+  document.getElementById('edit-nameKo').value = scroll.name_ko || '';
+  document.getElementById('edit-aliases').value = (scroll.affected_stats || []).join(', ');
+
+  const cats = [...new Set(allScrolls.map(s => s.category))].sort();
+  const sel = document.getElementById('edit-category');
+  sel.innerHTML = '';
+  cats.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; if (c === scroll.category) o.selected = true; sel.appendChild(o); });
+
+  const btDiv = document.getElementById('edit-behavior');
+  btDiv.innerHTML = '';
+  [{v:'fixed',l:'Fixed'},{v:'random',l:'Random'}].forEach(b => {
+    const chip = document.createElement('span');
+    chip.className = 'chip' + (scroll.behavior_type === b.v ? ' on' : '');
+    chip.textContent = b.l;
+    chip.dataset.value = b.v;
+    chip.onclick = () => {
+      btDiv.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+      chip.classList.add('on');
+    };
+    btDiv.appendChild(chip);
+  });
+
+  const statusDiv = document.getElementById('edit-status');
+  statusDiv.innerHTML = '';
+  [{v:'published',l:'Published'},{v:'draft',l:'Draft'},{v:'hidden',l:'Hidden'}].forEach(s => {
+    const chip = document.createElement('span');
+    chip.className = 'chip' + (scroll.published_status === s.v ? ' on' : '');
+    chip.textContent = s.l;
+    chip.dataset.value = s.v;
+    chip.onclick = () => {
+      statusDiv.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+      chip.classList.add('on');
+    };
+    statusDiv.appendChild(chip);
+  });
+
+  renderKeyValueRows('edit-stats', scroll.stat_effect_frame || {}, SCROLL_STAT_KEYS, 'stat');
+
+  document.getElementById('edit-targetItemId').value = scroll.target_item_id ?? '';
+  document.getElementById('edit-maxApps').value = scroll.max_applications ?? '';
 }
 
 function renderKeyValueRows(containerId, obj, knownKeys, prefix) {
@@ -718,6 +943,24 @@ async function saveItem() {
   const btn = document.getElementById('btn-save');
   btn.disabled = true; btn.textContent = 'Saving...';
 
+  try {
+    if (activeType === 'equipment') {
+      await saveEquipmentItem();
+    } else {
+      await saveScrollItem();
+    }
+    closeModal();
+    showToast('Saved ✓', 'ok');
+    renderSummary(); renderTable();
+  } catch (e) {
+    fb.className = 'modal-feedback err';
+    fb.textContent = 'Save failed: ' + e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save Changes';
+  }
+}
+
+async function saveEquipmentItem() {
   const jobs = [];
   document.querySelectorAll('#edit-jobs .chip.on').forEach(c => jobs.push(JOB_LABELS[c.textContent] ? [...EDITABLE_JOB_KEYS].find(j => JOB_LABELS[j] === c.textContent) : c.textContent));
   const statusChip = document.querySelector('#edit-status .chip.on');
@@ -747,33 +990,66 @@ async function saveItem() {
     aliases: aliases,
   };
 
-  try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/item_definitions?id=eq.' + editingItemId, {
-      method: 'PATCH',
-      headers: { apikey: getEditKey(), authorization: 'Bearer ' + getEditKey(), 'content-type': 'application/json', prefer: 'return=minimal' },
-      body: JSON.stringify(patch)
-    });
-    if (!res.ok) { const b = await res.text(); throw new Error(b); }
+  const res = await fetch(SUPABASE_URL + '/rest/v1/item_definitions?id=eq.' + editingItemId, {
+    method: 'PATCH',
+    headers: { apikey: getEditKey(), authorization: 'Bearer ' + getEditKey(), 'content-type': 'application/json', prefer: 'return=minimal' },
+    body: JSON.stringify(patch)
+  });
+  if (!res.ok) { const b = await res.text(); throw new Error(b); }
 
-    // Update embedded data
-    const idx = allItems.findIndex(i => i.id === editingItemId);
-    if (idx >= 0) {
-      allItems[idx] = { ...allItems[idx],
-        nameKo: patch.name_ko, nameEn: patch.name_en, equipmentKind: patch.equipment_kind,
-        requiredLevel: patch.required_level, requiredJobs: patch.required_jobs,
-        publishedStatus: patch.published_status, stats: patch.stats, requirements: patch.requirements,
-        aliases: patch.aliases
-      };
-    }
+  const idx = allItems.findIndex(i => i.id === editingItemId);
+  if (idx >= 0) {
+    allItems[idx] = { ...allItems[idx],
+      nameKo: patch.name_ko, nameEn: patch.name_en, equipmentKind: patch.equipment_kind,
+      requiredLevel: patch.required_level, requiredJobs: patch.required_jobs,
+      publishedStatus: patch.published_status, stats: patch.stats, requirements: patch.requirements,
+      aliases: patch.aliases
+    };
+  }
+}
 
-    closeModal();
-    showToast('Item #' + editingItemId + ' saved ✓', 'ok');
-    renderSummary(); renderTable();
-  } catch (e) {
-    fb.className = 'modal-feedback err';
-    fb.textContent = 'Save failed: ' + e.message;
-  } finally {
-    btn.disabled = false; btn.textContent = 'Save Changes';
+async function saveScrollItem() {
+  const btChip = document.querySelector('#edit-behavior .chip.on');
+  const behaviorVal = btChip ? btChip.dataset.value : 'fixed';
+
+  const statusChip = document.querySelector('#edit-status .chip.on');
+  const statusVal = statusChip ? statusChip.dataset.value : 'published';
+
+  const stats = {};
+  document.querySelectorAll('#edit-stats [data-prefix="stat"]').forEach(input => {
+    const val = Number(input.value);
+    if (Number.isFinite(val)) stats[input.dataset.key] = val;
+  });
+
+  const affectedRaw = document.getElementById('edit-aliases').value.trim();
+  const affectedStats = affectedRaw ? affectedRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+  const patch = {
+    name_ko: document.getElementById('edit-nameKo').value.trim(),
+    category: document.getElementById('edit-category').value,
+    behavior_type: behaviorVal,
+    published_status: statusVal,
+    stat_effect_frame: stats,
+    affected_stats: affectedStats,
+    target_item_id: parseInt(document.getElementById('edit-targetItemId').value) || null,
+    max_applications: parseInt(document.getElementById('edit-maxApps').value) || null,
+  };
+
+  const res = await fetch(SUPABASE_URL + '/rest/v1/scroll_definitions?id=eq.' + encodeURIComponent(editingItemId), {
+    method: 'PATCH',
+    headers: { apikey: getEditKey(), authorization: 'Bearer ' + getEditKey(), 'content-type': 'application/json', prefer: 'return=minimal' },
+    body: JSON.stringify(patch)
+  });
+  if (!res.ok) { const b = await res.text(); throw new Error(b); }
+
+  const idx = allScrolls.findIndex(s => s.id === editingItemId);
+  if (idx >= 0) {
+    allScrolls[idx] = { ...allScrolls[idx],
+      nameKo: patch.name_ko, category: patch.category,
+      behaviorType: patch.behavior_type, publishedStatus: patch.published_status,
+      stats: patch.stat_effect_frame, affectedStats: patch.affected_stats,
+      targetItemId: patch.target_item_id, maxApplications: patch.max_applications
+    };
   }
 }
 
@@ -794,33 +1070,45 @@ function showToast(msg, type) {
 <div class="modal-overlay hidden" id="edit-modal">
   <div class="modal-box">
     <h2 id="edit-title">Edit Item</h2>
-    <div id="edit-spinner" class="loading"><div class="spinner"></div><div>Fetching item...</div></div>
+    <div id="edit-spinner" class="loading"><div class="spinner"></div><div>Fetching...</div></div>
     <div id="edit-form" style="display:none">
       <div class="modal-row">
         <div class="modal-field"><label>Name KO</label><input id="edit-nameKo"></div>
-        <div class="modal-field"><label>Name EN</label><input id="edit-nameEn"></div>
+        <div class="modal-field" id="edit-nameEn-group"><label>Name EN</label><input id="edit-nameEn"></div>
       </div>
       <div class="modal-row">
-        <div class="modal-field"><label>Equipment Kind</label><select id="edit-kind"></select></div>
-        <div class="modal-field"><label>Level</label><input type="number" id="edit-level" min="0"></div>
+        <div class="modal-field" id="edit-kind-group"><label>Equipment Kind</label><select id="edit-kind"></select></div>
+        <div class="modal-field" id="edit-category-group" style="display:none"><label>Category</label><select id="edit-category"></select></div>
+        <div class="modal-field" id="edit-level-group"><label>Level</label><input type="number" id="edit-level" min="0"></div>
       </div>
-      <div class="modal-field">
+      <div class="modal-field" id="edit-jobs-group">
         <label>Jobs</label>
         <div class="chips-row" id="edit-jobs"></div>
+      </div>
+      <div class="modal-field" id="edit-behavior-group" style="display:none">
+        <label>Behavior Type</label>
+        <div class="chips-row" id="edit-behavior"></div>
       </div>
       <div class="modal-field">
         <label>Status</label>
         <div class="chips-row" id="edit-status"></div>
       </div>
       <div class="modal-field">
-        <label>Stats <button type="button" onclick="addStatRow()" style="font-size:0.7rem;padding:2px 8px;cursor:pointer">+ Add</button></label>
+        <label id="edit-stats-label">Stats <button type="button" onclick="addStatRow()" style="font-size:0.7rem;padding:2px 8px;cursor:pointer">+ Add</button></label>
         <div id="edit-stats"></div>
       </div>
-      <div class="modal-field">
+      <div class="modal-field" id="edit-reqs-group">
         <label>Requirements <button type="button" onclick="addReqRow()" style="font-size:0.7rem;padding:2px 8px;cursor:pointer">+ Add</button></label>
         <div id="edit-reqs"></div>
       </div>
-      <div class="modal-field"><label>Aliases (comma-separated)</label><input id="edit-aliases"></div>
+      <div class="modal-field" id="edit-aliases-group">
+        <label id="edit-aliases-label">Aliases (comma-separated)</label>
+        <input id="edit-aliases">
+      </div>
+      <div class="modal-row" id="edit-scroll-extra-group" style="display:none">
+        <div class="modal-field"><label>Target Item ID</label><input type="number" id="edit-targetItemId"></div>
+        <div class="modal-field"><label>Max Applications</label><input type="number" id="edit-maxApps"></div>
+      </div>
       <div class="modal-actions">
         <button class="btn-cancel" onclick="closeModal()">Cancel</button>
         <button class="btn-save" id="btn-save" onclick="saveItem()">Save Changes</button>
