@@ -13,7 +13,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
 	process.exit(1);
 }
 
-const DESIRED_PERCENTS = new Set([10, 60, 100]);
 const PERCENT_PATTERN = /(\d+)%$/;
 
 async function fetchSupabase(url, options = {}) {
@@ -32,21 +31,6 @@ async function fetchSupabase(url, options = {}) {
 	}
 
 	return response.json();
-}
-
-function filterDesiredPercentScrolls(scrolls) {
-	return scrolls.filter((scroll) => {
-		// Item-specific scrolls always pass — they are explicitly curated
-		if (scroll.target_item_id != null) {
-			return true;
-		}
-		const match = scroll.name_ko?.match(PERCENT_PATTERN);
-		if (!match) {
-			return false;
-		}
-		const percent = Number(match[1]);
-		return DESIRED_PERCENTS.has(percent);
-	});
 }
 
 function transformToFrontendSchema(row) {
@@ -163,16 +147,13 @@ async function main() {
 	const visibilityResult = applyVisibilityOverrides(rawScrolls, overrides);
 	const { scrolls: visibleScrolls } = visibilityResult;
 
-	// Filter to 10%, 60%, 100% only
-	const percentFiltered = filterDesiredPercentScrolls(visibleScrolls);
-	console.log(`Percent filter: kept ${percentFiltered.length} scrolls (10%, 60%, 100% only; removed ${visibleScrolls.length - percentFiltered.length}).`);
-
-	// Transform to frontend camelCase schema, drop rows with null item IDs
-	const frontendScrolls = percentFiltered
+	// Transform to frontend camelCase schema, drop rows with null item IDs.
+	// Visibility is governed by published_status in the database (published = visible).
+	const frontendScrolls = visibleScrolls
 		.filter((row) => row.maplestory_io_item_id != null)
 		.map(transformToFrontendSchema);
 
-	const droppedNullIds = percentFiltered.length - frontendScrolls.length;
+	const droppedNullIds = visibleScrolls.length - frontendScrolls.length;
 	if (droppedNullIds > 0) {
 		console.log(`Dropped ${droppedNullIds} scrolls with null maplestory_io_item_id.`);
 	}
