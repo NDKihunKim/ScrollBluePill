@@ -146,10 +146,10 @@
     "maxApplications": null
   },
   {
-    "id": 2044815,
-    "nameKo": "너클 공격력 주문서 100%",
+    "id": 2044801,
+    "nameKo": "너클 공격력 주문서 60%",
     "equipmentKind": "너클",
-    "behavior_type": "fixed",
+    "behavior_type": "random",
     "stats": {
       "str": 1,
       "weaponAttack": 2
@@ -158,13 +158,14 @@
     "maxApplications": null
   },
   {
-    "id": 2044801,
-    "nameKo": "너클 공격력 주문서 60%",
+    "id": 2044802,
+    "nameKo": "너클 공격력 주문서 10%",
     "equipmentKind": "너클",
-    "behavior_type": "random",
+    "behavior_type": "fixed",
     "stats": {
-      "str": 1,
-      "weaponAttack": 2
+      "str": 3,
+      "weaponAttack": 5,
+      "weaponDefense": 1
     },
     "targetItemId": null,
     "maxApplications": null
