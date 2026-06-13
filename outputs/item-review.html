@@ -167,10 +167,10 @@ tr.detail-row td { padding: 16px 24px; font-size: 0.82rem; }
 
   <!-- Filters -->
   <div class="filters">
-    <input class="search" type="text" id="filter-text" placeholder="Search name or ID..." oninput="renderTable()">
+    <input class="search" type="text" id="filter-text" placeholder="Search name or ID..." oninput="renderTable(true)">
     <div class="filter-group">
       <label>Equipment Kind</label>
-      <select id="filter-kind" onchange="renderTable()"><option value="">All</option></select>
+      <select id="filter-kind" onchange="renderTable(true)"><option value="">All</option></select>
     </div>
     <div class="filter-group">
       <label>Job</label>
@@ -183,9 +183,9 @@ tr.detail-row td { padding: 16px 24px; font-size: 0.82rem; }
     <div class="filter-group">
       <label>Level</label>
       <div class="level-inputs">
-        <input type="number" id="filter-lvmin" placeholder="Min" onchange="renderTable()">
+        <input type="number" id="filter-lvmin" placeholder="Min" onchange="renderTable(true)">
         <span style="color:var(--muted)">–</span>
-        <input type="number" id="filter-lvmax" placeholder="Max" onchange="renderTable()">
+        <input type="number" id="filter-lvmax" placeholder="Max" onchange="renderTable(true)">
       </div>
     </div>
     <div class="filter-group">
@@ -252,6 +252,8 @@ let jobFilters = new Set(['Warrior','Magician','Bowman','Thief','Pirate']);
 let statusFilters = new Set(['published','draft','hidden']);
 let koreanFilter = 'all';
 let statsFilter = 'all';
+let currentPage = 1;
+const PAGE_SIZE = 100;
 
 // ── Init ──
 let showAll = true;
@@ -266,6 +268,16 @@ function init() {
 }
 
 window.onload = init;
+
+function renderAll() {
+  document.getElementById('key-label').textContent = 'All items (embedded)';
+  buildKindSelect();
+  buildJobChips();
+  buildStatusChips();
+  buildToggles();
+  renderSummary();
+  renderTable();
+}
 
 // ── UI Builders ──
 function buildKindSelect() {
@@ -287,7 +299,7 @@ function buildJobChips() {
     chip.onclick = () => {
       if (jobFilters.has(job)) jobFilters.delete(job); else jobFilters.add(job);
       chip.classList.toggle('on');
-      renderTable();
+      renderTable(true);
     };
     container.appendChild(chip);
   });
@@ -302,7 +314,7 @@ function buildStatusChips() {
     chip.onclick = () => {
       if (statusFilters.has(s.v)) statusFilters.delete(s.v); else statusFilters.add(s.v);
       chip.classList.toggle('on');
-      renderTable();
+      renderTable(true);
     };
     container.appendChild(chip);
   });
@@ -319,7 +331,7 @@ function buildToggles() {
       koreanFilter = o.v;
       kc.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
       chip.classList.add('on');
-      renderTable();
+      renderTable(true);
     };
     kc.appendChild(chip);
   });
@@ -394,10 +406,11 @@ function sortBy(col) {
   if (idx >= 0) {
     document.querySelectorAll('th .sort-arrow')[idx].textContent = sortDir === 1 ? '▲' : '▼';
   }
-  renderTable();
+  renderTable(true);
 }
 
-function renderTable() {
+function renderTable(resetPage) {
+  if (resetPage) currentPage = 1;
   filterItems();
   filteredItems.sort((a, b) => {
     let va = a[sortCol], vb = b[sortCol];
@@ -410,67 +423,51 @@ function renderTable() {
     return 0;
   });
 
+  const totalPages = Math.ceil(filteredItems.length / PAGE_SIZE) || 1;
+  if (currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = filteredItems.slice(start, start + PAGE_SIZE);
+
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
 
-  filteredItems.forEach((item, idx) => {
+  pageItems.forEach((item, pageIdx) => {
     const effectiveIconId = ICON_OVERRIDES[item.id] ?? item.id;
     const iconUrl = `${MAPLESTORY_IO_BASE}/api/GMS/83/item/${effectiveIconId}/icon`;
-
     const statEntries = Object.entries(item.stats).filter(([,v]) => Number.isFinite(v));
     const statTags = statEntries.slice(0, 4).map(([k,v]) =>
       `<span class="stat-tag">${k}: ${v > 0 ? '+' + v : v}</span>`
     ).join('');
     const moreStats = statEntries.length > 4 ? ` <span class="stat-tag">+${statEntries.length - 4}</span>` : '';
-
     const jobBadges = (item.requiredJobs || []).map(j =>
       `<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:0.7rem;background:${JOB_COLORS[j] || '#888'}11;color:${JOB_COLORS[j] || '#888'};margin-right:2px">${JOB_LABELS[j] || j}</span>`
     ).join('') || '-';
-
     const badgeClass = item.publishedStatus === 'published' ? 'pub' : item.publishedStatus === 'draft' ? 'draft' : 'hidden';
     const badgeLabel = item.publishedStatus === 'published' ? 'published' : item.publishedStatus === 'draft' ? 'draft' : 'hidden';
 
-    tbody.innerHTML += `
-      <tr class="expandable" onclick="toggleDetail(${idx}, this)">
-        <td class="icon-cell">
-          <img src="${iconUrl}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'" crossorigin="anonymous">
-          <span class="no-icon" style="display:none">?</span>
-        </td>
-        <td>${item.id}</td>
-        <td>${esc(item.nameKo)}</td>
-        <td style="font-size:0.8rem;color:var(--muted)">${esc(item.nameEn || '')}</td>
-        <td>${esc(item.equipmentKind)}</td>
-        <td>${item.requiredLevel}</td>
-        <td>${jobBadges}</td>
-        <td><div class="stats-tags">${statTags}${moreStats}</div></td>
-        <td><span class="badge ${badgeClass}">${badgeLabel}</span></td>
-      </tr>
-      <tr class="detail-row" id="detail-${idx}">
-        <td colspan="9">
-          <div class="detail-grid">
-            <div class="detail-block">
-              <h4>Requirements</h4>
-              <div class="stat">${Object.entries(item.requirements).map(([k,v]) => `${k}: ${v}`).join(', ') || '-'}</div>
-            </div>
-            <div class="detail-block">
-              <h4>Full Stats</h4>
-              <div class="stat">${statEntries.map(([k,v]) => `${k}: ${v}`).join(', ') || '-'}</div>
-            </div>
-            <div class="detail-block">
-              <h4>Aliases</h4>
-              <div class="stat">${item.aliases.length ? item.aliases.join(', ') : '-'}</div>
-            </div>
-            <div class="detail-block">
-              <h4>Source</h4>
-              <div class="stat">${esc(item.sourceNote || '-')}</div>
-            </div>
-          </div>
-        </td>
-      </tr>
-    `;
+    tbody.innerHTML += '<tr class="expandable" onclick="toggleDetail(' + start + '+' + pageIdx + ', this)">' +
+      '<td class="icon-cell"><img src="' + iconUrl + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline-flex\'" crossorigin="anonymous"><span class="no-icon" style="display:none">?</span></td>' +
+      '<td>' + item.id + '</td>' +
+      '<td>' + esc(item.nameKo) + '</td>' +
+      '<td style="font-size:0.8rem;color:var(--muted)">' + esc(item.nameEn || '') + '</td>' +
+      '<td>' + esc(item.equipmentKind) + '</td>' +
+      '<td>' + item.requiredLevel + '</td>' +
+      '<td>' + jobBadges + '</td>' +
+      '<td><div class="stats-tags">' + statTags + moreStats + '</div></td>' +
+      '<td><span class="badge ' + badgeClass + '">' + badgeLabel + '</span></td>' +
+      '</tr>';
   });
 
-  document.getElementById('showing').textContent = `Showing ${filteredItems.length} of ${allItems.length} items`;
+  document.getElementById('showing').innerHTML =
+    'Showing ' + (start + 1) + '–' + Math.min(start + PAGE_SIZE, filteredItems.length) +
+    ' of ' + filteredItems.length + ' items (total: ' + allItems.length + ') ' +
+    (totalPages > 1
+      ? '<button onclick="currentPage=1;renderTable()" style="margin-left:8px;padding:2px 8px;font:inherit;font-size:0.8rem;cursor:pointer;border:1px solid var(--line);border-radius:4px;background:var(--surface)"' + (currentPage===1?' disabled':'') + '>« First</button> ' +
+        '<button onclick="currentPage--;renderTable()" style="padding:2px 8px;font:inherit;font-size:0.8rem;cursor:pointer;border:1px solid var(--line);border-radius:4px;background:var(--surface)"' + (currentPage===1?' disabled':'') + '>‹ Prev</button> ' +
+        '<span style="margin:0 8px;font-size:0.8rem">Page ' + currentPage + ' / ' + totalPages + '</span> ' +
+        '<button onclick="currentPage++;renderTable()" style="padding:2px 8px;font:inherit;font-size:0.8rem;cursor:pointer;border:1px solid var(--line);border-radius:4px;background:var(--surface)"' + (currentPage===totalPages?' disabled':'') + '>Next ›</button> ' +
+        '<button onclick="currentPage=totalPages;renderTable()" style="padding:2px 8px;font:inherit;font-size:0.8rem;cursor:pointer;border:1px solid var(--line);border-radius:4px;background:var(--surface)"' + (currentPage===totalPages?' disabled':'') + '>Last »</button>'
+      : '');
 }
 
 function toggleDetail(idx, row) {
