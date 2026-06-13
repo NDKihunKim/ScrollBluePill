@@ -2027,9 +2027,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		justify-content: center;
 		width: 80px;
 		height: 80px;
-		border: 1px solid var(--line);
+		border: 1px dashed var(--line);
 		border-radius: 6px;
-		background: var(--surface);
+		background: var(--surface-soft);
 		cursor: pointer;
 		gap: 4px;
 		font-size: 0.8rem;
@@ -2080,6 +2080,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 	:global(.maker-gem-slot--filled) {
 		border-color: var(--green);
+		border-style: solid;
+		background: var(--surface);
 	}
 	:global(.maker-gem-slot--stimulant.maker-gem-slot--filled) {
 		border-style: solid;
@@ -2087,6 +2089,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	}
 	:global(.maker-gem-slot--active) {
 		border-color: #5b9bd5;
+		border-style: solid;
 		background: rgba(91, 155, 213, 0.08);
 	}
 
@@ -2210,9 +2213,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			justify-content: center;
 			width: 80px;
 			height: 80px;
-			border: 1px solid var(--line);
+			border: 1px dashed var(--line);
 			border-radius: 6px;
-			background: var(--surface);
+			background: var(--surface-soft);
 			cursor: pointer;
 			gap: 4px;
 			font-size: 0.8rem;
@@ -2227,6 +2230,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 		:global(.item-level-up-slot--filled) {
 			border-color: var(--green);
+			border-style: solid;
+			background: var(--surface);
 		}
 
 		:global(.item-level-up-slot--active) {
