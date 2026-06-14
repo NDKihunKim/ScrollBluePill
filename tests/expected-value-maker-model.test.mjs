@@ -217,10 +217,10 @@ test('rollDarkCrystalStats rolls each of STR/DEX/INT/LUK present on clean item',
 
   const result = rollDarkCrystalStats(cleanStats, rng);
   assert.equal(callCount, 4, 'should call RNG once per stat (STR/DEX/INT/LUK)');
-  assert.equal(result.str, 15, 'str 10 + 5 = 15');
-  assert.equal(result.dex, 13, 'dex 8 + 5 = 13');
-  assert.equal(result.int, 10, 'int 5 + 5 = 10');
-  assert.equal(result.luk, 8, 'luk 3 + 5 = 8');
+  assert.equal(result.str, 5, 'str delta 5');
+  assert.equal(result.dex, 5, 'dex delta 5');
+  assert.equal(result.int, 5, 'int delta 5');
+  assert.equal(result.luk, 5, 'luk delta 5');
 });
 
 test('rollDarkCrystalStats does not create stats absent from clean base', () => {
@@ -229,8 +229,8 @@ test('rollDarkCrystalStats does not create stats absent from clean base', () => 
 
   const result = rollDarkCrystalStats(cleanStats, rng);
 
-  assert.equal(result.str, 15);
-  assert.equal(result.dex, 13);
+  assert.equal(result.str, 5);
+  assert.equal(result.dex, 5);
   assert.ok(!('int' in result), 'int should not be present');
   assert.ok(!('luk' in result), 'luk should not be present');
 });
@@ -244,26 +244,13 @@ test('rollDarkCrystalStats handles empty clean stats', () => {
   assert.deepEqual(result, {});
 });
 
-test('rollDarkCrystalStats handles single stat present', () => {
+test('rollDarkCrystalStats omits zero deltas', () => {
   const cleanStats = { str: 10 };
-  let callCount = 0;
-  // Use RNG such that rollChaosStatDelta returns 0 (no change)
-  // delta 0 has cumulative 0.1931+0.1838 of earlier entries = 0.3769, then
-  // Wait, let me recalculate the chaos table cumulatives:
-  // delta 5: prob 0.0099, cum 0.0099
-  // delta 4: prob 0.0198, cum 0.0297
-  // delta 3: prob 0.1021, cum 0.1318
-  // delta 2: prob 0.1587, cum 0.2905
-  // delta 1: prob 0.1931, cum 0.4836
-  // delta 0: prob 0.1838, cum 0.6674
-  // ... etc
-  // So RNG 0.5 gives delta 1 (since 0.4836 < 0.5 < 0.6674... wait no, 0.4836 < 0.5, then 0.5 < 0.6674, so delta 0)
-  // Actually let me check: position of delta 1 has cumulative 0.4836, position of delta 0 has cumulative 0.6674
-  // So RNG 0.5 → 0.4836 < 0.5 < 0.6674 → delta 0
+  // RNG 0.5 falls in delta 0 range (cumulative 0.4836 < 0.5 < 0.6674)
   const rng = () => 0.5;
 
   const result = rollDarkCrystalStats(cleanStats, rng);
-  assert.equal(result.str, 10, 'str should remain unchanged');
+  assert.deepEqual(result, {}, 'zero delta should be omitted');
 });
 
 // --- computeGemContribution ---
@@ -279,15 +266,17 @@ test('computeGemContribution dispatches fixed gem (strCrystal)', () => {
 });
 
 test('computeGemContribution dispatches blackAmethyst', () => {
+  const cleanStats = { weaponAttack: 80, magicAttack: 70 };
   const rng = () => 0; // lowest roll
-  const result = computeGemContribution('blackAmethyst', 'low', {}, rng);
+  const result = computeGemContribution('blackAmethyst', 'low', cleanStats, rng);
   assert.deepEqual(result, { weaponAttack: -1, magicAttack: -1 });
 });
 
 test('computeGemContribution dispatches blackAmethyst with grade index', () => {
   // Grade index 0 should map to 'low'
+  const cleanStats = { weaponAttack: 80, magicAttack: 70 };
   const rng = () => 0; // lowest roll
-  const result = computeGemContribution('blackAmethyst', 0, {}, rng);
+  const result = computeGemContribution('blackAmethyst', 0, cleanStats, rng);
   assert.deepEqual(result, { weaponAttack: -1, magicAttack: -1 });
 });
 
@@ -295,8 +284,16 @@ test('computeGemContribution dispatches darkCrystal', () => {
   const cleanStats = { str: 10, dex: 8 };
   const rng = () => 0; // delta 5
   const result = computeGemContribution('darkCrystal', 0, cleanStats, rng);
-  assert.equal(result.str, 15);
-  assert.equal(result.dex, 13);
+  assert.equal(result.str, 5);
+  assert.equal(result.dex, 5);
+});
+
+test('blackAmethyst does not create stats absent from clean base', () => {
+  const cleanStats = { weaponAttack: 80 }; // no magicAttack
+  const rng = () => 0.5;
+  const result = computeGemContribution('blackAmethyst', 'low', cleanStats, rng);
+  assert.equal(result.magicAttack, undefined);
+  assert.ok(typeof result.weaponAttack === 'number');
 });
 
 test('computeGemContribution returns null for unknown gem key', () => {

@@ -1,4 +1,4 @@
-import { getGemTypeByKey, GEM_TYPES, GEM_GRADES } from '../makerData.mjs';
+import { getGemTypeByKey } from '../makerData.mjs';
 import { rollChaosStatDelta } from './chaosModel.mjs';
 
 /**
@@ -37,6 +37,7 @@ const FIXED_GEM_KEYS = new Set([
 const RANDOM_GEM_KEYS = new Set(['blackAmethyst', 'darkCrystal']);
 
 const GRADE_INDEX_TO_KEY = ['low', 'mid', 'high'];
+const MAX_GRADE_INDEX = GRADE_INDEX_TO_KEY.length - 1;
 
 /**
  * Check if a gem key identifies a fixed-value gem (deterministic stat outcome).
@@ -67,7 +68,7 @@ export function isRandomGem(gemKey) {
  */
 export function getFixedGemStats(gemKey, gradeIndex) {
   if (!isFixedGem(gemKey)) return null;
-  if (!Number.isInteger(gradeIndex) || gradeIndex < 0 || gradeIndex > 2) return null;
+  if (!Number.isInteger(gradeIndex) || gradeIndex < 0 || gradeIndex > MAX_GRADE_INDEX) return null;
 
   const gem = getGemTypeByKey(gemKey);
   if (!gem || !gem.stat || !Array.isArray(gem.values)) return null;
@@ -131,15 +132,16 @@ export function rollBlackAmethystStats(gradeKey, statKeys, rng) {
  * @returns {Record<string, number>} Updated stats with chaos deltas applied
  */
 export function rollDarkCrystalStats(cleanStats, rng) {
-  const STAT_KEYS = ['str', 'dex', 'int', 'luk'];
-  const result = { ...cleanStats };
+  const DARK_KEYS = ['str', 'dex', 'int', 'luk'];
+  const result = {};
 
-  for (const statKey of STAT_KEYS) {
-    if (!(statKey in cleanStats)) continue;
-
-    const rngValue = rng();
-    const delta = rollChaosStatDelta(rngValue);
-    result[statKey] = cleanStats[statKey] + delta;
+  for (const key of DARK_KEYS) {
+    if (Number.isFinite(cleanStats[key])) {
+      const delta = rollChaosStatDelta(rng());
+      if (delta !== 0) {
+        result[key] = delta;
+      }
+    }
   }
 
   return result;
@@ -162,10 +164,10 @@ export function computeGemContribution(gemKey, grade, cleanStats, rng) {
   }
 
   if (gemKey === 'blackAmethyst') {
-    const gradeKey = typeof grade === 'string' ? grade : GRADE_INDEX_TO_KEY[grade];
+    const gradeKey = typeof grade === 'number' ? GRADE_INDEX_TO_KEY[grade] : grade;
     if (!gradeKey) return null;
-    const gemType = getGemTypeByKey(gemKey);
-    const statKeys = gemType ? gemType.variableKeys : ['weaponAttack', 'magicAttack'];
+    const allKeys = ['weaponAttack', 'magicAttack'];
+    const statKeys = allKeys.filter(k => Number.isFinite(cleanStats[k]));
     return rollBlackAmethystStats(gradeKey, statKeys, rng);
   }
 
