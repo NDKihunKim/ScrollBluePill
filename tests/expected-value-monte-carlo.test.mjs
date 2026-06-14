@@ -48,3 +48,70 @@ test('createRandomSeed returns a 32-bit integer', async () => {
   assert.ok(seed >= 0, `seed ${seed} should be >= 0`);
   assert.ok(seed <= 0xFFFFFFFF, `seed ${seed} should be <= 0xFFFFFFFF`);
 });
+
+test('runMonteCarloSimulation returns success count and total trials', async () => {
+  const { runMonteCarloSimulation } = await import(RNG_MODULE);
+
+  const result = runMonteCarloSimulation(() => true, 1000, 42);
+
+  assert.equal(result.successCount, 1000);
+  assert.equal(result.totalTrials, 1000);
+  assert.equal(result.isZeroSuccess, false);
+});
+
+test('runMonteCarloSimulation with zero successes returns isZeroSuccess=true', async () => {
+  const { runMonteCarloSimulation } = await import(RNG_MODULE);
+
+  const result = runMonteCarloSimulation(() => false, 1000, 42);
+
+  assert.equal(result.successCount, 0);
+  assert.equal(result.totalTrials, 1000);
+  assert.equal(result.isZeroSuccess, true);
+});
+
+test('runMonteCarloSimulation is deterministic with same seed', async () => {
+  const { createSeededRng, runMonteCarloSimulation } = await import(RNG_MODULE);
+
+  // Simulate a 30% probability trial
+  const trialFn = (rng) => rng() < 0.3;
+
+  const result1 = runMonteCarloSimulation(trialFn, 10000, 99);
+  const result2 = runMonteCarloSimulation(trialFn, 10000, 99);
+
+  assert.equal(result1.successCount, result2.successCount);
+  assert.equal(result1.totalTrials, result2.totalTrials);
+});
+
+test('computeGeometricPercentiles for p=0.5', async () => {
+  const { computeGeometricPercentiles } = await import(RNG_MODULE);
+
+  const result = computeGeometricPercentiles(0.5);
+
+  assert.equal(result.p50, 1);
+  assert.equal(result.p75, 2);
+  assert.equal(result.p90, 4);
+  assert.equal(result.p95, 5);
+});
+
+test('computeGeometricPercentiles for p=1.0 returns all 1s', async () => {
+  const { computeGeometricPercentiles } = await import(RNG_MODULE);
+
+  const result = computeGeometricPercentiles(1.0);
+
+  assert.equal(result.p50, 1);
+  assert.equal(result.p75, 1);
+  assert.equal(result.p90, 1);
+  assert.equal(result.p95, 1);
+});
+
+test('computeExpectedAttempts for p=0.5 returns 2', async () => {
+  const { computeExpectedAttempts } = await import(RNG_MODULE);
+
+  assert.equal(computeExpectedAttempts(0.5), 2);
+});
+
+test('computeExpectedAttempts for p=1.0 returns 1', async () => {
+  const { computeExpectedAttempts } = await import(RNG_MODULE);
+
+  assert.equal(computeExpectedAttempts(1.0), 1);
+});
