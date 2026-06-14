@@ -30,6 +30,9 @@ export function createRandomSeed() {
   return (Math.random() * 4294967296) | 0;
 }
 
+/** Default trial count for Monte Carlo simulations */
+export const DEFAULT_TRIAL_COUNT = 100000;
+
 export const GEOMETRIC_PERCENTILE_KEYS = ['p50', 'p75', 'p90', 'p95'];
 
 /**
