@@ -248,6 +248,14 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 						</div>
 				</div>
 			</form>
+
+			<section class="calculator-panel result-panel" data-result-panel>
+				<h3>3. 결과</h3>
+				<div data-result-placeholder>
+					강화 목표를 설정한 뒤 기대값 계산을 눌러주세요.
+				</div>
+				<div data-result-content style="display:none;"></div>
+			</section>
 			</div>
 
 			<aside class="panel" aria-label="계산 결과">
@@ -264,6 +272,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 					<div class="selected-item-divider"></div>
 					<div class="selected-item-stats" data-selected-item-stats></div>
 				</div>
+				<button class="ev-calc-button" data-ev-calc-trigger disabled>기대값 계산</button>
 				<button type="button" class="small-button secondary selected-item-reset" data-enhancement-reset hidden>
 					초기화
 				</button>
@@ -297,10 +306,17 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 <script>
 	import { nextItemLevel, normalizeItemLevel, normalizeItemLevelRange } from '../lib/calculatorInput.mjs';
-	import { computeStatBreakdown } from '../lib/enhancementState.mjs';
+	import { computeStatBreakdown, computeAccumulatedStats } from '../lib/enhancementState.mjs';
 	import { searchKoreanItems } from '../lib/itemSearch.mjs';
 	import { buildItemIconUrl, buildItemSearchUrl } from '../lib/maplestoryIo.mjs';
 
+	import { computeEnhancementGains, getDefaultCheckedStats, extractTargetConditions } from '../lib/expectedValue/targetExtraction.mjs';
+	import { createTargetSelectionUI, createResultUI, DEFAULT_TRIAL_COUNT, roundTrialCount, PLACEHOLDER_TEXT, NO_STRATEGY_TEXT, CONFIRM_TEXT, CONFIRM_BUTTON_TEXT, CANCEL_BUTTON_TEXT, STALE_LABEL } from '../lib/expectedValue/expectedValuePanel.mjs';
+	import { generateStrategyCandidates } from '../lib/expectedValue/candidateGenerator.mjs';
+	import { isDeterministicStrategy, computeExactProbability } from '../lib/expectedValue/exactEngine.mjs';
+	import { createRandomSeed, runMonteCarloSimulation } from '../lib/expectedValue/monteCarloEngine.mjs';
+	import { countRngSources, countTotalActions, optimizeStrategies } from '../lib/expectedValue/strategyOptimizer.mjs';
+	import { createResultSummary, isResultStale } from '../lib/expectedValue/resultFormatter.mjs';
 	const form = document.querySelector('[data-calculator-input]');
 	const itemNameSearch = form?.querySelector('[data-item-name-search]');
 	const itemNameInput = form?.querySelector('[data-item-name-input]');
@@ -1135,6 +1151,223 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	import { initEnhancementPanel } from '../lib/enhancementPanel.mjs';
 
 	window.activatePanel2 = initEnhancementPanel(renderEnhancedItemCard);
+	
+	// ---- Expected Value Calculator wiring ----
+
+	const evTrigger = document.querySelector('[data-ev-calc-trigger]');
+	const resultPanel = document.querySelector('[data-result-panel]');
+	const resultPlaceholder = resultPanel?.querySelector('[data-result-placeholder]');
+	const resultContent = resultPanel?.querySelector('[data-result-content]');
+
+	let evResultUI = null;
+	let evResultSummary = null;
+
+	/** Update EV button enabled/disabled state based on current enhancement state. */
+	const updateEvButtonState = () => {
+	  const evState = window.__evState?.();
+	  if (!evTrigger || !(evTrigger instanceof HTMLButtonElement)) return;
+
+	  if (!evState || !evState.enhancementState || !evState.selectedBaseItem) {
+	    evTrigger.disabled = true;
+	    return;
+	  }
+
+	  const st = evState.enhancementState;
+	  const hasScroll = st.scrollState.slots.some(s => s !== null);
+	  const hasGem = st.gemSlots.some(s => s !== null);
+	  const hasStimulant = st.stimulantSlot !== null;
+	  const hasLevelUp = st.itemLevelUpSlots.some(s => s !== null);
+	  evTrigger.disabled = !(hasScroll || hasGem || hasStimulant || hasLevelUp);
+	};
+
+	// Register callback for enhancement state changes
+	window.__evRefresh = () => {
+	  updateEvButtonState();
+	  if (evResultSummary && evResultUI) {
+	    evResultUI.showStale();
+	  }
+	};
+
+	// Initial button state
+	updateEvButtonState();
+
+	/** Show the placeholder state (initial / after cancel). */
+	const showEvPlaceholder = () => {
+	  if (resultPlaceholder instanceof HTMLElement && resultContent instanceof HTMLElement) {
+	    resultPlaceholder.hidden = false;
+	    resultContent.hidden = true;
+	    resultContent.replaceChildren();
+	  }
+	  evResultUI = null;
+	  evResultSummary = null;
+	};
+
+	/** Show a confirmation dialog overlay. Calls onConfirm if user confirms. */
+	const showEvConfirmationDialog = (onConfirm) => {
+	  const overlay = document.createElement('div');
+	  overlay.className = 'ev-confirm-overlay';
+
+	  const dialog = document.createElement('div');
+	  dialog.className = 'ev-confirm-dialog';
+
+	  const msg = document.createElement('p');
+	  msg.textContent = CONFIRM_TEXT;
+
+	  const buttonRow = document.createElement('div');
+	  buttonRow.className = 'ev-confirm-buttons';
+
+	  const confirmBtn = document.createElement('button');
+	  confirmBtn.textContent = CONFIRM_BUTTON_TEXT;
+	  confirmBtn.addEventListener('click', () => {
+	    overlay.remove();
+	    onConfirm();
+	  });
+
+	  const cancelBtn = document.createElement('button');
+	  cancelBtn.textContent = CANCEL_BUTTON_TEXT;
+	  cancelBtn.addEventListener('click', () => {
+	    overlay.remove();
+	  });
+
+	  buttonRow.append(confirmBtn, cancelBtn);
+	  dialog.append(msg, buttonRow);
+	  overlay.append(dialog);
+	  document.body.append(overlay);
+	};
+
+	/** Open the target selection UI. */
+	const openEvTargetSelection = () => {
+	  const evState = window.__evState?.();
+	  if (!evState || !evState.enhancementState || !evState.selectedBaseItem) return;
+
+	  const { selectedBaseItem, enhancementState } = evState;
+	  const cleanStats = selectedBaseItem.stats ?? {};
+	  const previewStats = computeAccumulatedStats(cleanStats, enhancementState);
+	  const gains = computeEnhancementGains(cleanStats, previewStats);
+
+	  // Create target selection UI
+	  const targetUI = createTargetSelectionUI(cleanStats, previewStats, 0, gains);
+
+	  // Replace result content
+	  if (resultContent instanceof HTMLElement && resultPlaceholder instanceof HTMLElement) {
+	    resultPlaceholder.hidden = true;
+	    resultContent.hidden = false;
+	    resultContent.replaceChildren();
+	    resultContent.appendChild(targetUI.container);
+	  }
+
+	  // Handle cancel: return to placeholder
+	  targetUI.onCancel(() => {
+	    showEvPlaceholder();
+	  });
+
+	  // Handle start: run calculation
+	  targetUI.onStart(() => {
+	    runEvCalculation(targetUI.getCheckedStats(), targetUI.getTrialCount(), cleanStats, previewStats, enhancementState, selectedBaseItem);
+	  });
+	};
+
+	/** Run the actual EV calculation and display results. */
+	const runEvCalculation = (checkedStats, trialCount, cleanStats, previewStats, enhancementState, selectedBaseItem) => {
+	  const evState = window.__evState?.();
+	  if (!evState) return;
+
+	  const { scrollsByEquipmentKind, selectedItemLevelUpDefinition } = evState;
+
+	  // Get target conditions
+	  const targetConditions = extractTargetConditions(cleanStats, previewStats, checkedStats, 0);
+
+	  // Get scrolls for this equipment kind (filter by targetItemId)
+	  const allScrolls = scrollsByEquipmentKind.get(selectedBaseItem.equipmentKind) ?? [];
+	  const eligibleScrolls = allScrolls.filter(s => s.targetItemId == null || s.targetItemId === selectedBaseItem.id);
+
+	  // Enhancement setup info
+	  const upgradeSlots = enhancementState.scrollState.slotCount;
+	  const makerAllowed = enhancementState.makerActive;
+	  const gemSlotCount = enhancementState.gemSlotCount;
+	  const itemLevelUpAllowed = enhancementState.itemLevelUpSlotCount > 0;
+
+	  // Generate strategy candidates
+	  const strategies = generateStrategyCandidates({
+	    scrolls: eligibleScrolls,
+	    checkedStats,
+	    upgradeSlots,
+	    makerAllowed,
+	    gemSlotCount,
+	    equipmentKind: selectedBaseItem.equipmentKind,
+	    itemLevelUpAllowed,
+	    levelUpDefinition: selectedItemLevelUpDefinition,
+	  });
+
+	  // Score each deterministic strategy (skip non-deterministic for MVP)
+	  const scored = [];
+	  for (let i = 0; i < strategies.length; i++) {
+	    const strategy = strategies[i];
+	    if (isDeterministicStrategy(strategy)) {
+	      const probability = computeExactProbability(strategy, cleanStats, targetConditions);
+	      scored.push({
+	        strategy,
+	        successProbability: probability,
+	        rngSources: countRngSources(strategy),
+	        totalActions: countTotalActions(strategy),
+	        strategyIndex: i,
+	      });
+	    }
+	  }
+
+	  // Create or reuse result UI
+	  if (!evResultUI) {
+	    evResultUI = createResultUI();
+	    if (resultContent instanceof HTMLElement) {
+	      resultContent.replaceChildren();
+	      resultContent.appendChild(evResultUI.container);
+	    }
+	  }
+
+	  if (scored.length === 0) {
+	    // No deterministic strategies found
+	    evResultUI.showNoStrategy();
+	    evResultSummary = null;
+	    return;
+	  }
+
+	  // Optimize: rank by probability, fewer RNG sources, fewer actions
+	  const bestScored = optimizeStrategies(scored);
+	  if (!bestScored) {
+	    evResultUI.showNoStrategy();
+	    evResultSummary = null;
+	    return;
+	  }
+
+	  // Build result summary
+	  const resultSummary = createResultSummary({
+	    successProbability: bestScored.successProbability,
+	    isExact: true,
+	    trialCount,
+	    bestStrategy: bestScored.strategy,
+	  });
+
+	  // Display
+	  evResultUI.update(resultSummary);
+	  evResultSummary = resultSummary;
+	};
+
+	// EV calc button click handler
+	evTrigger?.addEventListener('click', () => {
+	  if (!(evTrigger instanceof HTMLButtonElement) || evTrigger.disabled) return;
+
+	  if (evResultSummary) {
+	    // Result already exists — show confirmation first
+	    showEvConfirmationDialog(() => {
+	      evResultSummary = null;
+	      evResultUI = null;
+	      openEvTargetSelection();
+	    });
+	  } else {
+	    openEvTargetSelection();
+	  }
+	});
+
 </script>
 
 <style>
@@ -2373,4 +2606,59 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			gap: 8px;
 		}
 
+
+	/* Expected Value Calculator */
+	.ev-calc-button {
+	  display: block;
+	  width: 100%;
+	  padding: 8px 16px;
+	  margin-top: 8px;
+	  border: 1px solid var(--btn-primary-bg, #3b82f6);
+	  background: var(--btn-primary-bg, #3b82f6);
+	  color: #fff;
+	  border-radius: 4px;
+	  cursor: pointer;
+	  font-size: 14px;
+	  font-weight: 500;
+	}
+	.ev-calc-button:disabled {
+	  opacity: 0.4;
+	  cursor: not-allowed;
+	}
+	.ev-target-selection { padding: 12px 0; }
+	.ev-stat-checklist { display: flex; flex-direction: column; gap: 4px; margin: 8px 0; }
+	.ev-stat-row { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+	.ev-stat-row input:disabled + span { opacity: 0.4; }
+	.ev-trial-row { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
+	.ev-trial-input { width: 100px; padding: 4px 8px; border: 1px solid var(--border-color, #ccc); border-radius: 4px; }
+	.ev-button-row { display: flex; gap: 8px; margin-top: 12px; }
+	.ev-button-row button { padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+	.ev-result { padding: 12px 0; }
+	.ev-method-label { font-size: 12px; color: var(--text-muted, #6b7280); margin-bottom: 4px; }
+	.ev-stale-label { color: #d97706; font-size: 12px; margin-bottom: 8px; }
+	.ev-probability { font-size: 18px; font-weight: 700; margin: 8px 0; }
+	.ev-expected-attempts { font-size: 14px; margin: 4px 0; }
+	.ev-percentiles { font-size: 12px; color: var(--text-muted, #6b7280); margin: 4px 0; }
+	.ev-chart { margin: 12px 0; border: 1px solid var(--border-color, #e5e7eb); border-radius: 4px; }
+	.ev-best-method { margin-top: 12px; font-size: 13px; }
+	.ev-best-method summary { cursor: pointer; font-weight: 600; }
+	.ev-method-detail { padding: 8px; margin-top: 4px; background: var(--bg-muted, #f3f4f6); border-radius: 4px; white-space: pre-wrap; font-size: 12px; }
+	.ev-confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+	.ev-confirm-dialog { background: var(--bg-color, #fff); border-radius: 8px; padding: 20px 24px; max-width: 360px; box-shadow: 0 4px 24px rgba(0,0,0,0.15); }
+	.ev-confirm-dialog p { margin: 0 0 16px; font-size: 14px; }
+	.ev-confirm-buttons { display: flex; gap: 8px; justify-content: flex-end; }
+	.ev-confirm-buttons button { padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+	.calculator-panel.result-panel {
+	  margin-top: 14px;
+	  padding: 14px;
+	  border: 1px solid var(--line);
+	  border-radius: 8px;
+	  background: var(--surface);
+	}
+	.calculator-panel.result-panel h3 {
+	  margin: 0 0 8px;
+	  color: var(--muted);
+	  font-size: 0.88rem;
+	  font-weight: 700;
+	}
 </style>

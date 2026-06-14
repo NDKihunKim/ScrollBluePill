@@ -4,7 +4,7 @@ import {
   getDefaultCheckedStats,
 } from './targetExtraction.mjs';
 import { statLabelByKey } from '../scrollState.mjs';
-import { DEFAULT_TRIAL_COUNT } from './monteCarloEngine.mjs';
+export { DEFAULT_TRIAL_COUNT } from './monteCarloEngine.mjs';
 import {
   formatProbability,
   formatCalculationLabel,
