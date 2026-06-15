@@ -629,6 +629,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     const itemLevelUpMeta = computeItemLevelUpCardMeta(enhancementState, selectedItemLevelUpDefinition);
 
     renderEnhancedItemCard(selectedBaseItem, accumulatedStats, remaining, appliedCount, gradeColor, statBreakdown, itemLevelUpMeta);
+    notifyEv();
   };
 
   const activatePanel2 = (item) => {
@@ -697,6 +698,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     makerPanel.resetMakerUI();
     itemLevelUpPanel.reset();
     refreshEnhancedCard();
+    notifyEv();
   });
 
   const sortScrollList = (list) => {
@@ -821,6 +823,24 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       console.error(error);
       showEnhancementError('주문서 데이터를 불러오지 못했습니다');
     });
+
+  // Expose enhancement state for expected value calculator
+  window.__evState = () => ({
+    enhancementState,
+    selectedBaseItem,
+    scrollsByEquipmentKind,
+    selectedItemLevelUpDefinition,
+  });
+
+  /**
+   * Notifies the EV calculator (if available) that the enhancement state changed.
+   * Called from refreshEnhancedCard (every state change) and the reset handler.
+   */
+  const notifyEv = () => {
+    if (typeof window.__evRefresh === 'function') {
+      window.__evRefresh();
+    }
+  };
 
   showEnhancementDormant();
 

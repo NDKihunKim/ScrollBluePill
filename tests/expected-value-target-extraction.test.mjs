@@ -73,6 +73,11 @@ test('computeEnhancementGains omits stats with zero gain', () => {
   assert.deepEqual(gains, {});
 });
 
+test('computeEnhancementGains ignores non-finite values', () => {
+  const gains = computeEnhancementGains({ str: 5 }, { str: NaN, dex: Infinity });
+  assert.deepEqual(gains, {});
+});
+
 test('computeEnhancementGains ignores excluded stats (upgradeSlots, attackSpeed)', () => {
   const clean = { str: 10, upgradeSlots: 7, attackSpeed: 5 };
   const preview = { str: 15, upgradeSlots: 3, attackSpeed: 5 };
@@ -163,6 +168,21 @@ test('extractTargetConditions returns null gradeThreshold when grade unchecked',
   });
 });
 
+test('extractTargetConditions returns both stat and grade thresholds when both checked', () => {
+  const conditions = extractTargetConditions(
+    { str: 5 }, { str: 10 }, { str: true, grade: true }, 3
+  );
+  assert.deepEqual(conditions.statThresholds, { str: 5 });
+  assert.equal(conditions.gradeThreshold, 3);
+});
+
+test('extractTargetConditions excludes stats with negative gain even if checked', () => {
+  const conditions = extractTargetConditions(
+    { str: 10 }, { str: 5 }, { str: true, grade: false }, 0
+  );
+  assert.deepEqual(conditions.statThresholds, {});
+});
+
 test('extractTargetConditions includes gradeThreshold when grade is checked', () => {
   const clean = { str: 10 };
   const preview = { str: 12 };
@@ -187,4 +207,22 @@ test('extractTargetConditions only includes stats with positive gain even if che
     statThresholds: {},
     gradeThreshold: null,
   });
+});
+
+// --- null/undefined guard clauses ---
+
+test('computeEnhancementGains throws TypeError for null previewStats', () => {
+  assert.throws(() => computeEnhancementGains({ str: 5 }, null), TypeError);
+});
+
+test('computeEnhancementGains throws TypeError for undefined cleanStats', () => {
+  assert.throws(() => computeEnhancementGains(undefined, { str: 5 }), TypeError);
+});
+
+test('getDefaultCheckedStats throws TypeError for null gains', () => {
+  assert.throws(() => getDefaultCheckedStats(null), TypeError);
+});
+
+test('extractTargetConditions throws TypeError for null cleanStats', () => {
+  assert.throws(() => extractTargetConditions(null, { str: 5 }, {}, 0), TypeError);
 });
