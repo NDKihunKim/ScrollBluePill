@@ -3,7 +3,7 @@ import {
   getDefaultCheckedStats,
 } from './targetExtraction.mjs';
 import { statLabelByKey } from '../scrollState.mjs';
-import { DEFAULT_TRIAL_COUNT } from './monteCarloEngine.mjs';
+import { DEFAULT_TRIAL_COUNT, computeCumulativeProbability } from './monteCarloEngine.mjs';
 export { DEFAULT_TRIAL_COUNT };
 import {
   formatProbability,
@@ -200,15 +200,22 @@ export function createResultUI() {
   probabilityDisplay.className = 'ev-probability';
   container.appendChild(probabilityDisplay);
 
-  // Expected attempts
-  const expectedAttempts = document.createElement('div');
-  expectedAttempts.className = 'ev-expected-attempts';
-  container.appendChild(expectedAttempts);
+  // Interactive attempt count → cumulative probability row
+  const attemptRow = document.createElement('div');
+  attemptRow.className = 'ev-attempt-row';
 
-  // Percentiles
-  const percentiles = document.createElement('div');
-  percentiles.className = 'ev-percentiles';
-  container.appendChild(percentiles);
+  const attemptInput = document.createElement('input');
+  attemptInput.type = 'number';
+  attemptInput.min = '1';
+  attemptInput.max = '1000000';
+  attemptInput.step = '1';
+  attemptInput.className = 'ev-attempt-input';
+
+  const attemptResult = document.createElement('span');
+  attemptResult.className = 'ev-attempt-result';
+
+  attemptRow.append('시도 횟수: ', attemptInput, attemptResult);
+  container.appendChild(attemptRow);
 
   // Canvas element for chart
   const canvas = document.createElement('canvas');
@@ -227,6 +234,23 @@ export function createResultUI() {
   container.appendChild(details);
 
   /**
+   * Updates the cumulative-probability display from the current input value
+   * and the stored success probability.
+   */
+  function updateAttemptResult() {
+    const p = parseFloat(attemptInput.dataset.successProbability || '0');
+    const n = parseInt(attemptInput.value, 10);
+    if (Number.isFinite(n) && n > 0) {
+      const cumulative = computeCumulativeProbability(p, n);
+      attemptResult.textContent = `회 → ${formatProbability(cumulative)}`;
+    } else {
+      attemptResult.textContent = '회 → —';
+    }
+  }
+
+  attemptInput.addEventListener('input', updateAttemptResult);
+
+  /**
    * Fills all displays from a createResultSummary output and renders the chart.
    *
    * @param {object} resultSummary - Result summary from createResultSummary
@@ -234,12 +258,12 @@ export function createResultUI() {
   function update(resultSummary) {
     methodLabel.textContent = resultSummary.calculationLabel;
     probabilityDisplay.textContent = `성공 확률: ${resultSummary.probabilityLabel}`;
-    expectedAttempts.textContent = `예상 시도 횟수: ${resultSummary.expectedAttempts.toLocaleString('en-US')}회`;
 
-    const p = resultSummary.percentiles;
-    percentiles.textContent = `50%: ${p.p50.toLocaleString('en-US')}회 | 75%: ${p.p75.toLocaleString('en-US')}회 | 90%: ${p.p90.toLocaleString('en-US')}회 | 95%: ${p.p95.toLocaleString('en-US')}회`;
+    attemptInput.dataset.successProbability = resultSummary.successProbability;
+    attemptInput.value = resultSummary.expectedAttempts;
+    updateAttemptResult();
 
-    renderAttemptChart(canvas, resultSummary.chartData, p.p95);
+    renderAttemptChart(canvas, resultSummary.chartData, resultSummary.percentiles.p95);
 
     if (resultSummary.bestStrategy) {
       bestMethodContent.textContent = JSON.stringify(resultSummary.bestStrategy, null, 2);
@@ -264,8 +288,8 @@ export function createResultUI() {
   /** Shows the no-strategy message. */
   function showNoStrategy() {
     probabilityDisplay.textContent = NO_STRATEGY_TEXT;
-    expectedAttempts.textContent = '';
-    percentiles.textContent = '';
+    attemptInput.value = '';
+    attemptResult.textContent = '';
     methodLabel.textContent = '';
     details.hidden = true;
     staleLabel.hidden = true;
@@ -278,8 +302,8 @@ export function createResultUI() {
    */
   function showZeroSuccess(trialCount) {
     probabilityDisplay.textContent = `성공 확률: 0% (상한 < 1/${trialCount.toLocaleString('en-US')})`;
-    expectedAttempts.textContent = '';
-    percentiles.textContent = '';
+    attemptInput.value = '';
+    attemptResult.textContent = '';
     staleLabel.hidden = true;
   }
 

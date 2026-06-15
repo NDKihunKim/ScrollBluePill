@@ -152,3 +152,44 @@ test('computeExpectedAttempts for p=1.0 returns 1', async () => {
 
   assert.equal(computeExpectedAttempts(1.0), 1);
 });
+
+test('computeCumulativeProbability returns 1 - (1-p)^n', async () => {
+  const { computeCumulativeProbability } = await import(RNG_MODULE);
+
+  const result = computeCumulativeProbability(0.1, 1);
+  assert.ok(Math.abs(result - 0.1) < 1e-9, `expected ~0.1, got ${result}`);
+});
+
+test('computeCumulativeProbability for n=10, p=0.1 ≈ 0.6513', async () => {
+  const { computeCumulativeProbability } = await import(RNG_MODULE);
+
+  const result = computeCumulativeProbability(0.1, 10);
+  assert.ok(Math.abs(result - 0.6513215599) < 1e-9, `expected ~0.6513, got ${result}`);
+});
+
+test('computeCumulativeProbability for p=1.0 always returns 1', async () => {
+  const { computeCumulativeProbability } = await import(RNG_MODULE);
+
+  assert.equal(computeCumulativeProbability(1.0, 1), 1);
+  assert.equal(computeCumulativeProbability(1.0, 100), 1);
+});
+
+test('computeCumulativeProbability for p=0 returns 0', async () => {
+  const { computeCumulativeProbability } = await import(RNG_MODULE);
+
+  assert.equal(computeCumulativeProbability(0, 1), 0);
+  assert.equal(computeCumulativeProbability(0, 100), 0);
+});
+
+test('computeCumulativeProbability for n=0 returns 0', async () => {
+  const { computeCumulativeProbability } = await import(RNG_MODULE);
+
+  assert.equal(computeCumulativeProbability(0.5, 0), 0);
+});
+
+test('computeCumulativeProbability for n=1 equals p', async () => {
+  const { computeCumulativeProbability } = await import(RNG_MODULE);
+
+  const p = 0.35;
+  assert.equal(computeCumulativeProbability(p, 1), p);
+});
