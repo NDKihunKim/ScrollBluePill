@@ -146,3 +146,19 @@ test('result panel renders interactive attempt row with input and cumulative pro
   assert.doesNotMatch(panelSource, /ev-method-label/);
   assert.doesNotMatch(panelSource, /ev-probability/);
 });
+
+test('EV clear hook is exposed for reset handler', async () => {
+  const indexSource = await readFile(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
+
+  assert.match(indexSource, /window\.__evClear\s*=\s*showEvPlaceholder/);
+});
+
+test('enhancement reset shows confirmation dialog and calls __evClear on confirm', async () => {
+  const enhancementPanelSource = await readFile(new URL('../src/lib/enhancementPanel.mjs', import.meta.url), 'utf8');
+
+  assert.match(enhancementPanelSource, /모든 강화 설정과 계산 결과가 초기화됩니다/);
+  assert.match(enhancementPanelSource, /ev-confirm-overlay/);
+  assert.match(enhancementPanelSource, /ev-confirm-dialog/);
+  assert.match(enhancementPanelSource, /ev-confirm-buttons/);
+  assert.match(enhancementPanelSource, /window\.__evClear/);
+});
