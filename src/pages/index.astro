@@ -254,7 +254,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 				<div data-result-placeholder>
 					강화 목표를 설정한 뒤 기대값 계산을 눌러주세요.
 				</div>
-				<div data-result-content style="display:none;"></div>
+				<div data-result-content hidden></div>
 			</section>
 			</div>
 
@@ -1252,8 +1252,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  if (resultContent instanceof HTMLElement && resultPlaceholder instanceof HTMLElement) {
 	    resultPlaceholder.hidden = true;
 	    resultContent.hidden = false;
+            resultContent.style.display = '';
 	    resultContent.replaceChildren();
 	    resultContent.appendChild(targetUI.container);
+            resultPanel?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 	  }
 
 	  // Handle cancel: return to placeholder
@@ -2042,6 +2044,12 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	}
 
 	:global(.maker-gem-slot--filled:hover .slot-box-x) {
+		opacity: 1;
+		transform: scale(1);
+		pointer-events: auto;
+	}
+
+	:global(.item-level-up-slot--filled:hover .slot-box-x) {
 		opacity: 1;
 		transform: scale(1);
 		pointer-events: auto;
