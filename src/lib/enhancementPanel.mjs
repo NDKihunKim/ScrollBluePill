@@ -471,15 +471,27 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       hideScrollDetail();
       refreshEnhancedCard();
 
-      // Re-render the chaos panel to include any new stats
-      renderChaosInputPanel(optionEl);
+      // Re-locate the chaos option in the rebuilt DOM and keep the panel open
+      const chaosOptions = scrollList.querySelectorAll('.scroll-option');
+      for (const opt of chaosOptions) {
+        const nameEl = opt.querySelector('.scroll-option-name');
+        if (nameEl?.textContent === activeChaosScroll.nameKo) {
+          activeChaosOptionEl = opt;
+          break;
+        }
+      }
 
-      // Disable 적용 button if no more slots
-      const newRemaining = computeRemainingSlots(enhancementState);
-      if (newRemaining <= 0) {
-        const btn = optionEl.querySelector('.chaos-apply-button');
-        if (btn) {
-          btn.disabled = true;
+      // Re-render the chaos panel into the new DOM element
+      if (activeChaosOptionEl) {
+        renderChaosInputPanel(activeChaosOptionEl);
+
+        // Disable 적용 button if no more slots
+        const newRemaining = computeRemainingSlots(enhancementState);
+        if (newRemaining <= 0) {
+          const btn = activeChaosOptionEl.querySelector('.chaos-apply-button');
+          if (btn) {
+            btn.disabled = true;
+          }
         }
       }
     });
