@@ -1,3 +1,8 @@
+import { applyChaosToStats, CHAOS_SUCCESS_RATE } from './chaosModel.mjs';
+import { satisfiesTargets } from './exactEngine.mjs';
+import { computeGemContribution } from './makerModel.mjs';
+import { parseScrollSuccessRate } from './scrollModel.mjs';
+
 /**
  * Creates a deterministic pseudorandom number generator using Mulberry32.
  *
@@ -54,6 +59,103 @@ export function runMonteCarloSimulation(simulateOneTrial, trialCount, seed) {
     successCount,
     totalTrials: trialCount,
     isZeroSuccess: successCount === 0,
+  };
+}
+
+function addStats(target, stats) {
+  for (const [key, value] of Object.entries(stats ?? {})) {
+    if (Number.isFinite(value)) {
+      target[key] = (target[key] ?? 0) + value;
+    }
+  }
+}
+
+function inferMakerChoiceGrade(choice) {
+  if (Number.isInteger(choice?.grade)) return choice.grade;
+
+  if (choice?.gemKey === 'blackAmethyst') {
+    const maxAbsValue = Math.max(
+      0,
+      ...Object.values(choice.stats ?? {})
+        .filter(Number.isFinite)
+        .map((value) => Math.abs(value)),
+    );
+    if (maxAbsValue >= 3) return 2;
+    if (maxAbsValue === 2) return 1;
+    return 0;
+  }
+
+  return 0;
+}
+
+function isChaosScroll(scroll) {
+  return scroll?.behavior_type === 'chaos' || scroll?.behaviorType === 'chaos';
+}
+
+function getScrollSuccessRate(scroll) {
+  const name = scroll?.nameKo ?? '';
+  if (isChaosScroll(scroll) && !/%/.test(name)) {
+    return CHAOS_SUCCESS_RATE;
+  }
+  return parseScrollSuccessRate(name);
+}
+
+function simulateStrategyTrial(strategy, cleanStats, targetConditions, rng) {
+  const { makerChoices = [], scrollSequence = [] } = strategy || {};
+  const state = { ...cleanStats };
+
+  for (const choice of makerChoices) {
+    if (!choice?.gemKey) continue;
+
+    const gemStats = computeGemContribution(
+      choice.gemKey,
+      inferMakerChoiceGrade(choice),
+      cleanStats,
+      rng,
+    );
+    addStats(state, gemStats);
+  }
+
+  for (const scroll of scrollSequence) {
+    if (!scroll) continue;
+    if (rng() >= getScrollSuccessRate(scroll)) continue;
+
+    if (isChaosScroll(scroll)) {
+      const chaosState = applyChaosToStats(state, rng);
+      for (const [key, value] of Object.entries(chaosState)) {
+        state[key] = value;
+      }
+    } else {
+      addStats(state, scroll.stats);
+    }
+  }
+
+  return satisfiesTargets(state, cleanStats, targetConditions);
+}
+
+/**
+ * Runs a seeded Monte Carlo simulation for a full enhancement strategy.
+ *
+ * This wraps the lower-level trial-function runner used by tests and callers
+ * that already provide their own trial function.
+ *
+ * @param {{ makerChoices: Array<object>, scrollSequence: Array<object>, useItemLevelUp: boolean }} strategy
+ * @param {Record<string, number>} cleanStats
+ * @param {{ statThresholds: Record<string, number>, gradeThreshold: number|null }} targetConditions
+ * @param {number} trialCount
+ * @param {number} seed
+ * @returns {{ successCount: number, totalTrials: number, isZeroSuccess: boolean, successProbability: number }}
+ */
+export function runStrategyMonteCarloSimulation(strategy, cleanStats, targetConditions, trialCount, seed) {
+  const result = runMonteCarloSimulation(
+    (rng) => simulateStrategyTrial(strategy, cleanStats, targetConditions, rng),
+    trialCount,
+    seed,
+  );
+
+  return {
+    ...result,
+    successProbability: result.totalTrials > 0 ? result.successCount / result.totalTrials : 0,
   };
 }
 

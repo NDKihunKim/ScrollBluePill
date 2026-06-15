@@ -38,6 +38,15 @@ test('maker stimulant slot source contract is present', async () => {
 	assert.match(makerPanelSource, /clearStimulant/);
 });
 
+test('maker-only changes notify expected-value button state', async () => {
+	const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
+	const enhancementPanelSource = await readFile(new URL('../src/lib/enhancementPanel.mjs', import.meta.url), 'utf8');
+
+	assert.match(makerPanelSource, /onStateChange/);
+	assert.match(makerPanelSource, /renderEnhancedItemCard\(selectedBaseItem,\s*accumulatedStats,\s*remaining,\s*appliedCount,\s*gradeColor,\s*statBreakdown\);\s*onStateChange\?\.\(\);/);
+	assert.match(enhancementPanelSource, /onStateChange:\s*\(\)\s*=>\s*notifyEv\(\)/);
+});
+
 test('maker stimulant and gem slots share active slot selection state', async () => {
 	const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
 
@@ -155,7 +164,7 @@ test('calculator first step renders MapleStory input candidates', async () => {
 	assert.match(indexSource, /manualSearchToggle\.setAttribute\('aria-expanded', String\(isOpen\)\)/);
 	assert.match(indexSource, /\.item-suggestion-menu :global\(\.item-suggestion-option\)/);
 	assert.match(indexSource, /\.item-suggestion-menu :global\(\.item-suggestion-text span\)/);
-	assert.match(indexSource, /gap: 16px;/);
+	assert.match(indexSource, /gap: 12px;/);
 	assert.match(indexSource, /border-top: 1px solid var\(--line\);/);
 	assert.doesNotMatch(indexSource, /\.input-row \+ \.input-row/);
 	assert.match(indexSource, /jobKinds\.map/);
@@ -180,20 +189,19 @@ test('calculator first step renders MapleStory input candidates', async () => {
 	assert.match(indexSource, /data-level-step="5"/);
 	assert.match(indexSource, /min="0"/);
 	assert.match(indexSource, /fetch\('\/data\/items-gms83-ko\.json'\)/);
-	assert.match(indexSource, /'REQJOB', 'requiredJobs'/);
-	assert.match(indexSource, /'물리공격력', 'weaponAttack'/);
+	assert.match(indexSource, /'공격력', 'weaponAttack'/);
 	assert.match(indexSource, /'공격속도', 'attackSpeed'/);
 	assert.match(indexSource, /'최대HP', 'maxHp'/);
 	assert.match(indexSource, /Beginner: '초보자'/);
 	assert.match(indexSource, /Pirate: '해적'/);
 	assert.match(indexSource, /formatRequiredJobs/);
-	assert.match(indexSource, /key === 'requiredJobs'/);
+	assert.match(indexSource, /jobKindByRequiredJob/);
 	assert.match(indexSource, /5: '빠름'/);
-	assert.match(indexSource, /`\$\{value\} \(\$\{speedLabelByValue\[value\] \?\? '속도 정보 없음'\}\)`/);
+	assert.match(indexSource, /speedLabelByValue\[value\] \?\? '속도 정보 없음'/);
 	assert.match(indexSource, /syncFiltersToSelectedItem\(item\)/);
 	assert.match(indexSource, /jobKindByRequiredJob/);
 	assert.match(indexSource, /setEquipmentOption\(matchingOption\)/);
-	assert.match(indexSource, /levelInput\.value = String\(normalizeItemLevel\(item\.requiredLevel\)\)/);
+	assert.match(indexSource, /requiredLevel = String\(normalizeItemLevel\(item\.requiredLevel\)\)/);
 
 	for (const kind of [...weaponKinds, ...armorKinds]) {
 		assert.ok(equipmentKindApiFilters[kind], `missing MapleStory.io mapping for: ${kind}`);
@@ -287,9 +295,9 @@ test('Korean item search supports two-character names and aliases', async () => 
 	assert.equal(zenumistCape[0]?.stats.speed, 7);
 	assert.equal(zenumistCape[0]?.stats.jump, 3);
 
-	const generatedKoreanName = searchKoreanItems('갈색턱수염', { items: generatedItemIndex });
-	assert.equal(generatedKoreanName[0]?.nameKo, '갈색 턱수염');
-	assert.equal(generatedKoreanName[0]?.nameEn, 'Long Brown Beard');
+	const generatedKoreanName = searchKoreanItems('갈색가죽모자', { items: generatedItemIndex });
+	assert.equal(generatedKoreanName[0]?.nameKo, '갈색 가죽 모자');
+	assert.equal(generatedKoreanName[0]?.nameEn, 'Brown Skullcap');
 
 	const generatedKoreanPartial = searchKoreanItems('스카이', { items: generatedItemIndex });
 	assert.ok(generatedKoreanPartial.some((item) => item.nameKo.includes('스카이')));
@@ -412,16 +420,17 @@ test('Korean item search supports two-character names and aliases', async () => 
 });
 
 test('item dedupe report records collapsed and unresolved groups', () => {
-	assert.match(dedupeReport, /Raw item count: 7105/);
-	assert.match(dedupeReport, /Visibility-hidden item count: 20/);
-	assert.match(dedupeReport, /Missing-Korean-name hidden item count: 1117/);
-	assert.match(dedupeReport, /Equipment-kind hidden item count: 2039/);
+	assert.match(dedupeReport, /Raw item count: 2328/);
+	assert.match(dedupeReport, /Visibility-hidden item count: 22/);
+	assert.match(dedupeReport, /Missing-Korean-name hidden item count: 0/);
+	assert.match(dedupeReport, /Equipment-kind hidden item count: 0/);
+	assert.match(dedupeReport, /Zero-stat hidden item count: 0/);
 	assert.match(dedupeReport, /Visibility-renamed item count: 28/);
-	assert.match(dedupeReport, /Dedupe input item count: 3929/);
+	assert.match(dedupeReport, /Dedupe input item count: 2328/);
 	assert.match(dedupeReport, /Deduped item count: 2098/);
-	assert.match(dedupeReport, /Dedupe-hidden item count: 249/);
-	assert.match(dedupeReport, /Exact-signature groups collapsed: 34/);
-	assert.match(dedupeReport, /Variant highest-level groups collapsed: 83/);
+	assert.match(dedupeReport, /Dedupe-hidden item count: 230/);
+	assert.match(dedupeReport, /Exact-signature groups collapsed: 16/);
+	assert.match(dedupeReport, /Variant highest-level groups collapsed: 82/);
 	assert.match(dedupeReport, /Unresolved variant groups: 0/);
 	assert.match(dedupeReport, /Hidden equipment kinds: Cash, Face, Hair, Medal, Mount, Pet Equipment, Skill Effect/);
 	assert.match(equipmentKindReport, /Hidden equipment kinds: Cash, Face, Hair, Medal, Mount, Pet Equipment, Skill Effect/);

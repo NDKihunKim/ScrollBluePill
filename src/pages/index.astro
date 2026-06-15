@@ -313,7 +313,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	import { computeEnhancementGains, getDefaultCheckedStats, extractTargetConditions } from '../lib/expectedValue/targetExtraction.mjs';
 	import { createTargetSelectionUI, createResultUI, DEFAULT_TRIAL_COUNT, roundTrialCount, PLACEHOLDER_TEXT, NO_STRATEGY_TEXT, CONFIRM_TEXT, CONFIRM_BUTTON_TEXT, CANCEL_BUTTON_TEXT, STALE_LABEL } from '../lib/expectedValue/expectedValuePanel.mjs';
 	import { isDeterministicStrategy, computeExactProbability } from '../lib/expectedValue/exactEngine.mjs';
-	import { createRandomSeed, runMonteCarloSimulation } from '../lib/expectedValue/monteCarloEngine.mjs';
+	import { createRandomSeed, runStrategyMonteCarloSimulation } from '../lib/expectedValue/monteCarloEngine.mjs';
 	import { createResultSummary, isResultStale } from '../lib/expectedValue/resultFormatter.mjs';
 	const form = document.querySelector('[data-calculator-input]');
 	const itemNameSearch = form?.querySelector('[data-item-name-search]');
@@ -1276,7 +1276,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  const scrollSequence = enhancementState.scrollState.slots.filter(s => s !== null);
 	  const makerChoices = enhancementState.gemSlots
 	    .filter(s => s !== null)
-	    .map(s => ({ gemKey: s.gemKey, grade: s.gradeIndex }));
+	    .map(s => (s.stats
+	      ? { gemKey: s.gemKey, stats: s.stats }
+	      : { gemKey: s.gemKey, grade: s.gradeIndex }));
 
 	  // Pre-apply user-specified (non-random) stats so they don't flag the
 	  // strategy as non-deterministic.  This covers stimulant + item level-up,
@@ -1344,7 +1346,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  } else {
 	    // Non-deterministic scrolls (chaos) or random gems — use Monte Carlo
 	    const seed = createRandomSeed();
-	    const simResult = runMonteCarloSimulation(
+	    const simResult = runStrategyMonteCarloSimulation(
 	      userStrategy,
 	      effectiveCleanStats,
 	      effectiveTargetConditions,
@@ -2640,29 +2642,70 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  opacity: 0.4;
 	  cursor: not-allowed;
 	}
-	.ev-target-selection { padding: 12px 0; }
-	.ev-stat-checklist { display: flex; flex-direction: column; gap: 4px; margin: 8px 0; }
-	.ev-stat-row { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
-	.ev-stat-row input:disabled + span { opacity: 0.4; }
-	.ev-trial-row { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
-	.ev-trial-input { width: 100px; padding: 4px 8px; border: 1px solid var(--border-color, #ccc); border-radius: 4px; }
-	.ev-button-row { display: flex; gap: 8px; margin-top: 12px; }
-	.ev-button-row button { padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+	:global(.ev-target-selection) { padding: 8px 0; }
+	:global(.ev-target-header) {
+	  margin: 0 0 10px;
+	  font-size: 18px;
+	  line-height: 1.25;
+	}
+	:global(.ev-target-chip-grid) {
+	  display: grid;
+	  grid-template-columns: repeat(2, minmax(0, 1fr));
+	  gap: 6px;
+	  margin: 8px 0 10px;
+	}
+	:global(.ev-target-chip) {
+	  min-width: 0;
+	  cursor: pointer;
+	}
+	:global(.ev-target-chip input) {
+	  position: absolute;
+	  opacity: 0;
+	  pointer-events: none;
+	}
+	:global(.ev-target-chip-label) {
+	  display: flex;
+	  min-height: 32px;
+	  align-items: center;
+	  justify-content: center;
+	  border: 1px solid var(--line);
+	  border-radius: 6px;
+	  background: var(--surface-soft);
+	  color: var(--ink);
+	  padding: 5px 8px;
+	  font-size: 12px;
+	  font-weight: 700;
+	  line-height: 1.2;
+	  text-align: center;
+	}
+	:global(.ev-target-chip input:checked + .ev-target-chip-label) {
+	  border-color: var(--green);
+	  background: var(--green);
+	  color: #fff;
+	}
+	:global(.ev-target-chip input:focus-visible + .ev-target-chip-label) {
+	  outline: 2px solid var(--ink);
+	  outline-offset: 2px;
+	}
+	:global(.ev-trial-row) { display: flex; align-items: center; gap: 8px; margin: 10px 0; font-size: 13px; }
+	:global(.ev-trial-input) { width: 96px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); }
+	:global(.ev-button-row) { display: flex; gap: 8px; margin-top: 10px; }
+	:global(.ev-button-row button) { padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; }
 	.ev-result { padding: 12px 0; }
 	.ev-method-label { font-size: 12px; color: var(--text-muted, #6b7280); margin-bottom: 4px; }
 	.ev-stale-label { color: #d97706; font-size: 12px; margin-bottom: 8px; }
 	.ev-probability { font-size: 18px; font-weight: 700; margin: 8px 0; }
 	.ev-expected-attempts { font-size: 14px; margin: 4px 0; }
 	.ev-percentiles { font-size: 12px; color: var(--text-muted, #6b7280); margin: 4px 0; }
-	.ev-chart { margin: 12px 0; border: 1px solid var(--border-color, #e5e7eb); border-radius: 4px; }
+	:global(.ev-chart) { display: block; width: 100%; max-width: 100%; height: 220px; margin: 12px 0; box-sizing: border-box; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
 	.ev-best-method { margin-top: 12px; font-size: 13px; }
 	.ev-best-method summary { cursor: pointer; font-weight: 600; }
 	.ev-method-detail { padding: 8px; margin-top: 4px; background: var(--bg-muted, #f3f4f6); border-radius: 4px; white-space: pre-wrap; font-size: 12px; }
-	.ev-confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-	.ev-confirm-dialog { background: var(--bg-color, #fff); border-radius: 8px; padding: 20px 24px; max-width: 360px; box-shadow: 0 4px 24px rgba(0,0,0,0.15); }
-	.ev-confirm-dialog p { margin: 0 0 16px; font-size: 14px; }
-	.ev-confirm-buttons { display: flex; gap: 8px; justify-content: flex-end; }
-	.ev-confirm-buttons button { padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+	:global(.ev-confirm-overlay) { position: fixed; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+	:global(.ev-confirm-dialog) { background: var(--surface); color: var(--ink); border-radius: 8px; padding: 20px 24px; max-width: 360px; box-shadow: 0 4px 24px rgba(0,0,0,0.15); }
+	:global(.ev-confirm-dialog p) { margin: 0 0 16px; font-size: 14px; }
+	:global(.ev-confirm-buttons) { display: flex; gap: 8px; justify-content: flex-end; }
+	:global(.ev-confirm-buttons button) { padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; }
 	.calculator-panel.result-panel {
 	  margin-top: 14px;
 	  padding: 14px;

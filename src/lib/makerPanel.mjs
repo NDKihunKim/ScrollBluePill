@@ -32,6 +32,7 @@ export function initMakerPanel({
   makerPickerBack,
   renderEnhancedItemCard,
   onMakerOpen,
+  onStateChange,
 }) {
   let enhancementState = null;
   let selectedBaseItem = null;
@@ -66,6 +67,7 @@ export function initMakerPanel({
     const gradeColor = computeGradeColor(enhancementState);
 
     renderEnhancedItemCard(selectedBaseItem, accumulatedStats, remaining, appliedCount, gradeColor, statBreakdown);
+    onStateChange?.();
   };
 
   const getStimulantStatKeys = () => {

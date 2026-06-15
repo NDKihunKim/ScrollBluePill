@@ -82,6 +82,43 @@ test('runMonteCarloSimulation is deterministic with same seed', async () => {
   assert.equal(result1.totalTrials, result2.totalTrials);
 });
 
+test('runStrategyMonteCarloSimulation returns finite probability for makers-only random gem target', async () => {
+  const { runStrategyMonteCarloSimulation } = await import(RNG_MODULE);
+
+  const strategy = {
+    makerChoices: [
+      { gemKey: 'blackAmethyst', stats: { weaponAttack: 3 } },
+      { gemKey: 'diamond', grade: 2 },
+      { gemKey: 'lukCrystal', grade: 2 },
+    ],
+    scrollSequence: [],
+    useItemLevelUp: false,
+  };
+  const effectiveCleanStats = {
+    weaponAttack: 85,
+    luk: 5,
+  };
+  const targetConditions = {
+    statThresholds: {
+      weaponAttack: 6,
+      luk: 5,
+    },
+    gradeThreshold: null,
+  };
+
+  const result = runStrategyMonteCarloSimulation(
+    strategy,
+    effectiveCleanStats,
+    targetConditions,
+    100000,
+    12345,
+  );
+
+  assert.equal(Number.isFinite(result.successProbability), true);
+  assert.ok(result.successProbability > 0.035, `expected 흑수정 +3 probability near 5%, got ${result.successProbability}`);
+  assert.ok(result.successProbability < 0.065, `expected 흑수정 +3 probability near 5%, got ${result.successProbability}`);
+});
+
 test('computeGeometricPercentiles for p=0.5', async () => {
   const { computeGeometricPercentiles } = await import(RNG_MODULE);
 

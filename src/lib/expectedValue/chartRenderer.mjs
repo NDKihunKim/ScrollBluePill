@@ -1,3 +1,12 @@
+const DEFAULT_CHART_HEIGHT = 220;
+
+function ensureCanvasDisplaySize(canvas) {
+  canvas.style.display = 'block';
+  canvas.style.width = '100%';
+  canvas.style.maxWidth = '100%';
+  canvas.style.height ||= `${DEFAULT_CHART_HEIGHT}px`;
+}
+
 /**
  * Renders an attempt-probability bar chart with a cumulative line and p95 marker
  * on the given HTMLCanvasElement using the Canvas 2D API.
@@ -13,14 +22,16 @@ export function renderAttemptChart(canvas, chartData, p95) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
+  ensureCanvasDisplaySize(canvas);
+
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
 
-  const width = rect.width;
-  const height = rect.height;
+  const width = rect.width || canvas.parentElement?.clientWidth || 640;
+  const height = rect.height || DEFAULT_CHART_HEIGHT;
 
-  canvas.width = width * dpr;
-  canvas.height = height * dpr;
+  canvas.width = Math.round(width * dpr);
+  canvas.height = Math.round(height * dpr);
   ctx.scale(dpr, dpr);
 
   // --- Theme detection ---

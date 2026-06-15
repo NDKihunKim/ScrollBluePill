@@ -42,6 +42,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     makerPickerBack,
     renderEnhancedItemCard,
     onMakerOpen: () => itemLevelUpPanel.closeArea(),
+    onStateChange: () => notifyEv(),
   });
 
   const itemLevelUpPanel = initItemLevelUpPanel({
