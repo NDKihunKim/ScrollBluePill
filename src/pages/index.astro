@@ -1199,6 +1199,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  evResultUI = null;
 	  evResultSummary = null;
 	};
+		// Exposed for enhancementPanel reset — fully clears EV results
+		window.__evClear = showEvPlaceholder;
 
 	/** Show a confirmation dialog overlay. Calls onConfirm if user confirms. */
 	const showEvConfirmationDialog = (onConfirm) => {

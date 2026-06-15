@@ -760,16 +760,51 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       return;
     }
 
-    resetState(enhancementState);
-    collapseChaosPanel();
-    chaosStepperValues = new Map();
-    hideScrollDetail();
-    renderSlotRow();
-    renderScrollList(selectedBaseItem);
-    makerPanel.resetMakerUI();
-    itemLevelUpPanel.reset();
-    refreshEnhancedCard();
-    notifyEv();
+    // Confirmation dialog
+    const overlay = document.createElement('div');
+    overlay.className = 'ev-confirm-overlay';
+
+    const dialog = document.createElement('div');
+    dialog.className = 'ev-confirm-dialog';
+
+    const msg = document.createElement('p');
+    msg.textContent = '모든 강화 설정과 계산 결과가 초기화됩니다. 계속하시겠습니까?';
+
+    const buttonRow = document.createElement('div');
+    buttonRow.className = 'ev-confirm-buttons';
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.textContent = '초기화';
+    confirmBtn.addEventListener('click', () => {
+      overlay.remove();
+
+      resetState(enhancementState);
+      collapseChaosPanel();
+      chaosStepperValues = new Map();
+      hideScrollDetail();
+      renderSlotRow();
+      renderScrollList(selectedBaseItem);
+      makerPanel.resetMakerUI();
+      itemLevelUpPanel.reset();
+      refreshEnhancedCard();
+      notifyEv();
+
+      // Clear EV results panel
+      if (typeof window.__evClear === 'function') {
+        window.__evClear();
+      }
+    });
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = '취소';
+    cancelBtn.addEventListener('click', () => {
+      overlay.remove();
+    });
+
+    buttonRow.append(confirmBtn, cancelBtn);
+    dialog.append(msg, buttonRow);
+    overlay.append(dialog);
+    document.body.append(overlay);
   });
 
   const sortScrollList = (list) => {
