@@ -300,7 +300,11 @@ export function createResultUI() {
    * @param {number} trialCount - Number of simulation trials
    */
   function showZeroSuccess(trialCount) {
-    equipmentCount.textContent = `성공 확률: 0% (상한 < 1/${trialCount.toLocaleString('en-US')})`;
+    if (trialCount > 0) {
+      equipmentCount.textContent = `성공 확률: 0% (상한 < 1/${trialCount.toLocaleString('en-US')})`;
+    } else {
+      equipmentCount.textContent = '성공 확률: 0%';
+    }
     attemptInput.value = '';
     attemptResult.textContent = '';
     staleLabel.hidden = true;
