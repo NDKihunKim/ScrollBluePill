@@ -183,10 +183,11 @@ export function createResultUI() {
   const container = document.createElement('div');
   container.className = 'ev-result';
 
-  // Method label
-  const methodLabel = document.createElement('div');
-  methodLabel.className = 'ev-method-label';
-  container.appendChild(methodLabel);
+  // Title
+  const titleEl = document.createElement('div');
+  titleEl.className = 'ev-result-title';
+  titleEl.textContent = '평균 장비 기대값';
+  container.appendChild(titleEl);
 
   // Stale label (hidden by default)
   const staleLabel = document.createElement('div');
@@ -195,10 +196,10 @@ export function createResultUI() {
   staleLabel.hidden = true;
   container.appendChild(staleLabel);
 
-  // Probability display
-  const probabilityDisplay = document.createElement('div');
-  probabilityDisplay.className = 'ev-probability';
-  container.appendChild(probabilityDisplay);
+  // Equipment count (expected attempts)
+  const equipmentCount = document.createElement('div');
+  equipmentCount.className = 'ev-equipment-count';
+  container.appendChild(equipmentCount);
 
   // Interactive attempt count → cumulative probability row
   const attemptRow = document.createElement('div');
@@ -256,8 +257,7 @@ export function createResultUI() {
    * @param {object} resultSummary - Result summary from createResultSummary
    */
   function update(resultSummary) {
-    methodLabel.textContent = resultSummary.calculationLabel;
-    probabilityDisplay.textContent = `성공 확률: ${resultSummary.probabilityLabel}`;
+    equipmentCount.textContent = `장비 갯수: ${resultSummary.expectedAttempts.toLocaleString('en-US')}개`;
 
     attemptInput.dataset.successProbability = resultSummary.successProbability;
     attemptInput.value = resultSummary.expectedAttempts;
@@ -287,10 +287,9 @@ export function createResultUI() {
 
   /** Shows the no-strategy message. */
   function showNoStrategy() {
-    probabilityDisplay.textContent = NO_STRATEGY_TEXT;
+    equipmentCount.textContent = NO_STRATEGY_TEXT;
     attemptInput.value = '';
     attemptResult.textContent = '';
-    methodLabel.textContent = '';
     details.hidden = true;
     staleLabel.hidden = true;
   }
@@ -301,7 +300,7 @@ export function createResultUI() {
    * @param {number} trialCount - Number of simulation trials
    */
   function showZeroSuccess(trialCount) {
-    probabilityDisplay.textContent = `성공 확률: 0% (상한 < 1/${trialCount.toLocaleString('en-US')})`;
+    equipmentCount.textContent = `성공 확률: 0% (상한 < 1/${trialCount.toLocaleString('en-US')})`;
     attemptInput.value = '';
     attemptResult.textContent = '';
     staleLabel.hidden = true;
