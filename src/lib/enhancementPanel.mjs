@@ -151,12 +151,26 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
 
         // Replace the number with the scroll's icon
         number.replaceChildren();
-        const icon = document.createElement('img');
-        icon.className = 'slot-box-icon';
-        icon.src = buildItemIconUrl(scroll.id);
-        icon.alt = scroll.nameKo;
-        icon.loading = 'lazy';
-        number.append(icon);
+        if (scroll.id === '__failed_scroll__') {
+          const icon = document.createElement('span');
+          icon.className = 'slot-box-icon';
+          icon.setAttribute('aria-label', scroll.nameKo);
+          icon.style.display = 'inline-flex';
+          icon.style.alignItems = 'center';
+          icon.style.justifyContent = 'center';
+          icon.style.color = '#e74c3c';
+          icon.style.fontSize = '22px';
+          icon.style.fontWeight = '700';
+          icon.textContent = '✕';
+          number.append(icon);
+        } else {
+          const icon = document.createElement('img');
+          icon.className = 'slot-box-icon';
+          icon.src = buildItemIconUrl(scroll.id);
+          icon.alt = scroll.nameKo;
+          icon.loading = 'lazy';
+          number.append(icon);
+        }
 
         // × clear button — <span> avoids <button> grid-stretch quirk
         const xBtn = document.createElement('span');
@@ -614,6 +628,62 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
 
       scrollList.append(option);
     });
+
+    // Append synthetic "failed scroll" entry — always last, all-stats only
+    if (activeScrollStatFilter === 'all') {
+      const failOption = document.createElement('button');
+      failOption.type = 'button';
+      failOption.className = 'scroll-option';
+
+      const failIcon = document.createElement('span');
+      failIcon.className = 'scroll-option-icon';
+      failIcon.setAttribute('aria-hidden', 'true');
+      failIcon.style.display = 'inline-flex';
+      failIcon.style.alignItems = 'center';
+      failIcon.style.justifyContent = 'center';
+      failIcon.style.width = '28px';
+      failIcon.style.height = '28px';
+      failIcon.style.color = '#e74c3c';
+      failIcon.style.fontSize = '22px';
+      failIcon.style.fontWeight = '700';
+      failIcon.textContent = '✕';
+
+      const failText = document.createElement('span');
+      failText.className = 'scroll-option-text';
+
+      const failName = document.createElement('span');
+      failName.className = 'scroll-option-name';
+      failName.textContent = '주문서 실패';
+
+      const failStat = document.createElement('span');
+      failStat.className = 'scroll-option-stat';
+      failStat.textContent = '스탯 변화 없음';
+
+      failText.append(failName, failStat);
+      failOption.append(failIcon, failText);
+
+      failOption.addEventListener('click', () => {
+        if (!enhancementState || !selectedBaseItem) return;
+
+        collapseChaosPanel();
+
+        const applied = applyScroll(enhancementState, {
+          id: '__failed_scroll__',
+          nameKo: '주문서 실패',
+          equipmentKind: item.equipmentKind,
+          behavior_type: 'fixed',
+          stats: {},
+        });
+        if (!applied) return;
+
+        renderSlotRow();
+        renderScrollList(selectedBaseItem);
+        hideScrollDetail();
+        refreshEnhancedCard();
+      });
+
+      scrollList.append(failOption);
+    }
   };
 
   const refreshEnhancedCard = () => {
