@@ -8,17 +8,14 @@ function ensureCanvasDisplaySize(canvas) {
 }
 
 /**
- * Renders an attempt-probability bar chart with a cumulative line and p95 marker
- * on the given HTMLCanvasElement using the Canvas 2D API.
- *
- * This module is intended for browser environments only (depends on Canvas API
- * and `document` global).
+ * Renders an inverse-CDF line chart: X-axis = cumulative probability (percentile),
+ * Y-axis = number of clean-item attempts needed.
  *
  * @param {HTMLCanvasElement} canvas - The canvas element to render into
- * @param {Array<{ attempt: number, probability: number }>} chartData - Per-attempt PMF data
- * @param {number} p95 - The 95th-percentile attempt number (marker line position)
+ * @param {Array<{ percentile: number, attempts: number }>} chartData - Inverse CDF points
+ * @param {number} _p95 - Unused; kept for backward compatibility
  */
-export function renderAttemptChart(canvas, chartData, p95) {
+export function renderAttemptChart(canvas, chartData, _p95) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
@@ -40,16 +37,17 @@ export function renderAttemptChart(canvas, chartData, p95) {
   const isDark = theme === 'dark';
 
   const colors = {
-    bar: isDark ? '#4A9EFF' : '#3B82F6',
-    cumulative: isDark ? '#F59E0B' : '#D97706',
+    line: isDark ? '#4A9EFF' : '#3B82F6',
+    area: isDark ? 'rgba(74,158,255,0.08)' : 'rgba(59,130,246,0.08)',
     grid: isDark ? '#374151' : '#E5E7EB',
     text: isDark ? '#D1D5DB' : '#6B7280',
     marker: isDark ? '#EF4444' : '#DC2626',
+    referenceLine: isDark ? '#F59E0B' : '#D97706',
     background: isDark ? '#1F2937' : '#FFFFFF',
   };
 
   // --- Layout ---
-  const padding = { top: 24, right: 20, bottom: 40, left: 52 };
+  const padding = { top: 28, right: 20, bottom: 40, left: 48 };
   const plotW = width - padding.left - padding.right;
   const plotH = height - padding.top - padding.bottom;
 
@@ -59,105 +57,186 @@ export function renderAttemptChart(canvas, chartData, p95) {
   ctx.fillStyle = colors.background;
   ctx.fillRect(0, 0, width, height);
 
-  const maxProb = Math.max(...chartData.map((d) => d.probability), 0.01);
-  const maxAttempt = chartData.length;
+  // --- Data ranges ---
+  const maxPercentile = chartData.length > 0
+    ? chartData[chartData.length - 1].percentile
+    : 99;
+  const maxAttempts = chartData.length > 0
+    ? Math.max(...chartData.map((d) => d.attempts), 1)
+    : 10;
 
-  // --- Horizontal grid lines ---
+  // --- Horizontal grid lines (attempt counts) ---
   ctx.strokeStyle = colors.grid;
   ctx.lineWidth = 1;
 
-  const gridLineCount = 4;
-  for (let i = 0; i <= gridLineCount; i++) {
-    const y = padding.top + (plotH * i) / gridLineCount;
+  const yTicks = computeNiceTicks(0, maxAttempts, 4);
+  for (const yVal of yTicks) {
+    const y = padding.top + plotH - (yVal / maxAttempts) * plotH;
     ctx.beginPath();
     ctx.moveTo(padding.left, y);
     ctx.lineTo(width - padding.right, y);
     ctx.stroke();
+
+    // Y-axis label
+    ctx.fillStyle = colors.text;
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(yVal), padding.left - 8, y);
   }
 
-  // --- Y-axis labels ---
+  // --- X-axis labels (percentiles) ---
   ctx.fillStyle = colors.text;
-  ctx.font = '11px sans-serif';
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'middle';
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
 
-  for (let i = 0; i <= gridLineCount; i++) {
-    const y = padding.top + (plotH * i) / gridLineCount;
-    const label = ((1 - i / gridLineCount) * maxProb * 100).toFixed(1) + '%';
-    ctx.fillText(label, padding.left - 8, y);
+  const xTickPercentiles = [0, 25, 50, 75, 90, 95, 99];
+  for (const pct of xTickPercentiles) {
+    if (pct > maxPercentile) continue;
+    const x = padding.left + (pct / 100) * plotW;
+    ctx.fillText(`${pct}%`, x, height - padding.bottom + 24);
   }
 
-  const barGap = plotW / maxAttempt;
-  const barWidth = Math.max(2, barGap * 0.65);
+  // --- X-axis title ---
+  ctx.font = '12px sans-serif';
+  ctx.fillText(
+    '누적 확률',
+    padding.left + plotW / 2,
+    height - padding.bottom + 8,
+  );
 
-  // --- Bars ---
-  for (const entry of chartData) {
-    const x =
-      padding.left + (entry.attempt - 1) * barGap + barGap / 2 - barWidth / 2;
-    const barHeight = (entry.probability / maxProb) * plotH;
-    const y = padding.top + plotH - barHeight;
+  // --- Y-axis title ---
+  ctx.save();
+  ctx.translate(14, padding.top + plotH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText('시도 횟수', 0, 0);
+  ctx.restore();
 
-    ctx.fillStyle = colors.bar;
-    ctx.fillRect(x, y, barWidth, barHeight);
+  // --- Vertical reference lines at key percentiles ---
+  ctx.strokeStyle = colors.referenceLine;
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 4]);
+
+  const refPercentiles = [50, 75, 90, 95];
+  for (const pct of refPercentiles) {
+    if (pct > maxPercentile) continue;
+    const x = padding.left + (pct / 100) * plotW;
+    ctx.beginPath();
+    ctx.moveTo(x, padding.top);
+    ctx.lineTo(x, padding.top + plotH);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // --- Area fill under the curve ---
+  ctx.fillStyle = colors.area;
+  ctx.beginPath();
+
+  // Start from bottom-left corner of the plot area
+  ctx.moveTo(padding.left, padding.top + plotH);
+
+  for (const d of chartData) {
+    const cx = padding.left + (d.percentile / 100) * plotW;
+    const cy = padding.top + plotH - (d.attempts / maxAttempts) * plotH;
+    ctx.lineTo(cx, cy);
   }
 
-  // --- Cumulative line ---
-  ctx.strokeStyle = colors.cumulative;
+  // Close path back to bottom
+  ctx.lineTo(
+    padding.left + (maxPercentile / 100) * plotW,
+    padding.top + plotH,
+  );
+  ctx.closePath();
+  ctx.fill();
+
+  // --- Main curve line ---
+  ctx.strokeStyle = colors.line;
   ctx.lineWidth = 2;
   ctx.beginPath();
 
-  let cumulativeProb = 0;
-  for (const entry of chartData) {
-    cumulativeProb += entry.probability;
-    const cx = padding.left + (entry.attempt - 1) * barGap + barGap / 2;
-    const cy = padding.top + plotH - cumulativeProb * plotH;
+  let firstPoint = true;
+  for (const d of chartData) {
+    const cx = padding.left + (d.percentile / 100) * plotW;
+    const cy = padding.top + plotH - (d.attempts / maxAttempts) * plotH;
 
-    if (entry.attempt === 1) {
+    if (firstPoint) {
       ctx.moveTo(cx, cy);
+      firstPoint = false;
     } else {
       ctx.lineTo(cx, cy);
     }
   }
   ctx.stroke();
 
-  // --- p95 marker (dashed vertical line) ---
-  const markerX = padding.left + (p95 - 1) * barGap + barGap / 2;
+  // --- Dot markers at key percentiles ---
+  for (const pct of refPercentiles) {
+    // Find the closest data point
+    let closest = null;
+    let bestDist = Infinity;
+    for (const d of chartData) {
+      const dist = Math.abs(d.percentile - pct);
+      if (dist < bestDist) {
+        bestDist = dist;
+        closest = d;
+      }
+    }
+    if (!closest) continue;
 
-  ctx.strokeStyle = colors.marker;
-  ctx.lineWidth = 2;
-  ctx.setLineDash([5, 3]);
-  ctx.beginPath();
-  ctx.moveTo(markerX, padding.top);
-  ctx.lineTo(markerX, padding.top + plotH);
-  ctx.stroke();
-  ctx.setLineDash([]);
+    const dx = padding.left + (closest.percentile / 100) * plotW;
+    const dy = padding.top + plotH - (closest.attempts / maxAttempts) * plotH;
 
-  // "95%" label above marker
-  ctx.fillStyle = colors.marker;
-  ctx.font = 'bold 12px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'bottom';
-  ctx.fillText('95%', markerX, padding.top - 2);
+    // White center dot
+    ctx.fillStyle = colors.background;
+    ctx.beginPath();
+    ctx.arc(dx, dy, 4, 0, Math.PI * 2);
+    ctx.fill();
 
-  // --- X-axis label ---
-  ctx.fillStyle = colors.text;
-  ctx.font = '12px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
-  ctx.fillText(
-    '시도 횟수',
-    padding.left + plotW / 2,
-    height - padding.bottom + 8
-  );
+    // Colored ring
+    ctx.strokeStyle = colors.line;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(dx, dy, 4, 0, Math.PI * 2);
+    ctx.stroke();
 
-  // --- X-axis tick labels (show every few attempts to avoid clutter) ---
-  ctx.font = '10px sans-serif';
-  ctx.textBaseline = 'top';
-  ctx.fillStyle = colors.text;
-
-  const tickStep = maxAttempt > 30 ? Math.ceil(maxAttempt / 10) : 1;
-  for (let attempt = 1; attempt <= maxAttempt; attempt += tickStep) {
-    const tx = padding.left + (attempt - 1) * barGap + barGap / 2;
-    ctx.fillText(String(attempt), tx, height - padding.bottom + 22);
+    // Label above the dot
+    ctx.fillStyle = colors.text;
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(`${closest.attempts.toLocaleString('en-US')}회`, dx, dy - 6);
   }
+}
+
+/**
+ * Computes "nice" tick values for a Y-axis range.
+ *
+ * @param {number} min - Minimum value
+ * @param {number} max - Maximum value
+ * @param {number} targetCount - Desired number of ticks
+ * @returns {number[]}
+ */
+function computeNiceTicks(min, max, targetCount) {
+  const range = max - min || 1;
+  const rawStep = range / targetCount;
+
+  // Round step to a nice number
+  const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const residual = rawStep / magnitude;
+
+  let niceStep;
+  if (residual <= 1) niceStep = 1 * magnitude;
+  else if (residual <= 2) niceStep = 2 * magnitude;
+  else if (residual <= 5) niceStep = 5 * magnitude;
+  else niceStep = 10 * magnitude;
+
+  const ticks = [];
+  let tick = Math.ceil(min / niceStep) * niceStep;
+  while (tick <= max) {
+    ticks.push(tick);
+    tick += niceStep;
+  }
+  return ticks;
 }

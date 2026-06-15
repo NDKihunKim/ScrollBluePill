@@ -12,13 +12,20 @@ function createFakeContext() {
     textAlign: '',
     textBaseline: '',
     beginPath() {},
+    closePath() {},
+    fill() {},
     fillRect() {},
     fillText() {},
     lineTo() {},
     moveTo() {},
+    arc() {},
+    rotate() {},
+    save() {},
+    restore() {},
     scale() {},
     setLineDash() {},
     stroke() {},
+    translate() {},
   };
 }
 
@@ -58,15 +65,20 @@ test('renderAttemptChart pins display size so repeated renders do not visually z
   try {
     const canvas = createFakeCanvas();
     const chartData = [
-      { attempt: 1, probability: 0.0013 },
-      { attempt: 2, probability: 0.00129831 },
-      { attempt: 3, probability: 0.00129662 },
+      { percentile: 0, attempts: 0 },
+      { percentile: 10, attempts: 2 },
+      { percentile: 25, attempts: 3 },
+      { percentile: 50, attempts: 5 },
+      { percentile: 75, attempts: 8 },
+      { percentile: 90, attempts: 12 },
+      { percentile: 95, attempts: 16 },
+      { percentile: 99, attempts: 20 },
     ];
 
-    renderAttemptChart(canvas, chartData, 3);
+    renderAttemptChart(canvas, chartData);
     const firstBackingSize = { width: canvas.width, height: canvas.height };
 
-    renderAttemptChart(canvas, chartData, 3);
+    renderAttemptChart(canvas, chartData);
     const secondBackingSize = { width: canvas.width, height: canvas.height };
 
     assert.equal(canvas.style.width, '100%');

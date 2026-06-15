@@ -100,14 +100,16 @@ test('createResultSummary generates correct chart data length', async () => {
     trialCount: 100000,
   });
 
-  // For p=0.5, p95 = ceil(log(1-0.95)/log(1-0.5)) = ceil(4.32) = 5
-  // So chart data should have entries for attempts 1 through 5
-  assert.equal(result.chartData.length, 5);
-  assert.equal(result.chartData[0].attempt, 1);
-  assert.equal(result.chartData[0].probability, 0.5);
+  // Inverse CDF: 100 points from 0% to 99% for p=0.5
+  assert.equal(result.chartData.length, 100);
+  assert.equal(result.chartData[0].percentile, 0);
+  assert.equal(result.chartData[0].attempts, 0);
+  // At percentile=50, attempts = ceil(log(0.5)/log(0.5)) = 1
+  assert.equal(result.chartData[50].percentile, 50);
+  assert.equal(result.chartData[50].attempts, 1);
 
   for (const entry of result.chartData) {
-    assert.equal(typeof entry.attempt, 'number');
-    assert.equal(typeof entry.probability, 'number');
+    assert.equal(typeof entry.percentile, 'number');
+    assert.equal(typeof entry.attempts, 'number');
   }
 });

@@ -263,7 +263,7 @@ export function createResultUI() {
     attemptInput.value = resultSummary.expectedAttempts;
     updateAttemptResult();
 
-    renderAttemptChart(canvas, resultSummary.chartData, resultSummary.percentiles.p95);
+    renderAttemptChart(canvas, resultSummary.chartData);
 
     if (resultSummary.bestStrategy) {
       bestMethodContent.textContent = JSON.stringify(resultSummary.bestStrategy, null, 2);
