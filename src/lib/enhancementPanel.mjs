@@ -260,7 +260,8 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     return Object.keys(accumulatedStats)
       .filter((key) => !NON_STAT_KEYS.has(key))
       .filter((key) => Number.isFinite(accumulatedStats[key]))
-      .filter((key) => accumulatedStats[key] > 0);
+      .filter((key) => accumulatedStats[key] > 0)
+      .sort((a, b) => getStatPriority(a) - getStatPriority(b) || a.localeCompare(b, 'ko-KR'));
   };
 
   const getPositiveScrollStatKeys = (scroll) =>
