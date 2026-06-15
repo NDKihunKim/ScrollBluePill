@@ -1337,14 +1337,19 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	      ? computeExactProbability(userStrategy, effectiveCleanStats, effectiveTargetConditions)
 	      : 1.0;
 
-	    const resultSummary = createResultSummary({
-	      successProbability: probability,
-	      isExact: true,
-	      trialCount,
-	      bestStrategy: userStrategy,
-	    });
-	    evResultUI.update(resultSummary);
-	    evResultSummary = resultSummary;
+	    if (probability <= 0) {
+	      evResultUI.showZeroSuccess(/* exact → no trial count */ 0);
+	      evResultSummary = null;
+	    } else {
+	      const resultSummary = createResultSummary({
+	        successProbability: probability,
+	        isExact: true,
+	        trialCount,
+	        bestStrategy: userStrategy,
+	      });
+	      evResultUI.update(resultSummary);
+	      evResultSummary = resultSummary;
+	    }
 	  } else {
 	    // Non-deterministic scrolls (chaos) or random gems — use Monte Carlo
 	    const seed = createRandomSeed();
@@ -1356,14 +1361,19 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	      seed,
 	    );
 
-	    const resultSummary = createResultSummary({
-	      successProbability: simResult.successProbability,
-	      isExact: false,
-	      trialCount,
-	      bestStrategy: userStrategy,
-	    });
-	    evResultUI.update(resultSummary);
-	    evResultSummary = resultSummary;
+	    if (simResult.isZeroSuccess) {
+	      evResultUI.showZeroSuccess(trialCount);
+	      evResultSummary = null;
+	    } else {
+	      const resultSummary = createResultSummary({
+	        successProbability: simResult.successProbability,
+	        isExact: false,
+	        trialCount,
+	        bestStrategy: userStrategy,
+	      });
+	      evResultUI.update(resultSummary);
+	      evResultSummary = resultSummary;
+	    }
 	  }
 	};
 
