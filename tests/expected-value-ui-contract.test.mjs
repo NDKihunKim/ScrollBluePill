@@ -124,6 +124,10 @@ test('roundTrialCount clamps to MAX', () => {
 test('result panel renders interactive attempt row with input and cumulative probability', async () => {
   const indexSource = await readFile(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
 
+  assert.match(panelSource, /ev-result-title/);
+  assert.match(panelSource, /평균 장비 기대값/);
+  assert.match(panelSource, /ev-equipment-count/);
+  assert.match(panelSource, /장비 갯수/);
   assert.match(panelSource, /ev-attempt-row/);
   assert.match(panelSource, /ev-attempt-input/);
   assert.match(panelSource, /ev-attempt-result/);
@@ -132,9 +136,13 @@ test('result panel renders interactive attempt row with input and cumulative pro
   assert.match(panelSource, /attemptInput\.addEventListener\('input',\s*updateAttemptResult\)/);
   assert.match(panelSource, /시도 횟수/);
   assert.match(panelSource, /formatProbability\(cumulative\)/);
+  assert.match(indexSource, /:global\(\.ev-result-title\)\s*\{/);
+  assert.match(indexSource, /:global\(\.ev-equipment-count\)\s*\{/);
   assert.match(indexSource, /:global\(\.ev-attempt-row\)\s*\{/);
   assert.match(indexSource, /:global\(\.ev-attempt-input\)\s*\{/);
   assert.match(indexSource, /:global\(\.ev-attempt-result\)\s*\{/);
   assert.doesNotMatch(panelSource, /ev-percentiles/);
   assert.doesNotMatch(panelSource, /ev-expected-attempts/);
+  assert.doesNotMatch(panelSource, /ev-method-label/);
+  assert.doesNotMatch(panelSource, /ev-probability/);
 });
