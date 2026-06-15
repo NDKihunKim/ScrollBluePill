@@ -1,4 +1,4 @@
-import { computeGeometricPercentiles, computeExpectedAttempts } from './monteCarloEngine.mjs';
+import { computeGeometricPercentiles, computeExpectedAttempts, computeAttemptsForPercentile } from './monteCarloEngine.mjs';
 
 /** @type {Record<string, string>} */
 const SUPERSCRIPT_MAP = {
@@ -87,7 +87,7 @@ export function isResultStale(resultTrialCount, currentTrialCount) {
  * @param {boolean} params.isExact - Whether this is an exact computation
  * @param {number} params.trialCount - Number of simulation trials
  * @param {object} [params.bestStrategy] - Optional best strategy data
- * @returns {{ successProbability: number, probabilityLabel: string, calculationLabel: string, isExact: boolean, trialCount: number, expectedAttempts: number, percentiles: { p50: number, p75: number, p90: number, p95: number }, chartData: Array<{ attempt: number, probability: number }>, bestStrategy: object | undefined }}
+ * @returns {{ successProbability: number, probabilityLabel: string, calculationLabel: string, isExact: boolean, trialCount: number, expectedAttempts: number, percentiles: { p50: number, p75: number, p90: number, p95: number }, chartData: Array<{ percentile: number, attempts: number }>, bestStrategy: object | undefined }}
  */
 export function createResultSummary({ successProbability, isExact, trialCount, bestStrategy }) {
   const percentiles = computeGeometricPercentiles(successProbability);
@@ -95,16 +95,19 @@ export function createResultSummary({ successProbability, isExact, trialCount, b
   const probabilityLabel = formatProbability(successProbability);
   const calculationLabel = formatCalculationLabel(isExact, trialCount);
 
-  // Generate chart data: PMF of the geometric distribution
-  // up to p95 (capped at 200 data points)
+  // Generate inverse CDF chart data: percentile (X) → attempts (Y)
+  // Step through cumulative probabilities and compute required attempts.
   const p95 = percentiles.p95;
-  const maxAttempts = Math.min(p95, 200);
+  const maxAttempts = Number.isFinite(p95) ? Math.max(p95, 50) : 200;
   const chartData = [];
 
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const probability =
-      successProbability * Math.pow(1 - successProbability, attempt - 1);
-    chartData.push({ attempt, probability });
+  // Dense sampling for a smooth curve: every 1% from 0% to 99%
+  for (let qPct = 0; qPct <= 99; qPct++) {
+    const q = qPct / 100;
+    const attempts = computeAttemptsForPercentile(successProbability, q);
+    if (Number.isFinite(attempts) && attempts <= maxAttempts * 3) {
+      chartData.push({ percentile: qPct, attempts });
+    }
   }
 
   return {

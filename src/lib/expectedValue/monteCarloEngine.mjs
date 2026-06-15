@@ -168,13 +168,27 @@ export function runStrategyMonteCarloSimulation(strategy, cleanStats, targetCond
 export function computeGeometricPercentiles(p) {
   if (p >= 1.0) return { p50: 1, p75: 1, p90: 1, p95: 1 };
   if (p <= 0) return { p50: Infinity, p75: Infinity, p90: Infinity, p95: Infinity };
-  const percentile = (q) => Math.ceil(Math.log(1 - q) / Math.log(1 - p));
   return {
-    p50: percentile(0.50),
-    p75: percentile(0.75),
-    p90: percentile(0.90),
-    p95: percentile(0.95),
+    p50: computeAttemptsForPercentile(p, 0.50),
+    p75: computeAttemptsForPercentile(p, 0.75),
+    p90: computeAttemptsForPercentile(p, 0.90),
+    p95: computeAttemptsForPercentile(p, 0.95),
   };
+}
+
+/**
+ * Returns the number of clean-item attempts needed to reach at least the given
+ * cumulative probability q (inverse geometric CDF, rounded up).
+ *
+ * @param {number} p - Per-trial success probability [0, 1]
+ * @param {number} q - Target cumulative probability [0, 1)
+ * @returns {number} Attempts needed (Infinity when p <= 0)
+ */
+export function computeAttemptsForPercentile(p, q) {
+  if (p >= 1.0) return 1;
+  if (p <= 0) return Infinity;
+  if (q <= 0) return 0;
+  return Math.ceil(Math.log(1 - q) / Math.log(1 - p));
 }
 
 /**

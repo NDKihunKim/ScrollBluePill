@@ -178,9 +178,10 @@ test('full integration: empty enhancement (100% success)', () => {
   assert.equal(summary.expectedAttempts, 1);
   assert.equal(summary.calculationLabel, '정확 계산');
   assert.equal(summary.isExact, true);
-  assert.equal(summary.chartData.length, 1); // Only 1 attempt needed
-  assert.equal(summary.chartData[0].attempt, 1);
-  assert.equal(summary.chartData[0].probability, 1.0);
+  assert.ok(summary.chartData.length > 0);
+  // For p=1.0, all percentiles map to 1 attempt (except 0% → 0)
+  assert.equal(summary.chartData[50].attempts, 1);
+  assert.equal(summary.chartData[50].percentile, 50);
 });
 
 test('full integration: chaos scroll is detected as RNG source', () => {
