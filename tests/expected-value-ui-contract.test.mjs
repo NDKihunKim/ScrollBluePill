@@ -120,3 +120,21 @@ test('roundTrialCount clamps to MAX', () => {
   assert.equal(roundTrialCount(2000000), 1000000);
   assert.equal(roundTrialCount(999999), 1000000);
 });
+
+test('result panel renders interactive attempt row with input and cumulative probability', async () => {
+  const indexSource = await readFile(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
+
+  assert.match(panelSource, /ev-attempt-row/);
+  assert.match(panelSource, /ev-attempt-input/);
+  assert.match(panelSource, /ev-attempt-result/);
+  assert.match(panelSource, /computeCumulativeProbability/);
+  assert.match(panelSource, /updateAttemptResult/);
+  assert.match(panelSource, /attemptInput\.addEventListener\('input',\s*updateAttemptResult\)/);
+  assert.match(panelSource, /시도 횟수/);
+  assert.match(panelSource, /formatProbability\(cumulative\)/);
+  assert.match(indexSource, /:global\(\.ev-attempt-row\)\s*\{/);
+  assert.match(indexSource, /:global\(\.ev-attempt-input\)\s*\{/);
+  assert.match(indexSource, /:global\(\.ev-attempt-result\)\s*\{/);
+  assert.doesNotMatch(panelSource, /ev-percentiles/);
+  assert.doesNotMatch(panelSource, /ev-expected-attempts/);
+});

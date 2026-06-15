@@ -2695,8 +2695,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	.ev-method-label { font-size: 12px; color: var(--text-muted, #6b7280); margin-bottom: 4px; }
 	.ev-stale-label { color: #d97706; font-size: 12px; margin-bottom: 8px; }
 	.ev-probability { font-size: 18px; font-weight: 700; margin: 8px 0; }
-	.ev-expected-attempts { font-size: 14px; margin: 4px 0; }
-	.ev-percentiles { font-size: 12px; color: var(--text-muted, #6b7280); margin: 4px 0; }
+	:global(.ev-attempt-row) { display: flex; align-items: center; gap: 6px; font-size: 13px; margin: 6px 0; }
+	:global(.ev-attempt-input) { width: 72px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); font-size: 13px; text-align: center; }
+	:global(.ev-attempt-result) { font-weight: 600; color: var(--ink); white-space: nowrap; }
 	:global(.ev-chart) { display: block; width: 100%; max-width: 100%; height: 220px; margin: 12px 0; box-sizing: border-box; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
 	.ev-best-method { margin-top: 12px; font-size: 13px; }
 	.ev-best-method summary { cursor: pointer; font-weight: 600; }

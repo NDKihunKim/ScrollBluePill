@@ -187,3 +187,21 @@ export function computeExpectedAttempts(p) {
   if (p <= 0) return Infinity;
   return Math.ceil(1 / p);
 }
+
+/**
+ * Computes the cumulative probability of at least one success in n independent
+ * trials given a per-trial success probability p.
+ *
+ * P(X ≥ 1) = 1 − (1 − p)^n
+ *
+ * @param {number} p - Per-trial success probability [0, 1]
+ * @param {number} n - Number of attempts (clamped to ≥ 0)
+ * @returns {number} Cumulative probability [0, 1]
+ */
+export function computeCumulativeProbability(p, n) {
+  if (p >= 1.0) return 1;
+  if (p <= 0) return 0;
+  const attempts = Math.max(0, Math.round(n));
+  if (attempts <= 0) return 0;
+  return 1 - Math.pow(1 - p, attempts);
+}
