@@ -22,6 +22,13 @@ export const ALL_TARGET_STAT_KEYS = new Set([
  * @returns {Record<string, number>} Map of statKey to positive/negative gain
  */
 export function computeEnhancementGains(cleanStats, previewStats) {
+  if (cleanStats == null || typeof cleanStats !== 'object') {
+    throw new TypeError('computeEnhancementGains: cleanStats must be a non-null object');
+  }
+  if (previewStats == null || typeof previewStats !== 'object') {
+    throw new TypeError('computeEnhancementGains: previewStats must be a non-null object');
+  }
+
   const gains = {};
 
   for (const [key, previewValue] of Object.entries(previewStats)) {
@@ -49,6 +56,10 @@ export function computeEnhancementGains(cleanStats, previewStats) {
  * @returns {{ [statKey: string]: boolean, grade: boolean }}
  */
 export function getDefaultCheckedStats(gains) {
+  if (gains == null || typeof gains !== 'object') {
+    throw new TypeError('getDefaultCheckedStats: gains must be a non-null object');
+  }
+
   const checked = { grade: false };
 
   for (const key of ALL_TARGET_STAT_KEYS) {
@@ -74,6 +85,16 @@ export function getDefaultCheckedStats(gains) {
  * @returns {{ statThresholds: Record<string, number>, gradeThreshold: number|null }}
  */
 export function extractTargetConditions(cleanStats, previewStats, checkedStats, previewGradeClass) {
+  if (cleanStats == null || typeof cleanStats !== 'object') {
+    throw new TypeError('extractTargetConditions: cleanStats must be a non-null object');
+  }
+  if (previewStats == null || typeof previewStats !== 'object') {
+    throw new TypeError('extractTargetConditions: previewStats must be a non-null object');
+  }
+  if (checkedStats == null || typeof checkedStats !== 'object') {
+    throw new TypeError('extractTargetConditions: checkedStats must be a non-null object');
+  }
+
   const gains = computeEnhancementGains(cleanStats, previewStats);
   const statThresholds = {};
 
