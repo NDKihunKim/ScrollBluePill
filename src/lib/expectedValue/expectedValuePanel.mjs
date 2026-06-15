@@ -1,6 +1,5 @@
 import {
   ALL_TARGET_STAT_KEYS,
-  CORE_STAT_KEYS,
   getDefaultCheckedStats,
 } from './targetExtraction.mjs';
 import { statLabelByKey } from '../scrollState.mjs';
@@ -60,37 +59,45 @@ export function createTargetSelectionUI(cleanStats, previewStats, previewGradeCl
   const defaultChecked = getDefaultCheckedStats(gains);
   const checkboxes = {};
 
-  // Stat checkboxes (all target stat keys except 'grade' which we handle separately)
+  const chipGrid = document.createElement('div');
+  chipGrid.className = 'ev-target-chip-grid';
+  container.appendChild(chipGrid);
+
   for (const statKey of ALL_TARGET_STAT_KEYS) {
     const gain = gains[statKey];
-    const isDisabled = !gain || gain <= 0;
+    if (!gain || gain <= 0) {
+      continue;
+    }
 
     const label = document.createElement('label');
-    label.className = 'ev-target-stat';
+    label.className = 'ev-target-chip';
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
-    checkbox.checked = defaultChecked[statKey] && !isDisabled;
-    checkbox.disabled = isDisabled;
+    checkbox.checked = defaultChecked[statKey];
     checkbox.dataset.statKey = statKey;
 
     const displayName = statLabelByKey[statKey] ?? statKey;
-    const gainText = gain > 0 ? ` +${gain} 이상` : '';
-    label.append(checkbox, ` ${displayName}${gainText}`);
+    const chipLabel = document.createElement('span');
+    chipLabel.className = 'ev-target-chip-label';
+    chipLabel.textContent = `${displayName} +${gain} 이상`;
+    label.append(checkbox, chipLabel);
 
-    container.appendChild(label);
+    chipGrid.appendChild(label);
     checkboxes[statKey] = checkbox;
   }
 
-  // Grade checkbox
   const gradeLabel = document.createElement('label');
-  gradeLabel.className = 'ev-target-grade';
+  gradeLabel.className = 'ev-target-chip ev-target-grade';
   const gradeCheckbox = document.createElement('input');
   gradeCheckbox.type = 'checkbox';
   gradeCheckbox.checked = false;
   gradeCheckbox.dataset.statKey = 'grade';
-  gradeLabel.append(gradeCheckbox, ' 등급 (현재 등급 이상)');
-  container.appendChild(gradeLabel);
+  const gradeChipLabel = document.createElement('span');
+  gradeChipLabel.className = 'ev-target-chip-label';
+  gradeChipLabel.textContent = '등급 현재 이상';
+  gradeLabel.append(gradeCheckbox, gradeChipLabel);
+  chipGrid.appendChild(gradeLabel);
 
   // Trial count input
   const trialRow = document.createElement('div');
@@ -131,7 +138,7 @@ export function createTargetSelectionUI(cleanStats, previewStats, previewGradeCl
     const result = { grade: gradeCheckbox.checked };
     for (const statKey of ALL_TARGET_STAT_KEYS) {
       if (statKey === 'grade') continue;
-      result[statKey] = checkboxes[statKey].checked;
+      result[statKey] = checkboxes[statKey]?.checked ?? false;
     }
     return result;
   }
