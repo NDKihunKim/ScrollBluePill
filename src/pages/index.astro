@@ -312,10 +312,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 	import { computeEnhancementGains, getDefaultCheckedStats, extractTargetConditions } from '../lib/expectedValue/targetExtraction.mjs';
 	import { createTargetSelectionUI, createResultUI, DEFAULT_TRIAL_COUNT, roundTrialCount, PLACEHOLDER_TEXT, NO_STRATEGY_TEXT, CONFIRM_TEXT, CONFIRM_BUTTON_TEXT, CANCEL_BUTTON_TEXT, STALE_LABEL } from '../lib/expectedValue/expectedValuePanel.mjs';
-	import { generateStrategyCandidates } from '../lib/expectedValue/candidateGenerator.mjs';
 	import { isDeterministicStrategy, computeExactProbability } from '../lib/expectedValue/exactEngine.mjs';
 	import { createRandomSeed, runMonteCarloSimulation } from '../lib/expectedValue/monteCarloEngine.mjs';
-	import { countRngSources, countTotalActions, optimizeStrategies } from '../lib/expectedValue/strategyOptimizer.mjs';
 	import { createResultSummary, isResultStale } from '../lib/expectedValue/resultFormatter.mjs';
 	const form = document.querySelector('[data-calculator-input]');
 	const itemNameSearch = form?.querySelector('[data-item-name-search]');
@@ -1271,51 +1269,51 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 	/** Run the actual EV calculation and display results. */
 	const runEvCalculation = (checkedStats, trialCount, cleanStats, previewStats, enhancementState, selectedBaseItem) => {
-	  const evState = window.__evState?.();
-	  if (!evState) return;
-
-	  const { scrollsByEquipmentKind, selectedItemLevelUpDefinition } = evState;
-
-	  // Get target conditions
+	  // Get target conditions from the user's enhanced preview
 	  const targetConditions = extractTargetConditions(cleanStats, previewStats, checkedStats, 0);
 
-	  // Get scrolls for this equipment kind (filter by targetItemId)
-	  const allScrolls = scrollsByEquipmentKind.get(selectedBaseItem.equipmentKind) ?? [];
-	  const eligibleScrolls = allScrolls.filter(s => s.targetItemId == null || s.targetItemId === selectedBaseItem.id);
+	  // Build a single strategy from the user's actual enhancement state
+	  const scrollSequence = enhancementState.scrollState.slots.filter(s => s !== null);
+	  const makerChoices = enhancementState.gemSlots
+	    .filter(s => s !== null)
+	    .map(s => ({ gemKey: s.gemKey, grade: s.gradeIndex }));
 
-	  // Enhancement setup info
-	  const upgradeSlots = enhancementState.scrollState.slotCount;
-	  const makerAllowed = enhancementState.makerActive;
-	  const gemSlotCount = enhancementState.gemSlotCount;
-	  const itemLevelUpAllowed = enhancementState.itemLevelUpSlotCount > 0;
+	  // Pre-apply user-specified (non-random) stats so they don't flag the
+	  // strategy as non-deterministic.  This covers stimulant + item level-up,
+	  // both of which have stats the user chose directly.
+	  const effectiveCleanStats = { ...cleanStats };
+	  const adjustedThresholds = { ...targetConditions.statThresholds };
 
-	  // Generate strategy candidates
-	  const strategies = generateStrategyCandidates({
-	    scrolls: eligibleScrolls,
-	    checkedStats,
-	    upgradeSlots,
-	    makerAllowed,
-	    gemSlotCount,
-	    equipmentKind: selectedBaseItem.equipmentKind,
-	    itemLevelUpAllowed,
-	    levelUpDefinition: selectedItemLevelUpDefinition,
-	  });
-
-	  // Score each deterministic strategy (skip non-deterministic for MVP)
-	  const scored = [];
-	  for (let i = 0; i < strategies.length; i++) {
-	    const strategy = strategies[i];
-	    if (isDeterministicStrategy(strategy)) {
-	      const probability = computeExactProbability(strategy, cleanStats, targetConditions);
-	      scored.push({
-	        strategy,
-	        successProbability: probability,
-	        rngSources: countRngSources(strategy),
-	        totalActions: countTotalActions(strategy),
-	        strategyIndex: i,
-	      });
+	  const preApply = (stats) => {
+	    for (const [key, value] of Object.entries(stats ?? {})) {
+	      if (!Number.isFinite(value)) continue;
+	      effectiveCleanStats[key] = (effectiveCleanStats[key] ?? 0) + value;
+	      if (adjustedThresholds[key] !== undefined) {
+	        adjustedThresholds[key] = Math.max(0, adjustedThresholds[key] - value);
+	      }
 	    }
+	  };
+
+	  // Stimulant (user-chosen stats, guaranteed)
+	  if (enhancementState.stimulantSlot?.stats) {
+	    preApply(enhancementState.stimulantSlot.stats);
 	  }
+
+	  // Item level-up slots (user-chosen stats, guaranteed)
+	  for (const slot of enhancementState.itemLevelUpSlots ?? []) {
+	    if (slot?.stats) preApply(slot.stats);
+	  }
+
+	  const effectiveTargetConditions = {
+	    ...targetConditions,
+	    statThresholds: adjustedThresholds,
+	  };
+
+	  const userStrategy = {
+	    makerChoices,
+	    scrollSequence,
+	    useItemLevelUp: false,
+	  };
 
 	  // Create or reuse result UI
 	  if (!evResultUI) {
@@ -1326,32 +1324,43 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	    }
 	  }
 
-	  if (scored.length === 0) {
-	    // No deterministic strategies found
-	    evResultUI.showNoStrategy();
-	    evResultSummary = null;
-	    return;
+	  const hasEnhancements = scrollSequence.length > 0 || makerChoices.length > 0
+	    || enhancementState.stimulantSlot !== null
+	    || enhancementState.itemLevelUpSlots.some(s => s !== null);
+
+	  if (isDeterministicStrategy(userStrategy)) {
+	    const probability = hasEnhancements
+	      ? computeExactProbability(userStrategy, effectiveCleanStats, effectiveTargetConditions)
+	      : 1.0;
+
+	    const resultSummary = createResultSummary({
+	      successProbability: probability,
+	      isExact: true,
+	      trialCount,
+	      bestStrategy: userStrategy,
+	    });
+	    evResultUI.update(resultSummary);
+	    evResultSummary = resultSummary;
+	  } else {
+	    // Non-deterministic scrolls (chaos) or random gems — use Monte Carlo
+	    const seed = createRandomSeed();
+	    const simResult = runMonteCarloSimulation(
+	      userStrategy,
+	      effectiveCleanStats,
+	      effectiveTargetConditions,
+	      trialCount,
+	      seed,
+	    );
+
+	    const resultSummary = createResultSummary({
+	      successProbability: simResult.successProbability,
+	      isExact: false,
+	      trialCount,
+	      bestStrategy: userStrategy,
+	    });
+	    evResultUI.update(resultSummary);
+	    evResultSummary = resultSummary;
 	  }
-
-	  // Optimize: rank by probability, fewer RNG sources, fewer actions
-	  const bestScored = optimizeStrategies(scored);
-	  if (!bestScored) {
-	    evResultUI.showNoStrategy();
-	    evResultSummary = null;
-	    return;
-	  }
-
-	  // Build result summary
-	  const resultSummary = createResultSummary({
-	    successProbability: bestScored.successProbability,
-	    isExact: true,
-	    trialCount,
-	    bestStrategy: bestScored.strategy,
-	  });
-
-	  // Display
-	  evResultUI.update(resultSummary);
-	  evResultSummary = resultSummary;
 	};
 
 	// EV calc button click handler
@@ -2333,7 +2342,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		}
 	}
 
-
 	/* Maker gem section */
 	:global(.maker-section) {
 		padding-top: 16px;
@@ -2613,7 +2621,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			flex-direction: column;
 			gap: 8px;
 		}
-
 
 	/* Expected Value Calculator */
 	.ev-calc-button {
