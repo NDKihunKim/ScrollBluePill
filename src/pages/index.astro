@@ -1298,11 +1298,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	    }
 	  };
 
-	  // Stimulant (user-chosen stats, guaranteed)
-	  if (enhancementState.stimulantSlot?.stats) {
-	    preApply(enhancementState.stimulantSlot.stats);
-	  }
-
 	  // Item level-up slots (user-chosen stats, guaranteed)
 	  for (const slot of enhancementState.itemLevelUpSlots ?? []) {
 	    if (slot?.stats) preApply(slot.stats);
@@ -1317,6 +1312,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	    makerChoices,
 	    scrollSequence,
 	    useItemLevelUp: false,
+	    useStimulant: enhancementState.stimulantSlot !== null,
 	  };
 
 	  // Create or reuse result UI
