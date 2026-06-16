@@ -131,7 +131,7 @@ export function applyGem(state, slotIndex, gemKey, gradeIndex) {
   return true;
 }
 
-export function applyVariableGem(state, slotIndex, gemKey, stats, mode = MATERIAL_MODE_MANUAL) {
+export function applyVariableGem(state, slotIndex, gemKey, stats, mode = MATERIAL_MODE_MANUAL, gradeIndex = 0) {
   if (slotIndex < 0 || slotIndex >= state.gemSlotCount) {
     return false;
   }
@@ -158,6 +158,7 @@ export function applyVariableGem(state, slotIndex, gemKey, stats, mode = MATERIA
     gemKey,
     stats: normalizedStats,
     mode: normalizeMaterialMode(mode),
+    gradeIndex,
   };
   return true;
 }

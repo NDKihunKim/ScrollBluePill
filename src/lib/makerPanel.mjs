@@ -88,7 +88,7 @@ export function initMakerPanel({
     valueDisplay.textContent = value > 0 ? `+${value}` : String(value);
   };
 
-  const renderVariableGemInputPanel = (gem) => {
+  const renderVariableGemInputPanel = (gem, gradeIndex = 0) => {
     if (!(makerPicker instanceof HTMLElement) ||
         !(makerPickerGrid instanceof HTMLElement) ||
         !(makerPickerLabel instanceof HTMLElement) ||
@@ -109,6 +109,7 @@ export function initMakerPanel({
     makerPicker.hidden = false;
     if (makerPickerBack instanceof HTMLElement) makerPickerBack.hidden = false;
 
+    const gradeAbsLimit = gradeIndex === 2 ? 3 : gradeIndex === 1 ? 2 : 1;
     const limit = gem.variableLimit ?? 5;
     const existingStats = existingSlot?.stats ?? {};
 
@@ -128,7 +129,7 @@ export function initMakerPanel({
     statKeys.forEach((key) => {
       const isHpMp = HP_MP_KEYS.has(key);
       const step = isHpMp ? 10 : 1;
-      const keyLimit = isHpMp ? 50 : limit;
+      const keyLimit = isHpMp ? 50 : (gradeAbsLimit ?? limit);
 
       const row = document.createElement('div');
       row.className = 'chaos-stat-row maker-stimulant-stat-row';
@@ -198,7 +199,7 @@ export function initMakerPanel({
         stats[key] = values.get(key) ?? 0;
       }
       const currentMode = isProbability ? 'probability' : 'manual';
-      const ok = applyVariableGem(enhancementState, editingSlotIndex, gem.key, stats, currentMode);
+      const ok = applyVariableGem(enhancementState, editingSlotIndex, gem.key, stats, currentMode, gradeIndex);
       if (!ok) return;
 
       pendingGemKey = null;
@@ -508,6 +509,12 @@ export function initMakerPanel({
             nameSpan.className = 'maker-gem-slot-name';
             nameSpan.textContent = gem.nameKo;
 
+            // Show grade label
+            const gradeIdx = gemSlot.gradeIndex ?? 0;
+            const gradeLabel = document.createElement('span');
+            gradeLabel.className = 'maker-gem-slot-grade';
+            gradeLabel.textContent = GEM_GRADES[gradeIdx] ?? GEM_GRADES[0];
+
             // Show non-zero stat deltas as a compact single-line summary
             const statParts = [];
             for (const [key, value] of Object.entries(gemSlot.stats ?? {})) {
@@ -524,7 +531,7 @@ export function initMakerPanel({
             statSpan.className = 'maker-gem-slot-grade maker-gem-slot-grade--compact';
             statSpan.textContent = statParts.join(' ') || '적용됨';
 
-            box.append(img, nameSpan, statSpan);
+            box.append(img, nameSpan, gradeLabel, statSpan);
           } else {
             const gradeKey = gemSlot.gradeIndex === 2 ? 'high' : gemSlot.gradeIndex === 1 ? 'mid' : 'low';
             const iconId = GEM_ITEM_IDS[gem.key]?.[gradeKey] ?? 0;
@@ -645,7 +652,7 @@ export function initMakerPanel({
         item.addEventListener('click', () => {
           pendingGemKey = gem.key;
           if (gem.behavior === 'variable') {
-            renderVariableGemInputPanel(gem);
+            renderVariableGemGradePicker(gem);
           } else {
             renderStep2Picker();
           }
@@ -719,6 +726,53 @@ export function initMakerPanel({
           hidePicker();
           renderGemSlots();
         }
+      });
+
+      makerPickerGrid.append(item);
+    }
+  };
+
+  const renderVariableGemGradePicker = (gem) => {
+    if (!(makerPicker instanceof HTMLElement) ||
+        !(makerPickerGrid instanceof HTMLElement) ||
+        !(makerPickerLabel instanceof HTMLElement)) {
+      return;
+    }
+
+    makerPickerLabel.textContent = `등급 선택 — ${gem.nameKo}`;
+    makerPickerGrid.replaceChildren();
+    makerPickerGrid.classList.remove('maker-stimulant-input-panel');
+    if (makerPickerBack instanceof HTMLElement) makerPickerBack.hidden = false;
+
+    const gradeRanges = [
+      { gradeIndex: 0, label: '하급', range: '-1 ~ +1' },
+      { gradeIndex: 1, label: '중급', range: '-2 ~ +2' },
+      { gradeIndex: 2, label: '상급', range: '-3 ~ +3' },
+    ];
+
+    for (let g = 2; g >= 0; g--) {
+      const gradeInfo = gradeRanges[g];
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'maker-picker-item';
+
+      const gradeKey = g === 2 ? 'high' : g === 1 ? 'mid' : 'low';
+      const iconId = GEM_ITEM_IDS[gem.key]?.base ?? 0;
+      const img = createGemIconElement(gem.key, gem.stat, iconId);
+
+      const gradeSpan = document.createElement('span');
+      gradeSpan.textContent = gradeInfo.label;
+
+      const rangeSpan = document.createElement('span');
+      rangeSpan.className = 'maker-picker-item-stat';
+      rangeSpan.textContent = gradeInfo.range;
+
+      item.append(img, gradeSpan, rangeSpan);
+
+      item.addEventListener('click', () => {
+        if (!enhancementState || editingSlotIndex < 0) return;
+        pendingGemKey = gem.key;
+        renderVariableGemInputPanel(gem, gradeInfo.gradeIndex);
       });
 
       makerPickerGrid.append(item);
