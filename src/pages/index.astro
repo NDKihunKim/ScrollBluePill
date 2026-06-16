@@ -2441,7 +2441,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		transition: opacity 0.12s ease;
 	}
 	:global(.maker-gem-slot:hover .maker-slot-mode-overlay),
-	:global(.maker-gem-slot:focus-within .maker-slot-mode-overlay),
+	:global(.maker-gem-slot:focus-within .maker-slot-mode-overlay) {
+		opacity: 1;
+	}
 	:global(.maker-gem-slot--active .maker-slot-mode-overlay) {
 		opacity: 1;
 		pointer-events: auto;
@@ -2463,7 +2465,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	:global(.maker-slot-mode-button:hover),
 	:global(.maker-slot-mode-button:focus-visible) {
 		background: rgba(35, 128, 70, 0.12);
-		outline: none;
+		outline: 2px solid var(--green);
+		outline-offset: -2px;
 	}
 	:global(.maker-slot-mode-button--top) {
 		border-bottom: 1px solid var(--line);

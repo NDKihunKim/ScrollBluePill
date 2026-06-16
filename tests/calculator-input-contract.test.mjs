@@ -85,6 +85,19 @@ test('maker split mode buttons stop keyboard propagation to parent slots', async
 	assert.match(overlaySource, /e\.stopPropagation\(\)/);
 });
 
+test('maker split mode overlay only receives pointer events after slot activation', () => {
+	const hoverBlock = indexSource.match(
+		/:global\(\.maker-gem-slot:hover \.maker-slot-mode-overlay\),\s*:global\(\.maker-gem-slot:focus-within \.maker-slot-mode-overlay\)\s*\{[^}]*\}/,
+	)?.[0] ?? '';
+	const activeBlock = indexSource.match(
+		/:global\(\.maker-gem-slot--active \.maker-slot-mode-overlay\)\s*\{[^}]*\}/,
+	)?.[0] ?? '';
+
+	assert.match(hoverBlock, /opacity:\s*1;/);
+	assert.doesNotMatch(hoverBlock, /pointer-events:\s*auto;/);
+	assert.match(activeBlock, /pointer-events:\s*auto;/);
+});
+
 test('maker additional material help tooltip source contract is present', async () => {
 	assert.match(indexSource, /maker-material-help/);
 	assert.match(indexSource, /추옵은 이미 붙어있는 추가 옵션/);
