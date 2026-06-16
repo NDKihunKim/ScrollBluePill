@@ -253,7 +253,7 @@ export function initItemLevelUpPanel({
 	}
 
 
-  const renderModeToggleInEditor = () => {
+  const renderModeToggleInEditor = (applyBtn) => {
     if (!(editor instanceof HTMLElement) || !enhancementState) return;
     const existing = editor.querySelector('.maker-mode-toggle-row');
     if (existing) existing.remove();
@@ -275,8 +275,14 @@ export function initItemLevelUpPanel({
       }
     });
 
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'maker-mode-toggle-actions';
+    if (applyBtn instanceof HTMLElement) {
+      actionsDiv.append(applyBtn);
+    }
+
     toggleLabel.prepend(checkbox);
-    toggleRow.append(toggleLabel);
+    toggleRow.append(toggleLabel, actionsDiv);
     editor.append(toggleRow);
   };
 

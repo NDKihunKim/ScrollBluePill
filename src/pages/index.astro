@@ -2634,9 +2634,17 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		:global(.maker-mode-toggle-row) {
 			display: flex;
 			align-items: center;
+			justify-content: space-between;
+			gap: 8px;
 			padding: 6px 0;
 			border-top: 1px solid var(--line);
 			margin-top: 4px;
+		}
+		:global(.maker-mode-toggle-actions) {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			flex-shrink: 0;
 		}
 		:global(.maker-mode-toggle-label) {
 			display: inline-flex;
