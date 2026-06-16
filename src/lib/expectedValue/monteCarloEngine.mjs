@@ -6,6 +6,37 @@ import { parseScrollSuccessRate } from './scrollModel.mjs';
 /** Stimulant (촉진제) success rate: 90% */
 export const STIMULANT_SUCCESS_RATE = 0.9;
 
+/** Stimulant outcome table: 0 ~ +5 (no negatives) */
+export const STIMULANT_OUTCOME_TABLE = [
+  { delta: 5, probability: 0.022 },
+  { delta: 4, probability: 0.054 },
+  { delta: 3, probability: 0.128 },
+  { delta: 2, probability: 0.242 },
+  { delta: 1, probability: 0.352 },
+  { delta: 0, probability: 0.202 },
+];
+
+/** Cached cumulative stimulant table */
+let _stimulantCumulativeTable = null;
+
+function buildStimulantCumulativeTable() {
+  if (_stimulantCumulativeTable) return _stimulantCumulativeTable;
+  let running = 0;
+  _stimulantCumulativeTable = STIMULANT_OUTCOME_TABLE.map((entry) => {
+    running += entry.probability;
+    return { delta: entry.delta, cumulative: running };
+  });
+  return _stimulantCumulativeTable;
+}
+
+function rollStimulantStatDelta(randomValue) {
+  const table = buildStimulantCumulativeTable();
+  for (const entry of table) {
+    if (randomValue < entry.cumulative) return entry.delta;
+  }
+  return 0;
+}
+
 /**
  * Creates a deterministic pseudorandom number generator using Mulberry32.
  *
@@ -124,12 +155,17 @@ function simulateStrategyTrial(strategy, cleanStats, targetConditions, rng) {
     addStats(state, gemStats);
   }
 
-  // Stimulant (촉진제): 90% success, chaos deltas on each stat independently
+  // Stimulant (촉진제): 90% success, 0~+5 deltas on each stat
   if (useStimulant) {
     if (rng() < STIMULANT_SUCCESS_RATE) {
-      const stimulantState = applyChaosToStats(state, rng);
-      for (const [key, value] of Object.entries(stimulantState)) {
-        state[key] = value;
+      const HP_MP_KEYS = new Set(['maxHp', 'maxMp']);
+      for (const [key, value] of Object.entries(state)) {
+        if (value <= 0) continue;
+        if (key === 'upgradeSlots' || key === 'attackSpeed') continue;
+        const delta = rollStimulantStatDelta(rng());
+        const multiplier = HP_MP_KEYS.has(key) ? 10 : 1;
+        const newValue = value + delta * multiplier;
+        if (newValue > 0) state[key] = newValue;
       }
     }
   }
