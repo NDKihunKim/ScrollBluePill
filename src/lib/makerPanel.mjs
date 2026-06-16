@@ -351,8 +351,19 @@ export function initMakerPanel({
     checkbox.className = 'maker-mode-toggle-checkbox';
     checkbox.checked = isProbability;
 
+    const helpIcon = document.createElement('span');
+    helpIcon.className = 'maker-material-help';
+    helpIcon.setAttribute('tabindex', '0');
+    helpIcon.setAttribute('aria-label', '확률 계산 포함 설명');
+    helpIcon.textContent = '?';
+    const helpTooltip = document.createElement('span');
+    helpTooltip.className = 'maker-material-help-tooltip';
+    helpTooltip.setAttribute('role', 'tooltip');
+    helpTooltip.textContent = '촉진제 확률 포함 (90% 성공률 + 각 스탯 확률)';
+    helpIcon.append(helpTooltip);
+
     toggleLabel.prepend(checkbox);
-    toggleRow.append(toggleLabel);
+    toggleRow.append(toggleLabel, helpIcon);
     makerPickerGrid.append(toggleRow);
 
     makerPickerGrid.append(applyBtn);
