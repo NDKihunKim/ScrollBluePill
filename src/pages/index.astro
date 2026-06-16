@@ -232,6 +232,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 								<div class="item-level-up-slots" data-item-level-up-slots></div>
 								<div class="item-level-up-editor" data-item-level-up-editor hidden></div>
 							</div>
+							<div class="maker-stimulant-area" data-maker-stimulant-area hidden>
+								<p class="enhancement-section-label">촉진제 (추옵)</p>
+								<div class="maker-stimulant-slot-container" data-maker-stimulant-slot></div>
+							</div>
 							<div class="maker-gem-area" data-maker-gem-area hidden>
 								<p class="enhancement-section-label maker-material-label">
 									<span>추가 재료</span>
@@ -2368,10 +2372,17 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	}
 
 	/* Maker gem section */
-	:global(.maker-section) {
+		:global(.maker-section) {
 		padding-top: 16px;
 		scroll-margin-top: 5rem;
-	}
+		}
+		:global(.maker-stimulant-area) {
+		margin-bottom: 14px;
+		}
+		:global(.maker-stimulant-slot-container) {
+		display: flex;
+		gap: 10px;
+		}
 	:global(.maker-toggle-button) {
 		display: inline-flex;
 		align-items: center;
@@ -2428,58 +2439,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	:global(.maker-gem-slot:hover:not(.maker-gem-slot--disabled)) {
 		border-color: var(--green);
 	}
-	:global(.maker-slot-mode-overlay) {
-		position: absolute;
-		bottom: calc(100% + 4px);
-		left: 50%;
-		transform: translateX(-50%);
-		display: flex;
-		flex-direction: column;
-		border-radius: 6px;
-		background: var(--surface);
-		box-shadow: 0 0 0 1px var(--line), 0 4px 12px rgba(0, 0, 0, 0.18);
-		opacity: 0;
-		pointer-events: none;
-		transition: opacity 0.12s ease;
-		z-index: 10;
-		white-space: nowrap;
-	}
-	:global(.maker-gem-slot:hover .maker-slot-mode-overlay),
-	:global(.maker-gem-slot:focus-within .maker-slot-mode-overlay) {
-		opacity: 1;
-		pointer-events: auto;
-	}
-	:global(.maker-gem-slot--active .maker-slot-mode-overlay) {
-		opacity: 1;
-		pointer-events: auto;
-	}
-	:global(.maker-slot-mode-button) {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border: 0;
-		background: transparent;
-		color: var(--muted);
-		transition: color 0.12s ease, background 0.12s ease;
-		font-size: 0.75rem;
-		font-weight: 700;
-		line-height: 1;
-		cursor: pointer;
-		padding: 6px 12px;
-		min-width: 64px;
-	}
-	:global(.maker-slot-mode-button:hover),
-	:global(.maker-slot-mode-button:focus-visible) {
-		color: #fff;
-		background: rgba(35, 128, 70, 0.88);
-	}
-	:global(.maker-slot-mode-button--top) {
-		border-bottom: 1px solid var(--line);
-		border-radius: 6px 6px 0 0;
-	}
-	:global(.maker-slot-mode-button--bottom) {
-		border-radius: 0 0 6px 6px;
-	}
 	:global(.maker-gem-slot--stimulant) {
 		border-style: dashed;
 		background: var(--surface-soft);
@@ -2501,7 +2460,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	}
 
 	:global(.maker-gem-slot--stimulant)::after {
-		content: '(추옵/촉진제)';
+		content: '(촉진제)';
 	}
 
 	:global(.maker-gem-slot--disabled::after) {
@@ -2515,8 +2474,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	}
 	:global(.maker-gem-slot--filled)::after,
 		:global(.maker-gem-slot--active)::after,
-		:global(.maker-gem-slot:hover)::after,
-		:global(.maker-gem-slot:focus-within)::after {
 		content: none;
 	}
 
@@ -2668,6 +2625,28 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		align-self: flex-end;
 	}
 
+		:global(.maker-mode-toggle-row) {
+			display: flex;
+			align-items: center;
+			padding: 6px 0;
+			border-top: 1px solid var(--line);
+			margin-top: 4px;
+		}
+		:global(.maker-mode-toggle-label) {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			font-size: 0.78rem;
+			color: var(--muted);
+			cursor: pointer;
+		}
+		:global(.maker-mode-toggle-checkbox) {
+			width: 15px;
+			height: 15px;
+			accent-color: var(--green);
+			cursor: pointer;
+		}
+
 	:global(.maker-gem-icon) {
 		display: flex;
 		align-items: center;
@@ -2693,6 +2672,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		:global(.item-level-up-area) {
 			margin-top: 12px;
 			scroll-margin-top: 5rem;
+		}
 		}
 
 		:global(.item-level-up-slots) {
