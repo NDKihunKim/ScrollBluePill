@@ -23,8 +23,8 @@ export const CALCULATE_LABEL = '기대값 계산';
 export const START_BUTTON_TEXT = '계산 시작';
 export const CANCEL_LABEL = '계산 취소';
 export const MIN_TRIALS = 1000;
-export const MAX_TRIALS = 1000000;
-export const TRIAL_STEP = 1000;
+export const MAX_TRIALS = 10000000;
+export const TRIAL_STEP = 10000;
 
 /**
  * Rounds a trial count to the nearest TRIAL_STEP and clamps to [MIN_TRIALS, MAX_TRIALS].
