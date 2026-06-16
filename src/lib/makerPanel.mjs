@@ -511,28 +511,25 @@ export function initMakerPanel({
             nameSpan.className = 'maker-gem-slot-name';
             nameSpan.textContent = gem.nameKo;
 
-            // Show grade label
-            const gradeLabel = document.createElement('span');
-            gradeLabel.className = 'maker-gem-slot-grade';
-            gradeLabel.textContent = GEM_GRADES[gradeIdx] ?? GEM_GRADES[0];
-
-            // Show non-zero stat deltas as a compact single-line summary
+            // Show grade with stat deltas: e.g. "상급 (A+2 M-1)"
             const statParts = [];
             for (const [key, value] of Object.entries(gemSlot.stats ?? {})) {
               if (value !== 0 && Number.isFinite(value)) {
                 const label = statLabelByKey[key] ?? key;
-                // Use first-character abbreviation for labels 3+ chars to fit in slot
                 const shortLabel = label.length >= 3 ? label[0] : label;
                 const signed = value > 0 ? `+${value}` : String(value);
                 statParts.push(`${shortLabel}${signed}`);
               }
             }
 
-            const statSpan = document.createElement('span');
-            statSpan.className = 'maker-gem-slot-grade maker-gem-slot-grade--compact';
-            statSpan.textContent = statParts.join(' ') || '적용됨';
+            const gradeLabel = document.createElement('span');
+            gradeLabel.className = 'maker-gem-slot-grade';
+            const gradeName = GEM_GRADES[gradeIdx] ?? GEM_GRADES[0];
+            gradeLabel.textContent = statParts.length > 0
+              ? `${gradeName} (${statParts.join(' ')})`
+              : gradeName;
 
-            box.append(img, nameSpan, gradeLabel, statSpan);
+            box.append(img, nameSpan, gradeLabel);
           } else {
             const gradeKey = gemSlot.gradeIndex === 2 ? 'high' : gemSlot.gradeIndex === 1 ? 'mid' : 'low';
             const iconId = GEM_ITEM_IDS[gem.key]?.[gradeKey] ?? 0;
