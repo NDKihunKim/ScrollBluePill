@@ -223,7 +223,7 @@ export function initMakerPanel({
       }
     });
 
-    // Mode toggle row
+    // Mode toggle row with actions
     const toggleRow = document.createElement('div');
     toggleRow.className = 'maker-mode-toggle-row';
 
@@ -250,11 +250,18 @@ export function initMakerPanel({
     helpTooltip.textContent = '흑수정/어둠의 크리스탈 확률 포함';
     helpIcon.append(helpTooltip);
 
-    toggleLabel.prepend(checkbox);
-    toggleRow.append(toggleLabel, helpIcon);
-    makerPickerGrid.append(toggleRow);
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'maker-mode-toggle-actions';
+    if (makerPickerBack instanceof HTMLElement) {
+      makerPickerBack.hidden = false;
+      actionsDiv.append(makerPickerBack, applyBtn);
+    } else {
+      actionsDiv.append(applyBtn);
+    }
 
-    makerPickerGrid.append(applyBtn);
+    toggleLabel.prepend(checkbox);
+    toggleRow.append(toggleLabel, helpIcon, actionsDiv);
+    makerPickerGrid.append(toggleRow);
   };
 
   const renderStimulantInputPanel = () => {
@@ -371,7 +378,7 @@ export function initMakerPanel({
       refreshEnhancedCard();
     });
 
-    // Mode toggle row
+    // Mode toggle row with actions
     const toggleRow = document.createElement('div');
     toggleRow.className = 'maker-mode-toggle-row';
 
@@ -398,11 +405,13 @@ export function initMakerPanel({
     helpTooltip.textContent = '촉진제 확률 포함 (90% 성공률 + 각 스탯 확률)';
     helpIcon.append(helpTooltip);
 
-    toggleLabel.prepend(checkbox);
-    toggleRow.append(toggleLabel, helpIcon);
-    makerPickerGrid.append(toggleRow);
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'maker-mode-toggle-actions';
+    actionsDiv.append(applyBtn);
 
-    makerPickerGrid.append(applyBtn);
+    toggleLabel.prepend(checkbox);
+    toggleRow.append(toggleLabel, helpIcon, actionsDiv);
+    makerPickerGrid.append(toggleRow);
   };
 
 
