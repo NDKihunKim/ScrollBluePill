@@ -222,6 +222,34 @@ export function initMakerPanel({
       }
     });
 
+    // Mode toggle row
+    const toggleRow = document.createElement('div');
+    toggleRow.className = 'maker-mode-toggle-row';
+
+    const toggleLabel = document.createElement('label');
+    toggleLabel.className = 'maker-mode-toggle-label';
+    toggleLabel.textContent = '확률 계산에 포함';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'maker-mode-toggle-checkbox';
+    checkbox.checked = isProbability;
+
+    const helpIcon = document.createElement('span');
+    helpIcon.className = 'maker-material-help';
+    helpIcon.setAttribute('tabindex', '0');
+    helpIcon.setAttribute('aria-label', '확률 계산 포함 설명');
+    helpIcon.textContent = '?';
+    const helpTooltip = document.createElement('span');
+    helpTooltip.className = 'maker-material-help-tooltip';
+    helpTooltip.setAttribute('role', 'tooltip');
+    helpTooltip.textContent = '흑수정/어둠의 크리스탈 확률 포함';
+    helpIcon.append(helpTooltip);
+
+    toggleLabel.prepend(checkbox);
+    toggleRow.append(toggleLabel, helpIcon);
+    makerPickerGrid.append(toggleRow);
+
     makerPickerGrid.append(applyBtn);
   };
 
