@@ -239,7 +239,8 @@ export function initItemLevelUpPanel({
 				if (!area.hidden) {
 					toggle.classList.add('item-level-up-toggle--active');
 					onToggleOpen?.();
-					area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+					const section = area.closest('.maker-section') ?? area;
+					section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 					if (findNextEmptySlotIndex() >= 0) {
 						renderEditor(findNextEmptySlotIndex());
 					}
