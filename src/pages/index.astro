@@ -233,7 +233,15 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 								<div class="item-level-up-editor" data-item-level-up-editor hidden></div>
 							</div>
 							<div class="maker-gem-area" data-maker-gem-area hidden>
-								<p class="enhancement-section-label">추가 재료</p>
+								<p class="enhancement-section-label maker-material-label">
+									<span>추가 재료</span>
+									<span class="maker-material-help" tabindex="0" aria-label="추가 재료 모드 설명">
+										?
+										<span class="maker-material-help-tooltip" role="tooltip">
+											추옵은 이미 붙어있는 추가 옵션을 직접 입력합니다. 촉진제는 제작 확률을 계산에 포함합니다. 확률 적용은 흑수정/어둠의 크리스탈 결과 확률을 계산에 포함합니다.
+										</span>
+									</span>
+								</p>
 								<div class="maker-gem-slots" data-maker-gem-slots>
 								</div>
 								<div class="maker-picker" data-maker-picker hidden>
@@ -2420,6 +2428,49 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	:global(.maker-gem-slot:hover:not(.maker-gem-slot--disabled)) {
 		border-color: var(--green);
 	}
+	:global(.maker-slot-mode-overlay) {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		grid-template-rows: 1fr 1fr;
+		overflow: hidden;
+		border-radius: 5px;
+		background: rgba(255, 255, 255, 0.94);
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.12s ease;
+	}
+	:global(.maker-gem-slot:hover .maker-slot-mode-overlay),
+	:global(.maker-gem-slot:focus-within .maker-slot-mode-overlay),
+	:global(.maker-gem-slot--active .maker-slot-mode-overlay) {
+		opacity: 1;
+		pointer-events: auto;
+	}
+	:global(.maker-slot-mode-button) {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		min-width: 0;
+		border: 0;
+		background: transparent;
+		color: var(--ink);
+		font-size: 0.72rem;
+		font-weight: 700;
+		line-height: 1.1;
+		cursor: pointer;
+	}
+	:global(.maker-slot-mode-button:hover),
+	:global(.maker-slot-mode-button:focus-visible) {
+		background: rgba(35, 128, 70, 0.12);
+		outline: none;
+	}
+	:global(.maker-slot-mode-button--top) {
+		border-bottom: 1px solid var(--line);
+	}
+	:global(.maker-slot-mode-button--bottom) {
+		color: var(--green);
+	}
 	:global(.maker-gem-slot--stimulant) {
 		border-style: dashed;
 		background: var(--surface-soft);
@@ -2499,6 +2550,59 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		overflow: hidden;
 		text-overflow: ellipsis;
 		max-width: 100%;
+	}
+
+	:global(.maker-material-label) {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+	}
+	:global(.maker-material-help) {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 18px;
+		height: 18px;
+		border: 1px solid var(--line);
+		border-radius: 50%;
+		background: var(--surface);
+		color: var(--muted);
+		font-size: 0.72rem;
+		font-weight: 800;
+		line-height: 1;
+		cursor: help;
+	}
+	:global(.maker-material-help:focus-visible) {
+		outline: 2px solid var(--green);
+		outline-offset: 2px;
+	}
+	:global(.maker-material-help-tooltip) {
+		position: absolute;
+		left: 50%;
+		bottom: calc(100% + 8px);
+		z-index: 20;
+		width: min(300px, 80vw);
+		padding: 8px 10px;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		background: var(--surface);
+		color: var(--ink);
+		box-shadow: 0 6px 18px rgba(15, 23, 42, 0.16);
+		font-size: 0.78rem;
+		font-weight: 500;
+		line-height: 1.45;
+		text-align: left;
+		opacity: 0;
+		pointer-events: none;
+		transform: translateX(-50%) translateY(4px);
+		transition: opacity 0.12s ease, transform 0.12s ease;
+	}
+	:global(.maker-material-help:hover .maker-material-help-tooltip),
+	:global(.maker-material-help:focus .maker-material-help-tooltip),
+	:global(.maker-material-help:focus-within .maker-material-help-tooltip) {
+		opacity: 1;
+		transform: translateX(-50%) translateY(0);
 	}
 
 	:global(.maker-picker-grid) {
