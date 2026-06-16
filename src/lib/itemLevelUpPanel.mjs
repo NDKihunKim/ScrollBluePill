@@ -227,6 +227,7 @@ export function initItemLevelUpPanel({
 			}
 		});
 
+      renderModeToggleInEditor();
 		editor.append(applyBtn);
 	};
 
