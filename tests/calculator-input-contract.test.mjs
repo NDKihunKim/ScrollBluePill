@@ -73,6 +73,18 @@ test('maker additional material slots expose split mode controls', async () => {
 	assert.match(makerPanelSource, /renderVariableGemInputPanel\(gem,\s*MATERIAL_MODE_PROBABILITY\)/);
 });
 
+test('maker split mode buttons stop keyboard propagation to parent slots', async () => {
+	const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
+	const overlayStart = makerPanelSource.indexOf('const appendModeOverlay =');
+	const overlayEnd = makerPanelSource.indexOf('\n\n  const renderStimulantSlot', overlayStart);
+	const overlaySource = makerPanelSource.slice(overlayStart, overlayEnd);
+
+	assert.match(overlaySource, /maker-slot-mode-button/);
+	assert.match(overlaySource, /addEventListener\('keydown'/);
+	assert.match(overlaySource, /e\.key === 'Enter' \|\| e\.key === ' '/);
+	assert.match(overlaySource, /e\.stopPropagation\(\)/);
+});
+
 test('maker additional material help tooltip source contract is present', async () => {
 	assert.match(indexSource, /maker-material-help/);
 	assert.match(indexSource, /추옵은 이미 붙어있는 추가 옵션/);

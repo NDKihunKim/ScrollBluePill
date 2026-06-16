@@ -340,6 +340,12 @@ export function initMakerPanel({
     const overlay = document.createElement('div');
     overlay.className = 'maker-slot-mode-overlay';
 
+    const stopModeButtonKeydownPropagation = (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.stopPropagation();
+      }
+    };
+
     const topButton = document.createElement('button');
     topButton.type = 'button';
     topButton.className = 'maker-slot-mode-button maker-slot-mode-button--top';
@@ -348,6 +354,7 @@ export function initMakerPanel({
       e.stopPropagation();
       onTop();
     });
+    topButton.addEventListener('keydown', stopModeButtonKeydownPropagation);
 
     const bottomButton = document.createElement('button');
     bottomButton.type = 'button';
@@ -357,6 +364,7 @@ export function initMakerPanel({
       e.stopPropagation();
       onBottom();
     });
+    bottomButton.addEventListener('keydown', stopModeButtonKeydownPropagation);
 
     overlay.append(topButton, bottomButton);
     box.append(overlay);
