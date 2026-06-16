@@ -2790,36 +2790,6 @@
     "aliases": []
   },
   {
-    "id": 1002140,
-    "nameKo": "위젯 무적 모자",
-    "nameEn": "Wizet Invincible Hat",
-    "equipmentKind": "모자",
-    "requiredLevel": 0,
-    "requiredJobs": [
-      "Beginner"
-    ],
-    "requirements": {
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "str": 0
-    },
-    "stats": {
-      "dex": 999,
-      "int": 999,
-      "luk": 999,
-      "str": 999,
-      "jump": 50,
-      "speed": 30,
-      "accuracy": 200,
-      "avoidability": 200,
-      "magicDefense": 200,
-      "upgradeSlots": 7,
-      "weaponDefense": 200
-    },
-    "aliases": []
-  },
-  {
     "id": 1002141,
     "nameKo": "레드 매티",
     "nameEn": "Red Matty",
@@ -37177,28 +37147,6 @@
       "attackSpeed": 4,
       "upgradeSlots": 7,
       "weaponAttack": 34
-    },
-    "aliases": []
-  },
-  {
-    "id": 1322013,
-    "nameKo": "위젯 비밀요원 가방",
-    "nameEn": "Wizet Secret Agent Suitcase",
-    "equipmentKind": "한손둔기",
-    "requiredLevel": 0,
-    "requiredJobs": [
-      "Beginner"
-    ],
-    "requirements": {
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "str": 0
-    },
-    "stats": {
-      "attackSpeed": 2,
-      "upgradeSlots": 7,
-      "weaponAttack": 200
     },
     "aliases": []
   },
