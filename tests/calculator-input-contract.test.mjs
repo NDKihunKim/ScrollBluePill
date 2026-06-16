@@ -85,7 +85,7 @@ test('maker split mode buttons stop keyboard propagation to parent slots', async
 	assert.match(overlaySource, /e\.stopPropagation\(\)/);
 });
 
-test('maker split mode overlay only receives pointer events after slot activation', () => {
+test('maker split mode overlay only receives pointer events after slot activation → one click reaches buttons', () => {
 	const hoverBlock = indexSource.match(
 		/:global\(\.maker-gem-slot:hover \.maker-slot-mode-overlay\),\s*:global\(\.maker-gem-slot:focus-within \.maker-slot-mode-overlay\)\s*\{[^}]*\}/,
 	)?.[0] ?? '';
@@ -94,7 +94,7 @@ test('maker split mode overlay only receives pointer events after slot activatio
 	)?.[0] ?? '';
 
 	assert.match(hoverBlock, /opacity:\s*1;/);
-	assert.doesNotMatch(hoverBlock, /pointer-events:\s*auto;/);
+	assert.match(hoverBlock, /pointer-events:\s*auto;/);
 	assert.match(activeBlock, /pointer-events:\s*auto;/);
 });
 
