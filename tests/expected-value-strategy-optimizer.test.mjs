@@ -80,6 +80,27 @@ test('countRngSources counts multiple RNG sources', () => {
   assert.equal(countRngSources(strategy), 3);
 });
 
+test('countRngSources ignores manual variable gem stats and counts probability variable gems', () => {
+  assert.equal(countRngSources({
+    makerChoices: [
+      { gemKey: 'darkCrystal', stats: { str: 3 }, mode: 'manual' },
+      { gemKey: 'blackAmethyst', stats: { weaponAttack: 2 }, mode: 'probability' },
+    ],
+    scrollSequence: [],
+    useItemLevelUp: false,
+  }), 1);
+});
+
+test('countRngSources ignores missing-mode variable gem stats as manual', () => {
+  assert.equal(countRngSources({
+    makerChoices: [
+      { gemKey: 'darkCrystal', stats: { str: 3 } },
+    ],
+    scrollSequence: [],
+    useItemLevelUp: false,
+  }), 0);
+});
+
 // ---------------------------------------------------------------------------
 // countTotalActions
 // ---------------------------------------------------------------------------

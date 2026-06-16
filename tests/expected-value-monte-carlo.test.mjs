@@ -87,7 +87,7 @@ test('runStrategyMonteCarloSimulation returns finite probability for makers-only
 
   const strategy = {
     makerChoices: [
-      { gemKey: 'blackAmethyst', stats: { weaponAttack: 3 } },
+      { gemKey: 'blackAmethyst', stats: { weaponAttack: 3 }, mode: 'probability' },
       { gemKey: 'diamond', grade: 2 },
       { gemKey: 'lukCrystal', grade: 2 },
     ],
@@ -117,6 +117,90 @@ test('runStrategyMonteCarloSimulation returns finite probability for makers-only
   assert.equal(Number.isFinite(result.successProbability), true);
   assert.ok(result.successProbability > 0.035, `expected 흑수정 +3 probability near 5%, got ${result.successProbability}`);
   assert.ok(result.successProbability < 0.065, `expected 흑수정 +3 probability near 5%, got ${result.successProbability}`);
+});
+
+test('manual variable gem stats are applied as fixed stats in Monte Carlo strategy simulation', async () => {
+  const { runStrategyMonteCarloSimulation } = await import(RNG_MODULE);
+
+  const result = runStrategyMonteCarloSimulation(
+    {
+      makerChoices: [
+        { gemKey: 'darkCrystal', stats: { str: 3 }, mode: 'manual' },
+      ],
+      scrollSequence: [],
+      useItemLevelUp: false,
+      useStimulant: false,
+    },
+    { str: 10 },
+    { statThresholds: { str: 3 }, gradeThreshold: null },
+    20,
+    123,
+  );
+
+  assert.equal(result.successProbability, 1);
+});
+
+test('missing-mode variable gem stats are applied as fixed stats in Monte Carlo strategy simulation', async () => {
+  const { runStrategyMonteCarloSimulation } = await import(RNG_MODULE);
+
+  const result = runStrategyMonteCarloSimulation(
+    {
+      makerChoices: [
+        { gemKey: 'darkCrystal', stats: { str: 3 } },
+      ],
+      scrollSequence: [],
+      useItemLevelUp: false,
+      useStimulant: false,
+    },
+    { str: 10 },
+    { statThresholds: { str: 3 }, gradeThreshold: null },
+    20,
+    123,
+  );
+
+  assert.equal(result.successProbability, 1);
+});
+
+test('manual variable gem stats are applied once when Monte Carlo has another RNG source', async () => {
+  const { runStrategyMonteCarloSimulation } = await import(RNG_MODULE);
+
+  const result = runStrategyMonteCarloSimulation(
+    {
+      makerChoices: [
+        { gemKey: 'darkCrystal', stats: { str: 3 }, mode: 'manual' },
+      ],
+      scrollSequence: [],
+      useItemLevelUp: false,
+      useStimulant: true,
+    },
+    { str: 10 },
+    { statThresholds: { str: 9 }, gradeThreshold: null },
+    100,
+    123,
+  );
+
+  assert.equal(result.successProbability, 0);
+});
+
+test('probability variable gem stats are not pre-applied as fixed stats in Monte Carlo strategy simulation', async () => {
+  const { runStrategyMonteCarloSimulation } = await import(RNG_MODULE);
+
+  const result = runStrategyMonteCarloSimulation(
+    {
+      makerChoices: [
+        { gemKey: 'darkCrystal', stats: { str: 5 }, mode: 'probability' },
+      ],
+      scrollSequence: [],
+      useItemLevelUp: false,
+      useStimulant: false,
+    },
+    { str: 10 },
+    { statThresholds: { str: 99 }, gradeThreshold: null },
+    20,
+    123,
+  );
+
+  assert.equal(result.successProbability, 0);
 });
 
 test('computeGeometricPercentiles for p=0.5', async () => {

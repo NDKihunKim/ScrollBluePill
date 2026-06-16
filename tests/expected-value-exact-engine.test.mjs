@@ -65,6 +65,45 @@ test('isDeterministicStrategy returns false with item level-up', () => {
   assert.equal(isDeterministicStrategy(strategy), false);
 });
 
+test('isDeterministicStrategy treats manual variable gem stats as deterministic', () => {
+  const strategy = {
+    makerChoices: [
+      { gemKey: 'darkCrystal', stats: { str: 3 }, mode: 'manual' },
+    ],
+    scrollSequence: [],
+    useItemLevelUp: false,
+    useStimulant: false,
+  };
+
+  assert.equal(isDeterministicStrategy(strategy), true);
+});
+
+test('isDeterministicStrategy treats missing-mode variable gem stats as deterministic', () => {
+  const strategy = {
+    makerChoices: [
+      { gemKey: 'darkCrystal', stats: { str: 3 } },
+    ],
+    scrollSequence: [],
+    useItemLevelUp: false,
+    useStimulant: false,
+  };
+
+  assert.equal(isDeterministicStrategy(strategy), true);
+});
+
+test('isDeterministicStrategy treats probability variable gem stats as random', () => {
+  const strategy = {
+    makerChoices: [
+      { gemKey: 'darkCrystal', stats: { str: 3 }, mode: 'probability' },
+    ],
+    scrollSequence: [],
+    useItemLevelUp: false,
+    useStimulant: false,
+  };
+
+  assert.equal(isDeterministicStrategy(strategy), false);
+});
+
 // ---------------------------------------------------------------------------
 // computeExactProbability
 // ---------------------------------------------------------------------------
@@ -80,6 +119,38 @@ test('computeExactProbability returns 1.0 for empty strategy with no target thre
 
   const prob = computeExactProbability(strategy, cleanStats, targetConditions);
   assert.equal(prob, 1.0);
+});
+
+test('computeExactProbability applies manual variable gem stats to baseline', () => {
+  const strategy = {
+    makerChoices: [
+      { gemKey: 'darkCrystal', stats: { str: 3 }, mode: 'manual' },
+    ],
+    scrollSequence: [],
+    useItemLevelUp: false,
+    useStimulant: false,
+  };
+  const cleanStats = { str: 10 };
+  const targetConditions = { statThresholds: { str: 3 }, gradeThreshold: null };
+
+  const prob = computeExactProbability(strategy, cleanStats, targetConditions);
+  assert.equal(prob, 1);
+});
+
+test('computeExactProbability applies missing-mode variable gem stats to baseline', () => {
+  const strategy = {
+    makerChoices: [
+      { gemKey: 'darkCrystal', stats: { str: 3 } },
+    ],
+    scrollSequence: [],
+    useItemLevelUp: false,
+    useStimulant: false,
+  };
+  const cleanStats = { str: 10 };
+  const targetConditions = { statThresholds: { str: 3 }, gradeThreshold: null };
+
+  const prob = computeExactProbability(strategy, cleanStats, targetConditions);
+  assert.equal(prob, 1);
 });
 
 test('computeExactProbability single 60% scroll gives 0.6', () => {

@@ -306,7 +306,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 <script>
 	import { nextItemLevel, normalizeItemLevel, normalizeItemLevelRange } from '../lib/calculatorInput.mjs';
-	import { computeStatBreakdown, computeAccumulatedStats } from '../lib/enhancementState.mjs';
+	import {
+	  computeAccumulatedStats,
+	  computeStatBreakdown,
+	  MATERIAL_MODE_PROBABILITY,
+	} from '../lib/enhancementState.mjs';
 	import { searchKoreanItems } from '../lib/itemSearch.mjs';
 	import { buildItemIconUrl, buildItemSearchUrl } from '../lib/maplestoryIo.mjs';
 
@@ -1279,12 +1283,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  const makerChoices = enhancementState.gemSlots
 	    .filter(s => s !== null)
 	    .map(s => (s.stats
-	      ? { gemKey: s.gemKey, stats: s.stats }
+	      ? { gemKey: s.gemKey, stats: s.stats, mode: s.mode === MATERIAL_MODE_PROBABILITY ? MATERIAL_MODE_PROBABILITY : 'manual' }
 	      : { gemKey: s.gemKey, grade: s.gradeIndex }));
 
-	  // Pre-apply user-specified (non-random) stats so they don't flag the
-	  // strategy as non-deterministic.  This covers stimulant + item level-up,
-	  // both of which have stats the user chose directly.
+	  // Pre-apply user-specified stats that are not represented in makerChoices.
 	  const effectiveCleanStats = { ...cleanStats };
 	  const adjustedThresholds = { ...targetConditions.statThresholds };
 
@@ -1297,6 +1299,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	      }
 	    }
 	  };
+
+	  if (enhancementState.stimulantSlot?.stats &&
+	      enhancementState.stimulantSlot.mode !== MATERIAL_MODE_PROBABILITY) {
+	    preApply(enhancementState.stimulantSlot.stats);
+	  }
 
 	  // Item level-up slots (user-chosen stats, guaranteed)
 	  for (const slot of enhancementState.itemLevelUpSlots ?? []) {
@@ -1312,7 +1319,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	    makerChoices,
 	    scrollSequence,
 	    useItemLevelUp: false,
-	    useStimulant: enhancementState.stimulantSlot !== null,
+	    useStimulant: enhancementState.stimulantSlot?.mode === MATERIAL_MODE_PROBABILITY,
 	  };
 
 	  // Create or reuse result UI

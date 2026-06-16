@@ -29,6 +29,7 @@ export function isDeterministicStrategy(strategy) {
   // Check Maker choices for random gems
   for (const choice of makerChoices) {
     if (!choice || !choice.gemKey) continue;
+    if (choice.stats && choice.mode !== 'probability') continue;
     if (isRandomGem(choice.gemKey)) return false;
   }
 
@@ -56,6 +57,16 @@ export function computeExactProbability(strategy, cleanStats, targetConditions) 
 
   for (const choice of makerChoices) {
     if (!choice || !choice.gemKey) continue;
+
+    if (choice.stats && choice.mode !== 'probability') {
+      for (const [key, value] of Object.entries(choice.stats)) {
+        if (Number.isFinite(value)) {
+          baseline[key] = (baseline[key] ?? 0) + value;
+        }
+      }
+      continue;
+    }
+
     if (!isFixedGem(choice.gemKey)) continue;
 
     const gemStats = getFixedGemStats(choice.gemKey, choice.grade);

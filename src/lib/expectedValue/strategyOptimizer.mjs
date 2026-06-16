@@ -18,6 +18,7 @@ export function countRngSources(strategy) {
   // Count random Maker gems
   for (const choice of makerChoices) {
     if (!choice || !choice.gemKey) continue;
+    if (choice.stats && choice.mode !== 'probability') continue;
     if (isRandomGem(choice.gemKey)) count++;
   }
 
