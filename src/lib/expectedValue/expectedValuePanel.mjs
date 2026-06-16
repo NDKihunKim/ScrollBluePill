@@ -3,7 +3,11 @@ import {
   getDefaultCheckedStats,
 } from './targetExtraction.mjs';
 import { statLabelByKey } from '../scrollState.mjs';
-import { DEFAULT_TRIAL_COUNT, computeCumulativeProbability } from './monteCarloEngine.mjs';
+import {
+  DEFAULT_TRIAL_COUNT,
+  computeAttemptsForPercentile,
+  computeCumulativeProbability,
+} from './monteCarloEngine.mjs';
 export { DEFAULT_TRIAL_COUNT };
 import {
   formatProbability,
@@ -35,6 +39,34 @@ export const TRIAL_STEP = 10000;
 export function roundTrialCount(value) {
   const rounded = Math.round(value / TRIAL_STEP) * TRIAL_STEP;
   return Math.max(MIN_TRIALS, Math.min(MAX_TRIALS, rounded));
+}
+
+function formatPercentInputValue(probability) {
+  if (probability >= 1.0) return '100.00';
+  if (probability <= 0) return '0';
+  return (probability * 100).toFixed(2);
+}
+
+export function computeTopPercentForCount(successProbability, count) {
+  const parsedCount = parseInt(count, 10);
+  if (!Number.isFinite(parsedCount) || parsedCount < 0) return '';
+
+  return formatPercentInputValue(
+    computeCumulativeProbability(successProbability, parsedCount),
+  );
+}
+
+export function computeCountForTopPercent(successProbability, topPercent, preferredCount) {
+  const parsedPercent = parseFloat(topPercent);
+  if (!Number.isFinite(parsedPercent) || parsedPercent < 0) return '';
+
+  const preferredPercent = computeTopPercentForCount(successProbability, preferredCount);
+  if (preferredPercent !== '' && Number(preferredPercent) === parsedPercent) {
+    return parseInt(preferredCount, 10);
+  }
+
+  const attempts = computeAttemptsForPercentile(successProbability, parsedPercent / 100);
+  return Number.isFinite(attempts) ? attempts : '';
 }
 
 /**
@@ -186,7 +218,7 @@ export function createResultUI() {
   // Title
   const titleEl = document.createElement('div');
   titleEl.className = 'ev-result-title';
-  titleEl.textContent = '평균 장비 기대값';
+  titleEl.textContent = '장비 기대값';
   container.appendChild(titleEl);
 
   // Stale label (hidden by default)
@@ -196,32 +228,54 @@ export function createResultUI() {
   staleLabel.hidden = true;
   container.appendChild(staleLabel);
 
+  // Canvas element for chart
+  const canvas = document.createElement('canvas');
+  canvas.className = 'ev-chart';
+  container.appendChild(canvas);
+
   // Equipment count (expected attempts)
   const equipmentCount = document.createElement('div');
   equipmentCount.className = 'ev-equipment-count';
   container.appendChild(equipmentCount);
 
-  // Interactive attempt count → cumulative probability row
-  const attemptRow = document.createElement('div');
-  attemptRow.className = 'ev-attempt-row';
+  // Interactive percentile ↔ count converter
+  const converterRow = document.createElement('div');
+  converterRow.className = 'ev-converter-row';
 
-  const attemptInput = document.createElement('input');
-  attemptInput.type = 'number';
-  attemptInput.min = '1';
-  attemptInput.max = '1000000';
-  attemptInput.step = '1';
-  attemptInput.className = 'ev-attempt-input';
+  const percentField = document.createElement('label');
+  percentField.className = 'ev-converter-field';
+  const percentPrefix = document.createElement('span');
+  percentPrefix.textContent = '상위';
+  const percentInput = document.createElement('input');
+  percentInput.type = 'number';
+  percentInput.min = '0';
+  percentInput.max = '100';
+  percentInput.step = '0.01';
+  percentInput.className = 'ev-percent-input';
+  const percentSuffix = document.createElement('span');
+  percentSuffix.textContent = '%';
+  percentField.append(percentPrefix, percentInput, percentSuffix);
 
-  const attemptResult = document.createElement('span');
-  attemptResult.className = 'ev-attempt-result';
+  const converterArrow = document.createElement('span');
+  converterArrow.className = 'ev-converter-arrow';
+  converterArrow.textContent = '⇄';
 
-  attemptRow.append('시도 횟수: ', attemptInput, attemptResult);
-  container.appendChild(attemptRow);
+  const countField = document.createElement('label');
+  countField.className = 'ev-converter-field';
+  const countPrefix = document.createElement('span');
+  countPrefix.textContent = '제작 횟수:';
+  const countInput = document.createElement('input');
+  countInput.type = 'number';
+  countInput.min = '0';
+  countInput.max = '1000000';
+  countInput.step = '1';
+  countInput.className = 'ev-count-input';
+  const countSuffix = document.createElement('span');
+  countSuffix.textContent = '개';
+  countField.append(countPrefix, countInput, countSuffix);
 
-  // Canvas element for chart
-  const canvas = document.createElement('canvas');
-  canvas.className = 'ev-chart';
-  container.appendChild(canvas);
+  converterRow.append(percentField, converterArrow, countField);
+  container.appendChild(converterRow);
 
   // Best found method (details, collapsed by default)
   const details = document.createElement('details');
@@ -235,21 +289,30 @@ export function createResultUI() {
   container.appendChild(details);
 
   /**
-   * Updates the cumulative-probability display from the current input value
-   * and the stored success probability.
+   * Updates the percentile input from the current count input value.
    */
-  function updateAttemptResult() {
-    const p = parseFloat(attemptInput.dataset.successProbability || '0');
-    const n = parseInt(attemptInput.value, 10);
-    if (Number.isFinite(n) && n > 0) {
+  function updatePercentFromCount() {
+    const p = parseFloat(countInput.dataset.successProbability || '0');
+    const n = parseInt(countInput.value, 10);
+    if (Number.isFinite(n) && n >= 0) {
       const cumulative = computeCumulativeProbability(p, n);
-      attemptResult.textContent = `회 → ${formatProbability(cumulative)}`;
+      percentInput.value = formatPercentInputValue(cumulative);
     } else {
-      attemptResult.textContent = '회 → —';
+      percentInput.value = '';
     }
   }
 
-  attemptInput.addEventListener('input', updateAttemptResult);
+  /**
+   * Updates the count input from the current percentile input value.
+   */
+  function updateCountFromPercent() {
+    const p = parseFloat(percentInput.dataset.successProbability || '0');
+    const count = computeCountForTopPercent(p, percentInput.value, countInput.value);
+    countInput.value = count === '' ? '' : String(count);
+  }
+
+  percentInput.addEventListener('input', updateCountFromPercent);
+  countInput.addEventListener('input', updatePercentFromCount);
 
   /**
    * Fills all displays from a createResultSummary output and renders the chart.
@@ -257,11 +320,12 @@ export function createResultUI() {
    * @param {object} resultSummary - Result summary from createResultSummary
    */
   function update(resultSummary) {
-    equipmentCount.textContent = `장비 갯수: ${resultSummary.expectedAttempts.toLocaleString('en-US')}개`;
+    equipmentCount.textContent = `평균 장비 갯수: ${resultSummary.expectedAttempts.toLocaleString('en-US')}개`;
 
-    attemptInput.dataset.successProbability = resultSummary.successProbability;
-    attemptInput.value = resultSummary.expectedAttempts;
-    updateAttemptResult();
+    percentInput.dataset.successProbability = resultSummary.successProbability;
+    countInput.dataset.successProbability = resultSummary.successProbability;
+    countInput.value = resultSummary.expectedAttempts;
+    updatePercentFromCount();
 
     renderAttemptChart(canvas, resultSummary.chartData);
 
@@ -288,8 +352,8 @@ export function createResultUI() {
   /** Shows the no-strategy message. */
   function showNoStrategy() {
     equipmentCount.textContent = NO_STRATEGY_TEXT;
-    attemptInput.value = '';
-    attemptResult.textContent = '';
+    percentInput.value = '';
+    countInput.value = '';
     details.hidden = true;
     staleLabel.hidden = true;
   }
@@ -305,8 +369,8 @@ export function createResultUI() {
     } else {
       equipmentCount.textContent = '성공 확률: 0%';
     }
-    attemptInput.value = '';
-    attemptResult.textContent = '';
+    percentInput.value = '';
+    countInput.value = '';
     staleLabel.hidden = true;
   }
 

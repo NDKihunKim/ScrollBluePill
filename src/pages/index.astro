@@ -2793,17 +2793,20 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	:global(.ev-trial-input) { width: 96px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); }
 	:global(.ev-button-row) { display: flex; gap: 8px; margin-top: 10px; }
 	:global(.ev-button-row button) { padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; }
-	.ev-result { padding: 12px 0; }
+		:global(.ev-result) { padding: 12px 0; }
 	:global(.ev-result-title) { font-size: 16px; font-weight: 700; margin: 0 0 8px; color: var(--ink); }
-	.ev-stale-label { color: #d97706; font-size: 12px; margin-bottom: 8px; }
-	:global(.ev-equipment-count) { font-size: 14px; margin: 4px 0; color: var(--ink); }
-	:global(.ev-attempt-row) { display: flex; align-items: center; gap: 6px; font-size: 13px; margin: 6px 0; }
-	:global(.ev-attempt-input) { width: 72px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); font-size: 13px; text-align: center; }
-	:global(.ev-attempt-result) { font-weight: 600; color: var(--ink); white-space: nowrap; }
+		:global(.ev-stale-label) { color: #d97706; font-size: 12px; margin-bottom: 8px; }
 	:global(.ev-chart) { display: block; width: 100%; max-width: 100%; height: 220px; margin: 12px 0; box-sizing: border-box; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
-	.ev-best-method { margin-top: 12px; font-size: 13px; }
-	.ev-best-method summary { cursor: pointer; font-weight: 600; }
-	.ev-method-detail { padding: 8px; margin-top: 4px; background: var(--bg-muted, #f3f4f6); border-radius: 4px; white-space: pre-wrap; font-size: 12px; }
+	:global(.ev-equipment-count) { font-size: 14px; margin: 4px 0 10px; color: var(--ink); }
+	:global(.ev-converter-row) { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 10px; margin: 8px 0; }
+	:global(.ev-converter-field) { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 8px 12px; border-radius: 8px; background: var(--surface-soft); color: var(--muted); font-size: 13px; font-weight: 700; }
+	:global(.ev-converter-field input) { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 16px; font-weight: 600; text-align: left; }
+	:global(.ev-percent-input) { width: 72px; }
+	:global(.ev-count-input) { width: 88px; }
+	:global(.ev-converter-arrow) { color: var(--muted); font-size: 20px; font-weight: 700; line-height: 1; }
+		:global(.ev-best-method) { margin-top: 12px; font-size: 13px; }
+		:global(.ev-best-method summary) { cursor: pointer; font-weight: 600; }
+	:global(.ev-method-detail) { padding: 8px; margin-top: 4px; background: var(--surface-soft); border-radius: 4px; white-space: pre-wrap; font-size: 12px; }
 	:global(.ev-confirm-overlay) { position: fixed; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; z-index: 1000; }
 	:global(.ev-confirm-dialog) { background: var(--surface); color: var(--ink); border-radius: 8px; padding: 20px 24px; max-width: 360px; box-shadow: 0 4px 24px rgba(0,0,0,0.15); }
 	:global(.ev-confirm-dialog p) { margin: 0 0 16px; font-size: 14px; }
