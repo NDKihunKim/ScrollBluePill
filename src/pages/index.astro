@@ -2430,18 +2430,19 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	}
 	:global(.maker-slot-mode-overlay) {
 		position: absolute;
-		inset: 1px;
-		display: grid;
-		grid-template-rows: 1fr 1fr;
-		overflow: hidden;
-		padding: 3px;
-		border-radius: 5px;
+		bottom: calc(100% + 4px);
+		left: 50%;
+		transform: translateX(-50%);
+		display: flex;
+		flex-direction: column;
+		border-radius: 6px;
 		background: var(--surface);
-		backdrop-filter: blur(3px);
-		box-shadow: 0 0 0 1px var(--line), 0 4px 12px rgba(0, 0, 0, 0.15);
+		box-shadow: 0 0 0 1px var(--line), 0 4px 12px rgba(0, 0, 0, 0.18);
 		opacity: 0;
 		pointer-events: none;
 		transition: opacity 0.12s ease;
+		z-index: 10;
+		white-space: nowrap;
 	}
 	:global(.maker-gem-slot:hover .maker-slot-mode-overlay),
 	:global(.maker-gem-slot:focus-within .maker-slot-mode-overlay) {
@@ -2456,28 +2457,28 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 100%;
-		min-width: 0;
 		border: 0;
 		background: transparent;
 		color: var(--muted);
-		transition: color 0.12s ease;
-		font-size: 0.72rem;
+		transition: color 0.12s ease, background 0.12s ease;
+		font-size: 0.75rem;
 		font-weight: 700;
-		line-height: 1.1;
+		line-height: 1;
 		cursor: pointer;
+		padding: 6px 12px;
+		min-width: 64px;
 	}
 	:global(.maker-slot-mode-button:hover),
 	:global(.maker-slot-mode-button:focus-visible) {
 		color: #fff;
 		background: rgba(35, 128, 70, 0.88);
-		outline: 2px solid var(--green);
-		outline-offset: -2px;
 	}
 	:global(.maker-slot-mode-button--top) {
-		border-bottom: 1.5px solid var(--ink);
+		border-bottom: 1px solid var(--line);
+		border-radius: 6px 6px 0 0;
 	}
 	:global(.maker-slot-mode-button--bottom) {
+		border-radius: 0 0 6px 6px;
 	}
 	:global(.maker-gem-slot--stimulant) {
 		border-style: dashed;
