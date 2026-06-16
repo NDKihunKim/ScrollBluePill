@@ -241,7 +241,6 @@ export function initItemLevelUpPanel({
 					onToggleOpen?.();
 					const section = area.closest('.maker-section') ?? area;
 					section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-						renderModeToggle();
 					if (findNextEmptySlotIndex() >= 0) {
 						renderEditor(findNextEmptySlotIndex());
 					}
@@ -253,9 +252,9 @@ export function initItemLevelUpPanel({
 	}
 
 
-  const renderModeToggle = () => {
-    if (!(area instanceof HTMLElement)) return;
-    const existing = area.querySelector('.maker-mode-toggle-row');
+  const renderModeToggleInEditor = () => {
+    if (!(editor instanceof HTMLElement) || !enhancementState) return;
+    const existing = editor.querySelector('.maker-mode-toggle-row');
     if (existing) existing.remove();
 
     const toggleRow = document.createElement('div');
@@ -268,7 +267,7 @@ export function initItemLevelUpPanel({
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.className = 'maker-mode-toggle-checkbox';
-    checkbox.checked = enhancementState?.itemLevelUpMode === 'probability';
+    checkbox.checked = enhancementState.itemLevelUpMode === 'probability';
     checkbox.addEventListener('change', () => {
       if (enhancementState) {
         applyItemLevelUpMode(enhancementState, checkbox.checked ? 'probability' : 'manual');
@@ -277,7 +276,7 @@ export function initItemLevelUpPanel({
 
     toggleLabel.prepend(checkbox);
     toggleRow.append(toggleLabel);
-    area.insertBefore(toggleRow, area.firstChild);
+    editor.append(toggleRow);
   };
 
 	return {
@@ -298,7 +297,6 @@ export function initItemLevelUpPanel({
 			if (definition) {
 				updateItemLevelUpToggleLabel();
 				renderSlots();
-      renderModeToggle();
 			}
 		},
 		reset() {
