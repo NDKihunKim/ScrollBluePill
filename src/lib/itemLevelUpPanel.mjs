@@ -241,6 +241,7 @@ export function initItemLevelUpPanel({
 					onToggleOpen?.();
 					const section = area.closest('.maker-section') ?? area;
 					section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+						renderModeToggle();
 					if (findNextEmptySlotIndex() >= 0) {
 						renderEditor(findNextEmptySlotIndex());
 					}
@@ -250,6 +251,34 @@ export function initItemLevelUpPanel({
 			}
 		});
 	}
+
+
+  const renderModeToggle = () => {
+    if (!(area instanceof HTMLElement)) return;
+    const existing = area.querySelector('.maker-mode-toggle-row');
+    if (existing) existing.remove();
+
+    const toggleRow = document.createElement('div');
+    toggleRow.className = 'maker-mode-toggle-row';
+
+    const toggleLabel = document.createElement('label');
+    toggleLabel.className = 'maker-mode-toggle-label';
+    toggleLabel.textContent = '확률 계산에 포함';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'maker-mode-toggle-checkbox';
+    checkbox.checked = enhancementState?.itemLevelUpMode === 'probability';
+    checkbox.addEventListener('change', () => {
+      if (enhancementState) {
+        applyItemLevelUpMode(enhancementState, checkbox.checked ? 'probability' : 'manual');
+      }
+    });
+
+    toggleLabel.prepend(checkbox);
+    toggleRow.append(toggleLabel);
+    area.insertBefore(toggleRow, area.firstChild);
+  };
 
 	return {
 		activate(enhState, item, levelUpDefinition) {
@@ -269,6 +298,7 @@ export function initItemLevelUpPanel({
 			if (definition) {
 				updateItemLevelUpToggleLabel();
 				renderSlots();
+      renderModeToggle();
 			}
 		},
 		reset() {
