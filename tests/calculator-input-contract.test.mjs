@@ -52,10 +52,34 @@ test('maker stimulant and gem slots share active slot selection state', async ()
 
 	assert.match(makerPanelSource, /let activeStimulantSlot\s*=\s*false/);
 	assert.match(makerPanelSource, /if \(activeStimulantSlot\) \{\s*box\.classList\.add\('maker-gem-slot--active'\);/);
-	assert.match(makerPanelSource, /activeStimulantSlot\s*=\s*true;\s*editingSlotIndex\s*=\s*-1;\s*renderGemSlots\(\);\s*renderStimulantInputPanel\(\);/);
+	assert.match(makerPanelSource, /activeStimulantSlot\s*=\s*true;\s*editingSlotIndex\s*=\s*-1;\s*renderGemSlots\(\);/);
 	assert.match(makerPanelSource, /if \(!isDisabled && editingSlotIndex === i\) \{\s*box\.classList\.add\('maker-gem-slot--active'\);/);
 	assert.match(indexSource, /:global\(\.maker-gem-slot--active\)\s*\{[^}]*border-style:\s*solid;/);
 	assert.match(indexSource, /:global\(\.item-level-up-slot--active\)\s*\{[^}]*border-style:\s*solid;/);
+});
+
+test('maker additional material slots expose split mode controls', async () => {
+	const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
+
+	assert.match(makerPanelSource, /MATERIAL_MODE_MANUAL/);
+	assert.match(makerPanelSource, /MATERIAL_MODE_PROBABILITY/);
+	assert.match(makerPanelSource, /maker-slot-mode-overlay/);
+	assert.match(makerPanelSource, /추옵/);
+	assert.match(makerPanelSource, /촉진제/);
+	assert.match(makerPanelSource, /확률 적용/);
+	assert.match(makerPanelSource, /renderStimulantInputPanel\(MATERIAL_MODE_MANUAL\)/);
+	assert.match(makerPanelSource, /renderStimulantInputPanel\(MATERIAL_MODE_PROBABILITY\)/);
+	assert.match(makerPanelSource, /renderVariableGemInputPanel\(gem,\s*MATERIAL_MODE_MANUAL\)/);
+	assert.match(makerPanelSource, /renderVariableGemInputPanel\(gem,\s*MATERIAL_MODE_PROBABILITY\)/);
+});
+
+test('maker additional material help tooltip source contract is present', async () => {
+	assert.match(indexSource, /maker-material-help/);
+	assert.match(indexSource, /추옵은 이미 붙어있는 추가 옵션/);
+	assert.match(indexSource, /촉진제는 제작 확률/);
+	assert.match(indexSource, /확률 적용은 흑수정/);
+	assert.match(indexSource, /:global\(\.maker-slot-mode-overlay\)/);
+	assert.match(indexSource, /:global\(\.maker-material-help-tooltip\)/);
 });
 
 test('closing maker panel preserves applied maker stats when another feature opens', async () => {

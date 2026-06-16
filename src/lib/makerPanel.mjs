@@ -1,5 +1,5 @@
 import { GEM_GRADES, GEM_ITEM_IDS, GEM_STAT_COLORS, getVisibleGemTypes, getGemTypeByKey, statLabelByKey } from './makerData.mjs';
-import { activateMaker, deactivateMaker, applyGem, applyVariableGem, revertGemSlot, applyStimulant, clearStimulant, computeAccumulatedStats, computeStatBreakdown, computeGradeColor, computeAppliedScrollCount, computeRemainingSlots, HP_MP_KEYS } from './enhancementState.mjs';
+import { activateMaker, deactivateMaker, applyGem, applyVariableGem, revertGemSlot, applyStimulant, clearStimulant, computeAccumulatedStats, computeStatBreakdown, computeGradeColor, computeAppliedScrollCount, computeRemainingSlots, HP_MP_KEYS, MATERIAL_MODE_MANUAL, MATERIAL_MODE_PROBABILITY } from './enhancementState.mjs';
 import { buildItemIconUrl } from './maplestoryIo.mjs';
 
 function createGemIconElement(gemKey, stat, iconId) {
@@ -89,7 +89,7 @@ export function initMakerPanel({
     valueDisplay.textContent = value > 0 ? `+${value}` : String(value);
   };
 
-  const renderVariableGemInputPanel = (gem) => {
+  const renderVariableGemInputPanel = (gem, mode = MATERIAL_MODE_MANUAL) => {
     if (!(makerPicker instanceof HTMLElement) ||
         !(makerPickerGrid instanceof HTMLElement) ||
         !(makerPickerLabel instanceof HTMLElement) ||
@@ -100,7 +100,9 @@ export function initMakerPanel({
     const cleanStats = selectedBaseItem.stats ?? {};
     const statKeys = (gem.variableKeys ?? []).filter((k) => Number.isFinite(cleanStats[k]) && cleanStats[k] > 0);
 
-    makerPickerLabel.textContent = `${gem.nameKo} 스탯 입력`;
+    makerPickerLabel.textContent = mode === MATERIAL_MODE_PROBABILITY
+      ? `${gem.nameKo} 확률 적용`
+      : `${gem.nameKo} 추옵 입력`;
     makerPickerGrid.replaceChildren();
     makerPickerGrid.classList.add('maker-stimulant-input-panel');
     makerPicker.hidden = false;
@@ -195,7 +197,7 @@ export function initMakerPanel({
       for (const key of statKeys) {
         stats[key] = values.get(key) ?? 0;
       }
-      const ok = applyVariableGem(enhancementState, editingSlotIndex, gem.key, stats);
+      const ok = applyVariableGem(enhancementState, editingSlotIndex, gem.key, stats, mode);
       if (!ok) return;
 
       pendingGemKey = null;
@@ -222,7 +224,7 @@ export function initMakerPanel({
     makerPickerGrid.append(applyBtn);
   };
 
-  const renderStimulantInputPanel = () => {
+  const renderStimulantInputPanel = (mode = MATERIAL_MODE_MANUAL) => {
     if (!(makerPicker instanceof HTMLElement) ||
         !(makerPickerGrid instanceof HTMLElement) ||
         !(makerPickerLabel instanceof HTMLElement) ||
@@ -232,7 +234,7 @@ export function initMakerPanel({
 
     pendingGemKey = null;
     editingSlotIndex = -1;
-    makerPickerLabel.textContent = '촉진제 스탯 입력';
+    makerPickerLabel.textContent = mode === MATERIAL_MODE_PROBABILITY ? '촉진제 스탯 입력' : '추옵 스탯 입력';
     makerPickerGrid.replaceChildren();
     makerPickerGrid.classList.add('maker-stimulant-input-panel');
     makerPicker.hidden = false;
@@ -325,13 +327,39 @@ export function initMakerPanel({
       for (const key of statKeys) {
         stats[key] = stimulantValues.get(key) ?? 0;
       }
-      applyStimulant(enhancementState, stats);
+      applyStimulant(enhancementState, stats, mode);
       hidePicker();
       renderGemSlots();
       refreshEnhancedCard();
     });
 
     makerPickerGrid.append(applyBtn);
+  };
+
+  const appendModeOverlay = (box, topLabel, bottomLabel, onTop, onBottom) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'maker-slot-mode-overlay';
+
+    const topButton = document.createElement('button');
+    topButton.type = 'button';
+    topButton.className = 'maker-slot-mode-button maker-slot-mode-button--top';
+    topButton.textContent = topLabel;
+    topButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      onTop();
+    });
+
+    const bottomButton = document.createElement('button');
+    bottomButton.type = 'button';
+    bottomButton.className = 'maker-slot-mode-button maker-slot-mode-button--bottom';
+    bottomButton.textContent = bottomLabel;
+    bottomButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      onBottom();
+    });
+
+    overlay.append(topButton, bottomButton);
+    box.append(overlay);
   };
 
   const renderStimulantSlot = () => {
@@ -384,11 +412,9 @@ export function initMakerPanel({
     }
 
     box.addEventListener('click', () => {
-      pendingGemKey = null;
       activeStimulantSlot = true;
       editingSlotIndex = -1;
       renderGemSlots();
-      renderStimulantInputPanel();
     });
     box.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -396,6 +422,26 @@ export function initMakerPanel({
         box.click();
       }
     });
+
+    appendModeOverlay(
+      box,
+      '추옵',
+      '촉진제',
+      () => {
+        pendingGemKey = null;
+        activeStimulantSlot = true;
+        editingSlotIndex = -1;
+        renderGemSlots();
+        renderStimulantInputPanel(MATERIAL_MODE_MANUAL);
+      },
+      () => {
+        pendingGemKey = null;
+        activeStimulantSlot = true;
+        editingSlotIndex = -1;
+        renderGemSlots();
+        renderStimulantInputPanel(MATERIAL_MODE_PROBABILITY);
+      },
+    );
 
     makerGemSlots.append(box);
   };
@@ -501,6 +547,28 @@ export function initMakerPanel({
           }
         });
         box.append(xBtn);
+
+        if (gem?.behavior === 'variable') {
+          appendModeOverlay(
+            box,
+            '추옵',
+            '확률 적용',
+            () => {
+              activeStimulantSlot = false;
+              editingSlotIndex = i;
+              pendingGemKey = gem.key;
+              renderGemSlots();
+              renderVariableGemInputPanel(gem, MATERIAL_MODE_MANUAL);
+            },
+            () => {
+              activeStimulantSlot = false;
+              editingSlotIndex = i;
+              pendingGemKey = gem.key;
+              renderGemSlots();
+              renderVariableGemInputPanel(gem, MATERIAL_MODE_PROBABILITY);
+            },
+          );
+        }
       }
 
       if (!isDisabled || gemSlot) {
@@ -582,7 +650,7 @@ export function initMakerPanel({
         item.addEventListener('click', () => {
           pendingGemKey = gem.key;
           if (gem.behavior === 'variable') {
-            renderVariableGemInputPanel(gem);
+            renderVariableGemInputPanel(gem, MATERIAL_MODE_MANUAL);
           } else {
             renderStep2Picker();
           }
