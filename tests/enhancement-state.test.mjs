@@ -205,6 +205,7 @@ test('applyVariableGem stores stats on gem slot', () => {
     gemKey: 'darkCrystal',
     stats: { str: 3, dex: -1, int: 0, luk: 5 },
     mode: 'manual',
+    gradeIndex: 0,
   });
 });
 
@@ -216,6 +217,7 @@ test('applyVariableGem stores manual and probability modes', () => {
     gemKey: 'darkCrystal',
     stats: { str: 3 },
     mode: 'manual',
+    gradeIndex: 0,
   });
 
   assert.equal(applyVariableGem(state, 0, 'darkCrystal', { str: 5 }, 'probability'), true);
@@ -223,6 +225,7 @@ test('applyVariableGem stores manual and probability modes', () => {
     gemKey: 'darkCrystal',
     stats: { str: 5 },
     mode: 'probability',
+    gradeIndex: 0,
   });
 });
 

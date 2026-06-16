@@ -1287,7 +1287,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  const makerChoices = enhancementState.gemSlots
 	    .filter(s => s !== null)
 	    .map(s => (s.stats
-	      ? { gemKey: s.gemKey, stats: s.stats, mode: s.mode === MATERIAL_MODE_PROBABILITY ? MATERIAL_MODE_PROBABILITY : 'manual' }
+	      ? { gemKey: s.gemKey, stats: s.stats, mode: s.mode === MATERIAL_MODE_PROBABILITY ? MATERIAL_MODE_PROBABILITY : 'manual', grade: s.gradeIndex ?? 0 }
 	      : { gemKey: s.gemKey, grade: s.gradeIndex }));
 
 	  // Pre-apply user-specified stats that are not represented in makerChoices.
