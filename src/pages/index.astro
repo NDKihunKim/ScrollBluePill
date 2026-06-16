@@ -2459,7 +2459,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		min-width: 0;
 		border: 0;
 		background: transparent;
-		color: var(--ink);
+		color: var(--muted);
+		transition: color 0.12s ease;
 		font-size: 0.72rem;
 		font-weight: 700;
 		line-height: 1.1;
@@ -2467,7 +2468,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	}
 	:global(.maker-slot-mode-button:hover),
 	:global(.maker-slot-mode-button:focus-visible) {
-		background: rgba(35, 128, 70, 0.12);
+		color: #fff;
+		background: rgba(35, 128, 70, 0.88);
 		outline: 2px solid var(--green);
 		outline-offset: -2px;
 	}
@@ -2475,7 +2477,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		border-bottom: 1px solid var(--line);
 	}
 	:global(.maker-slot-mode-button--bottom) {
-		color: var(--green);
 	}
 	:global(.maker-gem-slot--stimulant) {
 		border-style: dashed;
