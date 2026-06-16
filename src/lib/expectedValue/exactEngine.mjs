@@ -13,10 +13,13 @@ import { isFixedGem, isRandomGem, getFixedGemStats } from './makerModel.mjs';
  * @returns {boolean}
  */
 export function isDeterministicStrategy(strategy) {
-  const { makerChoices = [], scrollSequence = [], useItemLevelUp = false } = strategy || {};
+  const { makerChoices = [], scrollSequence = [], useItemLevelUp = false, useStimulant = false } = strategy || {};
 
   // Item level-up is non-deterministic
   if (useItemLevelUp) return false;
+
+  // Stimulant has 90% success rate and random chaos deltas
+  if (useStimulant) return false;
 
   // Check scrolls for chaos behavior
   for (const scroll of scrollSequence) {

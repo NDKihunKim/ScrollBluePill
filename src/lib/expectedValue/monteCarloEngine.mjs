@@ -3,6 +3,9 @@ import { satisfiesTargets } from './exactEngine.mjs';
 import { computeGemContribution } from './makerModel.mjs';
 import { parseScrollSuccessRate } from './scrollModel.mjs';
 
+/** Stimulant (촉진제) success rate: 90% */
+export const STIMULANT_SUCCESS_RATE = 0.9;
+
 /**
  * Creates a deterministic pseudorandom number generator using Mulberry32.
  *
@@ -101,7 +104,7 @@ function getScrollSuccessRate(scroll) {
 }
 
 function simulateStrategyTrial(strategy, cleanStats, targetConditions, rng) {
-  const { makerChoices = [], scrollSequence = [] } = strategy || {};
+  const { makerChoices = [], scrollSequence = [], useStimulant = false } = strategy || {};
   const state = { ...cleanStats };
 
   for (const choice of makerChoices) {
@@ -114,6 +117,16 @@ function simulateStrategyTrial(strategy, cleanStats, targetConditions, rng) {
       rng,
     );
     addStats(state, gemStats);
+  }
+
+  // Stimulant (촉진제): 90% success, chaos deltas on each stat independently
+  if (useStimulant) {
+    if (rng() < STIMULANT_SUCCESS_RATE) {
+      const stimulantState = applyChaosToStats(state, rng);
+      for (const [key, value] of Object.entries(stimulantState)) {
+        state[key] = value;
+      }
+    }
   }
 
   for (const scroll of scrollSequence) {
