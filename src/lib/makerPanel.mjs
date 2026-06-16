@@ -502,7 +502,9 @@ export function initMakerPanel({
         const gem = getGemTypeByKey(gemSlot.gemKey);
         if (gem) {
           if (gem.behavior === 'variable') {
-            const iconId = GEM_ITEM_IDS[gem.key]?.base ?? 0;
+            const gradeIdx = gemSlot.gradeIndex ?? 0;
+            const gradeKey = gradeIdx === 2 ? 'high' : gradeIdx === 1 ? 'mid' : 'low';
+            const iconId = GEM_ITEM_IDS[gem.key]?.[gradeKey] ?? GEM_ITEM_IDS[gem.key]?.base ?? 0;
             const img = createGemIconElement(gem.key, gem.stat, iconId);
 
             const nameSpan = document.createElement('span');
@@ -510,7 +512,6 @@ export function initMakerPanel({
             nameSpan.textContent = gem.nameKo;
 
             // Show grade label
-            const gradeIdx = gemSlot.gradeIndex ?? 0;
             const gradeLabel = document.createElement('span');
             gradeLabel.className = 'maker-gem-slot-grade';
             gradeLabel.textContent = GEM_GRADES[gradeIdx] ?? GEM_GRADES[0];
@@ -757,7 +758,7 @@ export function initMakerPanel({
       item.className = 'maker-picker-item';
 
       const gradeKey = g === 2 ? 'high' : g === 1 ? 'mid' : 'low';
-      const iconId = GEM_ITEM_IDS[gem.key]?.base ?? 0;
+      const iconId = GEM_ITEM_IDS[gem.key]?.[gradeKey] ?? GEM_ITEM_IDS[gem.key]?.base ?? 0;
       const img = createGemIconElement(gem.key, gem.stat, iconId);
 
       const gradeSpan = document.createElement('span');

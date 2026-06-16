@@ -101,8 +101,8 @@ export const GEM_ITEM_IDS = {
   dexCrystal:  { base: 4005002, low: 4251100, mid: 4251101, high: 4251102 },
   intCrystal:  { base: 4005001, low: 4250900, mid: 4250901, high: 4250902 },
   lukCrystal:  { base: 4005003, low: 4251000, mid: 4251001, high: 4251002 },
-  darkCrystal:  { base: 4005004 },
-  blackAmethyst: { base: 4021008 },
+  darkCrystal:  { base: 4005004, low: 4251400, mid: 4251401, high: 4251402 },
+  blackAmethyst: { base: 4021008, low: 4251300, mid: 4251301, high: 4251302 },
 };
 
 /** Background colors for gem icon placeholders, keyed by stat */
