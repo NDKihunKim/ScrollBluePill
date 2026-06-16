@@ -98,7 +98,7 @@ export function initMakerPanel({
 
     const existingSlot = enhancementState.gemSlots.find((s) => s?.gemKey === gem.key);
     const existingMode = existingSlot?.mode;
-    const isProbability = existingMode === 'probability';
+    let currentIsProbability = existingMode === 'probability';
 
     const cleanStats = selectedBaseItem.stats ?? {};
     const statKeys = (gem.variableKeys ?? []).filter((k) => Number.isFinite(cleanStats[k]) && cleanStats[k] > 0);
@@ -198,7 +198,7 @@ export function initMakerPanel({
       for (const key of statKeys) {
         stats[key] = values.get(key) ?? 0;
       }
-      const currentMode = isProbability ? 'probability' : 'manual';
+      const currentMode = currentIsProbability ? 'probability' : 'manual';
       const ok = applyVariableGem(enhancementState, editingSlotIndex, gem.key, stats, currentMode, gradeIndex);
       if (!ok) return;
 
@@ -234,7 +234,10 @@ export function initMakerPanel({
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.className = 'maker-mode-toggle-checkbox';
-    checkbox.checked = isProbability;
+    checkbox.checked = currentIsProbability;
+    checkbox.addEventListener('change', () => {
+      currentIsProbability = checkbox.checked;
+    });
 
     const helpIcon = document.createElement('span');
     helpIcon.className = 'maker-material-help';
@@ -263,7 +266,7 @@ export function initMakerPanel({
     }
 
     const existingMode = enhancementState.stimulantSlot?.mode;
-    const isProbability = existingMode === 'probability';
+    let currentIsProbability = existingMode === 'probability';
 
     pendingGemKey = null;
     editingSlotIndex = -1;
@@ -360,7 +363,7 @@ export function initMakerPanel({
       for (const key of statKeys) {
         stats[key] = stimulantValues.get(key) ?? 0;
       }
-      const currentMode = isProbability ? 'probability' : 'manual';
+      const currentMode = currentIsProbability ? 'probability' : 'manual';
       applyStimulant(enhancementState, stats, currentMode);
       hidePicker();
       renderStimulantSlot();
@@ -379,7 +382,10 @@ export function initMakerPanel({
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.className = 'maker-mode-toggle-checkbox';
-    checkbox.checked = isProbability;
+    checkbox.checked = currentIsProbability;
+    checkbox.addEventListener('change', () => {
+      currentIsProbability = checkbox.checked;
+    });
 
     const helpIcon = document.createElement('span');
     helpIcon.className = 'maker-material-help';
