@@ -1,4 +1,4 @@
-import { applyItemLevelUp, clearItemLevelUpSlot, computeAccumulatedStats, computeStatBreakdown, computeItemLevelUpCardMeta, computeAppliedScrollCount, computeRemainingSlots, computeGradeColor } from './enhancementState.mjs';
+import { applyItemLevelUp, clearItemLevelUpSlot, applyItemLevelUpMode, computeAccumulatedStats, computeStatBreakdown, computeItemLevelUpCardMeta, computeAppliedScrollCount, computeRemainingSlots, computeGradeColor } from './enhancementState.mjs';
 import { statLabelByKey } from './makerData.mjs';
 import { HP_MP_KEYS } from './enhancementState.mjs';
 

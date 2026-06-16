@@ -32,7 +32,7 @@ export function createEnhancementState(upgradeSlots, requiredLevel, levelUpDefin
   const itemLevelUpSlots = createItemLevelUpSlots(levelUpDefinition);
   const itemLevelUpSlotCount = itemLevelUpSlots.length;
 
-  return { scrollState, gemSlots, gemSlotCount, makerActive, stimulantSlot, itemLevelUpSlots, itemLevelUpSlotCount };
+  return { scrollState, gemSlots, gemSlotCount, makerActive, stimulantSlot, itemLevelUpSlots, itemLevelUpSlotCount, itemLevelUpMode: MATERIAL_MODE_MANUAL };
 }
 
 export function activateMaker(state) {
@@ -84,6 +84,10 @@ export function applyItemLevelUp(state, slotIndex, stats) {
 
   state.itemLevelUpSlots[slotIndex] = { stats: normalizedStats };
   return true;
+}
+
+export function applyItemLevelUpMode(state, mode) {
+  state.itemLevelUpMode = normalizeMaterialMode(mode);
 }
 
 export function clearItemLevelUpSlot(state, slotIndex) {

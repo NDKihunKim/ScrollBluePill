@@ -1191,7 +1191,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	    s && s.stats && s.mode === 'probability'
 	  );
 	  const hasProbabilityStimulant = st.stimulantSlot?.mode === 'probability';
-	  const hasLevelUp = st.itemLevelUpSlots.some(s => s !== null);
+	  const hasLevelUp = st.itemLevelUpSlots.some(s => s !== null) && st.itemLevelUpMode === 'probability';
 
 	  evTrigger.disabled = !(hasNonDeterministicScroll || hasProbabilityGem || hasProbabilityStimulant || hasLevelUp);
 	};
@@ -1319,9 +1319,12 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	    preApply(enhancementState.stimulantSlot.stats);
 	  }
 
-	  // Item level-up slots (user-chosen stats, guaranteed)
-	  for (const slot of enhancementState.itemLevelUpSlots ?? []) {
-	    if (slot?.stats) preApply(slot.stats);
+	  // Item level-up: pre-apply only if manual mode
+	  const itemLevelUpMode = enhancementState.itemLevelUpMode ?? 'manual';
+	  if (itemLevelUpMode !== MATERIAL_MODE_PROBABILITY) {
+	    for (const slot of enhancementState.itemLevelUpSlots ?? []) {
+	      if (slot?.stats) preApply(slot.stats);
+	    }
 	  }
 
 	  const effectiveTargetConditions = {
@@ -1332,7 +1335,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  const userStrategy = {
 	    makerChoices,
 	    scrollSequence,
-	    useItemLevelUp: false,
+	    useItemLevelUp: itemLevelUpMode === MATERIAL_MODE_PROBABILITY,
 	    useStimulant: enhancementState.stimulantSlot?.mode === MATERIAL_MODE_PROBABILITY,
 	  };
 
