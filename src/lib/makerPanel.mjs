@@ -405,6 +405,7 @@ export function initMakerPanel({
         clearStimulant(enhancementState);
         stimulantValues = new Map();
         hidePicker();
+        renderStimulantSlot();
         renderGemSlots();
         refreshEnhancedCard();
       });
