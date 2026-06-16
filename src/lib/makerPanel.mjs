@@ -334,6 +334,7 @@ export function initMakerPanel({
       const currentMode = isProbability ? 'probability' : 'manual';
       applyStimulant(enhancementState, stats, currentMode);
       hidePicker();
+      renderStimulantSlot();
       renderGemSlots();
       refreshEnhancedCard();
     });
@@ -371,7 +372,7 @@ export function initMakerPanel({
 
 
   const renderStimulantSlot = () => {
-    if (!(makerGemSlots instanceof HTMLElement)) return;
+    if (!(makerStimulantSlot instanceof HTMLElement)) return;
 
     const box = document.createElement('div');
     box.setAttribute('role', 'button');
@@ -388,7 +389,8 @@ export function initMakerPanel({
 
       const nameSpan = document.createElement('span');
       nameSpan.className = 'maker-gem-slot-name';
-      nameSpan.textContent = '촉진제';
+      const stimMode = enhancementState?.stimulantSlot?.mode;
+      nameSpan.textContent = stimMode === 'probability' ? '촉진제' : '추옵';
 
       box.append(img, nameSpan);
 
