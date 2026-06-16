@@ -2498,7 +2498,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	}
 
 	:global(.maker-gem-slot--stimulant)::after {
-		content: '(촉진제)';
+		content: '(추옵/촉진제)';
 	}
 
 	:global(.maker-gem-slot--disabled::after) {
@@ -2511,7 +2511,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		transform: translate(-50%, -50%);
 	}
 	:global(.maker-gem-slot--filled)::after,
-	:global(.maker-gem-slot--active)::after {
+		:global(.maker-gem-slot--active)::after,
+		:global(.maker-gem-slot:hover)::after,
+		:global(.maker-gem-slot:focus-within)::after {
 		content: none;
 	}
 
