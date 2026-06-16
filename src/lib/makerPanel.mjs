@@ -725,6 +725,9 @@ export function initMakerPanel({
       onMakerOpen?.();
       makerToggle.classList.add('maker-toggle-button--active');
       if (makerGemArea instanceof HTMLElement) makerGemArea.hidden = false;
+      const stimArea = makerStimulantSlot?.closest('.maker-stimulant-area');
+      if (stimArea instanceof HTMLElement) stimArea.hidden = false;
+      renderStimulantSlot();
       makerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
       let firstEmpty = -1;
@@ -776,15 +779,20 @@ export function initMakerPanel({
         if (makerGemArea instanceof HTMLElement) {
           makerGemArea.hidden = false;
         }
+        const stimAreaActive = makerStimulantSlot?.closest('.maker-stimulant-area');
+        if (stimAreaActive instanceof HTMLElement) stimAreaActive.hidden = false;
         if (makerToggle instanceof HTMLElement) {
           makerToggle.classList.add('maker-toggle-button--active');
         }
         updateMakerToggleLabel();
         renderGemSlots();
+        renderStimulantSlot();
       } else {
         if (makerGemArea instanceof HTMLElement) {
           makerGemArea.hidden = true;
         }
+        const stimAreaInactive = makerStimulantSlot?.closest('.maker-stimulant-area');
+        if (stimAreaInactive instanceof HTMLElement) stimAreaInactive.hidden = true;
         if (makerToggle instanceof HTMLElement) {
           makerToggle.classList.remove('maker-toggle-button--active');
           updateMakerToggleLabel();
