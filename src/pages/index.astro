@@ -1179,11 +1179,21 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  }
 
 	  const st = evState.enhancementState;
-	  const hasScroll = st.scrollState.slots.some(s => s !== null);
-	  const hasGem = st.gemSlots.some(s => s !== null);
-	  const hasStimulant = st.stimulantSlot !== null;
+
+	  // Only enable when at least one probability-based element exists
+	  const hasNonDeterministicScroll = st.scrollState.slots.some(s => {
+	    if (!s) return false;
+	    if (s.behavior_type === 'chaos') return true;
+	    const pctMatch = s.nameKo?.match(/(\d+)%/);
+	    return pctMatch ? parseInt(pctMatch[1], 10) < 100 : false;
+	  });
+	  const hasProbabilityGem = st.gemSlots.some(s =>
+	    s && s.stats && s.mode === 'probability'
+	  );
+	  const hasProbabilityStimulant = st.stimulantSlot?.mode === 'probability';
 	  const hasLevelUp = st.itemLevelUpSlots.some(s => s !== null);
-	  evTrigger.disabled = !(hasScroll || hasGem || hasStimulant || hasLevelUp);
+
+	  evTrigger.disabled = !(hasNonDeterministicScroll || hasProbabilityGem || hasProbabilityStimulant || hasLevelUp);
 	};
 
 	// Register callback for enhancement state changes
