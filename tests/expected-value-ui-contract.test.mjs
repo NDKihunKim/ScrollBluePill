@@ -92,20 +92,20 @@ test('expected value strategy preserves variable maker gem stats from UI state',
   assert.match(indexSource, /grade:\s*s\.gradeIndex/);
 });
 
-test('MIN_TRIALS=1000, MAX_TRIALS=1000000, DEFAULT_TRIAL_COUNT=100000', async () => {
+test('MIN_TRIALS=1000, MAX_TRIALS=10000000, DEFAULT_TRIAL_COUNT=100000', async () => {
   assert.equal(MIN_TRIALS, 1000);
-  assert.equal(MAX_TRIALS, 1000000);
+  assert.equal(MAX_TRIALS, 10000000);
 
   const { DEFAULT_TRIAL_COUNT } = await import('../src/lib/expectedValue/monteCarloEngine.mjs');
   assert.equal(DEFAULT_TRIAL_COUNT, 100000);
 });
 
-test('roundTrialCount rounds to nearest 1000 and clamps', () => {
+test('roundTrialCount rounds to nearest TRIAL_STEP (10000) and clamps', () => {
   assert.equal(roundTrialCount(0), 1000);
-  assert.equal(roundTrialCount(500), 1000);
-  assert.equal(roundTrialCount(1500), 2000);
+  assert.equal(roundTrialCount(5000), 10000);
+  assert.equal(roundTrialCount(15000), 20000);
   assert.equal(roundTrialCount(50000), 50000);
-  assert.equal(roundTrialCount(50500), 51000);
+  assert.equal(roundTrialCount(55000), 60000);
 });
 
 test('roundTrialCount clamps to MIN', () => {
@@ -116,9 +116,9 @@ test('roundTrialCount clamps to MIN', () => {
 });
 
 test('roundTrialCount clamps to MAX', () => {
-  assert.equal(roundTrialCount(1000001), 1000000);
-  assert.equal(roundTrialCount(2000000), 1000000);
-  assert.equal(roundTrialCount(999999), 1000000);
+  assert.equal(roundTrialCount(10000001), 10000000);
+  assert.equal(roundTrialCount(20000000), 10000000);
+  assert.equal(roundTrialCount(9999999), 10000000);
 });
 
 test('result panel renders interactive attempt row with input and cumulative probability', async () => {
