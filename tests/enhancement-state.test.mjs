@@ -71,7 +71,31 @@ test('stat breakdown includes maker gems and stimulant in maker total', () => {
 test('applyStimulant sets stimulantSlot on state', () => {
   const state = createEnhancementState(7, 80);
   assert.equal(applyStimulant(state, { str: 3, int: -1 }), true);
-  assert.deepEqual(state.stimulantSlot, { stats: { str: 3, int: -1 } });
+  assert.deepEqual(state.stimulantSlot, { stats: { str: 3, int: -1 }, mode: 'manual' });
+});
+
+test('applyStimulant stores manual and probability modes', () => {
+  const state = createEnhancementState(7, 80);
+
+  applyStimulant(state, { str: 2 }, 'manual');
+  assert.deepEqual(state.stimulantSlot, {
+    stats: { str: 2 },
+    mode: 'manual',
+  });
+
+  applyStimulant(state, { str: 4 }, 'probability');
+  assert.deepEqual(state.stimulantSlot, {
+    stats: { str: 4 },
+    mode: 'probability',
+  });
+});
+
+test('applyStimulant defaults missing mode to manual', () => {
+  const state = createEnhancementState(7, 80);
+
+  applyStimulant(state, { dex: 1 });
+
+  assert.equal(state.stimulantSlot.mode, 'manual');
 });
 
 test('clearStimulant removes stimulantSlot', () => {
@@ -106,7 +130,7 @@ test('enhancement state initializes and clears maker stimulant separately from g
 
   activateMaker(state);
   assert.equal(applyStimulant(state, { str: 0, dex: -3, maxHp: 5 }), true);
-  assert.deepEqual(state.stimulantSlot, { stats: { str: 0, dex: -3, maxHp: 5 } });
+  assert.deepEqual(state.stimulantSlot, { stats: { str: 0, dex: -3, maxHp: 5 }, mode: 'manual' });
   assert.equal(computeRemainingSlots(state), 7);
 
   clearStimulant(state);
@@ -177,7 +201,37 @@ test('maxHp and maxMp use 10x scale — applied at 50, grade color divides by 10
 test('applyVariableGem stores stats on gem slot', () => {
   const state = createEnhancementState(7, 80);
   assert.equal(applyVariableGem(state, 0, 'darkCrystal', { str: 3, dex: -1, int: 0, luk: 5 }), true);
-  assert.deepEqual(state.gemSlots[0], { gemKey: 'darkCrystal', stats: { str: 3, dex: -1, int: 0, luk: 5 } });
+  assert.deepEqual(state.gemSlots[0], {
+    gemKey: 'darkCrystal',
+    stats: { str: 3, dex: -1, int: 0, luk: 5 },
+    mode: 'manual',
+  });
+});
+
+test('applyVariableGem stores manual and probability modes', () => {
+  const state = createEnhancementState(7, 80);
+
+  assert.equal(applyVariableGem(state, 0, 'darkCrystal', { str: 3 }, 'manual'), true);
+  assert.deepEqual(state.gemSlots[0], {
+    gemKey: 'darkCrystal',
+    stats: { str: 3 },
+    mode: 'manual',
+  });
+
+  assert.equal(applyVariableGem(state, 0, 'darkCrystal', { str: 5 }, 'probability'), true);
+  assert.deepEqual(state.gemSlots[0], {
+    gemKey: 'darkCrystal',
+    stats: { str: 5 },
+    mode: 'probability',
+  });
+});
+
+test('applyVariableGem defaults missing mode to manual', () => {
+  const state = createEnhancementState(7, 80);
+
+  applyVariableGem(state, 0, 'blackAmethyst', { weaponAttack: 1 });
+
+  assert.equal(state.gemSlots[0].mode, 'manual');
 });
 
 test('applyVariableGem rejects non-variable gems', () => {

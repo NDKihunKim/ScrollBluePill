@@ -9,6 +9,14 @@ import {
 import { computeGemSlotCount, getGemTypeByKey } from './makerData.mjs';
 
 export const HP_MP_KEYS = new Set(['maxHp', 'maxMp']);
+export const MATERIAL_MODE_MANUAL = 'manual';
+export const MATERIAL_MODE_PROBABILITY = 'probability';
+
+function normalizeMaterialMode(mode) {
+  return mode === MATERIAL_MODE_PROBABILITY
+    ? MATERIAL_MODE_PROBABILITY
+    : MATERIAL_MODE_MANUAL;
+}
 
 export function createItemLevelUpSlots(levelUpDefinition = null) {
   const slotCount = Number.isInteger(levelUpDefinition?.maxLevelUps) ? levelUpDefinition.maxLevelUps : 0;
@@ -39,7 +47,7 @@ export function deactivateMaker(state) {
   clearStimulant(state);
 }
 
-export function applyStimulant(state, stats) {
+export function applyStimulant(state, stats, mode = MATERIAL_MODE_MANUAL) {
   if (!stats || typeof stats !== 'object') {
     return false;
   }
@@ -51,7 +59,10 @@ export function applyStimulant(state, stats) {
     }
   }
 
-  state.stimulantSlot = { stats: normalizedStats };
+  state.stimulantSlot = {
+    stats: normalizedStats,
+    mode: normalizeMaterialMode(mode),
+  };
   return true;
 }
 
@@ -120,7 +131,7 @@ export function applyGem(state, slotIndex, gemKey, gradeIndex) {
   return true;
 }
 
-export function applyVariableGem(state, slotIndex, gemKey, stats) {
+export function applyVariableGem(state, slotIndex, gemKey, stats, mode = MATERIAL_MODE_MANUAL) {
   if (slotIndex < 0 || slotIndex >= state.gemSlotCount) {
     return false;
   }
@@ -143,7 +154,11 @@ export function applyVariableGem(state, slotIndex, gemKey, stats) {
     }
   }
 
-  state.gemSlots[slotIndex] = { gemKey, stats: normalizedStats };
+  state.gemSlots[slotIndex] = {
+    gemKey,
+    stats: normalizedStats,
+    mode: normalizeMaterialMode(mode),
+  };
   return true;
 }
 
