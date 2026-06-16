@@ -18,6 +18,8 @@ const {
   MAX_TRIALS,
   TRIAL_STEP,
   roundTrialCount,
+  computeCountForTopPercent,
+  computeTopPercentForCount,
 } = await import('../src/lib/expectedValue/expectedValuePanel.mjs');
 
 test('PLACEHOLDER_TEXT is defined and non-empty', () => {
@@ -135,26 +137,50 @@ test('result panel renders interactive attempt row with input and cumulative pro
   const indexSource = await readFile(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
 
   assert.match(panelSource, /ev-result-title/);
-  assert.match(panelSource, /평균 장비 기대값/);
+  assert.match(panelSource, /장비 기대값/);
+  assert.doesNotMatch(panelSource, /평균 장비 기대값/);
   assert.match(panelSource, /ev-equipment-count/);
-  assert.match(panelSource, /장비 갯수/);
-  assert.match(panelSource, /ev-attempt-row/);
-  assert.match(panelSource, /ev-attempt-input/);
-  assert.match(panelSource, /ev-attempt-result/);
+  assert.match(panelSource, /평균 장비 갯수/);
+  assert.match(panelSource, /ev-converter-row/);
+  assert.match(panelSource, /ev-percent-input/);
+  assert.match(panelSource, /ev-count-input/);
+  assert.match(panelSource, /상위/);
+  assert.match(panelSource, /제작 횟수/);
   assert.match(panelSource, /computeCumulativeProbability/);
-  assert.match(panelSource, /updateAttemptResult/);
-  assert.match(panelSource, /attemptInput\.addEventListener\('input',\s*updateAttemptResult\)/);
-  assert.match(panelSource, /시도 횟수/);
-  assert.match(panelSource, /formatProbability\(cumulative\)/);
+  assert.match(panelSource, /computeAttemptsForPercentile/);
+  assert.match(panelSource, /updatePercentFromCount/);
+  assert.match(panelSource, /updateCountFromPercent/);
+  assert.match(panelSource, /percentInput\.addEventListener\('input',\s*updateCountFromPercent\)/);
+  assert.match(panelSource, /countInput\.addEventListener\('input',\s*updatePercentFromCount\)/);
+  assert.doesNotMatch(panelSource, /시도 횟수/);
+  assert.match(panelSource, /formatPercentInputValue\(cumulative\)/);
   assert.match(indexSource, /:global\(\.ev-result-title\)\s*\{/);
   assert.match(indexSource, /:global\(\.ev-equipment-count\)\s*\{/);
-  assert.match(indexSource, /:global\(\.ev-attempt-row\)\s*\{/);
-  assert.match(indexSource, /:global\(\.ev-attempt-input\)\s*\{/);
-  assert.match(indexSource, /:global\(\.ev-attempt-result\)\s*\{/);
+  assert.match(indexSource, /:global\(\.ev-converter-row\)\s*\{/);
+  assert.match(indexSource, /:global\(\.ev-converter-field\)\s*\{/);
+  assert.match(indexSource, /:global\(\.ev-percent-input\)\s*\{/);
+  assert.match(indexSource, /:global\(\.ev-count-input\)\s*\{/);
   assert.doesNotMatch(panelSource, /ev-percentiles/);
   assert.doesNotMatch(panelSource, /ev-expected-attempts/);
   assert.doesNotMatch(panelSource, /ev-method-label/);
   assert.doesNotMatch(panelSource, /ev-probability/);
+});
+
+test('result panel converter maps count and percentile consistently', () => {
+  const successProbability = 1 / 3125;
+  const defaultTopPercent = computeTopPercentForCount(successProbability, 3125);
+
+  assert.equal(defaultTopPercent, '63.22');
+  assert.equal(
+    computeCountForTopPercent(successProbability, Number(defaultTopPercent)),
+    3126,
+  );
+  assert.equal(
+    computeCountForTopPercent(successProbability, Number(defaultTopPercent), 3125),
+    3125,
+  );
+  assert.equal(computeTopPercentForCount(successProbability, 1), '0.03');
+  assert.equal(computeCountForTopPercent(successProbability, 0), 0);
 });
 
 test('EV clear hook is exposed for reset handler', async () => {
