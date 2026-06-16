@@ -2165,7 +2165,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		min-height: 26px;
 		padding: 3px 8px;
 		border: 1px solid var(--line);
-		border-radius: 6px;
+		border-radius: 5px;
 		background: var(--surface);
 		color: var(--ink);
 		font-size: 0.76rem;
@@ -2430,11 +2430,12 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	}
 	:global(.maker-slot-mode-overlay) {
 		position: absolute;
-		inset: 0;
+		inset: 1px;
 		display: grid;
 		grid-template-rows: 1fr 1fr;
+		overflow: hidden;
 		padding: 3px;
-		border-radius: 6px;
+		border-radius: 5px;
 		background: var(--surface);
 		backdrop-filter: blur(3px);
 		box-shadow: 0 0 0 1px var(--line), 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -2474,7 +2475,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		outline-offset: -2px;
 	}
 	:global(.maker-slot-mode-button--top) {
-		border-bottom: 1px solid var(--line);
+		border-bottom: 1.5px solid var(--ink);
 	}
 	:global(.maker-slot-mode-button--bottom) {
 	}
