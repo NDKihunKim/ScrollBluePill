@@ -92,6 +92,16 @@ test('expected value strategy preserves variable maker gem stats from UI state',
   assert.match(indexSource, /grade:\s*s\.gradeIndex/);
 });
 
+test('expected value strategy separates manual material stats from probability material sources', async () => {
+  const indexSource = await readFile(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
+
+  assert.match(indexSource, /MATERIAL_MODE_PROBABILITY/);
+  assert.match(indexSource, /s\.mode\s*===\s*MATERIAL_MODE_PROBABILITY/);
+  assert.match(indexSource, /preApply\(enhancementState\.stimulantSlot\.stats\)/);
+  assert.doesNotMatch(indexSource, /preApply\(s\.stats\)/);
+  assert.match(indexSource, /useStimulant:\s*enhancementState\.stimulantSlot\?\.mode\s*===\s*MATERIAL_MODE_PROBABILITY/);
+});
+
 test('MIN_TRIALS=1000, MAX_TRIALS=10000000, DEFAULT_TRIAL_COUNT=100000', async () => {
   assert.equal(MIN_TRIALS, 1000);
   assert.equal(MAX_TRIALS, 10000000);

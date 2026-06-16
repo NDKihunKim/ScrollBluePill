@@ -110,6 +110,11 @@ function simulateStrategyTrial(strategy, cleanStats, targetConditions, rng) {
   for (const choice of makerChoices) {
     if (!choice?.gemKey) continue;
 
+    if (choice.stats && choice.mode !== 'probability') {
+      addStats(state, choice.stats);
+      continue;
+    }
+
     const gemStats = computeGemContribution(
       choice.gemKey,
       inferMakerChoiceGrade(choice),
