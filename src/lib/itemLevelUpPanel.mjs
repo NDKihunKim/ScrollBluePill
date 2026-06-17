@@ -86,7 +86,7 @@ export function initItemLevelUpPanel({
 
 			const summary = document.createElement('span');
 			summary.className = 'item-level-up-slot-summary';
-			summary.textContent = slot ? summarizeStats(slot.stats) : '(입력)';
+			summary.textContent = slot ? summarizeStats(slot.stats) : '(추가)';
 			box.append(summary);
 
 			if (slot) {
