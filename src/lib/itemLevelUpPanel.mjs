@@ -68,6 +68,7 @@ export function initItemLevelUpPanel({
 	const renderSlots = () => {
 		if (!(slots instanceof HTMLElement) || !enhancementState || !definition) return;
 		slots.replaceChildren();
+			slots.classList.toggle('item-level-up-slots--centered', enhancementState.itemLevelUpSlotCount === 5);
 
 		for (let i = 0; i < enhancementState.itemLevelUpSlotCount; i++) {
 			const slot = enhancementState.itemLevelUpSlots[i];
@@ -344,6 +345,7 @@ export function initItemLevelUpPanel({
 			}
 			if (area instanceof HTMLElement) area.hidden = true;
 			if (slots instanceof HTMLElement) slots.replaceChildren();
+			slots.classList.toggle('item-level-up-slots--centered', enhancementState.itemLevelUpSlotCount === 5);
 		},
 	};
 }
