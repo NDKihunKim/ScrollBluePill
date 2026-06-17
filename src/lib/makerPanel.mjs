@@ -109,7 +109,10 @@ export function initMakerPanel({
     makerPicker.hidden = false;
     if (makerPickerBack instanceof HTMLElement) makerPickerBack.hidden = false;
 
-    const gradeAbsLimit = gradeIndex === 2 ? 3 : gradeIndex === 1 ? 2 : 1;
+    const isDark = gem.key === 'darkCrystal';
+    const gradeAbsLimit = isDark
+      ? (gradeIndex === 2 ? 5 : gradeIndex === 1 ? 3 : 2)
+      : (gradeIndex === 2 ? 3 : gradeIndex === 1 ? 2 : 1);
     const limit = gem.variableLimit ?? 5;
     const existingStats = existingSlot?.stats ?? {};
 
@@ -759,11 +762,18 @@ export function initMakerPanel({
     makerPickerGrid.classList.remove('maker-stimulant-input-panel');
     if (makerPickerBack instanceof HTMLElement) makerPickerBack.hidden = false;
 
-    const gradeRanges = [
-      { gradeIndex: 0, label: '하급', range: '-1 ~ +1' },
-      { gradeIndex: 1, label: '중급', range: '-2 ~ +2' },
-      { gradeIndex: 2, label: '상급', range: '-3 ~ +3' },
-    ];
+    const isDarkCrystal = gem.key === 'darkCrystal';
+    const gradeRanges = isDarkCrystal
+      ? [
+          { gradeIndex: 0, label: '하급', range: '-2 ~ +2' },
+          { gradeIndex: 1, label: '중급', range: '-3 ~ +3' },
+          { gradeIndex: 2, label: '상급', range: '-5 ~ +5' },
+        ]
+      : [
+          { gradeIndex: 0, label: '하급', range: '-1 ~ +1' },
+          { gradeIndex: 1, label: '중급', range: '-2 ~ +2' },
+          { gradeIndex: 2, label: '상급', range: '-3 ~ +3' },
+        ];
 
     for (let g = 2; g >= 0; g--) {
       const gradeInfo = gradeRanges[g];
