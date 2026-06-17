@@ -281,7 +281,19 @@ export function initItemLevelUpPanel({
       actionsDiv.append(applyBtn);
     }
 
+    const helpIcon = document.createElement('span');
+    helpIcon.className = 'maker-material-help';
+    helpIcon.setAttribute('tabindex', '0');
+    helpIcon.setAttribute('aria-label', '확률 계산 포함 설명');
+    helpIcon.textContent = '?';
+    const helpTooltip = document.createElement('span');
+    helpTooltip.className = 'maker-material-help-tooltip';
+    helpTooltip.setAttribute('role', 'tooltip');
+    helpTooltip.textContent = '아이템 레벨업 확률 포함 (레벨별 스탯 범위 내 균등 확률)';
+    helpIcon.append(helpTooltip);
+
     toggleLabel.prepend(checkbox);
+    toggleLabel.append(' ', helpIcon);
     toggleRow.append(toggleLabel, actionsDiv);
     editor.append(toggleRow);
   };
