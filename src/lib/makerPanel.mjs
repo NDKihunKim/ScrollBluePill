@@ -260,7 +260,7 @@ export function initMakerPanel({
     }
 
     toggleLabel.prepend(checkbox);
-    toggleLabel.append(' (', helpIcon, ')');
+    toggleLabel.append(' ', helpIcon);
     toggleRow.append(toggleLabel, actionsDiv);
     makerPickerGrid.append(toggleRow);
   };
@@ -411,7 +411,7 @@ export function initMakerPanel({
     actionsDiv.append(applyBtn);
 
     toggleLabel.prepend(checkbox);
-    toggleLabel.append(' (', helpIcon, ')');
+    toggleLabel.append(' ', helpIcon);
     toggleRow.append(toggleLabel, actionsDiv);
     makerPickerGrid.append(toggleRow);
   };
