@@ -38,6 +38,26 @@ test.skip('maker stimulant slot source contract is present', async () => {
 	assert.match(makerPanelSource, /clearStimulant/);
 });
 
+test('Maker renders separate stimulant and gem editor surfaces', async () => {
+	const enhancementPanelSource = await readFile(new URL('../src/lib/enhancementPanel.mjs', import.meta.url), 'utf8');
+	const stimulantSlotIndex = indexSource.indexOf('data-maker-stimulant-slot');
+	const stimulantEditorIndex = indexSource.indexOf('data-maker-stimulant-editor');
+	const gemSlotsIndex = indexSource.indexOf('data-maker-gem-slots');
+	const makerPickerIndex = indexSource.indexOf('data-maker-picker');
+
+	assert.ok(stimulantEditorIndex > stimulantSlotIndex);
+	assert.ok(gemSlotsIndex > stimulantEditorIndex);
+	assert.ok(makerPickerIndex > stimulantEditorIndex);
+	assert.match(indexSource, /data-maker-stimulant-editor hidden/);
+	assert.match(indexSource, /data-maker-picker hidden/);
+	assert.match(enhancementPanelSource, /makerStimulantEditor\s*=\s*enhancementPanel\?\.querySelector\('\[data-maker-stimulant-editor\]'\)/);
+	assert.match(enhancementPanelSource, /makerStimulantEditorLabel\s*=\s*enhancementPanel\?\.querySelector\('\[data-maker-stimulant-editor-label\]'\)/);
+	assert.match(enhancementPanelSource, /makerStimulantEditorGrid\s*=\s*enhancementPanel\?\.querySelector\('\[data-maker-stimulant-editor-grid\]'\)/);
+	assert.match(enhancementPanelSource, /initMakerPanel\(\{[\s\S]*makerStimulantEditor,/);
+	assert.match(enhancementPanelSource, /initMakerPanel\(\{[\s\S]*makerStimulantEditorLabel,/);
+	assert.match(enhancementPanelSource, /initMakerPanel\(\{[\s\S]*makerStimulantEditorGrid,/);
+});
+
 test('maker-only changes notify expected-value button state', async () => {
 	const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
 	const enhancementPanelSource = await readFile(new URL('../src/lib/enhancementPanel.mjs', import.meta.url), 'utf8');
