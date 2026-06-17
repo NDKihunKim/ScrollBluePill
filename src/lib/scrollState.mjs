@@ -140,11 +140,12 @@ export function formatScrollStatLine(scroll) {
 }
 
 export function computeAppliedScrollCount(state) {
-  return state.slots.filter((slot) => slot !== null).length;
+  return state.slots.filter((slot) => slot !== null && slot.id !== '__failed_scroll__').length;
 }
 
 export function computeRemainingSlots(state) {
-  return state.slotCount - computeAppliedScrollCount(state);
+  const totalFilled = state.slots.filter((slot) => slot !== null).length;
+  return state.slotCount - totalFilled;
 }
 
 const HP_MP_KEYS = new Set(['maxHp', 'maxMp']);
