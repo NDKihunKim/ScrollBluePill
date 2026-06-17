@@ -746,3 +746,9 @@ test('enhancement panel loads item level-up runtime data', async () => {
 	assert.match(enhancementPanelSource, /itemLevelUpByItemId\s*=\s*new Map/);
 	assert.match(enhancementPanelSource, /levelUpDefinition\.itemId/);
 });
+
+test('stimulant editor stays beneath its slot inside the Maker panel', () => {
+	assert.match(indexSource, /:global\(\.maker-stimulant-editor\)\s*\{[^}]*margin-top:\s*10px;/s);
+	assert.match(indexSource, /:global\(\.maker-stimulant-editor\[hidden\]\)\s*\{[^}]*display:\s*none;/s);
+	assert.match(indexSource, /:global\(\.maker-stimulant-editor-grid\)\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;/s);
+});
