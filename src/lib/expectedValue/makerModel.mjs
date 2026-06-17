@@ -29,6 +29,42 @@ export const BLACK_AMETHYST_TABLES = {
   ],
 };
 
+/**
+ * Probability tables for Dark Crystal (어둠의 크리스탈) by grade.
+ * 하급: ±2, 중급: ±3 (same shape as 흑수정), 상급: ±5 (chaos scroll distribution)
+ */
+export const DARK_CRYSTAL_TABLES = {
+  low: [
+    { value: -2, probability: 0.08 },
+    { value: -1, probability: 0.22 },
+    { value: 0,  probability: 0.40 },
+    { value: 1,  probability: 0.22 },
+    { value: 2,  probability: 0.08 },
+  ],
+  mid: [
+    { value: -3, probability: 0.05 },
+    { value: -2, probability: 0.10 },
+    { value: -1, probability: 0.20 },
+    { value: 0,  probability: 0.30 },
+    { value: 1,  probability: 0.20 },
+    { value: 2,  probability: 0.10 },
+    { value: 3,  probability: 0.05 },
+  ],
+  high: [
+    { value: -5, probability: 0.0494 },
+    { value: -4, probability: 0.0297 },
+    { value: -3, probability: 0.0365 },
+    { value: -2, probability: 0.0800 },
+    { value: -1, probability: 0.1370 },
+    { value: 0,  probability: 0.1838 },
+    { value: 1,  probability: 0.1931 },
+    { value: 2,  probability: 0.1587 },
+    { value: 3,  probability: 0.1021 },
+    { value: 4,  probability: 0.0198 },
+    { value: 5,  probability: 0.0099 },
+  ],
+};
+
 const FIXED_GEM_KEYS = new Set([
   'diamond', 'sapphire', 'strCrystal', 'dexCrystal', 'intCrystal', 'lukCrystal',
   'garnet', 'opal', 'amethyst', 'aquamarine', 'topaz', 'emerald',
@@ -131,13 +167,17 @@ export function rollBlackAmethystStats(gradeKey, statKeys, rng) {
  * @param {() => number} rng - Function returning uniform random [0, 1) per call
  * @returns {Record<string, number>} Updated stats with chaos deltas applied
  */
-export function rollDarkCrystalStats(cleanStats, rng) {
+export function rollDarkCrystalStats(gradeKey, cleanStats, rng) {
+  const table = DARK_CRYSTAL_TABLES[gradeKey];
+  if (!table) return {};
+
   const DARK_KEYS = ['str', 'dex', 'int', 'luk'];
   const result = {};
 
   for (const key of DARK_KEYS) {
     if (Number.isFinite(cleanStats[key])) {
-      const delta = rollChaosStatDelta(rng());
+      const rngValue = rng();
+      const delta = selectFromTable(table, rngValue);
       if (delta !== 0) {
         result[key] = delta;
       }
@@ -172,7 +212,9 @@ export function computeGemContribution(gemKey, grade, cleanStats, rng) {
   }
 
   if (gemKey === 'darkCrystal') {
-    return rollDarkCrystalStats(cleanStats, rng);
+    const gradeKey = typeof grade === 'number' ? GRADE_INDEX_TO_KEY[grade] : grade;
+    if (!gradeKey) return null;
+    return rollDarkCrystalStats(gradeKey, cleanStats, rng);
   }
 
   return null;

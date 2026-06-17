@@ -202,35 +202,27 @@ test('rollBlackAmethystStats high grade with RNG 0 returns -3', () => {
 test('rollDarkCrystalStats rolls each of STR/DEX/INT/LUK present on clean item', () => {
   const cleanStats = { str: 10, dex: 8, int: 5, luk: 3 };
   let callCount = 0;
-
-  // Since rollChaosStatDelta is called with our RNG values, we need to
-  // provide RNG such that we get predictable deltas.
-  // rollChaosStatDelta(0) returns 5 (delta 5 with first cumulative 0.0099)
-  // Actually wait - the chaos table starts with delta 5 at cumulative 0.0099
-  // So RNG 0 < 0.0099 → delta 5
-  // We'll use very specific values for deterministic outcomes.
   const rng = () => {
     callCount++;
-    // Return 0 so we get delta 5 for each stat
-    return 0;
+    return 0; // RNG 0 → delta -2 in low table
   };
 
-  const result = rollDarkCrystalStats(cleanStats, rng);
+  const result = rollDarkCrystalStats('low', cleanStats, rng);
   assert.equal(callCount, 4, 'should call RNG once per stat (STR/DEX/INT/LUK)');
-  assert.equal(result.str, 5, 'str delta 5');
-  assert.equal(result.dex, 5, 'dex delta 5');
-  assert.equal(result.int, 5, 'int delta 5');
-  assert.equal(result.luk, 5, 'luk delta 5');
+  assert.equal(result.str, -2, 'str delta -2');
+  assert.equal(result.dex, -2, 'dex delta -2');
+  assert.equal(result.int, -2, 'int delta -2');
+  assert.equal(result.luk, -2, 'luk delta -2');
 });
 
 test('rollDarkCrystalStats does not create stats absent from clean base', () => {
   const cleanStats = { str: 10, dex: 8 };
-  const rng = () => 0; // delta 5
+  const rng = () => 0; // delta -2 in low table
 
-  const result = rollDarkCrystalStats(cleanStats, rng);
+  const result = rollDarkCrystalStats('low', cleanStats, rng);
 
-  assert.equal(result.str, 5);
-  assert.equal(result.dex, 5);
+  assert.equal(result.str, -2);
+  assert.equal(result.dex, -2);
   assert.ok(!('int' in result), 'int should not be present');
   assert.ok(!('luk' in result), 'luk should not be present');
 });
@@ -239,17 +231,17 @@ test('rollDarkCrystalStats handles empty clean stats', () => {
   const cleanStats = {};
   const rng = () => 0;
 
-  const result = rollDarkCrystalStats(cleanStats, rng);
+  const result = rollDarkCrystalStats('low', cleanStats, rng);
 
   assert.deepEqual(result, {});
 });
 
 test('rollDarkCrystalStats omits zero deltas', () => {
   const cleanStats = { str: 10 };
-  // RNG 0.5 falls in delta 0 range (cumulative 0.4836 < 0.5 < 0.6674)
+  // RNG 0.5 → low table: cumulative 0.70 after delta 1, so 0.5 falls in delta 0
   const rng = () => 0.5;
 
-  const result = rollDarkCrystalStats(cleanStats, rng);
+  const result = rollDarkCrystalStats('low', cleanStats, rng);
   assert.deepEqual(result, {}, 'zero delta should be omitted');
 });
 
@@ -280,10 +272,10 @@ test('computeGemContribution dispatches blackAmethyst with grade index', () => {
   assert.deepEqual(result, { weaponAttack: -1, magicAttack: -1 });
 });
 
-test('computeGemContribution dispatches darkCrystal', () => {
+test('computeGemContribution dispatches darkCrystal with grade', () => {
   const cleanStats = { str: 10, dex: 8 };
-  const rng = () => 0; // delta 5
-  const result = computeGemContribution('darkCrystal', 0, cleanStats, rng);
+  const rng = () => 0.999; // high end → delta 5 in high table
+  const result = computeGemContribution('darkCrystal', 2, cleanStats, rng);
   assert.equal(result.str, 5);
   assert.equal(result.dex, 5);
 });
