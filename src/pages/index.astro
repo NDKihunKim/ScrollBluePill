@@ -2393,6 +2393,22 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		display: flex;
 		gap: 10px;
 		}
+
+		:global(.maker-stimulant-editor) {
+			margin-top: 10px;
+			padding-top: 10px;
+			border-top: 1px solid var(--line);
+		}
+
+		:global(.maker-stimulant-editor[hidden]) {
+			display: none;
+		}
+
+		:global(.maker-stimulant-editor-grid) {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
 	:global(.maker-toggle-button) {
 		display: inline-flex;
 		align-items: center;
