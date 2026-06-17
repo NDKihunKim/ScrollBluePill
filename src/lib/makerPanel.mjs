@@ -247,7 +247,7 @@ export function initMakerPanel({
     const helpTooltip = document.createElement('span');
     helpTooltip.className = 'maker-material-help-tooltip';
     helpTooltip.setAttribute('role', 'tooltip');
-    helpTooltip.textContent = '흑수정/어둠의 크리스탈 확률 포함';
+    helpTooltip.textContent = gem.nameKo + ': 각 스텟 변동 확률 적용';
     helpIcon.append(helpTooltip);
 
     const actionsDiv = document.createElement('div');
