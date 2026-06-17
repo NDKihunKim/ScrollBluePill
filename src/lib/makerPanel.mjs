@@ -26,6 +26,9 @@ export function initMakerPanel({
   makerToggle,
   makerGemArea,
   makerStimulantSlot,
+  makerStimulantEditor,
+  makerStimulantEditorLabel,
+  makerStimulantEditorGrid,
   makerGemSlots,
   makerPicker,
   makerPickerLabel,
@@ -54,6 +57,15 @@ export function initMakerPanel({
     }
     pendingGemKey = null;
     editingSlotIndex = -1;
+  };
+
+  const hideStimulantEditor = () => {
+    if (makerStimulantEditor instanceof HTMLElement) {
+      makerStimulantEditor.hidden = true;
+    }
+    if (makerStimulantEditorGrid instanceof HTMLElement) {
+      makerStimulantEditorGrid.replaceChildren();
+    }
   };
 
   const refreshEnhancedCard = () => {
@@ -269,9 +281,9 @@ export function initMakerPanel({
   };
 
   const renderStimulantInputPanel = () => {
-    if (!(makerPicker instanceof HTMLElement) ||
-        !(makerPickerGrid instanceof HTMLElement) ||
-        !(makerPickerLabel instanceof HTMLElement) ||
+    if (!(makerStimulantEditor instanceof HTMLElement) ||
+        !(makerStimulantEditorGrid instanceof HTMLElement) ||
+        !(makerStimulantEditorLabel instanceof HTMLElement) ||
         !enhancementState) {
       return;
     }
@@ -279,13 +291,10 @@ export function initMakerPanel({
     const existingMode = enhancementState.stimulantSlot?.mode;
     let currentIsProbability = existingMode === 'probability';
 
-    pendingGemKey = null;
-    editingSlotIndex = -1;
-    makerPickerLabel.textContent = '촉진제 스탯 입력';
-    makerPickerGrid.replaceChildren();
-    makerPickerGrid.classList.add('maker-stimulant-input-panel');
-    makerPicker.hidden = false;
-    if (makerPickerBack instanceof HTMLElement) makerPickerBack.hidden = true;
+    makerStimulantEditorLabel.textContent = '촉진제 스탯 입력';
+    makerStimulantEditorGrid.replaceChildren();
+    makerStimulantEditorGrid.classList.add('maker-stimulant-input-panel');
+    makerStimulantEditor.hidden = false;
 
     const existingStats = enhancementState.stimulantSlot?.stats ?? {};
     const statKeys = getStimulantStatKeys();
@@ -298,7 +307,7 @@ export function initMakerPanel({
       const msg = document.createElement('p');
       msg.className = 'chaos-empty-message';
       msg.textContent = '적용할 스탯이 없습니다';
-      makerPickerGrid.append(msg);
+      makerStimulantEditorGrid.append(msg);
       return;
     }
 
@@ -362,7 +371,7 @@ export function initMakerPanel({
       });
 
       row.append(label, minMaxBtn, minusBtn, valueDisplay, plusBtn, maxBtn);
-      makerPickerGrid.append(row);
+      makerStimulantEditorGrid.append(row);
     });
 
     const applyBtn = document.createElement('button');
@@ -376,7 +385,7 @@ export function initMakerPanel({
       }
       const currentMode = currentIsProbability ? 'probability' : 'manual';
       applyStimulant(enhancementState, stats, currentMode);
-      hidePicker();
+      hideStimulantEditor();
       renderStimulantSlot();
       renderGemSlots();
       refreshEnhancedCard();
@@ -416,7 +425,7 @@ export function initMakerPanel({
     toggleLabel.prepend(checkbox);
     toggleLabel.append(' ', helpIcon);
     toggleRow.append(toggleLabel, actionsDiv);
-    makerPickerGrid.append(toggleRow);
+    makerStimulantEditorGrid.append(toggleRow);
   };
 
 
@@ -453,7 +462,7 @@ export function initMakerPanel({
         e.stopPropagation();
         clearStimulant(enhancementState);
         stimulantValues = new Map();
-        hidePicker();
+        hideStimulantEditor();
         renderStimulantSlot();
         renderGemSlots();
         refreshEnhancedCard();
@@ -468,8 +477,6 @@ export function initMakerPanel({
     }
 
     box.addEventListener('click', () => {
-      editingSlotIndex = -1;
-      renderGemSlots();
       renderStimulantInputPanel();
     });
     box.addEventListener('keydown', (e) => {
@@ -834,6 +841,7 @@ export function initMakerPanel({
       const stimArea = makerStimulantSlot?.closest('.maker-stimulant-area');
       if (stimArea instanceof HTMLElement) stimArea.hidden = true;
       hidePicker();
+      hideStimulantEditor();
       renderGemSlots();
       refreshEnhancedCard();
       updateMakerToggleLabel();
@@ -848,24 +856,13 @@ export function initMakerPanel({
       if (makerGemArea instanceof HTMLElement) makerGemArea.hidden = false;
       const stimArea = makerStimulantSlot?.closest('.maker-stimulant-area');
       if (stimArea instanceof HTMLElement) stimArea.hidden = false;
+      hidePicker();
+      hideStimulantEditor();
+      editingSlotIndex = -1;
       renderStimulantSlot();
-      makerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-      let firstEmpty = -1;
-      for (let i = 0; i < enhancementState.gemSlotCount; i++) {
-        const s = i < enhancementState.gemSlots.length ? enhancementState.gemSlots[i] : null;
-        if (!s) { firstEmpty = i; break; }
-      }
-      if (firstEmpty >= 0) {
-        editingSlotIndex = firstEmpty;
-      }
-
       renderGemSlots();
+      makerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
       updateMakerToggleLabel();
-
-      if (firstEmpty >= 0) {
-        renderStep1Picker();
-      }
     };
 
     makerToggle.addEventListener('click', () => {
@@ -885,6 +882,8 @@ export function initMakerPanel({
     activate(enhState, item) {
       enhancementState = enhState;
       selectedBaseItem = item;
+      hidePicker();
+      hideStimulantEditor();
 
       if (makerSection instanceof HTMLElement) {
         makerSection.hidden = false;
@@ -926,6 +925,7 @@ export function initMakerPanel({
       selectedBaseItem = null;
       stimulantValues = new Map();
       hidePicker();
+      hideStimulantEditor();
 
       if (makerSection instanceof HTMLElement) {
         makerSection.hidden = true;
@@ -934,6 +934,7 @@ export function initMakerPanel({
 
     resetMakerUI() {
       hidePicker();
+      hideStimulantEditor();
       stimulantValues = new Map();
       if (makerToggle instanceof HTMLElement) {
         makerToggle.classList.remove('maker-toggle-button--active');
@@ -971,6 +972,7 @@ export function initMakerPanel({
       const stimArea = makerStimulantSlot?.closest('.maker-stimulant-area');
       if (stimArea instanceof HTMLElement) stimArea.hidden = true;
       hidePicker();
+      hideStimulantEditor();
       if (makerGemSlots instanceof HTMLElement) makerGemSlots.replaceChildren();
       refreshEnhancedCard();
     },
