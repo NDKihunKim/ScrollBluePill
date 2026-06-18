@@ -647,6 +647,7 @@ const updateAnalyzeButton = () => {
 const setAvailableSlots = (value) => {
   deconAvailableSlots = value;
   if (deconSlotValue instanceof HTMLElement) deconSlotValue.textContent = String(value);
+  updateTargetCard();
 };
 
 // ---- Item search handling (adapted from expected-value.astro) ----
