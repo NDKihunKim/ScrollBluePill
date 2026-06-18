@@ -524,9 +524,18 @@ const clearSelectedItemCard = () => {
 };
 
 // ---- Stat editor ----
+const STAT_ORDER = ['str','dex','int','luk','weaponAttack','magicAttack','maxHp','maxMp','weaponDefense','magicDefense','accuracy','avoidability','speed','jump','attackSpeed','upgradeSlots'];
+
 const rebuildStatEditor = () => {
   if (!(deconStatEditor instanceof HTMLElement)) return;
   deconStatEditor.replaceChildren();
+
+    // Sort keys to match the item card order
+    deconStatKeys.sort((a, b) => {
+      const ai = STAT_ORDER.indexOf(a);
+      const bi = STAT_ORDER.indexOf(b);
+      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+    });
 
   for (const k of deconStatKeys) {
     // Only init delta for newly-added keys; preserve existing edits
