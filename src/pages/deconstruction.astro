@@ -210,6 +210,16 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
               <div class="decon-add-stat-list" data-decon-add-stat-list hidden>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section class="calculator-panel calc-panel" data-decon-calc-panel>
+          <h2>3. 계산</h2>
+          <p class="enhancement-placeholder" data-decon-calc-placeholder>
+            스탯 편집 후 목표 조건을 선택해주세요
+          </p>
+          <div data-decon-calc-content hidden>
+            <div class="ev-target-chip-grid" data-decon-target-chips></div>
             <button type="button" class="ev-start-btn" data-decon-analyze-btn disabled>
               분석 시작
             </button>
@@ -217,7 +227,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
         </section>
 
         <section class="calculator-panel result-panel" data-decon-result-panel>
-          <h2>3. 해체 결과</h2>
+          <h2>4. 해체 결과</h2>
           <p class="enhancement-placeholder" data-decon-result-placeholder>
             스탯 편집 후 분석 시작을 눌러주세요
           </p>
@@ -305,6 +315,10 @@ const deconAddStatList = document.querySelector('[data-decon-add-stat-list]');
 const deconResultPanel = document.querySelector('[data-decon-result-panel]');
 const deconResultPlaceholder = document.querySelector('[data-decon-result-placeholder]');
 const deconResultContent = document.querySelector('[data-decon-result-content]');
+const deconCalcPanel = document.querySelector('[data-decon-calc-panel]');
+const deconCalcPlaceholder = document.querySelector('[data-decon-calc-placeholder]');
+const deconCalcContent = document.querySelector('[data-decon-calc-content]');
+const deconTargetChips = document.querySelector('[data-decon-target-chips]');
 
 // ---- State ----
 let itemIndex = [];
@@ -323,6 +337,64 @@ const statLabelByKey = {
   weaponAttack: '공격력', magicAttack: '마력', str: 'STR', dex: 'DEX', int: 'INT', luk: 'LUK',
   maxHp: '최대HP', maxMp: '최대MP', weaponDefense: '물리방어력', magicDefense: '마법방어력',
   accuracy: '명중률', avoidability: '회피율', speed: '이동속도', jump: '점프력',
+};
+
+const CORE_STATS = new Set(['str', 'dex', 'int', 'luk', 'weaponAttack', 'magicAttack']);
+
+const renderTargetChips = () => {
+  if (!(deconTargetChips instanceof HTMLElement)) return;
+  deconTargetChips.replaceChildren();
+
+  let anyChecked = false;
+
+  // Collect all keys: base item stats + deltas
+  const allKeys = new Set([
+    ...Object.keys(selectedItem?.stats ?? {}),
+    ...deconStatKeys.filter(k => deconDeltas[k] !== 0),
+  ]);
+
+  // Sort by card order
+  const sortedKeys = [...allKeys].sort((a, b) => {
+    const ai = STAT_ORDER.indexOf(a);
+    const bi = STAT_ORDER.indexOf(b);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+
+  for (const key of sortedKeys) {
+    if (key === 'attackSpeed' || key === 'upgradeSlots') continue;
+
+    const isCore = CORE_STATS.has(key);
+    const delta = deconDeltas[key] ?? 0;
+
+    // Core: visible if on base item OR has delta
+    // Non-core: visible only if has non-zero delta
+    if (!isCore && delta === 0) continue;
+
+    const label = document.createElement('label');
+    label.className = 'ev-target-chip';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.dataset.deconTargetKey = key;
+    checkbox.checked = isCore; // core always pre-checked
+    if (checkbox.checked) anyChecked = true;
+
+    checkbox.addEventListener('change', () => {
+      updateAnalyzeButton();
+    });
+
+    const chipLabel = document.createElement('span');
+    chipLabel.className = 'ev-target-chip-label';
+    const displayName = statLabelByKey[key] || key;
+    chipLabel.textContent = delta !== 0
+      ? `${displayName} ${delta > 0 ? '+' : ''}${delta} 이상`
+      : `${displayName} 유지`;
+
+    label.append(checkbox, chipLabel);
+    deconTargetChips.append(label);
+  }
+
+  updateAnalyzeButton();
 };
 
 // ---- Requirement/Stat row definitions (copied from expected-value.astro) ----
@@ -603,6 +675,7 @@ const rebuildStatEditor = () => {
 
   // Populate add-stat menu
   populateAddStatList();
+  renderTargetChips();
   updateTargetCard();
 };
 
@@ -651,12 +724,13 @@ const setStatDelta = (key, value) => {
   }
   updateAnalyzeButton();
   updateTargetCard();
+  renderTargetChips();
 };
 
 const updateAnalyzeButton = () => {
   if (!(deconAnalyzeBtn instanceof HTMLButtonElement)) return;
-  const hasDelta = Object.values(deconDeltas).some((v) => v > 0);
-  deconAnalyzeBtn.disabled = !hasDelta;
+  const checkedCount = deconTargetChips?.querySelectorAll('input:checked').length ?? 0;
+  deconAnalyzeBtn.disabled = checkedCount === 0;
 };
 
 const setAvailableSlots = (value) => {
@@ -755,6 +829,8 @@ const renderItemSuggestions = () => {
   }
   form?.removeAttribute('data-selected-item-id');
   clearSelectedItemCard();
+  if (deconCalcPlaceholder instanceof HTMLElement) deconCalcPlaceholder.hidden = false;
+  if (deconCalcContent instanceof HTMLElement) deconCalcContent.hidden = true;
   itemSuggestions.replaceChildren();
 
   const results = searchKoreanItems(itemNameInput.value, { items: itemIndex });
@@ -951,6 +1027,9 @@ const activateDeconEditPanel = (item) => {
 
   deconEditPlaceholder.hidden = true;
   deconEditContent.hidden = false;
+  if (deconCalcPlaceholder instanceof HTMLElement) deconCalcPlaceholder.hidden = true;
+  if (deconCalcContent instanceof HTMLElement) deconCalcContent.hidden = false;
+  renderTargetChips();
 
   // Set max slots from item
   deconMaxSlots = item.stats?.upgradeSlots ?? 0;
@@ -967,16 +1046,23 @@ const activateDeconEditPanel = (item) => {
 };
 
 // ---- Analyze click handler ----
+const getCheckedTargetKeys = () => {
+  if (!(deconTargetChips instanceof HTMLElement)) return [];
+  const checkboxes = deconTargetChips.querySelectorAll('input:checked');
+  return [...checkboxes].map(cb => cb.dataset.deconTargetKey).filter(Boolean);
+};
+
 const runAnalysis = () => {
   if (!selectedItem) return;
 
   const upgradeSlots = deconAvailableSlots;
   const equipmentKind = selectedItem.equipmentKind;
+  const checkedKeys = getCheckedTargetKeys();
 
-  // Build targetDeltas from deconDeltas (only positive values)
+  // Build targetDeltas from deconDeltas (only positive values for checked keys)
   const targetDeltas = {};
   for (const [k, v] of Object.entries(deconDeltas)) {
-    if (v > 0) {
+    if (v > 0 && checkedKeys.includes(k)) {
       targetDeltas[k] = v;
     }
   }
@@ -1996,6 +2082,46 @@ aside.panel {
   background: var(--surface-soft);
   border-color: var(--green);
   color: var(--ink);
+}
+
+:global(.ev-target-chip-grid) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 8px 0 10px;
+}
+:global(.ev-target-chip) {
+  min-width: 0;
+  cursor: pointer;
+}
+:global(.ev-target-chip input) {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+:global(.ev-target-chip-label) {
+  display: flex;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-soft);
+  color: var(--ink);
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+}
+:global(.ev-target-chip input:checked + .ev-target-chip-label) {
+  border-color: var(--green);
+  background: var(--green);
+  color: #fff;
+}
+:global(.ev-target-chip input:focus-visible + .ev-target-chip-label) {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
 }
 
 .ev-start-btn {
