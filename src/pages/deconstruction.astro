@@ -1990,14 +1990,20 @@ aside.panel {
   font-weight: 600;
   cursor: pointer;
   text-align: left;
-  opacity: 0.65;
-  transition: background 0.12s, border-color 0.12s, color 0.12s, opacity 0.12s;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
 .decon-add-stat-option:hover {
-  background: rgb(255 255 255 / 6%);
+  background: var(--surface-soft);
   border-color: var(--line);
   color: var(--ink);
-  opacity: 1;
+}
+
+:root[data-theme='dark'] .decon-add-stat-option {
+  color: #6a8490;
+}
+:root[data-theme='dark'] .decon-add-stat-option:hover {
+  background: rgb(255 255 255 / 5%);
+  color: #b0cdd8;
 }
 
 .ev-start-btn {
