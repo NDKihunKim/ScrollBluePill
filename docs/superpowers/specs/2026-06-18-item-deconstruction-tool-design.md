@@ -60,6 +60,7 @@ Reuses the existing item search component — name search, manual filter accordi
 - Each row: stat label, −/MIN/+ steppers, current delta value (e.g., "+7")
 - Deltas start at 0. User adjusts up/down: HP/MP in steps of 10 up to ±50, all other stats in steps of 1 up to ±5 (matching chaos scroll limits for non-HP/MP, stimulant limits for HP/MP)
 - Ability to add stats not on the base item (dropdown of available stat keys). Added stats appear as new stepper rows. Removed via an × button on the row.
+- **남은 슬롯 input:** number input for available scroll slots. Defaults to the clean item's `upgradeSlots`. User can lower it (to simulate partially-scrolled items) but cannot exceed the clean state value. This constrains how many scrolls the engine can use in any strategy.
 - The target item card in the right sidebar updates live as deltas change
 
 ### Panel 3: 해체 결과
@@ -87,18 +88,19 @@ Target item preview — shows the final item with all edited stats applied (base
 
 The engine works backwards from target stat deltas:
 
-1. Read target deltas from panel 2
-2. Enumerate all scroll combinations that can produce the exact deltas (or contribute toward them):
+1. Read target deltas and available slot count from panel 2
+2. Only consider strategies using ≤ availableSlots scrolls
+3. Enumerate all scroll combinations within the slot limit that produce the exact deltas:
    - Fixed scrolls: direct stat matches
    - Chaos scrolls: all stat delta permutations within chaos bounds (-5..+5 per stat)
-3. Enumerate maker gem combinations that contribute remaining deltas (fixed gems: exact match; variable gems: within grade bounds)
-4. Enumerate stimulant contributions (stepper range -5..+5 per stat, HP/MP -50..+50)
-5. Enumerate item level-up contributions (within definition stat ranges)
-6. Combine into full strategies — scroll set + optional maker + optional stimulant + optional level-up
-7. For each strategy, compute success probability:
+4. Enumerate maker gem combinations that contribute remaining deltas (fixed gems: exact match; variable gems: within grade bounds)
+5. Enumerate stimulant contributions (stepper range -5..+5 per stat, HP/MP -50..+50)
+6. Enumerate item level-up contributions (within definition stat ranges)
+7. Combine into full strategies — scroll set + optional maker + optional stimulant + optional level-up
+8. For each strategy, compute success probability:
    - All 100% scrolls + manual makers → exact (p = 1.0)
    - Any non-100% scroll, chaos scroll, or probability-mode maker → multiply individual probabilities
-8. Cap at 200 strategies. If more exist, show count truncated.
+9. Cap at 200 strategies. If more exist, show count truncated.
 
 ### Deconstruction engine rules
 
@@ -194,7 +196,8 @@ Reusable item card:
 ## Edge cases
 
 - **Item with no upgrade slots:** Panel 2 shows message "강화 불가능한 아이템입니다"
+- **남은 슬롯 exceeds clean state:** Input clamps to clean item's upgradeSlots max. User cannot enter a higher value.
 - **Target stats identical to base:** No deltas needed — trivial "no enhancements" strategy
 - **Impossible target:** e.g., STR +100 on an item with 3 slots and no scroll can give that much. Show "달성 불가능한 목표입니다"
-- **Too many results:** Cap at a reasonable limit (e.g., 200) with a message showing how many were truncated
-- **Item change during editing:** Reset deltas, keep new base item
+- **Too many results:** Cap at 200 with a message showing how many were truncated
+- **Item change during editing:** Reset deltas and available slots to new item's defaults
