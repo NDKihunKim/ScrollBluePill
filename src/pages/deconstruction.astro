@@ -528,9 +528,11 @@ const rebuildStatEditor = () => {
   if (!(deconStatEditor instanceof HTMLElement)) return;
   deconStatEditor.replaceChildren();
 
-  deconDeltas = {};
   for (const k of deconStatKeys) {
-    deconDeltas[k] = 0;
+    // Only init delta for newly-added keys; preserve existing edits
+    if (!(k in deconDeltas)) {
+      deconDeltas[k] = 0;
+    }
 
     const row = document.createElement('div');
     row.className = 'chaos-stat-row';
