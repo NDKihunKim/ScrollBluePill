@@ -275,6 +275,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 			<aside class="panel" aria-label="계산 결과">
 				<h2>아이템</h2>
+				<p class="enhancement-placeholder" data-item-placeholder>아이템을 선택해주세요</p>
 				<div class="selected-item-card" data-selected-item-card hidden>
 					<h3 data-selected-item-name></h3>
 					<div class="selected-item-top">
@@ -339,6 +340,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	const selectedItemIdInput = form?.querySelector('[data-selected-item-id]');
 	const itemSuggestions = form?.querySelector('[data-item-suggestions]');
 	const selectedItemCard = document.querySelector('[data-selected-item-card]');
+	const itemPlaceholder = document.querySelector('[data-item-placeholder]');
 	const selectedItemName = document.querySelector('[data-selected-item-name]');
 	const selectedItemIcon = document.querySelector('[data-selected-item-icon]');
 	const selectedItemRequirements = document.querySelector('[data-selected-item-requirements]');
@@ -625,12 +627,18 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			}
 		});
 
+		if (itemPlaceholder instanceof HTMLElement) {
+			itemPlaceholder.hidden = true;
+		}
 		selectedItemCard.hidden = false;
 	};
 
 	const clearSelectedItemCard = () => {
 		if (selectedItemCard instanceof HTMLElement) {
 			selectedItemCard.hidden = true;
+		}
+		if (itemPlaceholder instanceof HTMLElement) {
+			itemPlaceholder.hidden = false;
 		}
 	};
 
