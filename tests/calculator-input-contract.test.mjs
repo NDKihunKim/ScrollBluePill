@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-const indexSource = await readFile(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
+const indexSource = await readFile(new URL('../src/pages/expected-value.astro', import.meta.url), 'utf8');
 const generatedItemIndex = JSON.parse(
 	await readFile(new URL('../public/data/items-gms83-ko.json', import.meta.url), 'utf8'),
 );

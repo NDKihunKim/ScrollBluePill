@@ -54,7 +54,7 @@ test('button labels exist in source', () => {
 });
 
 test('target selection renders compact chips and skips zero-gain stats', async () => {
-  const indexSource = await readFile(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
+  const indexSource = await readFile(new URL('../src/pages/expected-value.astro', import.meta.url), 'utf8');
 
   assert.match(panelSource, /ev-target-chip-grid/);
   assert.match(panelSource, /ev-target-chip/);
@@ -66,7 +66,7 @@ test('target selection renders compact chips and skips zero-gain stats', async (
 });
 
 test('confirmation dialog uses global fixed overlay styles for dynamic body append', async () => {
-  const indexSource = await readFile(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
+  const indexSource = await readFile(new URL('../src/pages/expected-value.astro', import.meta.url), 'utf8');
 
   assert.match(panelSource, /CONFIRM_TEXT/);
   assert.match(indexSource, /overlay\.className = 'ev-confirm-overlay'/);
@@ -77,7 +77,7 @@ test('confirmation dialog uses global fixed overlay styles for dynamic body appe
 });
 
 test('result chart uses global bounded canvas styles for dynamic rendering', async () => {
-  const indexSource = await readFile(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
+  const indexSource = await readFile(new URL('../src/pages/expected-value.astro', import.meta.url), 'utf8');
 
   assert.match(panelSource, /canvas\.className = 'ev-chart'/);
   assert.match(indexSource, /:global\(\.ev-chart\)\s*\{[^}]*display:\s*block;/);
@@ -88,7 +88,7 @@ test('result chart uses global bounded canvas styles for dynamic rendering', asy
 });
 
 test('expected value strategy preserves variable maker gem stats from UI state', async () => {
-  const indexSource = await readFile(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
+  const indexSource = await readFile(new URL('../src/pages/expected-value.astro', import.meta.url), 'utf8');
 
   assert.match(indexSource, /s\.stats\s*\?/);
   assert.match(indexSource, /stats:\s*s\.stats/);
@@ -96,7 +96,7 @@ test('expected value strategy preserves variable maker gem stats from UI state',
 });
 
 test('expected value strategy separates manual material stats from probability material sources', async () => {
-  const indexSource = await readFile(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
+  const indexSource = await readFile(new URL('../src/pages/expected-value.astro', import.meta.url), 'utf8');
 
   assert.match(indexSource, /MATERIAL_MODE_PROBABILITY/);
   assert.match(indexSource, /s\.mode\s*===\s*MATERIAL_MODE_PROBABILITY/);
@@ -135,7 +135,7 @@ test('roundTrialCount clamps to MAX', () => {
 });
 
 test('result panel renders interactive attempt row with input and cumulative probability', async () => {
-  const indexSource = await readFile(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
+  const indexSource = await readFile(new URL('../src/pages/expected-value.astro', import.meta.url), 'utf8');
 
   assert.match(panelSource, /ev-result-title/);
   assert.match(panelSource, /장비 기대값/);
@@ -169,7 +169,7 @@ test('result panel renders interactive attempt row with input and cumulative pro
 });
 
 test('calculator panel headings share the reduced title treatment', async () => {
-  const indexSource = await readFile(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
+  const indexSource = await readFile(new URL('../src/pages/expected-value.astro', import.meta.url), 'utf8');
 
   assert.match(
     indexSource,
@@ -199,7 +199,7 @@ test('result panel converter maps count and percentile consistently', () => {
 });
 
 test('EV clear hook is exposed for reset handler', async () => {
-  const indexSource = await readFile(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
+  const indexSource = await readFile(new URL('../src/pages/expected-value.astro', import.meta.url), 'utf8');
 
   assert.match(indexSource, /window\.__evClear\s*=\s*showEvPlaceholder/);
 });
@@ -244,7 +244,7 @@ test('result mutation guard runs immediately without results and clears before c
 });
 
 test('completed results expose one confirmation guard to every enhancement subsystem', async () => {
-  const indexSource = await readFile(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
+  const indexSource = await readFile(new URL('../src/pages/expected-value.astro', import.meta.url), 'utf8');
   const enhancementPanelSource = await readFile(new URL('../src/lib/enhancementPanel.mjs', import.meta.url), 'utf8');
   const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
   const itemLevelUpPanelSource = await readFile(new URL('../src/lib/itemLevelUpPanel.mjs', import.meta.url), 'utf8');
