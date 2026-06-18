@@ -22,6 +22,9 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   const makerGemArea = enhancementPanel?.querySelector('[data-maker-gem-area]');
   const makerGemSlots = enhancementPanel?.querySelector('[data-maker-gem-slots]');
   const makerStimulantSlot = enhancementPanel?.querySelector('[data-maker-stimulant-slot]');
+  const makerStimulantEditor = enhancementPanel?.querySelector('[data-maker-stimulant-editor]');
+  const makerStimulantEditorLabel = enhancementPanel?.querySelector('[data-maker-stimulant-editor-label]');
+  const makerStimulantEditorGrid = enhancementPanel?.querySelector('[data-maker-stimulant-editor-grid]');
   const makerPicker = enhancementPanel?.querySelector('[data-maker-picker]');
   const makerPickerLabel = enhancementPanel?.querySelector('[data-maker-picker-label]');
   const makerPickerGrid = enhancementPanel?.querySelector('[data-maker-picker-grid]');
@@ -37,6 +40,9 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     makerToggle,
     makerGemArea,
     makerStimulantSlot,
+    makerStimulantEditor,
+    makerStimulantEditorLabel,
+    makerStimulantEditorGrid,
     makerGemSlots,
     makerPicker,
     makerPickerLabel,

@@ -38,6 +38,124 @@ test.skip('maker stimulant slot source contract is present', async () => {
 	assert.match(makerPanelSource, /clearStimulant/);
 });
 
+test('Maker renders separate stimulant and gem editor surfaces', async () => {
+	const enhancementPanelSource = await readFile(new URL('../src/lib/enhancementPanel.mjs', import.meta.url), 'utf8');
+	const stimulantSlotIndex = indexSource.indexOf('data-maker-stimulant-slot');
+	const stimulantEditorIndex = indexSource.indexOf('data-maker-stimulant-editor');
+	const gemSlotsIndex = indexSource.indexOf('data-maker-gem-slots');
+	const makerPickerIndex = indexSource.indexOf('data-maker-picker');
+
+	assert.ok(stimulantEditorIndex > stimulantSlotIndex);
+	assert.ok(gemSlotsIndex > stimulantEditorIndex);
+	assert.ok(makerPickerIndex > stimulantEditorIndex);
+	assert.match(indexSource, /data-maker-stimulant-editor hidden/);
+	assert.match(indexSource, /data-maker-picker hidden/);
+	assert.match(enhancementPanelSource, /makerStimulantEditor\s*=\s*enhancementPanel\?\.querySelector\('\[data-maker-stimulant-editor\]'\)/);
+	assert.match(enhancementPanelSource, /makerStimulantEditorLabel\s*=\s*enhancementPanel\?\.querySelector\('\[data-maker-stimulant-editor-label\]'\)/);
+	assert.match(enhancementPanelSource, /makerStimulantEditorGrid\s*=\s*enhancementPanel\?\.querySelector\('\[data-maker-stimulant-editor-grid\]'\)/);
+	assert.match(enhancementPanelSource, /initMakerPanel\(\{[\s\S]*makerStimulantEditor,/);
+	assert.match(enhancementPanelSource, /initMakerPanel\(\{[\s\S]*makerStimulantEditorLabel,/);
+	assert.match(enhancementPanelSource, /initMakerPanel\(\{[\s\S]*makerStimulantEditorGrid,/);
+});
+
+test('Maker stimulant and gem editors have independent visibility', async () => {
+	const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
+	const sliceBetween = (startMarker, endMarker) => {
+		const start = makerPanelSource.indexOf(startMarker);
+		const end = makerPanelSource.indexOf(endMarker, start);
+		assert.ok(start >= 0, `missing source marker: ${startMarker}`);
+		assert.ok(end > start, `missing source marker after ${startMarker}: ${endMarker}`);
+		return makerPanelSource.slice(start, end);
+	};
+
+	const hideStimulantEditorSource = sliceBetween(
+		'const hideStimulantEditor =',
+		'\n\n  const refreshEnhancedCard =',
+	);
+	const renderStimulantSource = sliceBetween(
+		'const renderStimulantInputPanel =',
+		'\n\n\n  const renderStimulantSlot =',
+	);
+	const variableGemInputSource = sliceBetween(
+		'const renderVariableGemInputPanel =',
+		'\n\n  const renderStimulantInputPanel =',
+	);
+	const stimulantSlotSource = sliceBetween(
+		'const renderStimulantSlot =',
+		'\n\n  const hasMakerContributions =',
+	);
+	const stimulantClearStart = stimulantSlotSource.indexOf("xBtn.addEventListener('click', (e) => {");
+	const stimulantClearEnd = stimulantSlotSource.indexOf(
+		"\n      xBtn.addEventListener('keydown'",
+		stimulantClearStart,
+	);
+	assert.ok(stimulantClearStart >= 0 && stimulantClearEnd > stimulantClearStart);
+	const stimulantClearSource = stimulantSlotSource.slice(stimulantClearStart, stimulantClearEnd);
+	const stimulantSlotClickStart = stimulantSlotSource.indexOf("box.addEventListener('click', () => {");
+	const stimulantSlotClickEnd = stimulantSlotSource.indexOf(
+		"\n    box.addEventListener('keydown'",
+		stimulantSlotClickStart,
+	);
+	assert.ok(stimulantSlotClickStart >= 0 && stimulantSlotClickEnd > stimulantSlotClickStart);
+	const stimulantSlotClickSource = stimulantSlotSource.slice(stimulantSlotClickStart, stimulantSlotClickEnd);
+	const gemSlotsSource = sliceBetween(
+		'const renderGemSlots =',
+		'\n\n  const renderStep1Picker =',
+	);
+	const gemPickerSource = sliceBetween(
+		'const renderStep1Picker =',
+		'\n\n  const goBackToStep1 =',
+	);
+	const disableMakerSource = sliceBetween('const disableMaker =', '\n\n    const enableMaker =');
+	const enableMakerSource = sliceBetween(
+		'const enableMaker =',
+		'\n\n    makerToggle.addEventListener',
+	);
+	const activateSource = sliceBetween('\n    activate(enhState, item) {', '\n\n    deactivate() {');
+	const deactivateSource = sliceBetween('\n    deactivate() {', '\n\n    resetMakerUI() {');
+	const resetSource = sliceBetween('\n    resetMakerUI() {', '\n\n    refreshGemView() {');
+	const closeSource = sliceBetween('\n    closeMakerPanel() {', '\n    },\n  };');
+
+	assert.match(makerPanelSource, /makerStimulantEditor,\s*makerStimulantEditorLabel,\s*makerStimulantEditorGrid,/);
+	assert.match(hideStimulantEditorSource, /makerStimulantEditor\.hidden\s*=\s*true/);
+	assert.match(hideStimulantEditorSource, /makerStimulantEditorGrid\.replaceChildren\(\)/);
+	assert.doesNotMatch(hideStimulantEditorSource, /makerPicker/);
+
+	assert.match(renderStimulantSource, /makerStimulantEditorLabel\.textContent/);
+	assert.match(renderStimulantSource, /makerStimulantEditorGrid\.replaceChildren\(\)/);
+	assert.match(renderStimulantSource, /makerStimulantEditor\.hidden\s*=\s*false/);
+	assert.match(renderStimulantSource, /hideStimulantEditor\(\)/);
+	assert.doesNotMatch(renderStimulantSource, /editingSlotIndex\s*=/);
+	assert.doesNotMatch(renderStimulantSource, /pendingGemKey\s*=/);
+	assert.doesNotMatch(renderStimulantSource, /hidePicker\(\)/);
+	assert.doesNotMatch(renderStimulantSource, /makerPicker(?:Label|Grid|Back)?\b/);
+
+	assert.doesNotMatch(stimulantSlotClickSource, /editingSlotIndex\s*=/);
+	assert.doesNotMatch(stimulantSlotClickSource, /pendingGemKey\s*=/);
+	assert.doesNotMatch(stimulantSlotSource, /hidePicker\(\)/);
+	assert.doesNotMatch(stimulantSlotClickSource, /renderGemSlots\(\)/);
+	assert.match(stimulantClearSource, /hideStimulantEditor\(\)/);
+	assert.doesNotMatch(stimulantClearSource, /hidePicker\(\)/);
+	assert.doesNotMatch(gemSlotsSource, /hideStimulantEditor\(\)/);
+	assert.doesNotMatch(variableGemInputSource, /hideStimulantEditor\(\)/);
+	assert.doesNotMatch(gemPickerSource, /hideStimulantEditor\(\)/);
+
+	assert.match(enableMakerSource, /makerGemArea\.hidden\s*=\s*false/);
+	assert.match(enableMakerSource, /stimArea\.hidden\s*=\s*false/);
+	assert.match(enableMakerSource, /hidePicker\(\)/);
+	assert.match(enableMakerSource, /hideStimulantEditor\(\)/);
+	assert.match(enableMakerSource, /editingSlotIndex\s*=\s*-1/);
+	assert.match(enableMakerSource, /renderStimulantSlot\(\)/);
+	assert.match(enableMakerSource, /renderGemSlots\(\)/);
+	assert.doesNotMatch(enableMakerSource, /renderStep1Picker\(\)/);
+	assert.doesNotMatch(enableMakerSource, /firstEmpty|for\s*\(/);
+
+	for (const lifecycleSource of [disableMakerSource, activateSource, deactivateSource, resetSource, closeSource]) {
+		assert.match(lifecycleSource, /hidePicker\(\)/);
+		assert.match(lifecycleSource, /hideStimulantEditor\(\)/);
+	}
+});
+
 test('maker-only changes notify expected-value button state', async () => {
 	const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
 	const enhancementPanelSource = await readFile(new URL('../src/lib/enhancementPanel.mjs', import.meta.url), 'utf8');
@@ -627,4 +745,10 @@ test('enhancement panel loads item level-up runtime data', async () => {
 	assert.match(enhancementPanelSource, /fetch\('\/data\/item-level-ups-gms83-ko\.json'\)/);
 	assert.match(enhancementPanelSource, /itemLevelUpByItemId\s*=\s*new Map/);
 	assert.match(enhancementPanelSource, /levelUpDefinition\.itemId/);
+});
+
+test('stimulant editor stays beneath its slot inside the Maker panel', () => {
+	assert.match(indexSource, /:global\(\.maker-stimulant-editor\)\s*\{[^}]*margin-top:\s*10px;/s);
+	assert.match(indexSource, /:global\(\.maker-stimulant-editor\[hidden\]\)\s*\{[^}]*display:\s*none;/s);
+	assert.match(indexSource, /:global\(\.maker-stimulant-editor-grid\)\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;/s);
 });
