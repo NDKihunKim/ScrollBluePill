@@ -195,19 +195,19 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
           </p>
           <div data-decon-edit-content hidden>
             <div class="decon-stat-editor" data-decon-stat-editor></div>
-            <div class="decon-add-stat-area">
-              <button type="button" class="decon-add-stat-toggle" data-decon-add-stat-toggle>
-                + 스탯 추가
-              </button>
-              <div class="decon-add-stat-menu" data-decon-add-stat-menu hidden></div>
-            </div>
             <div class="chaos-stat-row decon-slot-row">
               <span class="chaos-stat-label">남은 슬롯</span>
               <button type="button" class="chaos-stepper-btn chaos-stepper-btn--max" data-decon-slot-min>MIN</button>
-              <button type="button" class="chaos-stepper-btn" data-decon-slot-dec>-</button>
+              <button type="button" class="chaos-stepper-btn" data-decon-slot-dec>−</button>
               <span class="chaos-stepper-value" data-decon-slot-value>7</span>
               <button type="button" class="chaos-stepper-btn" data-decon-slot-inc>+</button>
               <button type="button" class="chaos-stepper-btn chaos-stepper-btn--max" data-decon-slot-max>MAX</button>
+            </div>
+            <div class="chaos-stat-row decon-add-stat-row">
+              <span class="chaos-stat-label">스탯 추가</span>
+              <select data-decon-add-stat-select>
+                <option value="">선택...</option>
+              </select>
             </div>
             <button type="button" class="ev-start-btn" data-decon-analyze-btn disabled>
               분석 시작
@@ -299,6 +299,7 @@ const deconSlotDec = document.querySelector('[data-decon-slot-dec]');
 const deconSlotInc = document.querySelector('[data-decon-slot-inc]');
 const deconSlotMax = document.querySelector('[data-decon-slot-max]');
 const deconAnalyzeBtn = document.querySelector('[data-decon-analyze-btn]');
+const deconAddStatSelect = document.querySelector('[data-decon-add-stat-select]');
 const deconResultPanel = document.querySelector('[data-decon-result-panel]');
 const deconResultPlaceholder = document.querySelector('[data-decon-result-placeholder]');
 const deconResultContent = document.querySelector('[data-decon-result-content]');
@@ -599,32 +600,32 @@ const rebuildStatEditor = () => {
   }
 
   // Populate add-stat menu
-  populateAddStatMenu();
+  populateAddStatSelect();
   updateTargetCard();
 };
 
-const populateAddStatMenu = () => {
-  const addStatMenu = document.querySelector('[data-decon-add-stat-menu]');
-  if (!(addStatMenu instanceof HTMLElement)) return;
-  addStatMenu.replaceChildren();
+const populateAddStatSelect = () => {
+  if (!(deconAddStatSelect instanceof HTMLSelectElement)) return;
+  const currentValue = deconAddStatSelect.value;
+  deconAddStatSelect.replaceChildren();
+
+  const defaultOption = document.createElement('option');
+  defaultOption.value = '';
+  defaultOption.textContent = '선택...';
+  deconAddStatSelect.append(defaultOption);
 
   const deconStatSet = new Set(deconStatKeys);
   for (const key of STAT_PRIORITY) {
     if (deconStatSet.has(key)) continue;
-    const addBtn = document.createElement('button');
-    addBtn.type = 'button';
-    addBtn.className = 'decon-add-stat-option';
-    addBtn.textContent = statLabelByKey[key] || key;
-    addBtn.addEventListener('click', () => {
-      deconDeltas[key] = 0;
-      deconStatKeys.push(key);
-      rebuildStatEditor();
-      const menu = document.querySelector('[data-decon-add-stat-menu]');
-      const toggle = document.querySelector('[data-decon-add-stat-toggle]');
-      if (menu instanceof HTMLElement) menu.hidden = true;
-      if (toggle instanceof HTMLElement) toggle.classList.remove('decon-add-stat-toggle--open');
-    });
-    addStatMenu.append(addBtn);
+    const option = document.createElement('option');
+    option.value = key;
+    option.textContent = statLabelByKey[key] || key;
+    deconAddStatSelect.append(option);
+  }
+
+  // Restore previous selection if still valid
+  if (currentValue && !deconStatSet.has(currentValue)) {
+    deconAddStatSelect.value = currentValue;
   }
 };
 
@@ -1239,14 +1240,14 @@ deconSlotDec?.addEventListener('click', () => setAvailableSlots(Math.max(0, deco
 deconSlotInc?.addEventListener('click', () => setAvailableSlots(Math.min(deconMaxSlots, deconAvailableSlots + 1)));
 deconSlotMax?.addEventListener('click', () => setAvailableSlots(deconMaxSlots));
 
-// ---- Add-stat toggle ----
-const deconAddStatToggle = document.querySelector('[data-decon-add-stat-toggle]');
-const deconAddStatMenu = document.querySelector('[data-decon-add-stat-menu]');
-deconAddStatToggle?.addEventListener('click', () => {
-  if (!(deconAddStatMenu instanceof HTMLElement) || !(deconAddStatToggle instanceof HTMLElement)) return;
-  const willOpen = deconAddStatMenu.hidden;
-  deconAddStatMenu.hidden = !willOpen;
-  deconAddStatToggle.classList.toggle('decon-add-stat-toggle--open', willOpen);
+// ---- Add-stat select ----
+deconAddStatSelect?.addEventListener('change', () => {
+  if (!(deconAddStatSelect instanceof HTMLSelectElement)) return;
+  const key = deconAddStatSelect.value;
+  if (!key) return;
+  deconDeltas[key] = 0;
+  deconStatKeys.push(key);
+  rebuildStatEditor();
 });
 
 // ---- Analyze button ----
@@ -1923,60 +1924,21 @@ aside.panel {
   margin-bottom: 10px;
 }
 
-.decon-add-stat-area {
-  margin-top: 4px;
-  margin-bottom: 8px;
-}
-
-.decon-add-stat-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  border: 1px dashed var(--line);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--muted);
-  font-size: 0.84rem;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
-}
-
-.decon-add-stat-toggle:hover,
-.decon-add-stat-toggle--open {
-  border-color: var(--green);
-  color: var(--green);
-}
-
-.decon-add-stat-menu {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 6px;
-  padding: 8px;
+.decon-add-stat-row select {
+  padding: 4px 8px;
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: var(--surface-soft);
-}
-
-.decon-add-stat-menu[hidden] {
-  display: none;
-}
-
-.decon-add-stat-option {
-  padding: 3px 8px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
   background: var(--surface);
   color: var(--ink);
-  font-size: 0.8rem;
+  font-size: 0.86rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  min-width: 140px;
+  height: 28px;
 }
-
-.decon-add-stat-option:hover {
+.decon-add-stat-row select:focus-visible {
   border-color: var(--green);
-  background: var(--surface-soft);
+  outline: none;
 }
 
 .ev-start-btn {
