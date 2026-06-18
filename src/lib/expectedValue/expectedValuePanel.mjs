@@ -93,7 +93,7 @@ export function computeCountForTopPercent(successProbability, topPercent, prefer
  * @param {Record<string, number>} gains - Enhancement gains from computeEnhancementGains
  * @returns {{ container: HTMLElement, getCheckedStats: () => { [statKey: string]: boolean, grade: boolean }, getTrialCount: () => number, onStart: (fn: Function) => void, onCancel: (fn: Function) => void }}
  */
-export function createTargetSelectionUI(cleanStats, previewStats, previewGradeClass, gains, { showCancel = false } = {}) {
+export function createTargetSelectionUI(cleanStats, previewStats, previewGradeClass, gains, { showCancel = false, preselected = null } = {}) {
   const container = document.createElement('div');
   container.className = 'ev-target-selection';
 
@@ -103,7 +103,7 @@ export function createTargetSelectionUI(cleanStats, previewStats, previewGradeCl
   header.textContent = '목표 조건 선택';
   container.appendChild(header);
 
-  const defaultChecked = getDefaultCheckedStats(gains);
+  const defaultChecked = preselected ?? getDefaultCheckedStats(gains);
   const checkboxes = {};
 
   const chipGrid = document.createElement('div');
