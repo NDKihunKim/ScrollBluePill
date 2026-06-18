@@ -195,9 +195,19 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
           </p>
           <div data-decon-edit-content hidden>
             <div class="decon-stat-editor" data-decon-stat-editor></div>
-            <div class="decon-slot-row">
-              <label>남은 슬롯:</label>
-              <input type="number" data-decon-slot-input min="0" max="7" value="7" />
+            <div class="decon-add-stat-area">
+              <button type="button" class="decon-add-stat-toggle" data-decon-add-stat-toggle>
+                + 스탯 추가
+              </button>
+              <div class="decon-add-stat-menu" data-decon-add-stat-menu hidden></div>
+            </div>
+            <div class="chaos-stat-row decon-slot-row">
+              <span class="chaos-stat-label">남은 슬롯</span>
+              <button type="button" class="chaos-stepper-btn chaos-stepper-btn--max" data-decon-slot-min>MIN</button>
+              <button type="button" class="chaos-stepper-btn" data-decon-slot-dec>-</button>
+              <span class="chaos-stepper-value" data-decon-slot-value>7</span>
+              <button type="button" class="chaos-stepper-btn" data-decon-slot-inc>+</button>
+              <button type="button" class="chaos-stepper-btn chaos-stepper-btn--max" data-decon-slot-max>MAX</button>
             </div>
             <button type="button" class="ev-start-btn" data-decon-analyze-btn disabled>
               분석 시작
@@ -283,7 +293,11 @@ const deconEditPanel = document.querySelector('[data-decon-edit-panel]');
 const deconEditPlaceholder = document.querySelector('[data-decon-edit-placeholder]');
 const deconEditContent = document.querySelector('[data-decon-edit-content]');
 const deconStatEditor = document.querySelector('[data-decon-stat-editor]');
-const deconSlotInput = document.querySelector('[data-decon-slot-input]');
+const deconSlotValue = document.querySelector('[data-decon-slot-value]');
+const deconSlotMin = document.querySelector('[data-decon-slot-min]');
+const deconSlotDec = document.querySelector('[data-decon-slot-dec]');
+const deconSlotInc = document.querySelector('[data-decon-slot-inc]');
+const deconSlotMax = document.querySelector('[data-decon-slot-max]');
 const deconAnalyzeBtn = document.querySelector('[data-decon-analyze-btn]');
 const deconResultPanel = document.querySelector('[data-decon-result-panel]');
 const deconResultPlaceholder = document.querySelector('[data-decon-result-placeholder]');
@@ -297,6 +311,16 @@ let scrollsByEquipmentKind = new Map();
 let selectedItem = null;
 let deconDeltas = {};
 let deconStatKeys = [];
+let deconAvailableSlots = 0;
+let deconMaxSlots = 0;
+
+const STAT_PRIORITY = ['weaponAttack', 'magicAttack', 'str', 'dex', 'int', 'luk', 'maxHp', 'maxMp', 'weaponDefense', 'magicDefense', 'accuracy', 'avoidability', 'speed', 'jump'];
+
+const statLabelByKey = {
+  weaponAttack: '공격력', magicAttack: '마력', str: 'STR', dex: 'DEX', int: 'INT', luk: 'LUK',
+  maxHp: '최대HP', maxMp: '최대MP', weaponDefense: '물리방어력', magicDefense: '마법방어력',
+  accuracy: '명중률', avoidability: '회피율', speed: '이동속도', jump: '점프력',
+};
 
 // ---- Requirement/Stat row definitions (copied from expected-value.astro) ----
 const requirementRows = [
@@ -480,44 +504,29 @@ const clearSelectedItemCard = () => {
 };
 
 // ---- Stat editor ----
-const buildStatEditor = (item) => {
+const rebuildStatEditor = () => {
   if (!(deconStatEditor instanceof HTMLElement)) return;
   deconStatEditor.replaceChildren();
-
-  const statKeys = ['str', 'dex', 'int', 'luk', 'maxHp', 'maxMp', 'weaponAttack', 'magicAttack', 'weaponDefense', 'magicDefense', 'accuracy', 'avoidability', 'speed', 'jump'];
-  const labelMap = {
-    str: 'STR', dex: 'DEX', int: 'INT', luk: 'LUK',
-    maxHp: '최대HP', maxMp: '최대MP',
-    weaponAttack: '공격력', magicAttack: '마력',
-    weaponDefense: '물리방어력', magicDefense: '마법방어력',
-    accuracy: '명중률', avoidability: '회피율',
-    speed: '이동속도', jump: '점프력',
-  };
-
-  deconStatKeys = statKeys.filter((k) => {
-    const baseVal = item.stats?.[k];
-    return Number.isFinite(baseVal) && baseVal > 0;
-  });
 
   deconDeltas = {};
   for (const k of deconStatKeys) {
     deconDeltas[k] = 0;
 
     const row = document.createElement('div');
-    row.className = 'decon-stat-row';
+    row.className = 'chaos-stat-row';
     row.dataset.deconStatKey = k;
 
     const label = document.createElement('span');
-    label.className = 'decon-stat-label';
-    label.textContent = labelMap[k] || k;
+    label.className = 'chaos-stat-label';
+    label.textContent = statLabelByKey[k] || k;
 
     const isHpMp = HP_MP_KEYS.has(k);
     const stepSize = isHpMp ? 10 : 1;
-    const rangeMax = isHpMp ? 50 : 5;
+    const rangeMax = 100;
 
     const minBtn = document.createElement('button');
     minBtn.type = 'button';
-    minBtn.className = 'decon-stepper-btn decon-stepper-btn--min';
+    minBtn.className = 'chaos-stepper-btn chaos-stepper-btn--max';
     minBtn.textContent = 'MIN';
     minBtn.addEventListener('click', () => {
       setStatDelta(k, -rangeMax);
@@ -525,20 +534,20 @@ const buildStatEditor = (item) => {
 
     const decBtn = document.createElement('button');
     decBtn.type = 'button';
-    decBtn.className = 'decon-stepper-btn';
+    decBtn.className = 'chaos-stepper-btn';
     decBtn.textContent = '-';
     decBtn.addEventListener('click', () => {
       setStatDelta(k, Math.max(-rangeMax, deconDeltas[k] - stepSize));
     });
 
     const valueSpan = document.createElement('span');
-    valueSpan.className = 'decon-stepper-value';
+    valueSpan.className = 'chaos-stepper-value';
     valueSpan.dataset.deconStatValue = k;
     valueSpan.textContent = '0';
 
     const incBtn = document.createElement('button');
     incBtn.type = 'button';
-    incBtn.className = 'decon-stepper-btn';
+    incBtn.className = 'chaos-stepper-btn';
     incBtn.textContent = '+';
     incBtn.addEventListener('click', () => {
       setStatDelta(k, Math.min(rangeMax, deconDeltas[k] + stepSize));
@@ -546,7 +555,7 @@ const buildStatEditor = (item) => {
 
     const maxBtn = document.createElement('button');
     maxBtn.type = 'button';
-    maxBtn.className = 'decon-stepper-btn decon-stepper-btn--max';
+    maxBtn.className = 'chaos-stepper-btn chaos-stepper-btn--max';
     maxBtn.textContent = 'MAX';
     maxBtn.addEventListener('click', () => {
       setStatDelta(k, rangeMax);
@@ -554,6 +563,34 @@ const buildStatEditor = (item) => {
 
     row.append(label, minBtn, decBtn, valueSpan, incBtn, maxBtn);
     deconStatEditor.append(row);
+  }
+
+  // Populate add-stat menu
+  populateAddStatMenu();
+};
+
+const populateAddStatMenu = () => {
+  const addStatMenu = document.querySelector('[data-decon-add-stat-menu]');
+  if (!(addStatMenu instanceof HTMLElement)) return;
+  addStatMenu.replaceChildren();
+
+  const deconStatSet = new Set(deconStatKeys);
+  for (const key of STAT_PRIORITY) {
+    if (deconStatSet.has(key)) continue;
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'decon-add-stat-option';
+    addBtn.textContent = statLabelByKey[key] || key;
+    addBtn.addEventListener('click', () => {
+      deconDeltas[key] = 0;
+      deconStatKeys.push(key);
+      rebuildStatEditor();
+      const menu = document.querySelector('[data-decon-add-stat-menu]');
+      const toggle = document.querySelector('[data-decon-add-stat-toggle]');
+      if (menu instanceof HTMLElement) menu.hidden = true;
+      if (toggle instanceof HTMLElement) toggle.classList.remove('decon-add-stat-toggle--open');
+    });
+    addStatMenu.append(addBtn);
   }
 };
 
@@ -570,6 +607,11 @@ const updateAnalyzeButton = () => {
   if (!(deconAnalyzeBtn instanceof HTMLButtonElement)) return;
   const hasDelta = Object.values(deconDeltas).some((v) => v > 0);
   deconAnalyzeBtn.disabled = !hasDelta;
+};
+
+const setAvailableSlots = (value) => {
+  deconAvailableSlots = value;
+  if (deconSlotValue instanceof HTMLElement) deconSlotValue.textContent = String(value);
 };
 
 // ---- Item search handling (adapted from expected-value.astro) ----
@@ -860,22 +902,24 @@ const activateDeconEditPanel = (item) => {
   deconEditContent.hidden = false;
 
   // Set max slots from item
-  if (deconSlotInput instanceof HTMLInputElement) {
-    const maxSlots = item.stats?.upgradeSlots ?? 7;
-    deconSlotInput.max = String(maxSlots);
-    deconSlotInput.value = String(maxSlots);
-  }
+  deconMaxSlots = item.stats?.upgradeSlots ?? 0;
+  setAvailableSlots(deconMaxSlots);
 
   // Build stat editor
-  buildStatEditor(item);
+  const statKeys = ['str', 'dex', 'int', 'luk', 'maxHp', 'maxMp', 'weaponAttack', 'magicAttack', 'weaponDefense', 'magicDefense', 'accuracy', 'avoidability', 'speed', 'jump'];
+  deconStatKeys = statKeys.filter((k) => {
+    const baseVal = item.stats?.[k];
+    return Number.isFinite(baseVal) && baseVal > 0;
+  });
+  rebuildStatEditor();
   updateAnalyzeButton();
 };
 
 // ---- Analyze click handler ----
 const runAnalysis = () => {
-  if (!selectedItem || !(deconSlotInput instanceof HTMLInputElement)) return;
+  if (!selectedItem) return;
 
-  const upgradeSlots = parseInt(deconSlotInput.value, 10) || 0;
+  const upgradeSlots = deconAvailableSlots;
   const equipmentKind = selectedItem.equipmentKind;
 
   // Build targetDeltas from deconDeltas (only positive values)
@@ -1151,6 +1195,22 @@ jobClearAllButton?.addEventListener('click', () => {
   });
   syncJobButtons();
   renderManualItemResults();
+});
+
+// ---- Slot stepper ----
+deconSlotMin?.addEventListener('click', () => setAvailableSlots(0));
+deconSlotDec?.addEventListener('click', () => setAvailableSlots(Math.max(0, deconAvailableSlots - 1)));
+deconSlotInc?.addEventListener('click', () => setAvailableSlots(Math.min(deconMaxSlots, deconAvailableSlots + 1)));
+deconSlotMax?.addEventListener('click', () => setAvailableSlots(deconMaxSlots));
+
+// ---- Add-stat toggle ----
+const deconAddStatToggle = document.querySelector('[data-decon-add-stat-toggle]');
+const deconAddStatMenu = document.querySelector('[data-decon-add-stat-menu]');
+deconAddStatToggle?.addEventListener('click', () => {
+  if (!(deconAddStatMenu instanceof HTMLElement) || !(deconAddStatToggle instanceof HTMLElement)) return;
+  const willOpen = deconAddStatMenu.hidden;
+  deconAddStatMenu.hidden = !willOpen;
+  deconAddStatToggle.classList.toggle('decon-add-stat-toggle--open', willOpen);
 });
 
 // ---- Analyze button ----
@@ -1764,25 +1824,21 @@ aside.panel {
   margin-bottom: 10px;
 }
 
-.decon-stat-row {
+:global(.chaos-stat-row) {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--surface-soft);
+  gap: 8px;
 }
 
-.decon-stat-label {
-  min-width: 72px;
-  font-size: 0.85rem;
-  font-weight: 700;
+:global(.chaos-stat-label) {
+  min-width: 80px;
+  font-size: 0.88rem;
+  font-weight: 650;
   color: var(--ink);
 }
 
-.decon-stepper-btn {
-  width: 36px;
+:global(.chaos-stepper-btn) {
+  width: 28px;
   height: 28px;
   display: inline-flex;
   align-items: center;
@@ -1791,7 +1847,7 @@ aside.panel {
   border-radius: 6px;
   background: var(--surface);
   color: var(--ink);
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   line-height: 1;
@@ -1799,20 +1855,19 @@ aside.panel {
   transition: background 0.15s, border-color 0.15s;
 }
 
-.decon-stepper-btn--min,
-.decon-stepper-btn--max {
-  width: 40px;
-  font-size: 0.72rem;
+:global(.chaos-stepper-btn--max) {
+  width: 34px;
+  font-size: 0.78rem;
 }
 
-.decon-stepper-btn:hover,
-.decon-stepper-btn:focus-visible {
+:global(.chaos-stepper-btn:hover),
+:global(.chaos-stepper-btn:focus-visible) {
   border-color: var(--green);
   background: var(--surface-soft);
   outline: none;
 }
 
-.decon-stepper-value {
+:global(.chaos-stepper-value) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1829,31 +1884,63 @@ aside.panel {
 }
 
 .decon-slot-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   margin-bottom: 10px;
-  padding: 8px 10px;
+}
+
+.decon-add-stat-area {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.decon-add-stat-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.84rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.decon-add-stat-toggle:hover,
+.decon-add-stat-toggle--open {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.decon-add-stat-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 8px;
   border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--surface-soft);
 }
 
-.decon-slot-row label {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--ink);
+.decon-add-stat-menu[hidden] {
+  display: none;
 }
 
-.decon-slot-row input {
-  width: 60px;
-  padding: 4px 8px;
+.decon-add-stat-option {
+  padding: 3px 8px;
   border: 1px solid var(--line);
   border-radius: 4px;
   background: var(--surface);
   color: var(--ink);
-  text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.decon-add-stat-option:hover {
+  border-color: var(--green);
+  background: var(--surface-soft);
 }
 
 .ev-start-btn {
