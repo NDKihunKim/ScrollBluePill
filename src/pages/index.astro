@@ -1964,6 +1964,14 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		}
 	}
 
+	.panel > h2 {
+		margin-bottom: 10px;
+		color: var(--ink);
+		font-size: clamp(1.05rem, 1.5vw, 1.35rem);
+		font-weight: 800;
+		line-height: 1.2;
+	}
+
 	.enhancement-placeholder {
 		color: var(--muted);
 		font-size: 0.92rem;
@@ -2845,8 +2853,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	}
 	.calculator-panel.result-panel h3 {
 	  margin: 0 0 8px;
-	  color: var(--muted);
-	  font-size: 0.88rem;
-	  font-weight: 700;
+	  color: var(--ink);
+	  font-size: clamp(1.05rem, 1.5vw, 1.35rem);
+	  font-weight: 800;
+	  line-height: 1.2;
 	}
 </style>
