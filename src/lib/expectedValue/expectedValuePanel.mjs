@@ -263,7 +263,7 @@ export function createResultUI() {
   const countField = document.createElement('label');
   countField.className = 'ev-converter-field';
   const countPrefix = document.createElement('span');
-  countPrefix.textContent = '제작 횟수:';
+  countPrefix.textContent = '시도 횟수:';
   const countInput = document.createElement('input');
   countInput.type = 'number';
   countInput.min = '0';
@@ -271,7 +271,7 @@ export function createResultUI() {
   countInput.step = '1';
   countInput.className = 'ev-count-input';
   const countSuffix = document.createElement('span');
-  countSuffix.textContent = '개';
+  countSuffix.textContent = '번';
   countField.append(countPrefix, countInput, countSuffix);
 
   converterRow.append(percentField, converterArrow, countField);

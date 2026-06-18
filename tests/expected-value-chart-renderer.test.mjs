@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { renderAttemptChart } from '../src/lib/expectedValue/chartRenderer.mjs';
 
-function createFakeContext() {
+function createFakeContext(textCalls = []) {
   return {
     fillStyle: '',
     font: '',
@@ -15,7 +15,9 @@ function createFakeContext() {
     closePath() {},
     fill() {},
     fillRect() {},
-    fillText() {},
+    fillText(text) {
+      textCalls.push(text);
+    },
     lineTo() {},
     moveTo() {},
     arc() {},
@@ -29,7 +31,7 @@ function createFakeContext() {
   };
 }
 
-function createFakeCanvas() {
+function createFakeCanvas(textCalls = []) {
   const canvas = {
     height: 150,
     parentElement: { clientWidth: 640 },
@@ -44,7 +46,7 @@ function createFakeCanvas() {
       return { width, height };
     },
     getContext(type) {
-      return type === '2d' ? createFakeContext() : null;
+      return type === '2d' ? createFakeContext(textCalls) : null;
     },
   };
   return canvas;
@@ -86,6 +88,43 @@ test('renderAttemptChart pins display size so repeated renders do not visually z
     assert.equal(canvas.style.height, '220px');
     assert.deepEqual(firstBackingSize, { width: 1280, height: 440 });
     assert.deepEqual(secondBackingSize, firstBackingSize);
+  } finally {
+    globalThis.window = originalWindow;
+    globalThis.document = originalDocument;
+  }
+});
+
+test('renderAttemptChart abbreviates thousand-scale Y-axis ticks but keeps point labels exact', () => {
+  const originalWindow = globalThis.window;
+  const originalDocument = globalThis.document;
+  globalThis.window = { devicePixelRatio: 1 };
+  globalThis.document = {
+    documentElement: {
+      getAttribute() {
+        return 'dark';
+      },
+    },
+  };
+
+  try {
+    const textCalls = [];
+    const canvas = createFakeCanvas(textCalls);
+    const chartData = [
+      { percentile: 0, attempts: 0 },
+      { percentile: 50, attempts: 2000 },
+      { percentile: 75, attempts: 3000 },
+      { percentile: 90, attempts: 4000 },
+      { percentile: 95, attempts: 4500 },
+      { percentile: 99, attempts: 5000 },
+    ];
+
+    renderAttemptChart(canvas, chartData);
+
+    assert.ok(textCalls.includes('2k'));
+    assert.ok(textCalls.includes('4k'));
+    assert.ok(textCalls.includes('4,000회'));
+    assert.ok(!textCalls.includes('2000'));
+    assert.ok(!textCalls.includes('4000'));
   } finally {
     globalThis.window = originalWindow;
     globalThis.document = originalDocument;

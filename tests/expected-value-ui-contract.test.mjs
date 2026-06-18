@@ -145,14 +145,15 @@ test('result panel renders interactive attempt row with input and cumulative pro
   assert.match(panelSource, /ev-percent-input/);
   assert.match(panelSource, /ev-count-input/);
   assert.match(panelSource, /상위/);
-  assert.match(panelSource, /제작 횟수/);
+  assert.match(panelSource, /countPrefix\.textContent = '시도 횟수:'/);
+  assert.match(panelSource, /countSuffix\.textContent = '번'/);
   assert.match(panelSource, /computeCumulativeProbability/);
   assert.match(panelSource, /computeAttemptsForPercentile/);
   assert.match(panelSource, /updatePercentFromCount/);
   assert.match(panelSource, /updateCountFromPercent/);
   assert.match(panelSource, /percentInput\.addEventListener\('input',\s*updateCountFromPercent\)/);
   assert.match(panelSource, /countInput\.addEventListener\('input',\s*updatePercentFromCount\)/);
-  assert.doesNotMatch(panelSource, /시도 횟수/);
+  assert.doesNotMatch(panelSource, /제작 횟수/);
   assert.match(panelSource, /formatPercentInputValue\(cumulative\)/);
   assert.match(indexSource, /:global\(\.ev-result-title\)\s*\{/);
   assert.match(indexSource, /:global\(\.ev-equipment-count\)\s*\{/);
@@ -164,6 +165,19 @@ test('result panel renders interactive attempt row with input and cumulative pro
   assert.doesNotMatch(panelSource, /ev-expected-attempts/);
   assert.doesNotMatch(panelSource, /ev-method-label/);
   assert.doesNotMatch(panelSource, /ev-probability/);
+});
+
+test('calculator panel headings share the reduced title treatment', async () => {
+  const indexSource = await readFile(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
+
+  assert.match(
+    indexSource,
+    /\.panel > h2\s*\{[^}]*color:\s*var\(--ink\);[^}]*font-size:\s*clamp\(1\.05rem,\s*1\.5vw,\s*1\.35rem\);/s,
+  );
+  assert.match(
+    indexSource,
+    /\.calculator-panel\.result-panel h3\s*\{[^}]*color:\s*var\(--ink\);[^}]*font-size:\s*clamp\(1\.05rem,\s*1\.5vw,\s*1\.35rem\);/s,
+  );
 });
 
 test('result panel converter maps count and percentile consistently', () => {
