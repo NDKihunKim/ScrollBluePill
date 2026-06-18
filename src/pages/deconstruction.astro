@@ -483,6 +483,7 @@ const renderTargetItemCard = (item) => {
     const base = item.stats?.[key] ?? 0;
     const delta = deconDeltas[key] ?? 0;
     const total = base + delta;
+    if (total <= 0) return;
     if (Number.isFinite(total)) {
       if (delta !== 0) {
         if (base === 0) {
@@ -542,13 +543,15 @@ const rebuildStatEditor = () => {
     const isHpMp = HP_MP_KEYS.has(k);
     const stepSize = isHpMp ? 10 : 1;
     const rangeMax = 100;
+    const baseValue = selectedItem?.stats?.[k] ?? 0;
+    const rangeMin = -baseValue;
 
     const minBtn = document.createElement('button');
     minBtn.type = 'button';
     minBtn.className = 'chaos-stepper-btn chaos-stepper-btn--max';
     minBtn.textContent = 'MIN';
     minBtn.addEventListener('click', () => {
-      setStatDelta(k, -rangeMax);
+      setStatDelta(k, rangeMin);
     });
 
     const decBtn = document.createElement('button');
@@ -556,7 +559,7 @@ const rebuildStatEditor = () => {
     decBtn.className = 'chaos-stepper-btn';
     decBtn.textContent = '-';
     decBtn.addEventListener('click', () => {
-      setStatDelta(k, Math.max(-rangeMax, deconDeltas[k] - stepSize));
+      setStatDelta(k, Math.max(rangeMin, deconDeltas[k] - stepSize));
     });
 
     const valueSpan = document.createElement('span');
