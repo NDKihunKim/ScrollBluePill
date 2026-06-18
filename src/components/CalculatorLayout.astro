@@ -1,0 +1,72 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+export interface Props {
+  title: string;
+  description: string;
+  eyebrow?: string;
+}
+
+const { title, description, eyebrow } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  {
+    eyebrow ? (
+      <section class="band">
+        <div class="container">
+          <p class="eyebrow">{eyebrow}</p>
+          <h1>{title}</h1>
+        </div>
+      </section>
+    ) : (
+      <section class="band">
+        <div class="container">
+          <h1>{title}</h1>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="band">
+    <div class="container grid two">
+      <div class="left-stack">
+        <slot name="left" />
+      </div>
+      <aside class="panel" aria-label="아이템 미리보기">
+        <slot name="sidebar" />
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .left-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  aside.panel {
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+  }
+
+  .panel > h2 {
+    margin-bottom: 10px;
+    color: var(--ink);
+    font-size: clamp(1.05rem, 1.5vw, 1.35rem);
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  @media (max-width: 760px) {
+    aside.panel {
+      max-width: 315px;
+      justify-self: center;
+      width: 100%;
+    }
+  }
+</style>
