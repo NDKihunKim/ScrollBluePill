@@ -161,7 +161,8 @@ test('maker-only changes notify expected-value button state', async () => {
 	const enhancementPanelSource = await readFile(new URL('../src/lib/enhancementPanel.mjs', import.meta.url), 'utf8');
 
 	assert.match(makerPanelSource, /onStateChange/);
-	assert.match(makerPanelSource, /renderEnhancedItemCard\(selectedBaseItem,\s*accumulatedStats,\s*remaining,\s*appliedCount,\s*gradeColor,\s*statBreakdown\);\s*onStateChange\?\.\(\);/);
+	// refreshEnhancedCard is a pure render; mutation sites call onStateChange separately
+	assert.match(makerPanelSource, /refreshEnhancedCard\(\);\s*onStateChange\?\.\(\);/);
 	assert.match(enhancementPanelSource, /onStateChange:\s*\(\)\s*=>\s*notifyEv\(\)/);
 });
 
@@ -751,4 +752,45 @@ test('stimulant editor stays beneath its slot inside the Maker panel', () => {
 	assert.match(indexSource, /:global\(\.maker-stimulant-editor\)\s*\{[^}]*margin-top:\s*10px;/s);
 	assert.match(indexSource, /:global\(\.maker-stimulant-editor\[hidden\]\)\s*\{[^}]*display:\s*none;/s);
 	assert.match(indexSource, /:global\(\.maker-stimulant-editor-grid\)\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;/s);
+});
+
+test('stimulant editor labels additional-option stats and closes with a bottom divider', async () => {
+	const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
+
+	assert.match(indexSource, /data-maker-stimulant-editor-label>추가 옵션 스탯 입력<\/p>/);
+	assert.match(makerPanelSource, /makerStimulantEditorLabel\.textContent\s*=\s*'추가 옵션 스탯 입력'/);
+	assert.doesNotMatch(
+		indexSource,
+		/:global\(\.maker-stimulant-editor\)\s*\{[^}]*border-top:/s,
+	);
+	assert.match(
+		indexSource,
+		/:global\(\.maker-mode-toggle-row\)\s*\{[^}]*border-bottom:\s*1px solid var\(--line\);/s,
+	);
+});
+
+test('stimulant editor cancel button collapses without applying draft changes', async () => {
+	const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
+	const renderStart = makerPanelSource.indexOf('const renderStimulantInputPanel =');
+	const renderEnd = makerPanelSource.indexOf('\n\n\n  const renderStimulantSlot =', renderStart);
+	const renderSource = makerPanelSource.slice(renderStart, renderEnd);
+
+	assert.match(renderSource, /cancelBtn\.className\s*=\s*'chaos-apply-button maker-stimulant-cancel-button'/);
+	assert.match(renderSource, /cancelBtn\.textContent\s*=\s*'취소'/);
+	assert.match(
+		renderSource,
+		/cancelBtn\.addEventListener\('click',\s*\(\)\s*=>\s*\{\s*hideStimulantEditor\(\);\s*\}\);/s,
+	);
+	assert.match(renderSource, /actionsDiv\.append\(cancelBtn,\s*applyBtn\)/);
+	assert.match(
+		indexSource,
+		/:global\(\.maker-stimulant-cancel-button\)\s*\{[^}]*background:\s*var\(--surface-soft\);[^}]*color:\s*var\(--ink\);/s,
+	);
+});
+
+test('Maker action rows give back, cancel, and apply buttons identical dimensions', () => {
+	assert.match(
+		indexSource,
+		/:global\(\.maker-mode-toggle-row \.maker-mode-toggle-actions > button\)\s*\{[^}]*min-width:\s*52px;[^}]*min-height:\s*30px;[^}]*padding:\s*5px 10px;[^}]*font-size:\s*0\.82rem;/s,
+	);
 });

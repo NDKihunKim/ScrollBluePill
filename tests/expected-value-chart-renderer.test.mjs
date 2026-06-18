@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { renderAttemptChart } from '../src/lib/expectedValue/chartRenderer.mjs';
 
-function createFakeContext(textCalls = []) {
+function createFakeContext(textCalls = [], drawingCalls = {}) {
   return {
     fillStyle: '',
     font: '',
@@ -15,11 +15,17 @@ function createFakeContext(textCalls = []) {
     closePath() {},
     fill() {},
     fillRect() {},
-    fillText(text) {
+    fillText(text, x, y) {
       textCalls.push(text);
+      drawingCalls.fillText?.push([text, x, y]);
     },
     lineTo() {},
-    moveTo() {},
+    measureText(text) {
+      return { width: text.length * 6 };
+    },
+    moveTo(x, y) {
+      drawingCalls.moveTo?.push([x, y]);
+    },
     arc() {},
     rotate() {},
     save() {},
@@ -27,11 +33,13 @@ function createFakeContext(textCalls = []) {
     scale() {},
     setLineDash() {},
     stroke() {},
-    translate() {},
+    translate(x, y) {
+      drawingCalls.translate?.push([x, y]);
+    },
   };
 }
 
-function createFakeCanvas(textCalls = []) {
+function createFakeCanvas(textCalls = [], drawingCalls = {}) {
   const canvas = {
     height: 150,
     parentElement: { clientWidth: 640 },
@@ -46,7 +54,7 @@ function createFakeCanvas(textCalls = []) {
       return { width, height };
     },
     getContext(type) {
-      return type === '2d' ? createFakeContext(textCalls) : null;
+      return type === '2d' ? createFakeContext(textCalls, drawingCalls) : null;
     },
   };
   return canvas;
@@ -88,6 +96,85 @@ test('renderAttemptChart pins display size so repeated renders do not visually z
     assert.equal(canvas.style.height, '220px');
     assert.deepEqual(firstBackingSize, { width: 1280, height: 440 });
     assert.deepEqual(secondBackingSize, firstBackingSize);
+  } finally {
+    globalThis.window = originalWindow;
+    globalThis.document = originalDocument;
+  }
+});
+
+test('renderAttemptChart prevents X-axis label collisions without hiding labels unnecessarily', () => {
+  const originalWindow = globalThis.window;
+  const originalDocument = globalThis.document;
+  globalThis.window = { devicePixelRatio: 1 };
+  globalThis.document = {
+    documentElement: {
+      getAttribute() {
+        return 'dark';
+      },
+    },
+  };
+
+  const chartData = [
+    { percentile: 0, attempts: 0 },
+    { percentile: 50, attempts: 2 },
+    { percentile: 75, attempts: 4 },
+    { percentile: 90, attempts: 6 },
+    { percentile: 95, attempts: 7 },
+    { percentile: 99, attempts: 10 },
+  ];
+
+  try {
+    const narrowTextCalls = [];
+    const narrowCanvas = createFakeCanvas(narrowTextCalls);
+    narrowCanvas.parentElement.clientWidth = 520;
+    renderAttemptChart(narrowCanvas, chartData);
+
+    assert.ok(narrowTextCalls.includes('90%'));
+    assert.ok(!narrowTextCalls.includes('95%'));
+    assert.ok(narrowTextCalls.includes('99%'));
+
+    const wideTextCalls = [];
+    const wideCanvas = createFakeCanvas(wideTextCalls);
+    wideCanvas.parentElement.clientWidth = 1000;
+    renderAttemptChart(wideCanvas, chartData);
+
+    assert.ok(wideTextCalls.includes('90%'));
+    assert.ok(wideTextCalls.includes('95%'));
+    assert.ok(wideTextCalls.includes('99%'));
+  } finally {
+    globalThis.window = originalWindow;
+    globalThis.document = originalDocument;
+  }
+});
+
+test('renderAttemptChart reserves a balanced gutter for the Y-axis title', () => {
+  const originalWindow = globalThis.window;
+  const originalDocument = globalThis.document;
+  globalThis.window = { devicePixelRatio: 1 };
+  globalThis.document = {
+    documentElement: {
+      getAttribute() {
+        return 'dark';
+      },
+    },
+  };
+
+  try {
+    const drawingCalls = { moveTo: [], translate: [] };
+    const canvas = createFakeCanvas([], drawingCalls);
+    const chartData = [
+      { percentile: 0, attempts: 0 },
+      { percentile: 50, attempts: 2 },
+      { percentile: 99, attempts: 10 },
+    ];
+
+    renderAttemptChart(canvas, chartData);
+
+    assert.ok(drawingCalls.moveTo.some(([x]) => x === 60), 'plot should start at x=60');
+    assert.ok(
+      drawingCalls.translate.some(([x]) => x === 22),
+      'Y-axis title should be inset 22px from the canvas edge',
+    );
   } finally {
     globalThis.window = originalWindow;
     globalThis.document = originalDocument;

@@ -35,6 +35,7 @@ export function initMakerPanel({
   makerPickerGrid,
   makerPickerBack,
   renderEnhancedItemCard,
+  requestMutation = (mutation) => mutation(),
   onMakerOpen,
   onStateChange,
 }) {
@@ -78,7 +79,6 @@ export function initMakerPanel({
     const gradeColor = computeGradeColor(enhancementState);
 
     renderEnhancedItemCard(selectedBaseItem, accumulatedStats, remaining, appliedCount, gradeColor, statBreakdown);
-    onStateChange?.();
   };
 
   const getStimulantStatKeys = () => {
@@ -214,28 +214,31 @@ export function initMakerPanel({
         stats[key] = values.get(key) ?? 0;
       }
       const currentMode = currentIsProbability ? 'probability' : 'manual';
-      const ok = applyVariableGem(enhancementState, editingSlotIndex, gem.key, stats, currentMode, gradeIndex);
-      if (!ok) return;
+      requestMutation(() => {
+        const ok = applyVariableGem(enhancementState, editingSlotIndex, gem.key, stats, currentMode, gradeIndex);
+        if (!ok) return;
 
-      pendingGemKey = null;
+        pendingGemKey = null;
 
-      let nextEmpty = -1;
-      for (let i = 0; i < enhancementState.gemSlotCount; i++) {
-        const s = i < enhancementState.gemSlots.length ? enhancementState.gemSlots[i] : null;
-        if (!s) { nextEmpty = i; break; }
-      }
+        let nextEmpty = -1;
+        for (let i = 0; i < enhancementState.gemSlotCount; i++) {
+          const s = i < enhancementState.gemSlots.length ? enhancementState.gemSlots[i] : null;
+          if (!s) { nextEmpty = i; break; }
+        }
 
-      renderGemSlots();
-      refreshEnhancedCard();
-
-      if (nextEmpty >= 0) {
-        editingSlotIndex = nextEmpty;
         renderGemSlots();
-        renderStep1Picker();
-      } else {
-        hidePicker();
-        renderGemSlots();
-      }
+        refreshEnhancedCard();
+        onStateChange?.();
+
+        if (nextEmpty >= 0) {
+          editingSlotIndex = nextEmpty;
+          renderGemSlots();
+          renderStep1Picker();
+        } else {
+          hidePicker();
+          renderGemSlots();
+        }
+      });
     });
 
     // Mode toggle row with actions
@@ -291,7 +294,7 @@ export function initMakerPanel({
     const existingMode = enhancementState.stimulantSlot?.mode;
     let currentIsProbability = existingMode === 'probability';
 
-    makerStimulantEditorLabel.textContent = '촉진제 스탯 입력';
+    makerStimulantEditorLabel.textContent = '추가 옵션 스탯 입력';
     makerStimulantEditorGrid.replaceChildren();
     makerStimulantEditorGrid.classList.add('maker-stimulant-input-panel');
     makerStimulantEditor.hidden = false;
@@ -384,11 +387,22 @@ export function initMakerPanel({
         stats[key] = stimulantValues.get(key) ?? 0;
       }
       const currentMode = currentIsProbability ? 'probability' : 'manual';
-      applyStimulant(enhancementState, stats, currentMode);
+      requestMutation(() => {
+        applyStimulant(enhancementState, stats, currentMode);
+        hideStimulantEditor();
+        renderStimulantSlot();
+        renderGemSlots();
+        refreshEnhancedCard();
+        onStateChange?.();
+      });
+    });
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'chaos-apply-button maker-stimulant-cancel-button';
+    cancelBtn.textContent = '취소';
+    cancelBtn.addEventListener('click', () => {
       hideStimulantEditor();
-      renderStimulantSlot();
-      renderGemSlots();
-      refreshEnhancedCard();
     });
 
     // Mode toggle row with actions
@@ -420,7 +434,7 @@ export function initMakerPanel({
 
     const actionsDiv = document.createElement('div');
     actionsDiv.className = 'maker-mode-toggle-actions';
-    actionsDiv.append(applyBtn);
+    actionsDiv.append(cancelBtn, applyBtn);
 
     toggleLabel.prepend(checkbox);
     toggleLabel.append(' ', helpIcon);
@@ -460,12 +474,15 @@ export function initMakerPanel({
       xBtn.textContent = '×';
       xBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        clearStimulant(enhancementState);
-        stimulantValues = new Map();
-        hideStimulantEditor();
-        renderStimulantSlot();
-        renderGemSlots();
-        refreshEnhancedCard();
+        requestMutation(() => {
+          clearStimulant(enhancementState);
+          stimulantValues = new Map();
+          hideStimulantEditor();
+          renderStimulantSlot();
+          renderGemSlots();
+          refreshEnhancedCard();
+          onStateChange?.();
+        });
       });
       xBtn.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -584,10 +601,13 @@ export function initMakerPanel({
         xBtn.textContent = '×';
         xBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          revertGemSlot(enhancementState, i);
-          hidePicker();
-          renderGemSlots();
-          refreshEnhancedCard();
+          requestMutation(() => {
+            revertGemSlot(enhancementState, i);
+            hidePicker();
+            renderGemSlots();
+            refreshEnhancedCard();
+            onStateChange?.();
+          });
         });
         xBtn.addEventListener('keydown', (e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -729,28 +749,31 @@ export function initMakerPanel({
       item.addEventListener('click', () => {
         if (!enhancementState || editingSlotIndex < 0) return;
 
-        const ok = applyGem(enhancementState, editingSlotIndex, gem.key, gradeIndex);
-        if (!ok) return;
+        requestMutation(() => {
+          const ok = applyGem(enhancementState, editingSlotIndex, gem.key, gradeIndex);
+          if (!ok) return;
 
-        pendingGemKey = null;
+          pendingGemKey = null;
 
-        let nextEmpty = -1;
-        for (let i = 0; i < enhancementState.gemSlotCount; i++) {
-          const s = i < enhancementState.gemSlots.length ? enhancementState.gemSlots[i] : null;
-          if (!s) { nextEmpty = i; break; }
-        }
+          let nextEmpty = -1;
+          for (let i = 0; i < enhancementState.gemSlotCount; i++) {
+            const s = i < enhancementState.gemSlots.length ? enhancementState.gemSlots[i] : null;
+            if (!s) { nextEmpty = i; break; }
+          }
 
-        renderGemSlots();
-        refreshEnhancedCard();
-
-        if (nextEmpty >= 0) {
-          editingSlotIndex = nextEmpty;
           renderGemSlots();
-          renderStep1Picker();
-        } else {
-          hidePicker();
-          renderGemSlots();
-        }
+          refreshEnhancedCard();
+          onStateChange?.();
+
+          if (nextEmpty >= 0) {
+            editingSlotIndex = nextEmpty;
+            renderGemSlots();
+            renderStep1Picker();
+          } else {
+            hidePicker();
+            renderGemSlots();
+          }
+        });
       });
 
       makerPickerGrid.append(item);
@@ -844,6 +867,7 @@ export function initMakerPanel({
       hideStimulantEditor();
       renderGemSlots();
       refreshEnhancedCard();
+      onStateChange?.();
       updateMakerToggleLabel();
     };
 
@@ -869,7 +893,11 @@ export function initMakerPanel({
       if (!enhancementState || makerToggle.disabled) return;
 
       if (enhancementState.makerActive) {
-        disableMaker();
+        if (hasMakerContributions()) {
+          requestMutation(disableMaker);
+        } else {
+          disableMaker();
+        }
       } else {
         enableMaker();
       }

@@ -35,6 +35,14 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   const itemLevelUpSlots = enhancementPanel?.querySelector('[data-item-level-up-slots]');
   const itemLevelUpEditor = enhancementPanel?.querySelector('[data-item-level-up-editor]');
 
+  const requestEnhancementMutation = (mutation) => {
+    if (typeof window.__evGuardEnhancementMutation === 'function') {
+      window.__evGuardEnhancementMutation(mutation);
+      return;
+    }
+    mutation();
+  };
+
   const makerPanel = initMakerPanel({
     makerSection,
     makerToggle,
@@ -49,6 +57,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     makerPickerGrid,
     makerPickerBack,
     renderEnhancedItemCard,
+    requestMutation: requestEnhancementMutation,
     onMakerOpen: () => itemLevelUpPanel.closeArea(),
     onStateChange: () => notifyEv(),
   });
@@ -59,7 +68,9 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     slots: itemLevelUpSlots,
     editor: itemLevelUpEditor,
     renderEnhancedItemCard,
+    requestMutation: requestEnhancementMutation,
     onToggleOpen: () => makerPanel.closeMakerPanel(),
+    onStateChange: () => notifyEv(),
   });
 
   let scrollIndex = [];
@@ -190,12 +201,15 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
         xBtn.textContent = '×';
         xBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          collapseChaosPanel();
-          clearSlot(enhancementState.scrollState, i);
-          hideScrollDetail();
-          renderSlotRow();
-          renderScrollList(selectedBaseItem);
-          refreshEnhancedCard();
+          requestEnhancementMutation(() => {
+            collapseChaosPanel();
+            clearSlot(enhancementState.scrollState, i);
+            hideScrollDetail();
+            renderSlotRow();
+            renderScrollList(selectedBaseItem);
+            refreshEnhancedCard();
+            notifyEv();
+          });
         });
         xBtn.addEventListener('keydown', (e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -469,39 +483,40 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
         stats,
       };
 
-      const applied = applyScroll(enhancementState, scrollEntry);
-      if (!applied) {
-        return;
-      }
+      requestEnhancementMutation(() => {
+        const applied = applyScroll(enhancementState, scrollEntry);
+        if (!applied) return;
 
-      renderSlotRow();
-      renderScrollList(selectedBaseItem);
-      hideScrollDetail();
-      refreshEnhancedCard();
+        renderSlotRow();
+        renderScrollList(selectedBaseItem);
+        hideScrollDetail();
+        refreshEnhancedCard();
+        notifyEv();
 
-      // Re-locate the chaos option in the rebuilt DOM and keep the panel open
-      const chaosOptions = scrollList.querySelectorAll('.scroll-option');
-      for (const opt of chaosOptions) {
-        const nameEl = opt.querySelector('.scroll-option-name');
-        if (nameEl?.textContent === activeChaosScroll.nameKo) {
-          activeChaosOptionEl = opt;
-          break;
-        }
-      }
-
-      // Re-render the chaos panel into the new DOM element
-      if (activeChaosOptionEl) {
-        renderChaosInputPanel(activeChaosOptionEl);
-
-        // Disable 적용 button if no more slots
-        const newRemaining = computeRemainingSlots(enhancementState);
-        if (newRemaining <= 0) {
-          const btn = activeChaosOptionEl.querySelector('.chaos-apply-button');
-          if (btn) {
-            btn.disabled = true;
+        // Re-locate the chaos option in the rebuilt DOM and keep the panel open
+        const chaosOptions = scrollList.querySelectorAll('.scroll-option');
+        for (const opt of chaosOptions) {
+          const nameEl = opt.querySelector('.scroll-option-name');
+          if (nameEl?.textContent === activeChaosScroll.nameKo) {
+            activeChaosOptionEl = opt;
+            break;
           }
         }
-      }
+
+        // Re-render the chaos panel into the new DOM element
+        if (activeChaosOptionEl) {
+          renderChaosInputPanel(activeChaosOptionEl);
+
+          // Disable 적용 button if no more slots
+          const newRemaining = computeRemainingSlots(enhancementState);
+          if (newRemaining <= 0) {
+            const btn = activeChaosOptionEl.querySelector('.chaos-apply-button');
+            if (btn) {
+              btn.disabled = true;
+            }
+          }
+        }
+      });
     });
 
     panel.append(applyBtn);
@@ -624,18 +639,18 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
           return;
         }
 
-        // Non-chaos scroll: collapse chaos panel and apply normally
-        collapseChaosPanel();
+        requestEnhancementMutation(() => {
+          // Non-chaos scroll: collapse chaos panel and apply normally
+          collapseChaosPanel();
+          const applied = applyScroll(enhancementState, scroll);
+          if (!applied) return;
 
-        const applied = applyScroll(enhancementState, scroll);
-        if (!applied) {
-          return;
-        }
-
-        renderSlotRow();
-        renderScrollList(selectedBaseItem);
-        hideScrollDetail();
-        refreshEnhancedCard();
+          renderSlotRow();
+          renderScrollList(selectedBaseItem);
+          hideScrollDetail();
+          refreshEnhancedCard();
+          notifyEv();
+        });
       });
 
       // For chaos scroll <div role="button">, add keyboard support
@@ -687,21 +702,23 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       failOption.addEventListener('click', () => {
         if (!enhancementState || !selectedBaseItem) return;
 
-        collapseChaosPanel();
+        requestEnhancementMutation(() => {
+          collapseChaosPanel();
+          const applied = applyScroll(enhancementState, {
+            id: '__failed_scroll__',
+            nameKo: '주문서 실패',
+            equipmentKind: item.equipmentKind,
+            behavior_type: 'fixed',
+            stats: {},
+          });
+          if (!applied) return;
 
-        const applied = applyScroll(enhancementState, {
-          id: '__failed_scroll__',
-          nameKo: '주문서 실패',
-          equipmentKind: item.equipmentKind,
-          behavior_type: 'fixed',
-          stats: {},
+          renderSlotRow();
+          renderScrollList(selectedBaseItem);
+          hideScrollDetail();
+          refreshEnhancedCard();
+          notifyEv();
         });
-        if (!applied) return;
-
-        renderSlotRow();
-        renderScrollList(selectedBaseItem);
-        hideScrollDetail();
-        refreshEnhancedCard();
       });
 
       scrollList.append(failOption);
@@ -721,7 +738,6 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     const itemLevelUpMeta = computeItemLevelUpCardMeta(enhancementState, selectedItemLevelUpDefinition);
 
     renderEnhancedItemCard(selectedBaseItem, accumulatedStats, remaining, appliedCount, gradeColor, statBreakdown, itemLevelUpMeta);
-    notifyEv();
   };
 
   const activatePanel2 = (item) => {
@@ -774,6 +790,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     makerPanel.activate(enhancementState, item);
     itemLevelUpPanel.activate(enhancementState, item, itemLevelUpDefinition);
     refreshEnhancedCard();
+    notifyEv();
   };
 
   resetButton?.addEventListener('click', () => {

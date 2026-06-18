@@ -20,6 +20,7 @@ const {
   roundTrialCount,
   computeCountForTopPercent,
   computeTopPercentForCount,
+  createResultMutationGuard,
 } = await import('../src/lib/expectedValue/expectedValuePanel.mjs');
 
 test('PLACEHOLDER_TEXT is defined and non-empty', () => {
@@ -211,4 +212,57 @@ test('enhancement reset shows confirmation dialog and calls __evClear on confirm
   assert.match(enhancementPanelSource, /ev-confirm-dialog/);
   assert.match(enhancementPanelSource, /ev-confirm-buttons/);
   assert.match(enhancementPanelSource, /window\.__evClear/);
+});
+
+test('result mutation guard runs immediately without results and clears before confirmed mutations', () => {
+  assert.equal(typeof createResultMutationGuard, 'function');
+
+  const immediateEvents = [];
+  const runImmediate = createResultMutationGuard({
+    hasResult: () => false,
+    clearResult: () => immediateEvents.push('clear'),
+    requestConfirmation: () => immediateEvents.push('confirm'),
+  });
+  runImmediate(() => immediateEvents.push('mutate'));
+  assert.deepEqual(immediateEvents, ['mutate']);
+
+  const guardedEvents = [];
+  let confirmMutation = null;
+  const runGuarded = createResultMutationGuard({
+    hasResult: () => true,
+    clearResult: () => guardedEvents.push('clear'),
+    requestConfirmation: (onConfirm) => {
+      guardedEvents.push('confirm');
+      confirmMutation = onConfirm;
+    },
+  });
+  runGuarded(() => guardedEvents.push('mutate'));
+  assert.deepEqual(guardedEvents, ['confirm']);
+
+  confirmMutation();
+  assert.deepEqual(guardedEvents, ['confirm', 'clear', 'mutate']);
+});
+
+test('completed results expose one confirmation guard to every enhancement subsystem', async () => {
+  const indexSource = await readFile(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
+  const enhancementPanelSource = await readFile(new URL('../src/lib/enhancementPanel.mjs', import.meta.url), 'utf8');
+  const makerPanelSource = await readFile(new URL('../src/lib/makerPanel.mjs', import.meta.url), 'utf8');
+  const itemLevelUpPanelSource = await readFile(new URL('../src/lib/itemLevelUpPanel.mjs', import.meta.url), 'utf8');
+
+  assert.match(indexSource, /계산 결과가 초기화됩니다\. 계속하시겠습니까\?/);
+  assert.match(indexSource, /window\.__evGuardEnhancementMutation\s*=\s*createResultMutationGuard/);
+  assert.match(enhancementPanelSource, /requestEnhancementMutation/);
+  assert.match(enhancementPanelSource, /requestMutation:\s*requestEnhancementMutation/);
+  assert.match(makerPanelSource, /requestMutation/);
+  assert.match(itemLevelUpPanelSource, /requestMutation/);
+
+  for (const mutation of ['clearSlot', 'applyScroll']) {
+    assert.match(enhancementPanelSource, new RegExp(`requestEnhancementMutation\\(\\(\\) => \\{[\\s\\S]*?${mutation}`));
+  }
+  for (const mutation of ['applyVariableGem', 'applyStimulant', 'clearStimulant', 'revertGemSlot', 'applyGem']) {
+    assert.match(makerPanelSource, new RegExp(`requestMutation\\(\\(\\) => \\{[\\s\\S]*?${mutation}`));
+  }
+  for (const mutation of ['clearItemLevelUpSlot', 'applyItemLevelUp', 'applyItemLevelUpMode']) {
+    assert.match(itemLevelUpPanelSource, new RegExp(`requestMutation\\(\\(\\) => \\{[\\s\\S]*?${mutation}`));
+  }
 });
