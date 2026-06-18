@@ -831,6 +831,11 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       if (typeof window.__evClear === 'function') {
         window.__evClear();
       }
+
+      // Re-render calc panel target selection for the reset state
+      if (typeof window.__evOpenCalcPanel === 'function') {
+        window.__evOpenCalcPanel();
+      }
     });
 
     const cancelBtn = document.createElement('button');

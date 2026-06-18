@@ -93,7 +93,7 @@ export function computeCountForTopPercent(successProbability, topPercent, prefer
  * @param {Record<string, number>} gains - Enhancement gains from computeEnhancementGains
  * @returns {{ container: HTMLElement, getCheckedStats: () => { [statKey: string]: boolean, grade: boolean }, getTrialCount: () => number, onStart: (fn: Function) => void, onCancel: (fn: Function) => void }}
  */
-export function createTargetSelectionUI(cleanStats, previewStats, previewGradeClass, gains) {
+export function createTargetSelectionUI(cleanStats, previewStats, previewGradeClass, gains, { showCancel = false } = {}) {
   const container = document.createElement('div');
   container.className = 'ev-target-selection';
 
@@ -167,13 +167,18 @@ export function createTargetSelectionUI(cleanStats, previewStats, previewGradeCl
 
   const startButton = document.createElement('button');
   startButton.className = 'ev-start-btn';
+  startButton.dataset.evCalcStart = '';
   startButton.textContent = START_BUTTON_TEXT;
+  startButton.disabled = true;
 
   const cancelButton = document.createElement('button');
   cancelButton.className = 'ev-cancel-btn';
   cancelButton.textContent = CANCEL_BUTTON_TEXT;
 
-  buttonRow.append(startButton, cancelButton);
+  buttonRow.append(startButton);
+  if (showCancel) {
+    buttonRow.append(cancelButton);
+  }
   container.appendChild(buttonRow);
 
   /**
