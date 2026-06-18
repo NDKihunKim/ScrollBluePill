@@ -1936,10 +1936,10 @@ aside.panel {
   margin-bottom: 10px;
 }
 
-.decon-add-stat-area {
+:global(.decon-add-stat-area) {
   margin-top: 4px;
 }
-.decon-add-stat-toggle {
+:global(.decon-add-stat-toggle) {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -1953,16 +1953,16 @@ aside.panel {
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
 }
-.decon-add-stat-toggle:hover,
-.decon-add-stat-toggle--open {
+:global(.decon-add-stat-toggle:hover),
+:global(.decon-add-stat-toggle--open) {
   border-color: var(--green);
   color: var(--green);
   border-style: solid;
 }
-.decon-add-stat-toggle[hidden] {
+:global(.decon-add-stat-toggle[hidden]) {
   display: none;
 }
-.decon-add-stat-list {
+:global(.decon-add-stat-list) {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -1974,10 +1974,10 @@ aside.panel {
   max-height: 220px;
   overflow-y: auto;
 }
-.decon-add-stat-list[hidden] {
+:global(.decon-add-stat-list[hidden]) {
   display: none;
 }
-.decon-add-stat-option {
+:global(.decon-add-stat-option) {
   display: flex;
   align-items: center;
   width: 100%;
@@ -1992,18 +1992,18 @@ aside.panel {
   text-align: left;
   transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
-.decon-add-stat-option:hover {
+:global(.decon-add-stat-option:hover) {
   background: var(--surface-soft);
   border-color: var(--line);
   color: var(--ink);
 }
 
-:root[data-theme='dark'] .decon-add-stat-option {
-  color: #6a8490;
+:root[data-theme='dark'] :global(.decon-add-stat-option) {
+  color: #5a7d8a;
 }
-:root[data-theme='dark'] .decon-add-stat-option:hover {
-  background: rgb(255 255 255 / 5%);
-  color: #b0cdd8;
+:root[data-theme='dark'] :global(.decon-add-stat-option:hover) {
+  background: rgb(255 255 255 / 4%);
+  color: #9bb8c4;
 }
 
 .ev-start-btn {
