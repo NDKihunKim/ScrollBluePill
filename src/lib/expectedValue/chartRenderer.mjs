@@ -82,7 +82,7 @@ export function renderAttemptChart(canvas, chartData, _p95) {
     ctx.font = '11px sans-serif';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
-    ctx.fillText(String(yVal), padding.left - 8, y);
+    ctx.fillText(formatYAxisTick(yVal), padding.left - 8, y);
   }
 
   // --- X-axis labels (percentiles) ---
@@ -208,6 +208,11 @@ export function renderAttemptChart(canvas, chartData, _p95) {
     ctx.textBaseline = 'bottom';
     ctx.fillText(`${closest.attempts.toLocaleString('en-US')}회`, dx, dy - 6);
   }
+}
+
+function formatYAxisTick(value) {
+  if (Math.abs(value) < 1000) return String(value);
+  return `${Number((value / 1000).toFixed(1))}k`;
 }
 
 /**
