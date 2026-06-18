@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const layoutSource = await readFile(new URL('../src/layouts/BaseLayout.astro', import.meta.url), 'utf8');
-const indexSource = await readFile(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
+const indexSource = await readFile(new URL('../src/pages/expected-value.astro', import.meta.url), 'utf8');
 
 test('global UI theme uses #018FC7 as the darkest brand color', () => {
 	assert.match(layoutSource, /--brand-dark:\s*#018FC7;/);
