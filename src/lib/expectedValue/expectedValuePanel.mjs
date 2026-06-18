@@ -30,6 +30,21 @@ export const MIN_TRIALS = 1000;
 export const MAX_TRIALS = 10000000;
 export const TRIAL_STEP = 10000;
 
+export function createResultMutationGuard({ hasResult, clearResult, requestConfirmation }) {
+  return (mutation) => {
+    if (typeof mutation !== 'function') return;
+    if (!hasResult()) {
+      mutation();
+      return;
+    }
+
+    requestConfirmation(() => {
+      clearResult();
+      mutation();
+    });
+  };
+}
+
 /**
  * Rounds a trial count to the nearest TRIAL_STEP and clamps to [MIN_TRIALS, MAX_TRIALS].
  *

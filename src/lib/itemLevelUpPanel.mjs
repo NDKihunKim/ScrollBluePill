@@ -23,7 +23,9 @@ export function initItemLevelUpPanel({
 	slots,
 	editor,
 	renderEnhancedItemCard,
+	requestMutation = (mutation) => mutation(),
 	onToggleOpen,
+	onStateChange,
 }) {
 	let enhancementState = null;
 	let selectedBaseItem = null;
@@ -99,11 +101,14 @@ export function initItemLevelUpPanel({
 				xBtn.textContent = '×';
 				xBtn.addEventListener('click', (event) => {
 					event.stopPropagation();
-					clearItemLevelUpSlot(enhancementState, i);
-					hideEditor();
-					updateItemLevelUpToggleLabel();
-					renderSlots();
-					refreshEnhancedCard();
+					requestMutation(() => {
+						clearItemLevelUpSlot(enhancementState, i);
+						hideEditor();
+						updateItemLevelUpToggleLabel();
+						renderSlots();
+						refreshEnhancedCard();
+						onStateChange?.();
+					});
 				});
 				xBtn.addEventListener('keydown', (event) => {
 					if (event.key === 'Enter' || event.key === ' ') {
@@ -214,18 +219,21 @@ export function initItemLevelUpPanel({
 			for (const [key, value] of values.entries()) {
 				stats[key] = value;
 			}
-			applyItemLevelUp(enhancementState, slotIndex, stats);
-			lastAppliedValues = new Map(values);
-			updateItemLevelUpToggleLabel();
-			renderSlots();
-			refreshEnhancedCard();
-			const nextEmpty = findNextEmptySlotIndex();
-			if (nextEmpty >= 0) {
-				renderEditor(nextEmpty);
-			} else {
-				hideEditor();
+			requestMutation(() => {
+				applyItemLevelUp(enhancementState, slotIndex, stats);
+				lastAppliedValues = new Map(values);
+				updateItemLevelUpToggleLabel();
 				renderSlots();
-			}
+				refreshEnhancedCard();
+				onStateChange?.();
+				const nextEmpty = findNextEmptySlotIndex();
+				if (nextEmpty >= 0) {
+					renderEditor(nextEmpty);
+				} else {
+					hideEditor();
+					renderSlots();
+				}
+			});
 		});
 
       renderModeToggleInEditor();
@@ -272,7 +280,13 @@ export function initItemLevelUpPanel({
     checkbox.checked = enhancementState.itemLevelUpMode === 'probability';
     checkbox.addEventListener('change', () => {
       if (enhancementState) {
-        applyItemLevelUpMode(enhancementState, checkbox.checked ? 'probability' : 'manual');
+        const nextMode = checkbox.checked ? 'probability' : 'manual';
+        checkbox.checked = enhancementState.itemLevelUpMode === 'probability';
+        requestMutation(() => {
+          applyItemLevelUpMode(enhancementState, nextMode);
+          checkbox.checked = nextMode === 'probability';
+          onStateChange?.();
+        });
       }
     });
 

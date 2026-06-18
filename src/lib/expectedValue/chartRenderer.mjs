@@ -1,10 +1,35 @@
 const DEFAULT_CHART_HEIGHT = 220;
+const X_TICK_MIN_GAP = 8;
 
 function ensureCanvasDisplaySize(canvas) {
   canvas.style.display = 'block';
   canvas.style.width = '100%';
   canvas.style.maxWidth = '100%';
   canvas.style.height ||= `${DEFAULT_CHART_HEIGHT}px`;
+}
+
+function selectNonOverlappingXAxisTicks(ctx, percentiles, paddingLeft, plotWidth) {
+  const ticks = percentiles.map((percentile) => {
+    const label = `${percentile}%`;
+    const x = paddingLeft + (percentile / 100) * plotWidth;
+    const halfWidth = ctx.measureText(label).width / 2;
+    return { percentile, label, x, left: x - halfWidth, right: x + halfWidth };
+  });
+
+  if (ticks.length <= 2) return ticks;
+
+  const prioritized = [ticks[0], ticks[ticks.length - 1], ...ticks.slice(1, -1)];
+  const selected = [];
+
+  for (const tick of prioritized) {
+    const overlaps = selected.some((existing) =>
+      tick.left < existing.right + X_TICK_MIN_GAP &&
+      tick.right + X_TICK_MIN_GAP > existing.left
+    );
+    if (!overlaps) selected.push(tick);
+  }
+
+  return selected.sort((a, b) => a.percentile - b.percentile);
 }
 
 /**
@@ -47,7 +72,7 @@ export function renderAttemptChart(canvas, chartData, _p95) {
   };
 
   // --- Layout ---
-  const padding = { top: 28, right: 20, bottom: 40, left: 48 };
+  const padding = { top: 28, right: 20, bottom: 40, left: 60 };
   const plotW = width - padding.left - padding.right;
   const plotH = height - padding.top - padding.bottom;
 
@@ -92,10 +117,15 @@ export function renderAttemptChart(canvas, chartData, _p95) {
   ctx.textBaseline = 'top';
 
   const xTickPercentiles = [0, 25, 50, 75, 90, 95, 99];
-  for (const pct of xTickPercentiles) {
-    if (pct > maxPercentile) continue;
-    const x = padding.left + (pct / 100) * plotW;
-    ctx.fillText(`${pct}%`, x, height - padding.bottom + 24);
+  const visibleXTickPercentiles = xTickPercentiles.filter((pct) => pct <= maxPercentile);
+  const xTicks = selectNonOverlappingXAxisTicks(
+    ctx,
+    visibleXTickPercentiles,
+    padding.left,
+    plotW,
+  );
+  for (const tick of xTicks) {
+    ctx.fillText(tick.label, tick.x, height - padding.bottom + 24);
   }
 
   // --- X-axis title ---
@@ -108,7 +138,7 @@ export function renderAttemptChart(canvas, chartData, _p95) {
 
   // --- Y-axis title ---
   ctx.save();
-  ctx.translate(14, padding.top + plotH / 2);
+  ctx.translate(22, padding.top + plotH / 2);
   ctx.rotate(-Math.PI / 2);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';

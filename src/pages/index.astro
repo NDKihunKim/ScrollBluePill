@@ -236,7 +236,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 								<p class="enhancement-section-label">촉진제 (추옵)</p>
 								<div class="maker-stimulant-slot-container" data-maker-stimulant-slot></div>
 								<div class="maker-stimulant-editor" data-maker-stimulant-editor hidden>
-									<p class="enhancement-section-label" data-maker-stimulant-editor-label>촉진제 스탯 입력</p>
+									<p class="enhancement-section-label" data-maker-stimulant-editor-label>추가 옵션 스탯 입력</p>
 									<div class="maker-stimulant-editor-grid" data-maker-stimulant-editor-grid></div>
 								</div>
 							</div>
@@ -323,7 +323,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	import { buildItemIconUrl, buildItemSearchUrl } from '../lib/maplestoryIo.mjs';
 
 	import { computeEnhancementGains, getDefaultCheckedStats, extractTargetConditions } from '../lib/expectedValue/targetExtraction.mjs';
-	import { createTargetSelectionUI, createResultUI, DEFAULT_TRIAL_COUNT, roundTrialCount, PLACEHOLDER_TEXT, NO_STRATEGY_TEXT, CONFIRM_TEXT, CONFIRM_BUTTON_TEXT, CANCEL_BUTTON_TEXT, STALE_LABEL } from '../lib/expectedValue/expectedValuePanel.mjs';
+	import { createTargetSelectionUI, createResultUI, createResultMutationGuard, DEFAULT_TRIAL_COUNT, roundTrialCount, PLACEHOLDER_TEXT, NO_STRATEGY_TEXT, CONFIRM_TEXT, CONFIRM_BUTTON_TEXT, CANCEL_BUTTON_TEXT, STALE_LABEL } from '../lib/expectedValue/expectedValuePanel.mjs';
 	import { isDeterministicStrategy, computeExactProbability } from '../lib/expectedValue/exactEngine.mjs';
 	import { createRandomSeed, runStrategyMonteCarloSimulation } from '../lib/expectedValue/monteCarloEngine.mjs';
 	import { createResultSummary, isResultStale } from '../lib/expectedValue/resultFormatter.mjs';
@@ -1225,7 +1225,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		window.__evClear = showEvPlaceholder;
 
 	/** Show a confirmation dialog overlay. Calls onConfirm if user confirms. */
-	const showEvConfirmationDialog = (onConfirm) => {
+	const showEvConfirmationDialog = (onConfirm, { message = CONFIRM_TEXT, confirmLabel = CONFIRM_BUTTON_TEXT } = {}) => {
 	  const overlay = document.createElement('div');
 	  overlay.className = 'ev-confirm-overlay';
 
@@ -1233,13 +1233,13 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  dialog.className = 'ev-confirm-dialog';
 
 	  const msg = document.createElement('p');
-	  msg.textContent = CONFIRM_TEXT;
+	  msg.textContent = message;
 
 	  const buttonRow = document.createElement('div');
 	  buttonRow.className = 'ev-confirm-buttons';
 
 	  const confirmBtn = document.createElement('button');
-	  confirmBtn.textContent = CONFIRM_BUTTON_TEXT;
+	  confirmBtn.textContent = confirmLabel;
 	  confirmBtn.addEventListener('click', () => {
 	    overlay.remove();
 	    onConfirm();
@@ -1256,6 +1256,15 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  overlay.append(dialog);
 	  document.body.append(overlay);
 	};
+
+	window.__evGuardEnhancementMutation = createResultMutationGuard({
+	  hasResult: () => evResultUI !== null,
+	  clearResult: showEvPlaceholder,
+	  requestConfirmation: (onConfirm) => showEvConfirmationDialog(onConfirm, {
+	    message: '계산 결과가 초기화됩니다. 계속하시겠습니까?',
+	    confirmLabel: '계속',
+	  }),
+	});
 
 	/** Open the target selection UI. */
 	const openEvTargetSelection = () => {
@@ -2405,7 +2414,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		:global(.maker-stimulant-editor) {
 			margin-top: 10px;
 			padding-top: 10px;
-			border-top: 1px solid var(--line);
 		}
 
 		:global(.maker-stimulant-editor[hidden]) {
@@ -2657,6 +2665,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 	:global(.maker-stimulant-apply-button) {
 	}
+	:global(.maker-stimulant-cancel-button) {
+		border-color: var(--line);
+		background: var(--surface-soft);
+		color: var(--ink);
+	}
 
 		:global(.maker-mode-toggle-row) {
 			display: flex;
@@ -2665,6 +2678,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			gap: 8px;
 			padding: 6px 0;
 			border-top: 1px solid var(--line);
+			border-bottom: 1px solid var(--line);
 			margin-top: 4px;
 		}
 		:global(.maker-mode-toggle-actions) {
@@ -2672,6 +2686,17 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			align-items: center;
 			gap: 6px;
 			flex-shrink: 0;
+		}
+		:global(.maker-mode-toggle-row .maker-mode-toggle-actions > button) {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			box-sizing: border-box;
+			min-width: 52px;
+			min-height: 30px;
+			padding: 5px 10px;
+			font-size: 0.82rem;
+			line-height: 1.2;
 		}
 		:global(.maker-mode-toggle-label) {
 			display: inline-flex;
