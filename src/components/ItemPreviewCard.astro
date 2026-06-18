@@ -1,0 +1,140 @@
+---
+export interface Props {
+  item?: {
+    id: number;
+    nameKo: string;
+    equipmentKind: string;
+    requiredLevel: number;
+    requiredJobs?: string[];
+    requirements?: Record<string, number>;
+    stats?: Record<string, number>;
+    typeInfo?: { subCategory?: string };
+  } | null;
+  accumulatedStats?: Record<string, number> | null;
+  remainingSlots?: number;
+  appliedCount?: number;
+  gradeColor?: string;
+  statBreakdown?: Record<string, any>;
+  itemLevelUpMeta?: { itemLevel: number; itemExp: number } | null;
+  placeholder?: string;
+}
+
+const {
+  item,
+  accumulatedStats,
+  remainingSlots,
+  appliedCount,
+  gradeColor,
+  statBreakdown,
+  itemLevelUpMeta,
+  placeholder = '아이템을 선택해주세요',
+} = Astro.props;
+---
+
+{
+  !item ? (
+    <p class="enhancement-placeholder" data-item-placeholder>{placeholder}</p>
+  ) : (
+    <div class="selected-item-card">
+      <h3 data-selected-item-name style={gradeColor ? `color: ${gradeColor}` : ''}>
+        {item.nameKo}{appliedCount && appliedCount > 0 ? ` (+${appliedCount})` : ''}
+      </h3>
+      <div class="selected-item-top">
+        <div class="selected-item-icon-frame">
+          <img data-selected-item-icon alt="" loading="lazy" />
+        </div>
+        <div class="selected-item-requirements" data-selected-item-requirements>
+        </div>
+      </div>
+      <div class="selected-item-jobs" data-selected-item-jobs></div>
+      <div class="selected-item-divider"></div>
+      <div class="selected-item-stats" data-selected-item-stats></div>
+    </div>
+  )
+}
+
+<style>
+  .enhancement-placeholder {
+    color: var(--muted);
+    font-size: 0.92rem;
+    text-align: center;
+    padding: 24px 0;
+  }
+
+  .selected-item-card {
+    display: grid;
+    gap: 7px;
+    margin-bottom: 12px;
+    padding: 14px;
+    border: 2px solid #f4f1ff;
+    border-radius: 8px;
+    background: #4d4c78;
+    color: white;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%);
+  }
+
+  :root[data-theme='dark'] .selected-item-card {
+    border-color: #2f6073;
+  }
+
+  .selected-item-card[hidden] {
+    display: none;
+  }
+
+  .selected-item-card h3 {
+    margin: 0;
+    color: white;
+    font-size: 1.1rem;
+    line-height: 1.15;
+    text-align: center;
+  }
+
+  .selected-item-top {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+  }
+
+  .selected-item-icon-frame {
+    display: grid;
+    width: 96px;
+    height: 96px;
+    place-items: center;
+    background: #c8c8d2;
+  }
+
+  .selected-item-icon-frame img {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    image-rendering: pixelated;
+  }
+
+  .selected-item-requirements,
+  .selected-item-stats {
+    display: grid;
+    gap: 2px;
+    font-size: 0.875rem;
+    line-height: 1.25;
+  }
+
+  .selected-item-requirements {
+    gap: 0;
+  }
+
+  .selected-item-stats {
+    gap: 2px;
+    justify-items: center;
+    font-size: 0.94rem;
+  }
+
+  .selected-item-divider {
+    height: 3px;
+    background: white;
+  }
+
+  .selected-item-jobs {
+    padding: 1px 0;
+  }
+</style>
