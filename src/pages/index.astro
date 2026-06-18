@@ -1376,6 +1376,12 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	    useStimulant: enhancementState.stimulantSlot?.mode === MATERIAL_MODE_PROBABILITY,
 	  };
 
+	  // Show result panel and hide its placeholder
+	  if (resultPlaceholder instanceof HTMLElement && resultContent instanceof HTMLElement) {
+	    resultPlaceholder.hidden = true;
+	    resultContent.hidden = false;
+	  }
+
 	  // Create or reuse result UI
 	  if (!evResultUI) {
 	    evResultUI = createResultUI();
