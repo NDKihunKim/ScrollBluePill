@@ -103,7 +103,10 @@ export function createTargetSelectionUI(cleanStats, previewStats, previewGradeCl
   header.textContent = '목표 조건 선택';
   container.appendChild(header);
 
-  const defaultChecked = preselected ?? getDefaultCheckedStats(gains);
+  const defaults = getDefaultCheckedStats(gains);
+  const defaultChecked = preselected
+    ? { ...defaults, ...preselected }
+    : defaults;
   const checkboxes = {};
 
   const chipGrid = document.createElement('div');
@@ -138,7 +141,7 @@ export function createTargetSelectionUI(cleanStats, previewStats, previewGradeCl
   gradeLabel.className = 'ev-target-chip ev-target-grade';
   const gradeCheckbox = document.createElement('input');
   gradeCheckbox.type = 'checkbox';
-  gradeCheckbox.checked = false;
+  gradeCheckbox.checked = defaultChecked.grade ?? false;
   gradeCheckbox.dataset.statKey = 'grade';
   const gradeChipLabel = document.createElement('span');
   gradeChipLabel.className = 'ev-target-chip-label';
@@ -190,7 +193,13 @@ export function createTargetSelectionUI(cleanStats, previewStats, previewGradeCl
     const result = { grade: gradeCheckbox.checked };
     for (const statKey of ALL_TARGET_STAT_KEYS) {
       if (statKey === 'grade') continue;
-      result[statKey] = checkboxes[statKey]?.checked ?? false;
+      // Only include stats that have actual checkbox elements.
+	      // Stats with zero gain never render a checkbox, so omitting
+	      // them prevents stale all-false values from shadowing defaults
+	      // when preselected state is merged back in after a re-render.
+	      if (checkboxes[statKey]) {
+	        result[statKey] = checkboxes[statKey].checked;
+	      }
     }
     return result;
   }
