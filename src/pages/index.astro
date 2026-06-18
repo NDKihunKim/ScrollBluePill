@@ -1184,6 +1184,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 	let evResultUI = null;
 	let evResultSummary = null;
+		let evCheckedStats = null;          // preserve checkbox state across calc panel re-renders
+		let currentGetCheckedStats = null;  // ref to active target UI getCheckedStats
 
 	/** Update EV button enabled/disabled state based on current enhancement state. */
 	const updateEvButtonState = () => {
@@ -1220,6 +1222,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  if (evResultSummary && evResultUI) {
 	    evResultUI.showStale();
 	  }
+	  // Re-render calc panel to reflect updated enhancement gains
+	  if (currentGetCheckedStats) {
+	    evCheckedStats = currentGetCheckedStats();
+	  }
+	  openCalcPanel();
 	};
 
 	// Initial button state
@@ -1291,7 +1298,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  const gains = computeEnhancementGains(cleanStats, previewStats);
 
 	  // Create target selection UI
-	  const targetUI = createTargetSelectionUI(cleanStats, previewStats, 0, gains);
+	  const targetUI = createTargetSelectionUI(cleanStats, previewStats, 0, gains, { preselected: evCheckedStats });
 
 	  // Render into calc panel
 		  if (calcContent instanceof HTMLElement && calcPlaceholder instanceof HTMLElement) {
@@ -1301,11 +1308,15 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		    calcContent.appendChild(targetUI.container);
 		  }
 
+		  // Keep a reference for state preservation across re-renders
+		  currentGetCheckedStats = () => targetUI.getCheckedStats();
+
 		  // Update button state immediately
 		  updateEvButtonState();
 
 	  // Handle start: run calculation
 	  targetUI.onStart(() => {
+	    evCheckedStats = targetUI.getCheckedStats();
 	    runEvCalculation(targetUI.getCheckedStats(), targetUI.getTrialCount(), cleanStats, previewStats, enhancementState, selectedBaseItem);
 	  });
 	};
