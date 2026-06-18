@@ -1,0 +1,1988 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { armorKinds, jobKinds, weaponKinds } from '../lib/calculatorInput.mjs';
+import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo.mjs';
+---
+
+<BaseLayout
+  title="아이템 해체분석기"
+  description="목표 아이템의 최종 스탯을 만들 수 있는 모든 강화 방법을 찾아냅니다."
+>
+  <section class="band">
+    <div class="container">
+      <h1>아이템 해체분석기</h1>
+      <p class="lede">
+        목표 아이템의 최종 스탯을 만들 수 있는 모든 강화 방법을 찾아냅니다.
+      </p>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="container grid two">
+      <div class="left-stack">
+        <form
+          class="panel"
+          aria-label="주문서 계산 입력"
+          data-calculator-input
+          data-maplestory-region={MAPLESTORY_IO_REGION}
+          data-maplestory-version={MAPLESTORY_IO_VERSION}
+        >
+          <h2>1. 아이템 검색</h2>
+          <div class="item-search-fields">
+            <div class="input-row field-block item-name-search" data-item-name-search>
+              <label class="field-label" for="item-name-input">아이템 이름</label>
+              <input
+                id="item-name-input"
+                type="search"
+                name="itemName"
+                placeholder="예: 노가다 목장갑, 노목"
+                autocomplete="off"
+                aria-autocomplete="list"
+                aria-controls="item-suggestion-list"
+                aria-expanded="false"
+                data-item-name-input
+              />
+              <input type="hidden" name="itemId" data-selected-item-id />
+              <div
+                id="item-suggestion-list"
+                class="item-suggestion-menu"
+                role="listbox"
+                aria-label="아이템 검색 결과"
+                data-item-suggestions
+                hidden
+              >
+              </div>
+            </div>
+            <button
+              type="button"
+              class="manual-search-toggle"
+              aria-expanded="false"
+              aria-controls="manual-search-fields"
+              data-manual-search-toggle
+            >
+              필터 검색
+            </button>
+            <div
+              id="manual-search-fields"
+              class="manual-search-accordion"
+              aria-hidden="true"
+              data-manual-search-fields
+              inert
+            >
+              <div class="manual-search-accordion-inner">
+                <fieldset class="input-row job-options">
+                  <div class="field-header">
+                    <legend>직업</legend>
+                    <div class="compact-actions">
+                      <button type="button" class="small-button secondary" data-job-select-all>전체 선택</button>
+                      <button type="button" class="small-button secondary" data-job-clear-all>전체 해제</button>
+                    </div>
+                  </div>
+                  <div class="choice-row">
+                    {
+                      jobKinds.map((job) => (
+                        <label class="choice-button">
+                          <input type="checkbox" name="jobs" value={job} checked hidden />
+                          <span>{job}</span>
+                        </label>
+                      ))
+                    }
+                  </div>
+                </fieldset>
+                <div class="input-row field-block equipment-block">
+                  <div class="field-header">
+                    <span id="equipment-kind-label" class="field-label">장비 종류</span>
+                    <div class="segmented-control" aria-label="장비 종류 범위">
+                      <button type="button" class="segment" data-equipment-mode="weapon">무기</button>
+                      <button type="button" class="segment" data-equipment-mode="armor">장비</button>
+                    </div>
+                  </div>
+                  <input type="hidden" name="equipmentKind" value="" data-equipment-kind />
+                  <div class="dropdown-frame" data-equipment-dropdown>
+                    <button
+                      type="button"
+                      class="dropdown-trigger"
+                      aria-expanded="false"
+                      aria-haspopup="listbox"
+                      aria-labelledby="equipment-kind-label"
+                      data-equipment-trigger
+                    >
+                      <span data-equipment-trigger-label>장비 종류를 먼저 골라주세요</span>
+                      <span aria-hidden="true">⌄</span>
+                    </button>
+                    <div class="equipment-menu" role="listbox" aria-labelledby="equipment-kind-label" data-equipment-menu hidden>
+                      <div data-equipment-options="weapon" hidden>
+                      {
+                        weaponKinds.map((kind, index) => (
+                          <button
+                            type="button"
+                            class='equipment-option'
+                            data-equipment-option={kind}
+                            role="option"
+                            aria-selected='false'
+                          >
+                            {kind}
+                          </button>
+                        ))
+                      }
+                      </div>
+                      <div data-equipment-options="armor" hidden>
+                      {
+                        armorKinds.map((kind) => (
+                          <button type="button" class="equipment-option" data-equipment-option={kind} role="option" aria-selected="false">
+                            {kind}
+                          </button>
+                        ))
+                      }
+                      </div>
+                    </div>
+                  </div>
+                  <div class="input-row field-block level-range-block">
+                    <span class="field-label">아이템 요구 레벨</span>
+                    <div class="level-range-control">
+                      <span class="level-stepper">
+                        <button type="button" class="step-button" data-level-bound="min" data-level-step="-5" aria-label="최소 요구 레벨 5 감소">
+                          -5
+                        </button>
+                        <input
+                          type="number"
+                          name="requiredLevelMin"
+                          value="0"
+                          min="0"
+                          step="5"
+                          inputmode="numeric"
+                          aria-label="최소 요구 레벨"
+                          data-level-input
+                          data-level-min-input
+                        />
+                        <button type="button" class="step-button" data-level-bound="min" data-level-step="5" aria-label="최소 요구 레벨 5 증가">
+                          +5
+                        </button>
+                      </span>
+                      <span class="level-range-separator" aria-hidden="true">-</span>
+                      <span class="level-stepper">
+                        <button type="button" class="step-button" data-level-bound="max" data-level-step="-5" aria-label="최대 요구 레벨 5 감소">
+                          -5
+                        </button>
+                        <input
+                          type="number"
+                          name="requiredLevelMax"
+                          value="200"
+                          min="0"
+                          step="5"
+                          inputmode="numeric"
+                          aria-label="최대 요구 레벨"
+                          data-level-input
+                          data-level-max-input
+                        />
+                        <button type="button" class="step-button" data-level-bound="max" data-level-step="5" aria-label="최대 요구 레벨 5 증가">
+                          +5
+                        </button>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="manual-item-results" data-manual-item-results hidden></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <section class="calculator-panel calc-panel" data-decon-edit-panel>
+          <h2>2. 스탯 편집</h2>
+          <p class="enhancement-placeholder" data-decon-edit-placeholder>
+            먼저 위에서 아이템을 선택해주세요
+          </p>
+          <div data-decon-edit-content hidden>
+            <div class="decon-stat-editor" data-decon-stat-editor></div>
+            <div class="decon-slot-row">
+              <label>남은 슬롯:</label>
+              <input type="number" data-decon-slot-input min="0" max="7" value="7" />
+            </div>
+            <button type="button" class="ev-start-btn" data-decon-analyze-btn disabled>
+              분석 시작
+            </button>
+          </div>
+        </section>
+
+        <section class="calculator-panel result-panel" data-decon-result-panel>
+          <h2>3. 해체 결과</h2>
+          <p class="enhancement-placeholder" data-decon-result-placeholder>
+            스탯 편집 후 분석 시작을 눌러주세요
+          </p>
+          <div data-decon-result-content hidden>
+            <div class="decon-filter-chips" data-decon-filter-chips></div>
+            <div class="decon-strategy-list" data-decon-strategy-list></div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="panel" aria-label="아이템 미리보기">
+        <h2>아이템 미리보기</h2>
+        <p class="enhancement-placeholder" data-item-placeholder>아이템을 선택해주세요</p>
+        <div class="selected-item-card" data-selected-item-card hidden>
+          <h3 data-selected-item-name></h3>
+          <div class="selected-item-top">
+            <div class="selected-item-icon-frame">
+              <img data-selected-item-icon alt="" />
+            </div>
+            <div class="selected-item-requirements" data-selected-item-requirements></div>
+          </div>
+          <div class="selected-item-jobs" data-selected-item-jobs></div>
+          <div class="selected-item-divider"></div>
+          <div class="selected-item-stats" data-selected-item-stats></div>
+        </div>
+        <button type="button" class="small-button secondary selected-item-reset" data-enhancement-reset hidden>
+          초기화
+        </button>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+import { searchKoreanItems } from '../lib/itemSearch.mjs';
+import { buildItemIconUrl, buildItemSearchUrl } from '../lib/maplestoryIo.mjs';
+import { HP_MP_KEYS } from '../lib/enhancementState.mjs';
+import { enumerateStrategies } from '../lib/deconstruction/engine.mjs';
+
+// ---- DOM refs ----
+const form = document.querySelector('[data-calculator-input]');
+const itemNameSearch = form?.querySelector('[data-item-name-search]');
+const itemNameInput = form?.querySelector('[data-item-name-input]');
+const selectedItemIdInput = form?.querySelector('[data-selected-item-id]');
+const itemSuggestions = form?.querySelector('[data-item-suggestions]');
+const selectedItemCard = document.querySelector('[data-selected-item-card]');
+const itemPlaceholder = document.querySelector('[data-item-placeholder]');
+const selectedItemName = document.querySelector('[data-selected-item-name]');
+const selectedItemIcon = document.querySelector('[data-selected-item-icon]');
+const selectedItemRequirements = document.querySelector('[data-selected-item-requirements]');
+const selectedItemStats = document.querySelector('[data-selected-item-stats]');
+const selectedItemJobs = document.querySelector('[data-selected-item-jobs]');
+const levelInputs = form?.querySelectorAll('[data-level-input]');
+const levelMinInput = form?.querySelector('[data-level-min-input]');
+const levelMaxInput = form?.querySelector('[data-level-max-input]');
+const stepButtons = form?.querySelectorAll('[data-level-step]');
+const equipmentInput = form?.querySelector('[data-equipment-kind]');
+const equipmentDropdown = form?.querySelector('[data-equipment-dropdown]');
+const equipmentTrigger = form?.querySelector('[data-equipment-trigger]');
+const equipmentTriggerLabel = form?.querySelector('[data-equipment-trigger-label]');
+const equipmentMenu = form?.querySelector('[data-equipment-menu]');
+const equipmentModeButtons = form?.querySelectorAll('[data-equipment-mode]');
+const equipmentOptionGroups = form?.querySelectorAll('[data-equipment-options]');
+const equipmentOptionButtons = form?.querySelectorAll('[data-equipment-option]');
+const manualSearchToggle = form?.querySelector('[data-manual-search-toggle]');
+const manualSearchFields = form?.querySelector('[data-manual-search-fields]');
+const manualSearchAccordionInner = manualSearchFields?.querySelector('.manual-search-accordion-inner');
+const manualItemResults = form?.querySelector('[data-manual-item-results]');
+const jobInputs = form?.querySelectorAll('input[name="jobs"]');
+const jobSelectAllButton = form?.querySelector('[data-job-select-all]');
+const jobClearAllButton = form?.querySelector('[data-job-clear-all]');
+
+const deconEditPanel = document.querySelector('[data-decon-edit-panel]');
+const deconEditPlaceholder = document.querySelector('[data-decon-edit-placeholder]');
+const deconEditContent = document.querySelector('[data-decon-edit-content]');
+const deconStatEditor = document.querySelector('[data-decon-stat-editor]');
+const deconSlotInput = document.querySelector('[data-decon-slot-input]');
+const deconAnalyzeBtn = document.querySelector('[data-decon-analyze-btn]');
+const deconResultPanel = document.querySelector('[data-decon-result-panel]');
+const deconResultPlaceholder = document.querySelector('[data-decon-result-placeholder]');
+const deconResultContent = document.querySelector('[data-decon-result-content]');
+
+// ---- State ----
+let itemIndex = [];
+let itemById = new Map();
+let scrollIndex = [];
+let scrollsByEquipmentKind = new Map();
+let selectedItem = null;
+let deconDeltas = {};
+let deconStatKeys = [];
+
+// ---- Requirement/Stat row definitions (copied from expected-value.astro) ----
+const requirementRows = [
+  ['REQLEV', 'requiredLevel'],
+  ['REQSTR', 'str'],
+  ['REQDEX', 'dex'],
+  ['REQINT', 'int'],
+  ['REQLUK', 'luk'],
+  ['REQPOP', 'pop'],
+];
+const statRows = [
+  ['공격속도', 'attackSpeed'],
+  ['STR', 'str'],
+  ['DEX', 'dex'],
+  ['INT', 'int'],
+  ['LUK', 'luk'],
+  ['최대HP', 'maxHp'],
+  ['최대MP', 'maxMp'],
+  ['공격력', 'weaponAttack'],
+  ['마력', 'magicAttack'],
+  ['물리방어력', 'weaponDefense'],
+  ['마법방어력', 'magicDefense'],
+  ['명중률', 'accuracy'],
+  ['회피율', 'avoidability'],
+  ['이동속도', 'speed'],
+  ['점프력', 'jump'],
+  ['업그레이드 가능 횟수', 'upgradeSlots'],
+];
+const jobKindByRequiredJob = {
+  Beginner: '초보자',
+  Warrior: '전사',
+  Magician: '마법사',
+  Bowman: '궁수',
+  Thief: '도적',
+  Pirate: '해적',
+};
+
+const weaponAttackSpeedBySubCategory = {
+  'One-Handed Sword': 5,
+  'Two-Handed Sword': 6,
+  'One-Handed Axe': 5,
+  'Two-Handed Axe': 6,
+  'One-Handed Blunt Weapon': 5,
+  'Two-Handed Blunt': 6,
+  Spear: 7,
+  'Pole Arm': 8,
+  Wand: 6,
+  Staff: 8,
+  Bow: 6,
+  Crossbow: 6,
+  Claw: 4,
+  Dagger: 4,
+  Knuckle: 5,
+  Gun: 5,
+};
+
+// ---- Utility functions (copied from expected-value.astro) ----
+const formatRequiredJobs = (requiredJobs = []) => {
+  const allJobs = ['초보자', '전사', '마법사', '궁수', '도적', '해적'];
+  const equippableSet = new Set(
+    (requiredJobs ?? []).length === 0 || (requiredJobs ?? []).includes('Beginner')
+      ? allJobs
+      : requiredJobs.map((job) => jobKindByRequiredJob[job]).filter(Boolean),
+  );
+
+  const row = document.createElement('div');
+  row.className = 'selected-item-jobs-row';
+  allJobs.forEach((job) => {
+    const chip = document.createElement('span');
+    chip.className = 'job-chip';
+    chip.textContent = job;
+    if (!equippableSet.has(job)) {
+      chip.classList.add('job-chip--inactive');
+    }
+    row.append(chip);
+  });
+  return row;
+};
+
+const createItemLine = (label, value, className = '') => {
+  const row = document.createElement('div');
+  row.className = `selected-item-line ${className}`.trim();
+  const labelElement = document.createElement('span');
+  labelElement.textContent = label;
+  const valueElement = document.createElement('strong');
+  valueElement.textContent = String(value);
+  row.append(labelElement, document.createTextNode(' : '), valueElement);
+  return row;
+};
+
+const resolveAttackSpeed = (item) => {
+  if (Number.isFinite(item.stats?.attackSpeed)) {
+    return item.stats.attackSpeed;
+  }
+  return weaponAttackSpeedBySubCategory[item.typeInfo?.subCategory] ?? null;
+};
+
+const formatStatValue = (key, value) => {
+  if (key === 'attackSpeed') {
+    const speedLabelByValue = {
+      2: '매우 빠름',
+      3: '빠름',
+      4: '빠름',
+      5: '빠름',
+      6: '보통',
+      7: '느림',
+      8: '느림',
+      9: '매우 느림',
+    };
+    return speedLabelByValue[value] ?? '속도 정보 없음';
+  }
+  if (key === 'upgradeSlots' || value <= 0) {
+    return value;
+  }
+  return `+${value}`;
+};
+
+// ---- Render item card (simplified from expected-value.astro) ----
+const renderSelectedItemCard = (item) => {
+  if (
+    !(selectedItemCard instanceof HTMLElement) ||
+    !(selectedItemName instanceof HTMLElement) ||
+    !(selectedItemIcon instanceof HTMLImageElement) ||
+    !(selectedItemRequirements instanceof HTMLElement) ||
+    !(selectedItemStats instanceof HTMLElement)
+  ) {
+    return;
+  }
+
+  selectedItemName.textContent = item.nameKo;
+  selectedItemName.style.color = '';
+  selectedItemIcon.src = buildItemIconUrl(item.id);
+  selectedItemRequirements.replaceChildren();
+  selectedItemStats.replaceChildren();
+  if (selectedItemJobs instanceof HTMLElement) {
+    selectedItemJobs.replaceChildren();
+    selectedItemJobs.append(formatRequiredJobs(item.requiredJobs));
+  }
+
+  requirementRows.forEach(([label, key]) => {
+    const value =
+      key === 'requiredLevel'
+        ? item.requiredLevel
+        : (item.requirements?.[key] ?? 0);
+    selectedItemRequirements.append(createItemLine(label, value, 'selected-item-line--requirement'));
+  });
+
+  statRows.forEach(([label, key]) => {
+    if (key === 'attackSpeed') {
+      const value = resolveAttackSpeed(item);
+      if (Number.isFinite(value)) {
+        selectedItemStats.append(createItemLine(label, formatStatValue(key, value)));
+      }
+      return;
+    }
+    if (key === 'upgradeSlots') {
+      selectedItemStats.append(createItemLine(label, item.stats?.upgradeSlots ?? 0));
+      return;
+    }
+    const value = item.stats?.[key];
+    if (Number.isFinite(value)) {
+      selectedItemStats.append(
+        createItemLine(label, formatStatValue(key, value)),
+      );
+    }
+  });
+
+  if (itemPlaceholder instanceof HTMLElement) {
+    itemPlaceholder.hidden = true;
+  }
+  selectedItemCard.hidden = false;
+};
+
+const clearSelectedItemCard = () => {
+  if (selectedItemCard instanceof HTMLElement) {
+    selectedItemCard.hidden = true;
+  }
+  if (itemPlaceholder instanceof HTMLElement) {
+    itemPlaceholder.hidden = false;
+  }
+};
+
+// ---- Stat editor ----
+const buildStatEditor = (item) => {
+  if (!(deconStatEditor instanceof HTMLElement)) return;
+  deconStatEditor.replaceChildren();
+
+  const statKeys = ['str', 'dex', 'int', 'luk', 'maxHp', 'maxMp', 'weaponAttack', 'magicAttack', 'weaponDefense', 'magicDefense', 'accuracy', 'avoidability', 'speed', 'jump'];
+  const labelMap = {
+    str: 'STR', dex: 'DEX', int: 'INT', luk: 'LUK',
+    maxHp: '최대HP', maxMp: '최대MP',
+    weaponAttack: '공격력', magicAttack: '마력',
+    weaponDefense: '물리방어력', magicDefense: '마법방어력',
+    accuracy: '명중률', avoidability: '회피율',
+    speed: '이동속도', jump: '점프력',
+  };
+
+  deconStatKeys = statKeys.filter((k) => {
+    const baseVal = item.stats?.[k];
+    return Number.isFinite(baseVal) && baseVal > 0;
+  });
+
+  deconDeltas = {};
+  for (const k of deconStatKeys) {
+    deconDeltas[k] = 0;
+
+    const row = document.createElement('div');
+    row.className = 'decon-stat-row';
+    row.dataset.deconStatKey = k;
+
+    const label = document.createElement('span');
+    label.className = 'decon-stat-label';
+    label.textContent = labelMap[k] || k;
+
+    const isHpMp = HP_MP_KEYS.has(k);
+    const stepSize = isHpMp ? 10 : 1;
+    const rangeMax = isHpMp ? 50 : 5;
+
+    const minBtn = document.createElement('button');
+    minBtn.type = 'button';
+    minBtn.className = 'decon-stepper-btn decon-stepper-btn--min';
+    minBtn.textContent = 'MIN';
+    minBtn.addEventListener('click', () => {
+      setStatDelta(k, -rangeMax);
+    });
+
+    const decBtn = document.createElement('button');
+    decBtn.type = 'button';
+    decBtn.className = 'decon-stepper-btn';
+    decBtn.textContent = '-';
+    decBtn.addEventListener('click', () => {
+      setStatDelta(k, Math.max(-rangeMax, deconDeltas[k] - stepSize));
+    });
+
+    const valueSpan = document.createElement('span');
+    valueSpan.className = 'decon-stepper-value';
+    valueSpan.dataset.deconStatValue = k;
+    valueSpan.textContent = '0';
+
+    const incBtn = document.createElement('button');
+    incBtn.type = 'button';
+    incBtn.className = 'decon-stepper-btn';
+    incBtn.textContent = '+';
+    incBtn.addEventListener('click', () => {
+      setStatDelta(k, Math.min(rangeMax, deconDeltas[k] + stepSize));
+    });
+
+    const maxBtn = document.createElement('button');
+    maxBtn.type = 'button';
+    maxBtn.className = 'decon-stepper-btn decon-stepper-btn--max';
+    maxBtn.textContent = 'MAX';
+    maxBtn.addEventListener('click', () => {
+      setStatDelta(k, rangeMax);
+    });
+
+    row.append(label, minBtn, decBtn, valueSpan, incBtn, maxBtn);
+    deconStatEditor.append(row);
+  }
+};
+
+const setStatDelta = (key, value) => {
+  deconDeltas[key] = value;
+  const valueSpan = document.querySelector(`[data-decon-stat-value="${key}"]`);
+  if (valueSpan instanceof HTMLElement) {
+    valueSpan.textContent = String(value);
+  }
+  updateAnalyzeButton();
+};
+
+const updateAnalyzeButton = () => {
+  if (!(deconAnalyzeBtn instanceof HTMLButtonElement)) return;
+  const hasDelta = Object.values(deconDeltas).some((v) => v > 0);
+  deconAnalyzeBtn.disabled = !hasDelta;
+};
+
+// ---- Item search handling (adapted from expected-value.astro) ----
+const syncJobButtons = () => {
+  jobInputs?.forEach((input) => {
+    if (!(input instanceof HTMLInputElement)) return;
+    input.closest('.choice-button')?.classList.toggle('active', input.checked);
+  });
+};
+
+const setManualSearchOpen = (isOpen) => {
+  if (!(manualSearchToggle instanceof HTMLButtonElement) || !(manualSearchFields instanceof HTMLElement)) {
+    return;
+  }
+  manualSearchToggle.setAttribute('aria-expanded', String(isOpen));
+  manualSearchFields.classList.toggle('open', isOpen);
+  manualSearchFields.setAttribute('aria-hidden', String(!isOpen));
+  manualSearchFields.inert = !isOpen;
+  if (!isOpen) {
+    if (equipmentMenu instanceof HTMLElement && equipmentTrigger instanceof HTMLButtonElement) {
+      equipmentMenu.hidden = true;
+      equipmentTrigger.setAttribute('aria-expanded', 'false');
+      toggleEquipmentDropdownOpen(false);
+    }
+  }
+};
+
+const toggleEquipmentDropdownOpen = (isOpen) => {
+  if (manualSearchAccordionInner instanceof HTMLElement) {
+    manualSearchAccordionInner.classList.toggle('dropdown-open', isOpen);
+  }
+};
+
+const syncItemSearchUrl = () => {
+  if (!(itemNameInput instanceof HTMLInputElement) || !(equipmentInput instanceof HTMLInputElement)) return;
+  const levelRange =
+    levelMinInput instanceof HTMLInputElement && levelMaxInput instanceof HTMLInputElement
+      ? (() => {
+          const min = parseInt(levelMinInput.value, 10) || 0;
+          const max = parseInt(levelMaxInput.value, 10) || 200;
+          return { min, max };
+        })()
+      : { min: 0, max: 0 };
+  form?.setAttribute(
+    'data-item-search-url',
+    buildItemSearchUrl({
+      searchFor: itemNameInput.value,
+      equipmentKind: equipmentInput.value,
+      requiredLevelMin: levelRange.min,
+      requiredLevelMax: levelRange.max,
+    }),
+  );
+};
+
+const hideItemSuggestions = () => {
+  if (itemSuggestions instanceof HTMLElement) {
+    itemSuggestions.hidden = true;
+  }
+  if (itemNameInput instanceof HTMLInputElement) {
+    itemNameInput.setAttribute('aria-expanded', 'false');
+  }
+};
+
+const selectSuggestedItem = (item, { syncFilters = true } = {}) => {
+  if (!(itemNameInput instanceof HTMLInputElement)) return;
+  if (syncFilters) {
+    itemNameInput.value = item.nameKo;
+  }
+  if (selectedItemIdInput instanceof HTMLInputElement) {
+    selectedItemIdInput.value = String(item.id);
+  }
+  form?.setAttribute('data-selected-item-id', String(item.id));
+  if (syncFilters) {
+    syncFiltersToSelectedItem(item);
+  }
+  selectedItem = item;
+  renderSelectedItemCard(item);
+  activateDeconEditPanel(item);
+  if (syncFilters) {
+    syncItemSearchUrl();
+    hideItemSuggestions();
+    renderManualItemResults();
+  }
+};
+
+const renderItemSuggestions = () => {
+  if (!(itemNameInput instanceof HTMLInputElement) || !(itemSuggestions instanceof HTMLElement)) return;
+  if (selectedItemIdInput instanceof HTMLInputElement) {
+    selectedItemIdInput.value = '';
+  }
+  form?.removeAttribute('data-selected-item-id');
+  clearSelectedItemCard();
+  itemSuggestions.replaceChildren();
+
+  const results = searchKoreanItems(itemNameInput.value, { items: itemIndex });
+  if (results.length === 0) {
+    hideItemSuggestions();
+    return;
+  }
+
+  results.forEach((item) => {
+    const option = document.createElement('button');
+    option.type = 'button';
+    option.className = 'item-suggestion-option';
+    option.setAttribute('role', 'option');
+    option.dataset.itemId = String(item.id);
+
+    const icon = document.createElement('img');
+    icon.className = 'item-suggestion-icon';
+    icon.src = buildItemIconUrl(item.id);
+    icon.alt = '';
+    icon.loading = 'lazy';
+
+    const text = document.createElement('span');
+    text.className = 'item-suggestion-text';
+    const name = document.createElement('strong');
+    name.textContent = item.nameKo;
+    const meta = document.createElement('span');
+    meta.textContent = item.equipmentKind;
+    text.append(name, meta);
+
+    option.append(icon, text);
+    option.addEventListener('click', () => {
+      selectSuggestedItem(item);
+    });
+    itemSuggestions.append(option);
+  });
+
+  itemSuggestions.hidden = false;
+  itemNameInput.setAttribute('aria-expanded', 'true');
+};
+
+const setEquipmentOption = (button) => {
+  if (!(equipmentInput instanceof HTMLInputElement) || !(button instanceof HTMLButtonElement)) return;
+  form?.querySelectorAll('[data-equipment-option]').forEach((option) => {
+    const isActive = option === button;
+    option.classList.toggle('active', isActive);
+    option.setAttribute('aria-selected', String(isActive));
+  });
+  equipmentInput.value = button.dataset.equipmentOption ?? '';
+  if (equipmentTriggerLabel instanceof HTMLElement) {
+    equipmentTriggerLabel.textContent = equipmentInput.value;
+  }
+  renderManualItemResults();
+  syncItemSearchUrl();
+  if (equipmentMenu instanceof HTMLElement && equipmentTrigger instanceof HTMLButtonElement) {
+    equipmentMenu.hidden = true;
+    equipmentTrigger.setAttribute('aria-expanded', 'false');
+    toggleEquipmentDropdownOpen(false);
+  }
+};
+
+const syncJobsToSelectedItem = (item) => {
+  const requiredJobs = item.requiredJobs ?? [];
+  const selectedJobs = new Set(requiredJobs.map((job) => jobKindByRequiredJob[job]).filter(Boolean));
+  const shouldSelectAll = selectedJobs.size === 0;
+  jobInputs?.forEach((input) => {
+    if (input instanceof HTMLInputElement) {
+      input.checked = shouldSelectAll || selectedJobs.has(input.value);
+    }
+  });
+  syncJobButtons();
+};
+
+const syncEquipmentToSelectedItem = (item) => {
+  const matchingOption = [...(equipmentOptionButtons ?? [])].find(
+    (option) => option instanceof HTMLButtonElement && option.dataset.equipmentOption === item.equipmentKind,
+  );
+  if (!(matchingOption instanceof HTMLButtonElement)) return;
+  const matchingGroup = matchingOption.closest('[data-equipment-options]');
+  const matchingMode = matchingGroup instanceof HTMLElement ? matchingGroup.dataset.equipmentOptions : undefined;
+  equipmentOptionGroups?.forEach((group) => {
+    if (group instanceof HTMLElement) {
+      group.hidden = group !== matchingGroup;
+    }
+  });
+  equipmentModeButtons?.forEach((button) => {
+    if (button instanceof HTMLButtonElement) {
+      button.classList.toggle('active', button.dataset.equipmentMode === matchingMode);
+    }
+  });
+  setEquipmentOption(matchingOption);
+};
+
+const syncFiltersToSelectedItem = (item) => {
+  syncJobsToSelectedItem(item);
+  syncEquipmentToSelectedItem(item);
+  if (levelMinInput instanceof HTMLInputElement && levelMaxInput instanceof HTMLInputElement) {
+    const requiredLevel = String(item.requiredLevel);
+    levelMinInput.value = requiredLevel;
+    levelMaxInput.value = requiredLevel;
+  }
+};
+
+const getSelectedJobKinds = () =>
+  new Set(
+    [...(jobInputs ?? [])]
+      .filter((input) => input instanceof HTMLInputElement && input.checked)
+      .map((input) => input.value),
+  );
+
+const itemMatchesSelectedJobs = (item, selectedJobs) => {
+  if (selectedJobs.size === 0) return false;
+  const requiredJobs = item.requiredJobs ?? [];
+  const hasOnlyBeginner = requiredJobs.length === 1 && requiredJobs[0] === 'Beginner';
+  if (requiredJobs.length === 0 || hasOnlyBeginner) return true;
+  return requiredJobs.some((job) => selectedJobs.has(jobKindByRequiredJob[job]));
+};
+
+const getManualFilteredItems = () => {
+  if (!(equipmentInput instanceof HTMLInputElement)) return [];
+  if (!equipmentInput.value) return [];
+  const selectedJobs = getSelectedJobKinds();
+  const levelRange =
+    levelMinInput instanceof HTMLInputElement && levelMaxInput instanceof HTMLInputElement
+      ? (() => {
+          const min = parseInt(levelMinInput.value, 10) || 0;
+          const max = parseInt(levelMaxInput.value, 10) || 200;
+          return { min, max };
+        })()
+      : { min: 0, max: 0 };
+  return itemIndex
+    .filter((item) => item.equipmentKind === equipmentInput.value)
+    .filter((item) => item.requiredLevel >= levelRange.min && item.requiredLevel <= levelRange.max)
+    .filter((item) => itemMatchesSelectedJobs(item, selectedJobs))
+    .sort((a, b) => a.requiredLevel - b.requiredLevel || a.nameKo.localeCompare(b.nameKo, 'ko-KR'));
+};
+
+const renderManualItemResults = () => {
+  if (!(manualItemResults instanceof HTMLElement)) return;
+  manualItemResults.replaceChildren();
+
+  const results = getManualFilteredItems();
+  if (results.length === 0) {
+    manualItemResults.hidden = true;
+    return;
+  }
+
+  const MAX_RESULTS = 100;
+  if (results.length > MAX_RESULTS) {
+    const warning = document.createElement('div');
+    warning.className = 'manual-item-overflow-warning';
+    warning.textContent = '검색 결과가 너무 많습니다. 위에 필터들을 더 좁혀주세요.';
+    manualItemResults.append(warning);
+    manualItemResults.hidden = false;
+    return;
+  }
+
+  const list = document.createElement('div');
+  list.className = 'manual-item-list';
+  results.forEach((item) => {
+    const option = document.createElement('button');
+    option.type = 'button';
+    option.className = 'manual-item-option';
+    option.dataset.itemId = String(item.id);
+    const icon = document.createElement('img');
+    icon.className = 'manual-item-icon';
+    icon.src = buildItemIconUrl(item.id);
+    icon.alt = '';
+    icon.loading = 'lazy';
+    const text = document.createElement('span');
+    text.className = 'manual-item-text';
+    const name = document.createElement('strong');
+    name.textContent = item.nameKo;
+    const meta = document.createElement('span');
+    meta.textContent = item.equipmentKind;
+    text.append(name, meta);
+    option.append(icon, text);
+    option.addEventListener('click', () => {
+      selectSuggestedItem(item, { syncFilters: false });
+    });
+    list.append(option);
+  });
+  manualItemResults.append(list);
+  manualItemResults.hidden = false;
+};
+
+// ---- Deconstruction panel activation ----
+const activateDeconEditPanel = (item) => {
+  if (
+    !(deconEditPlaceholder instanceof HTMLElement) ||
+    !(deconEditContent instanceof HTMLElement)
+  ) {
+    return;
+  }
+
+  deconEditPlaceholder.hidden = true;
+  deconEditContent.hidden = false;
+
+  // Set max slots from item
+  if (deconSlotInput instanceof HTMLInputElement) {
+    const maxSlots = item.stats?.upgradeSlots ?? 7;
+    deconSlotInput.max = String(maxSlots);
+    deconSlotInput.value = String(maxSlots);
+  }
+
+  // Build stat editor
+  buildStatEditor(item);
+  updateAnalyzeButton();
+};
+
+// ---- Analyze click handler ----
+const runAnalysis = () => {
+  if (!selectedItem || !(deconSlotInput instanceof HTMLInputElement)) return;
+
+  const upgradeSlots = parseInt(deconSlotInput.value, 10) || 0;
+  const equipmentKind = selectedItem.equipmentKind;
+
+  // Build targetDeltas from deconDeltas (only positive values)
+  const targetDeltas = {};
+  for (const [k, v] of Object.entries(deconDeltas)) {
+    if (v > 0) {
+      targetDeltas[k] = v;
+    }
+  }
+
+  const result = enumerateStrategies({
+    targetDeltas,
+    upgradeSlots,
+    equipmentKind,
+    scrollsByEquipmentKind,
+  });
+
+  displayResults(result, targetDeltas);
+};
+
+// ---- Display results ----
+const displayResults = (result, targetDeltas) => {
+  if (
+    !(deconResultPlaceholder instanceof HTMLElement) ||
+    !(deconResultContent instanceof HTMLElement)
+  ) {
+    return;
+  }
+
+  deconResultPlaceholder.hidden = true;
+  deconResultContent.hidden = false;
+  deconResultContent.replaceChildren();
+
+  // Summary line
+  const summary = document.createElement('p');
+  summary.className = 'decon-summary';
+  if (result.strategies.length === 0) {
+    summary.textContent = '일치하는 전략을 찾을 수 없습니다.';
+    deconResultContent.append(summary);
+    return;
+  }
+
+  const totalLabel = result.truncated ? `${result.total}+` : String(result.total);
+  summary.textContent = `총 ${totalLabel}개의 전략을 찾았습니다.`;
+  deconResultContent.append(summary);
+
+  // Filter chips
+  const filterChipsContainer = document.querySelector('[data-decon-filter-chips]');
+  if (filterChipsContainer instanceof HTMLElement) {
+    filterChipsContainer.replaceChildren();
+    const allChip = document.createElement('button');
+    allChip.type = 'button';
+    allChip.className = 'decon-filter-chip decon-filter-chip--active';
+    allChip.dataset.deconFilter = 'all';
+    allChip.textContent = '전체';
+    allChip.addEventListener('click', () => setActiveFilter('all'));
+
+    const scrollChip = document.createElement('button');
+    scrollChip.type = 'button';
+    scrollChip.className = 'decon-filter-chip';
+    scrollChip.dataset.deconFilter = 'scrolls';
+    scrollChip.textContent = '주문서만';
+    scrollChip.addEventListener('click', () => setActiveFilter('scrolls'));
+
+    filterChipsContainer.append(allChip, scrollChip);
+  }
+
+  // Strategy list
+  const listContainer = document.querySelector('[data-decon-strategy-list]');
+  if (!(listContainer instanceof HTMLElement)) return;
+  listContainer.replaceChildren();
+
+  for (const strategy of result.strategies) {
+    const card = document.createElement('div');
+    card.className = 'decon-strategy-card';
+
+    // Probability
+    const probRow = document.createElement('div');
+    probRow.className = 'decon-strategy-prob';
+    probRow.textContent = `확률: ${(strategy.probability * 100).toFixed(1)}%`;
+    card.append(probRow);
+
+    // Scrolls used
+    const scrollRow = document.createElement('div');
+    scrollRow.className = 'decon-strategy-scrolls';
+    scrollRow.textContent = strategy.scrolls
+      .map((s) => s.nameKo)
+      .join(', ');
+    card.append(scrollRow);
+
+    // Total stats
+    const statRow = document.createElement('div');
+    statRow.className = 'decon-strategy-stats';
+    const statParts = Object.entries(strategy.totalStats)
+      .filter(([, v]) => v !== 0)
+      .map(([k, v]) => `${k}: ${v > 0 ? '+' : ''}${v}`);
+    statRow.textContent = statParts.join(', ');
+    card.append(statRow);
+
+    // Approach
+    const approachRow = document.createElement('div');
+    approachRow.className = 'decon-strategy-approach';
+    approachRow.textContent = `접근: [${strategy.approach.join(', ')}]`;
+    card.append(approachRow);
+
+    listContainer.append(card);
+  }
+};
+
+// ---- Filter ----
+let activeFilter = 'all';
+
+const setActiveFilter = (filter) => {
+  activeFilter = filter;
+  const chips = document.querySelectorAll('[data-decon-filter-chip]');
+  chips.forEach((chip) => {
+    chip.classList.toggle(
+      'decon-filter-chip--active',
+      chip.dataset.deconFilter === filter,
+    );
+  });
+
+  const cards = document.querySelectorAll('.decon-strategy-card');
+  cards.forEach((card) => {
+    if (filter === 'all') {
+      card.hidden = false;
+    } else if (filter === 'scrolls') {
+      // For now, all strategies use scrolls, so show all
+      card.hidden = false;
+    }
+  });
+};
+
+// ---- Event listeners ----
+levelInputs?.forEach((input) => {
+  if (!(input instanceof HTMLInputElement)) return;
+  input.addEventListener('input', () => {
+    syncItemSearchUrl();
+    renderManualItemResults();
+  });
+  input.addEventListener('blur', () => {
+    input.value = String(Math.max(0, Math.min(200, parseInt(input.value, 10) || 0)));
+    syncItemSearchUrl();
+    renderManualItemResults();
+  });
+});
+
+stepButtons?.forEach((button) => {
+  button.addEventListener('click', () => {
+    if (!(button instanceof HTMLButtonElement)) return;
+    const targetInput =
+      button.dataset.levelBound === 'max' ? levelMaxInput : levelMinInput;
+    if (!(targetInput instanceof HTMLInputElement)) return;
+    const delta = Number.parseInt(button.dataset.levelStep ?? '0', 10);
+    const current = parseInt(targetInput.value, 10) || 0;
+    targetInput.value = String(Math.max(0, Math.min(200, current + delta)));
+    syncItemSearchUrl();
+    renderManualItemResults();
+  });
+});
+
+itemNameInput?.addEventListener('input', () => {
+  syncItemSearchUrl();
+  renderItemSuggestions();
+});
+
+manualSearchToggle?.addEventListener('click', () => {
+  if (!(manualSearchToggle instanceof HTMLButtonElement)) return;
+  setManualSearchOpen(manualSearchToggle.getAttribute('aria-expanded') !== 'true');
+});
+
+itemNameInput?.addEventListener('keydown', (event) => {
+  if (event instanceof KeyboardEvent && event.key === 'Escape') {
+    hideItemSuggestions();
+  }
+});
+
+equipmentTrigger?.addEventListener('keydown', (event) => {
+  if (event instanceof KeyboardEvent && event.key === 'Escape') {
+    if (equipmentMenu instanceof HTMLElement && equipmentTrigger instanceof HTMLButtonElement) {
+      equipmentMenu.hidden = true;
+      equipmentTrigger.setAttribute('aria-expanded', 'false');
+      toggleEquipmentDropdownOpen(false);
+    }
+  }
+});
+
+if (equipmentInput instanceof HTMLInputElement) {
+  equipmentTrigger?.addEventListener('click', () => {
+    if (!(equipmentMenu instanceof HTMLElement) || !(equipmentTrigger instanceof HTMLButtonElement)) return;
+    const activeMode = form?.querySelector('.segment.active');
+    if (!activeMode) return;
+    const willOpen = equipmentMenu.hidden;
+    equipmentMenu.hidden = !willOpen;
+    equipmentTrigger.setAttribute('aria-expanded', String(willOpen));
+    toggleEquipmentDropdownOpen(willOpen);
+  });
+
+  equipmentModeButtons?.forEach((button) => {
+    button.addEventListener('click', () => {
+      if (!(button instanceof HTMLButtonElement)) return;
+      const mode = button.dataset.equipmentMode;
+      const matchingGroup = form?.querySelector(`[data-equipment-options="${mode}"]`);
+      equipmentOptionGroups?.forEach((group) => {
+        if (group instanceof HTMLElement) {
+          group.hidden = group !== matchingGroup;
+        }
+      });
+      equipmentModeButtons.forEach((modeButton) => {
+        modeButton.classList.toggle('active', modeButton === button);
+      });
+      const selectedOption =
+        matchingGroup?.querySelector('.equipment-option.active') ??
+        matchingGroup?.querySelector('[data-equipment-option]');
+      if (selectedOption instanceof HTMLButtonElement) {
+        setEquipmentOption(selectedOption);
+        renderManualItemResults();
+      }
+    });
+  });
+}
+
+equipmentOptionButtons?.forEach((button) => {
+  button.addEventListener('click', () => {
+    setEquipmentOption(button);
+  });
+});
+
+document.addEventListener('click', (event) => {
+  if (
+    equipmentDropdown instanceof HTMLElement &&
+    equipmentMenu instanceof HTMLElement &&
+    equipmentTrigger instanceof HTMLButtonElement &&
+    event.target instanceof Node &&
+    !equipmentDropdown.contains(event.target)
+  ) {
+    equipmentMenu.hidden = true;
+    equipmentTrigger.setAttribute('aria-expanded', 'false');
+  }
+  if (
+    itemNameSearch instanceof HTMLElement &&
+    itemSuggestions instanceof HTMLElement &&
+    itemNameInput instanceof HTMLInputElement &&
+    event.target instanceof Node &&
+    !itemNameSearch.contains(event.target)
+  ) {
+    hideItemSuggestions();
+  }
+});
+
+jobInputs?.forEach((input) => {
+  input.addEventListener('change', () => {
+    syncJobButtons();
+    renderManualItemResults();
+  });
+});
+
+jobSelectAllButton?.addEventListener('click', () => {
+  jobInputs?.forEach((input) => {
+    if (input instanceof HTMLInputElement) {
+      input.checked = true;
+    }
+  });
+  syncJobButtons();
+  renderManualItemResults();
+});
+
+jobClearAllButton?.addEventListener('click', () => {
+  jobInputs?.forEach((input) => {
+    if (input instanceof HTMLInputElement) {
+      input.checked = false;
+    }
+  });
+  syncJobButtons();
+  renderManualItemResults();
+});
+
+// ---- Analyze button ----
+deconAnalyzeBtn?.addEventListener('click', runAnalysis);
+
+// ---- Init ----
+setManualSearchOpen(false);
+syncJobButtons();
+syncItemSearchUrl();
+
+// Load item index
+fetch('/data/items-gms83-ko.json')
+  .then((response) => {
+    if (!response.ok) throw new Error(`Unable to load item index: ${response.status}`);
+    return response.json();
+  })
+  .then((items) => {
+    itemIndex = Array.isArray(items) ? items : [];
+    itemIndex = itemIndex.filter((item) => Object.keys(item.stats ?? {}).length > 0);
+    itemById = new Map(itemIndex.map((item) => [item.id, item]));
+    const initialSelectedItemId =
+      selectedItemIdInput instanceof HTMLInputElement ? Number.parseInt(selectedItemIdInput.value, 10) : NaN;
+    if (itemById.has(initialSelectedItemId)) {
+      selectSuggestedItem(itemById.get(initialSelectedItemId));
+    }
+    renderItemSuggestions();
+  })
+  .catch((error) => {
+    console.error(error);
+  });
+
+// Load scroll data
+fetch('/data/scrolls-gms83-ko.json')
+  .then((response) => {
+    if (!response.ok) throw new Error(`Unable to load scroll data: ${response.status}`);
+    return response.json();
+  })
+  .then((scrolls) => {
+    scrollIndex = Array.isArray(scrolls) ? scrolls : [];
+    scrollsByEquipmentKind = new Map();
+    for (const scroll of scrollIndex) {
+      const kind = scroll.equipmentKind;
+      if (!scrollsByEquipmentKind.has(kind)) {
+        scrollsByEquipmentKind.set(kind, []);
+      }
+      scrollsByEquipmentKind.get(kind).push(scroll);
+    }
+  })
+  .catch((error) => {
+    console.error(error);
+  });
+</script>
+
+<style>
+/* Copy the required styles from expected-value.astro */
+.item-search-fields {
+  display: grid;
+  gap: 10px;
+}
+
+.manual-search-toggle {
+  justify-self: start;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.manual-search-toggle[aria-expanded='true'] {
+  border-color: var(--green);
+  background: var(--green);
+  color: white;
+}
+
+.manual-search-accordion {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 220ms ease, opacity 180ms ease;
+}
+
+.manual-search-accordion.open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.manual-search-accordion-inner {
+  display: grid;
+  min-height: 0;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.manual-search-accordion-inner.dropdown-open {
+  overflow: visible;
+}
+
+.input-row {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.level-stepper {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 6px;
+}
+
+.level-range-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.level-stepper input {
+  min-width: 0;
+  text-align: center;
+}
+
+.level-range-separator {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+:global(.manual-item-results) {
+  margin-top: 10px;
+}
+
+:global(.manual-item-results[hidden]) {
+  display: none;
+}
+
+:global(.manual-item-overflow-warning) {
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  border: 1px solid #e6c800;
+  border-radius: 8px;
+  background: #fffbe6;
+  color: #6b5a00;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+:global(.manual-item-list) {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+:global(.manual-item-option) {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 72px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+:global(.manual-item-option:hover),
+:global(.manual-item-option:focus-visible) {
+  border-color: var(--green);
+  outline: none;
+}
+
+:global(.manual-item-icon) {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+:global(.manual-item-text) {
+  display: grid;
+  min-width: 0;
+}
+
+:global(.manual-item-text strong),
+:global(.manual-item-text span) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+:global(.manual-item-text span) {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.step-button {
+  width: 42px;
+  padding: 8px 0;
+}
+
+.job-options {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  min-inline-size: 0;
+}
+
+.job-options legend {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.field-block {
+  display: grid;
+  gap: 5px;
+}
+
+.item-name-search {
+  position: relative;
+}
+
+.item-suggestion-menu {
+  position: absolute;
+  z-index: 6;
+  top: calc(100% - 8px);
+  left: 16px;
+  right: 16px;
+  display: grid;
+  max-height: 280px;
+  gap: 6px;
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.item-suggestion-menu[hidden] {
+  display: none;
+}
+
+.item-suggestion-menu :global(.item-suggestion-option) {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 50px;
+  padding: 7px 9px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--surface-soft);
+  color: var(--ink);
+  text-align: left;
+}
+
+.item-suggestion-menu :global(.item-suggestion-option:hover),
+.item-suggestion-menu :global(.item-suggestion-option:focus-visible) {
+  border-color: var(--green);
+  outline: none;
+}
+
+.item-suggestion-menu :global(.item-suggestion-icon) {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.item-suggestion-menu :global(.item-suggestion-text) {
+  display: grid;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.item-suggestion-menu :global(.item-suggestion-text strong),
+.item-suggestion-menu :global(.item-suggestion-text span) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-suggestion-menu :global(.item-suggestion-text span) {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.selected-item-card {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 12px;
+  padding: 14px;
+  border: 2px solid #f4f1ff;
+  border-radius: 8px;
+  background: #4d4c78;
+  color: white;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%);
+}
+
+:root[data-theme='dark'] .selected-item-card {
+  border-color: #2f6073;
+}
+
+.selected-item-card[hidden] {
+  display: none;
+}
+
+.selected-item-card h3 {
+  margin: 0;
+  color: white;
+  font-size: 1.1rem;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.selected-item-top {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.selected-item-icon-frame {
+  display: grid;
+  width: 96px;
+  height: 96px;
+  place-items: center;
+  background: #c8c8d2;
+}
+
+.selected-item-icon-frame img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.selected-item-requirements,
+.selected-item-stats {
+  display: grid;
+  gap: 2px;
+  font-size: 0.875rem;
+  line-height: 1.25;
+}
+
+.selected-item-requirements {
+  gap: 0;
+}
+
+.selected-item-stats {
+  gap: 2px;
+  justify-items: center;
+  font-size: 0.94rem;
+}
+
+:global(.selected-item-line--requirement) {
+  height: 16px;
+  line-height: 16px;
+}
+
+:global(.selected-item-line strong) {
+  font-weight: 500;
+}
+
+.selected-item-divider {
+  height: 3px;
+  background: white;
+}
+
+.selected-item-jobs {
+  padding: 1px 0;
+}
+
+:global(.selected-item-jobs-row) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: white;
+  font-size: 0.875rem;
+}
+
+:global(.job-chip) {
+  color: white;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+:global(.job-chip--inactive) {
+  color: #888;
+}
+
+.field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.field-label,
+.field-header > label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.compact-actions,
+.segmented-control {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.small-button,
+.segment {
+  min-height: 30px;
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+  color: var(--ink);
+  padding: 5px 8px;
+  font-size: 0.82rem;
+}
+
+.selected-item-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 10px;
+  border-color: rgb(231 76 60 / 45%);
+  border-radius: 7px;
+  color: #c84a3f;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.selected-item-reset:hover {
+  border-color: #e74c3c;
+  background: rgb(231 76 60 / 10%);
+  color: #e74c3c;
+  transform: translateY(-1px);
+}
+
+.selected-item-reset:active {
+  transform: translateY(0);
+}
+
+.selected-item-reset:focus-visible {
+  border-color: #e74c3c;
+  outline: 2px solid #e74c3c;
+  outline-offset: 2px;
+}
+
+.selected-item-reset[hidden] {
+  display: none;
+}
+
+.segment.active,
+.choice-button.active {
+  border-color: var(--green);
+  background: var(--green);
+  color: white;
+}
+
+.choice-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.dropdown-frame {
+  position: relative;
+}
+
+.dropdown-trigger {
+  width: 100%;
+  justify-content: space-between;
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+  color: var(--ink);
+}
+
+.equipment-menu {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 6px);
+  left: 0;
+  display: grid;
+  width: 100%;
+  max-height: 260px;
+  gap: 6px;
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.equipment-menu[hidden] {
+  display: none;
+}
+
+.equipment-menu [data-equipment-options] {
+  display: grid;
+  gap: 6px;
+}
+
+.equipment-menu [data-equipment-options][hidden] {
+  display: none;
+}
+
+.equipment-option,
+.choice-button {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  color: var(--ink);
+  text-align: center;
+  cursor: pointer;
+}
+
+.equipment-option.active {
+  border-color: var(--green);
+  background: var(--green);
+  color: white;
+}
+
+.choice-button:has(input:focus-visible) {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.panel > h2 {
+  margin-bottom: 10px;
+  color: var(--ink);
+  font-size: clamp(1.05rem, 1.5vw, 1.35rem);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.enhancement-placeholder {
+  color: var(--muted);
+  font-size: 0.92rem;
+  text-align: center;
+  padding: 24px 0;
+}
+
+.left-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+aside.panel {
+  position: sticky;
+  top: 1rem;
+  align-self: start;
+}
+
+.calculator-panel.calc-panel,
+.calculator-panel.result-panel {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.calculator-panel h2 {
+  margin: 0 0 8px;
+  color: var(--ink);
+  font-size: clamp(1.05rem, 1.5vw, 1.35rem);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* Deconstruction-specific styles */
+.decon-stat-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.decon-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-soft);
+}
+
+.decon-stat-label {
+  min-width: 72px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.decon-stepper-btn {
+  width: 36px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.decon-stepper-btn--min,
+.decon-stepper-btn--max {
+  width: 40px;
+  font-size: 0.72rem;
+}
+
+.decon-stepper-btn:hover,
+.decon-stepper-btn:focus-visible {
+  border-color: var(--green);
+  background: var(--surface-soft);
+  outline: none;
+}
+
+.decon-stepper-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  padding: 0 6px;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.decon-slot-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-soft);
+}
+
+.decon-slot-row label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.decon-slot-row input {
+  width: 60px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--ink);
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.ev-start-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 20px;
+  border: 1px solid var(--green);
+  border-radius: 6px;
+  background: var(--green);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.ev-start-btn:hover,
+.ev-start-btn:focus-visible {
+  opacity: 0.85;
+  outline: none;
+}
+
+.ev-start-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.decon-filter-chips {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.decon-filter-chip {
+  padding: 5px 12px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface-soft);
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.decon-filter-chip--active {
+  border-color: var(--green);
+  background: var(--green);
+  color: #fff;
+}
+
+.decon-summary {
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.decon-strategy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.decon-strategy-card {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  display: grid;
+  gap: 4px;
+}
+
+.decon-strategy-prob {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.decon-strategy-scrolls {
+  font-size: 0.82rem;
+  color: var(--ink);
+  line-height: 1.35;
+}
+
+.decon-strategy-stats {
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+.decon-strategy-approach {
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+@media (max-width: 760px) {
+  .field-header {
+    display: grid;
+    justify-content: stretch;
+  }
+
+  .compact-actions,
+  .segmented-control {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .choice-button {
+    min-width: 84px;
+  }
+
+  .level-range-control {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .level-range-separator {
+    text-align: center;
+  }
+
+  aside.panel {
+    max-width: 315px;
+    justify-self: center;
+    width: 100%;
+  }
+}
+</style>
