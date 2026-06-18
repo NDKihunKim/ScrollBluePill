@@ -1982,10 +1982,10 @@ aside.panel {
   align-items: center;
   width: 100%;
   padding: 6px 10px;
-  border: 1px solid transparent;
+  border: 1px solid var(--line);
   border-radius: 6px;
   background: transparent;
-  color: var(--muted);
+  color: var(--ink);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
@@ -1994,16 +1994,8 @@ aside.panel {
 }
 :global(.decon-add-stat-option:hover) {
   background: var(--surface-soft);
-  border-color: var(--line);
+  border-color: var(--green);
   color: var(--ink);
-}
-
-:root[data-theme='dark'] :global(.decon-add-stat-option) {
-  color: #5a7d8a;
-}
-:root[data-theme='dark'] :global(.decon-add-stat-option:hover) {
-  background: rgb(255 255 255 / 4%);
-  color: #9bb8c4;
 }
 
 .ev-start-btn {
