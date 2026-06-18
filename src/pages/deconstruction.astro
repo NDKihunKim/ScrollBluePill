@@ -331,22 +331,22 @@ const requirementRows = [
   ['REQLUK', 'luk'],
   ['REQPOP', 'pop'],
 ];
-const statRows = [
-  ['공격속도', 'attackSpeed'],
+const deconStatRows = [
   ['STR', 'str'],
   ['DEX', 'dex'],
   ['INT', 'int'],
   ['LUK', 'luk'],
-  ['최대HP', 'maxHp'],
-  ['최대MP', 'maxMp'],
   ['공격력', 'weaponAttack'],
   ['마력', 'magicAttack'],
+  ['최대HP', 'maxHp'],
+  ['최대MP', 'maxMp'],
   ['물리방어력', 'weaponDefense'],
   ['마법방어력', 'magicDefense'],
   ['명중률', 'accuracy'],
   ['회피율', 'avoidability'],
   ['이동속도', 'speed'],
   ['점프력', 'jump'],
+  ['공격속도', 'attackSpeed'],
   ['업그레이드 가능 횟수', 'upgradeSlots'],
 ];
 const jobKindByRequiredJob = {
@@ -438,8 +438,8 @@ const formatStatValue = (key, value) => {
   return `+${value}`;
 };
 
-// ---- Render item card (simplified from expected-value.astro) ----
-const renderSelectedItemCard = (item) => {
+// ---- Render item card with deconstruction deltas ----
+const renderTargetItemCard = (item) => {
   if (
     !(selectedItemCard instanceof HTMLElement) ||
     !(selectedItemName instanceof HTMLElement) ||
@@ -468,23 +468,36 @@ const renderSelectedItemCard = (item) => {
     selectedItemRequirements.append(createItemLine(label, value, 'selected-item-line--requirement'));
   });
 
-  statRows.forEach(([label, key]) => {
+  deconStatRows.forEach(([label, key]) => {
     if (key === 'attackSpeed') {
-      const value = resolveAttackSpeed(item);
-      if (Number.isFinite(value)) {
-        selectedItemStats.append(createItemLine(label, formatStatValue(key, value)));
+      const base = resolveAttackSpeed(item);
+      if (Number.isFinite(base)) {
+        selectedItemStats.append(createItemLine(label, formatStatValue(key, base)));
       }
       return;
     }
     if (key === 'upgradeSlots') {
-      selectedItemStats.append(createItemLine(label, item.stats?.upgradeSlots ?? 0));
+      selectedItemStats.append(createItemLine(label, deconAvailableSlots));
       return;
     }
-    const value = item.stats?.[key];
-    if (Number.isFinite(value)) {
-      selectedItemStats.append(
-        createItemLine(label, formatStatValue(key, value)),
-      );
+    const base = item.stats?.[key] ?? 0;
+    const delta = deconDeltas[key] ?? 0;
+    const total = base + delta;
+    if (Number.isFinite(total)) {
+      if (delta !== 0) {
+        if (base === 0) {
+          // Stat doesn't exist on base item, show just the delta
+          selectedItemStats.append(createItemLine(label, formatStatValue(key, delta)));
+        } else {
+          // Show breakdown: total (base + delta)
+          const baseFormatted = formatStatValue(key, base);
+          const deltaFormatted = delta > 0 ? `+${delta}` : String(delta);
+          const displayValue = `${formatStatValue(key, total)} (${baseFormatted} ${deltaFormatted})`;
+          selectedItemStats.append(createItemLine(label, displayValue));
+        }
+      } else if (Number.isFinite(base)) {
+        selectedItemStats.append(createItemLine(label, formatStatValue(key, base)));
+      }
     }
   });
 
@@ -492,6 +505,12 @@ const renderSelectedItemCard = (item) => {
     itemPlaceholder.hidden = true;
   }
   selectedItemCard.hidden = false;
+};
+
+const updateTargetCard = () => {
+  if (selectedItem) {
+    renderTargetItemCard(selectedItem);
+  }
 };
 
 const clearSelectedItemCard = () => {
@@ -567,6 +586,7 @@ const rebuildStatEditor = () => {
 
   // Populate add-stat menu
   populateAddStatMenu();
+  updateTargetCard();
 };
 
 const populateAddStatMenu = () => {
@@ -601,6 +621,7 @@ const setStatDelta = (key, value) => {
     valueSpan.textContent = String(value);
   }
   updateAnalyzeButton();
+  updateTargetCard();
 };
 
 const updateAnalyzeButton = () => {
@@ -688,7 +709,7 @@ const selectSuggestedItem = (item, { syncFilters = true } = {}) => {
     syncFiltersToSelectedItem(item);
   }
   selectedItem = item;
-  renderSelectedItemCard(item);
+  renderTargetItemCard(item);
   activateDeconEditPanel(item);
   if (syncFilters) {
     syncItemSearchUrl();
