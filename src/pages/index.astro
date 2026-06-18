@@ -257,10 +257,18 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 				</div>
 			</form>
 
+			<section class="calculator-panel calc-panel" data-calc-panel>
+				<h3>3. 계산</h3>
+				<p class="enhancement-placeholder" data-calc-placeholder>
+					강화 목표를 설정한 뒤 계산이 가능합니다.
+				</p>
+				<div data-calc-content hidden></div>
+			</section>
+
 			<section class="calculator-panel result-panel" data-result-panel>
-				<h3>3. 결과</h3>
+				<h3>4. 결과</h3>
 				<p class="enhancement-placeholder" data-result-placeholder>
-					강화 목표를 설정한 뒤 기대값 계산을 눌러주세요.
+					계산 결과가 여기에 표시됩니다.
 				</p>
 				<div data-result-content hidden></div>
 			</section>
@@ -280,7 +288,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 					<div class="selected-item-divider"></div>
 					<div class="selected-item-stats" data-selected-item-stats></div>
 				</div>
-				<button class="ev-calc-button" data-ev-calc-trigger disabled>기대값 계산</button>
 				<button type="button" class="small-button secondary selected-item-reset" data-enhancement-reset hidden>
 					초기화
 				</button>
@@ -706,8 +713,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			}
 			renderSelectedItemCard(item);
 			if (typeof window.activatePanel2 === 'function') {
-				window.activatePanel2(item);
-			}
+					window.activatePanel2(item);
+				}
+				if (typeof window.__evOpenCalcPanel === 'function') {
+					window.__evOpenCalcPanel();
+				}
 			if (syncFilters) {
 				syncItemSearchUrl();
 				hideItemSuggestions();
@@ -1164,21 +1174,25 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	
 	// ---- Expected Value Calculator wiring ----
 
-	const evTrigger = document.querySelector('[data-ev-calc-trigger]');
 	const resultPanel = document.querySelector('[data-result-panel]');
-	const resultPlaceholder = resultPanel?.querySelector('[data-result-placeholder]');
-	const resultContent = resultPanel?.querySelector('[data-result-content]');
+		const resultPlaceholder = resultPanel?.querySelector('[data-result-placeholder]');
+		const resultContent = resultPanel?.querySelector('[data-result-content]');
+
+		const calcPanel = document.querySelector('[data-calc-panel]');
+		const calcPlaceholder = calcPanel?.querySelector('[data-calc-placeholder]');
+		const calcContent = calcPanel?.querySelector('[data-calc-content]');
 
 	let evResultUI = null;
 	let evResultSummary = null;
 
 	/** Update EV button enabled/disabled state based on current enhancement state. */
 	const updateEvButtonState = () => {
-	  const evState = window.__evState?.();
-	  if (!evTrigger || !(evTrigger instanceof HTMLButtonElement)) return;
+		  const evState = window.__evState?.();
+		  const calcStartBtn = document.querySelector('[data-ev-calc-start]');
+		  if (!calcStartBtn || !(calcStartBtn instanceof HTMLButtonElement)) return;
 
 	  if (!evState || !evState.enhancementState || !evState.selectedBaseItem) {
-	    evTrigger.disabled = true;
+	    calcStartBtn.disabled = true;
 	    return;
 	  }
 
@@ -1197,7 +1211,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  const hasProbabilityStimulant = st.stimulantSlot?.mode === 'probability';
 	  const hasLevelUp = st.itemLevelUpSlots.some(s => s !== null) && st.itemLevelUpMode === 'probability';
 
-	  evTrigger.disabled = !(hasNonDeterministicScroll || hasProbabilityGem || hasProbabilityStimulant || hasLevelUp);
+	  calcStartBtn.disabled = !(hasNonDeterministicScroll || hasProbabilityGem || hasProbabilityStimulant || hasLevelUp);
 	};
 
 	// Register callback for enhancement state changes
@@ -1266,8 +1280,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  }),
 	});
 
-	/** Open the target selection UI. */
-	const openEvTargetSelection = () => {
+	/** Render target selection UI into the calc panel. */
+		const openCalcPanel = () => {
 	  const evState = window.__evState?.();
 	  if (!evState || !evState.enhancementState || !evState.selectedBaseItem) return;
 
@@ -1279,26 +1293,25 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  // Create target selection UI
 	  const targetUI = createTargetSelectionUI(cleanStats, previewStats, 0, gains);
 
-	  // Replace result content
-	  if (resultContent instanceof HTMLElement && resultPlaceholder instanceof HTMLElement) {
-	    resultPlaceholder.hidden = true;
-	    resultContent.hidden = false;
-            resultContent.style.display = '';
-	    resultContent.replaceChildren();
-	    resultContent.appendChild(targetUI.container);
-            resultPanel?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-	  }
+	  // Render into calc panel
+		  if (calcContent instanceof HTMLElement && calcPlaceholder instanceof HTMLElement) {
+		    calcPlaceholder.hidden = true;
+		    calcContent.hidden = false;
+		    calcContent.replaceChildren();
+		    calcContent.appendChild(targetUI.container);
+		  }
 
-	  // Handle cancel: return to placeholder
-	  targetUI.onCancel(() => {
-	    showEvPlaceholder();
-	  });
+		  // Update button state immediately
+		  updateEvButtonState();
 
 	  // Handle start: run calculation
 	  targetUI.onStart(() => {
 	    runEvCalculation(targetUI.getCheckedStats(), targetUI.getTrialCount(), cleanStats, previewStats, enhancementState, selectedBaseItem);
 	  });
 	};
+
+		// Exposed so enhancementPanel reset can re-render target selection
+		window.__evOpenCalcPanel = openCalcPanel;
 
 	/** Run the actual EV calculation and display results. */
 	const runEvCalculation = (checkedStats, trialCount, cleanStats, previewStats, enhancementState, selectedBaseItem) => {
@@ -1410,21 +1423,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  }
 	};
 
-	// EV calc button click handler
-	evTrigger?.addEventListener('click', () => {
-	  if (!(evTrigger instanceof HTMLButtonElement) || evTrigger.disabled) return;
-
-	  if (evResultSummary) {
-	    // Result already exists — show confirmation first
-	    showEvConfirmationDialog(() => {
-	      evResultSummary = null;
-	      evResultUI = null;
-	      openEvTargetSelection();
-	    });
-	  } else {
-	    openEvTargetSelection();
-	  }
-	});
+	// Calculation is triggered from the 계산 시작 button inside the calc panel.
+		// The button is rendered by createTargetSelectionUI and wired via onStart in openCalcPanel.
 
 </script>
 
@@ -2803,24 +2803,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			gap: 8px;
 		}
 
-	/* Expected Value Calculator */
-	.ev-calc-button {
-	  display: block;
-	  width: 100%;
-	  padding: 8px 16px;
-	  margin-top: 8px;
-	  border: 1px solid var(--btn-primary-bg, #3b82f6);
-	  background: var(--btn-primary-bg, #3b82f6);
-	  color: #fff;
-	  border-radius: 4px;
-	  cursor: pointer;
-	  font-size: 14px;
-	  font-weight: 500;
-	}
-	.ev-calc-button:disabled {
-	  opacity: 0.4;
-	  cursor: not-allowed;
-	}
+	/* Expected Value Calculator — target selection & result */
 	:global(.ev-target-selection) { padding: 8px 0; }
 	:global(.ev-target-header) {
 	  margin: 0 0 10px;
@@ -2889,6 +2872,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	:global(.ev-confirm-dialog p) { margin: 0 0 16px; font-size: 14px; }
 	:global(.ev-confirm-buttons) { display: flex; gap: 8px; justify-content: flex-end; }
 	:global(.ev-confirm-buttons button) { padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+	.calculator-panel.calc-panel,
 	.calculator-panel.result-panel {
 	  padding: 14px;
 	  border: 1px solid var(--line);
@@ -2896,6 +2880,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  background: var(--surface);
 	  box-shadow: var(--shadow);
 	}
+	.calculator-panel.calc-panel h3,
 	.calculator-panel.result-panel h3 {
 	  margin: 0 0 8px;
 	  color: var(--ink);
