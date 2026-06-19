@@ -2460,6 +2460,17 @@ aside.panel {
   display: grid;
   gap: 7px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  position: relative;
+}
+
+.decon-strategy-card:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  bottom: -7px;
+  left: 12px;
+  right: 12px;
+  height: 1px;
+  background: var(--line);
 }
 
 .decon-strategy-card:hover {
