@@ -648,10 +648,19 @@ const rebuildStatEditor = () => {
       setStatDelta(k, Math.max(rangeMin, deconDeltas[k] - stepSize));
     });
 
-    const valueSpan = document.createElement('span');
-    valueSpan.className = 'chaos-stepper-value';
-    valueSpan.dataset.deconStatValue = k;
-    valueSpan.textContent = '0';
+    const valueInput = document.createElement('input');
+    valueInput.type = 'number';
+    valueInput.className = 'chaos-stepper-value';
+    valueInput.dataset.deconStatValue = k;
+    valueInput.value = '0';
+    valueInput.addEventListener('input', () => {
+      const raw = parseInt(valueInput.value, 10);
+      if (Number.isFinite(raw)) {
+        const clamped = Math.max(rangeMin, Math.min(rangeMax, raw));
+        setStatDelta(k, clamped);
+        if (clamped !== raw) valueInput.value = String(clamped);
+      }
+    });
 
     const incBtn = document.createElement('button');
     incBtn.type = 'button';
@@ -669,7 +678,7 @@ const rebuildStatEditor = () => {
       setStatDelta(k, rangeMax);
     });
 
-    row.append(label, minBtn, decBtn, valueSpan, incBtn, maxBtn);
+    row.append(label, minBtn, decBtn, valueInput, incBtn, maxBtn);
     deconStatEditor.append(row);
   }
 
@@ -718,9 +727,9 @@ const populateAddStatList = () => {
 
 const setStatDelta = (key, value) => {
   deconDeltas[key] = value;
-  const valueSpan = document.querySelector(`[data-decon-stat-value="${key}"]`);
-  if (valueSpan instanceof HTMLElement) {
-    valueSpan.textContent = String(value);
+  const valueInput = document.querySelector(`[data-decon-stat-value="${key}"]`);
+  if (valueInput instanceof HTMLInputElement) {
+    valueInput.value = String(value);
   }
   updateAnalyzeButton();
   updateTargetCard();
@@ -2016,6 +2025,16 @@ aside.panel {
   font-size: 0.9rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  text-align: center;
+  outline: none;
+}
+:global(.chaos-stepper-value::-webkit-inner-spin-button),
+:global(.chaos-stepper-value::-webkit-outer-spin-button) {
+  -webkit-appearance: none;
+  margin: 0;
+}
+:global(.chaos-stepper-value[type=number]) {
+  -moz-appearance: textfield;
 }
 
 .decon-slot-row {
