@@ -1,5 +1,12 @@
 import { HP_MP_KEYS } from '../enhancementState.mjs';
-import { addVectors, vectorKey } from './statVectors.mjs';
+import { GEM_GRADES, GEM_TYPES, isWeaponKind } from '../makerData.mjs';
+import {
+  BLACK_AMETHYST_TABLES,
+  DARK_CRYSTAL_TABLES,
+  getFixedGemStats,
+  isFixedGem,
+} from '../expectedValue/makerModel.mjs';
+import { addVectors, projectVector, vectorKey } from './statVectors.mjs';
 
 export function solveStimulantResidual(residual, targetKeys) {
   const stats = {};
@@ -61,4 +68,89 @@ export function enumerateItemLevelContributions({ levelUpDefinition, targetKeys,
     results.push(...previous);
   }
   return results;
+}
+
+// ---- Gem contribution helpers ----
+
+const uniqueValues = (table) => [...new Set(table.map(({ value }) => value))].sort((a, b) => a - b);
+
+function enumerateIndependentStats(keys, values) {
+  const results = [];
+  function visit(index, stats) {
+    if (index === keys.length) return void results.push({ ...stats });
+    for (const value of values) {
+      stats[keys[index]] = value;
+      visit(index + 1, stats);
+    }
+  }
+  visit(0, {});
+  return results;
+}
+
+function buildGemOutcomeOptions({ equipmentKind, cleanStats, targetKeys }) {
+  const options = [];
+  for (const gem of GEM_TYPES) {
+    if (gem.weaponOnly && !isWeaponKind(equipmentKind)) continue;
+    for (let gradeIndex = 0; gradeIndex < GEM_GRADES.length; gradeIndex++) {
+      if (isFixedGem(gem.key)) {
+        options.push({
+          gemKey: gem.key,
+          gradeIndex,
+          stats: projectVector(getFixedGemStats(gem.key, gradeIndex), targetKeys),
+        });
+        continue;
+      }
+      const gradeKey = ['low', 'mid', 'high'][gradeIndex];
+      const table = gem.key === 'blackAmethyst'
+        ? BLACK_AMETHYST_TABLES[gradeKey]
+        : DARK_CRYSTAL_TABLES[gradeKey];
+      const keys = gem.variableKeys.filter(
+        (key) => targetKeys.includes(key) && Number.isFinite(cleanStats[key]),
+      );
+      for (const stats of enumerateIndependentStats(keys, uniqueValues(table))) {
+        options.push({ gemKey: gem.key, gradeIndex, stats: projectVector(stats, targetKeys) });
+      }
+    }
+  }
+  return options;
+}
+
+function compareGemEntries(left, right) {
+  const key = (entry) => entry.gems
+    .map((gem) => `${gem.gemKey}:${gem.gradeIndex}:${JSON.stringify(gem.stats)}`)
+    .sort()
+    .join('|');
+  return key(left).localeCompare(key(right));
+}
+
+export function enumerateGemContributions({
+  gemSlotCount,
+  equipmentKind,
+  cleanStats,
+  targetKeys,
+  bounds,
+}) {
+  if (!Number.isInteger(gemSlotCount) || gemSlotCount <= 0) return [];
+  const options = buildGemOutcomeOptions({ equipmentKind, cleanStats, targetKeys });
+  const results = [];
+  const seen = new Set();
+
+  function visit(startIndex, gems, stats) {
+    if (gems.length > 0 && withinBounds(stats, bounds, targetKeys)) {
+      const key = `${gems.map((gem) => `${gem.gemKey}:${gem.gradeIndex}:${vectorKey(gem.stats, targetKeys)}`).sort().join('|')}::${vectorKey(stats, targetKeys)}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        results.push({ gems: gems.map((gem) => ({ ...gem })), stats: { ...stats } });
+      }
+    }
+    if (gems.length === gemSlotCount) return;
+    for (let index = startIndex; index < options.length; index++) {
+      const option = options[index];
+      if (gems.some((gem) => gem.gemKey === option.gemKey)) continue;
+      visit(index + 1, [...gems, option], addVectors(stats, option.stats, targetKeys));
+    }
+  }
+
+  visit(0, [], Object.fromEntries(targetKeys.map((key) => [key, 0])));
+  return results.sort(compareGemEntries);
 }
