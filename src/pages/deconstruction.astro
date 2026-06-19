@@ -2437,25 +2437,40 @@ aside.panel {
 .decon-strategy-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 20px;
   max-height: 480px;
   overflow-y: auto;
-  padding-right: 2px;
+  padding-right: 4px;
+  counter-reset: strategy-card;
 }
 
 .decon-strategy-card {
-  padding: 14px 16px;
+  padding: 16px 18px;
   border: 1px solid var(--line);
-  border-left: 3px solid var(--line);
+  border-left: 4px solid var(--green);
   border-radius: 6px;
   background: var(--surface);
   display: grid;
-  gap: 6px;
-  transition: border-left-color 0.2s ease;
+  gap: 7px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  counter-increment: strategy-card;
+  position: relative;
+}
+
+.decon-strategy-card::after {
+  content: '#' counter(strategy-card);
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--muted);
+  opacity: 0.5;
+  letter-spacing: 0.3px;
 }
 
 .decon-strategy-card:hover {
-  border-left-color: var(--muted);
+  border-left-color: var(--ink);
 }
 
 .decon-strategy-source {
