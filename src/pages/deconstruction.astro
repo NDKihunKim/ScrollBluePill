@@ -526,7 +526,7 @@ const renderTargetItemCard = (item) => {
   }
 
   selectedItemName.textContent = item.nameKo;
-  selectedItemName.style.color = '';
+  selectedItemName.style.color = computeDeconGrade();
   selectedItemIcon.src = buildItemIconUrl(item.id);
   selectedItemRequirements.replaceChildren();
   selectedItemStats.replaceChildren();
@@ -596,6 +596,23 @@ const clearSelectedItemCard = () => {
   if (itemPlaceholder instanceof HTMLElement) {
     itemPlaceholder.hidden = false;
   }
+};
+
+// ---- Item grade color (same thresholds as expected-value calculator) ----
+const computeDeconGrade = () => {
+  let total = 0;
+  for (const [key, value] of Object.entries(deconDeltas)) {
+    if (!Number.isFinite(value) || value <= 0) continue;
+    total += HP_MP_KEYS.has(key) ? Math.round(value / 10) : value;
+  }
+  if (total < 0) return '#9e9e9e';
+  if (total === 0) return '#ffffff';
+  if (total <= 5) return '#ff8c00';
+  if (total <= 22) return '#3366ff';
+  if (total <= 39) return '#9933ff';
+  if (total <= 56) return '#ffd700';
+  if (total <= 73) return '#33cc33';
+  return '#ff3333';
 };
 
 // ---- Stat editor ----
