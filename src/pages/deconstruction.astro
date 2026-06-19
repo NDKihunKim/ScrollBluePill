@@ -2287,27 +2287,34 @@ aside.panel {
 }
 
 .decon-filter-chips {
-  display: flex;
-  gap: 6px;
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  overflow: hidden;
   margin-bottom: 10px;
 }
 
 .decon-filter-chip {
-  padding: 5px 12px;
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  background: var(--surface-soft);
-  color: var(--ink);
-  font-size: 0.82rem;
-  font-weight: 650;
+  padding: 3px 11px;
+  border: none;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: background 0.15s, color 0.15s;
+}
+
+.decon-filter-chip:last-child {
+  border-right: none;
 }
 
 .decon-filter-chip--active {
-  border-color: var(--green);
   background: var(--green);
   color: #fff;
+  font-weight: 600;
 }
 
 .decon-summary {
