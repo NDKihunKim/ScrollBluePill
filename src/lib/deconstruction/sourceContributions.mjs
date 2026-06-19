@@ -8,13 +8,17 @@ import {
 } from '../expectedValue/makerModel.mjs';
 import { addVectors, projectVector, vectorKey } from './statVectors.mjs';
 
-export function solveStimulantResidual(residual, targetKeys) {
+const WEAPON_ONLY_STIM_KEYS = new Set(['weaponAttack', 'magicAttack']);
+
+export function solveStimulantResidual(residual, targetKeys, { isWeapon = true } = {}) {
   const stats = {};
   let hasNonZero = false;
   for (const key of targetKeys) {
     const value = residual[key] || 0;
     const limit = HP_MP_KEYS.has(key) ? 50 : 5;
     const step = HP_MP_KEYS.has(key) ? 10 : 1;
+    // 촉진제 can only affect weaponAttack/magicAttack on weapons
+    if (!isWeapon && WEAPON_ONLY_STIM_KEYS.has(key) && value !== 0) return null;
     if (value < -limit || value > limit || value % step !== 0) return null;
     stats[key] = value;
     if (value !== 0) hasNonZero = true;

@@ -324,6 +324,9 @@ export function enumerateStrategies({
 
   const scrolls = scrollsByEquipmentKind.get(equipmentKind) ?? [];
 
+  const equipmentIsWeapon = isWeaponKind(equipmentKind);
+  const stimulantOpts = { isWeapon: equipmentIsWeapon };
+
   // Generate exact-count scroll states
   const scrollStates = scrolls.length > 0 && normCount > 0
     ? enumerateExactCountScrollStates({
@@ -379,7 +382,7 @@ export function enumerateStrategies({
 
     // Tier 1: scroll + stimulant
     if (strategies.length < MAX_STRATEGIES) {
-      const stimStats = solveStimulantResidual(residual, targetKeys);
+      const stimStats = solveStimulantResidual(residual, targetKeys, stimulantOpts);
       if (stimStats) {
         addResult({
           scrolls: ss.scrolls,
@@ -434,7 +437,7 @@ export function enumerateStrategies({
       for (const gc of gemContributions) {
         if (strategies.length >= MAX_STRATEGIES) break;
         const afterGems = subtractVectors(residual, gc.stats, targetKeys);
-        const stimStats = solveStimulantResidual(afterGems, targetKeys);
+        const stimStats = solveStimulantResidual(afterGems, targetKeys, stimulantOpts);
         if (stimStats) {
           addResult({
             scrolls: ss.scrolls,
@@ -452,7 +455,7 @@ export function enumerateStrategies({
       for (const ilc of itemLevelContributions) {
         if (strategies.length >= MAX_STRATEGIES) break;
         const afterLevel = subtractVectors(residual, ilc.stats, targetKeys);
-        const stimStats = solveStimulantResidual(afterLevel, targetKeys);
+        const stimStats = solveStimulantResidual(afterLevel, targetKeys, stimulantOpts);
         if (stimStats) {
           addResult({
             scrolls: ss.scrolls,
@@ -492,7 +495,7 @@ export function enumerateStrategies({
         for (const ilc of itemLevelContributions) {
           if (strategies.length >= MAX_STRATEGIES) break;
           const afterBoth = subtractVectors(residual, addVectors(gc.stats, ilc.stats, targetKeys), targetKeys);
-          const stimStats = solveStimulantResidual(afterBoth, targetKeys);
+          const stimStats = solveStimulantResidual(afterBoth, targetKeys, stimulantOpts);
           if (stimStats) {
             addResult({
               scrolls: ss.scrolls,
