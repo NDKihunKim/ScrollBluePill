@@ -1544,22 +1544,52 @@ deconAddStatToggle?.addEventListener('click', () => {
 deconAnalyzeBtn?.addEventListener('click', runAnalysis);
 
 // ---- Reset button ----
+const showDeconConfirmDialog = (onConfirm) => {
+  const overlay = document.createElement('div');
+  overlay.className = 'decon-confirm-overlay';
+
+  const dialog = document.createElement('div');
+  dialog.className = 'decon-confirm-dialog';
+
+  const msg = document.createElement('p');
+  msg.textContent = '아이템은 유지하고 모든 계산 상태를 초기화합니다. 계속하시겠습니까?';
+
+  const buttonRow = document.createElement('div');
+  buttonRow.className = 'decon-confirm-buttons';
+
+  const confirmBtn = document.createElement('button');
+  confirmBtn.textContent = '초기화';
+  confirmBtn.addEventListener('click', () => {
+    overlay.remove();
+    onConfirm();
+  });
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = '취소';
+  cancelBtn.addEventListener('click', () => overlay.remove());
+
+  buttonRow.append(confirmBtn, cancelBtn);
+  dialog.append(msg, buttonRow);
+  overlay.append(dialog);
+  document.body.append(overlay);
+};
+
 document.querySelector('[data-enhancement-reset]')?.addEventListener('click', () => {
-  selectedItem = null;
-  deconDeltas = {};
-  deconSlotState = createDeconstructionSlotState(0);
-  deconStatKeys = [];
-  clearSelectedItemCard();
-  if (deconEditPlaceholder instanceof HTMLElement) deconEditPlaceholder.hidden = false;
-  if (deconEditContent instanceof HTMLElement) deconEditContent.hidden = true;
-  if (deconStatEditor instanceof HTMLElement) deconStatEditor.replaceChildren();
-  if (deconCalcPlaceholder instanceof HTMLElement) deconCalcPlaceholder.hidden = false;
-  if (deconCalcContent instanceof HTMLElement) deconCalcContent.hidden = true;
-  if (deconResultPlaceholder instanceof HTMLElement) deconResultPlaceholder.hidden = false;
-  if (deconResultContent instanceof HTMLElement) deconResultContent.hidden = true;
-  if (itemNameInput instanceof HTMLInputElement) itemNameInput.value = '';
-  if (selectedItemIdInput instanceof HTMLInputElement) selectedItemIdInput.value = '';
-  form?.removeAttribute('data-selected-item-id');
+  showDeconConfirmDialog(() => {
+    deconDeltas = {};
+    deconSlotState = createDeconstructionSlotState(selectedItem?.stats?.upgradeSlots ?? 0);
+    renderDeconSlotState();
+    if (deconStatEditor instanceof HTMLElement) {
+      deconStatEditor.replaceChildren();
+    }
+    if (selectedItem) {
+      activateDeconEditPanel(selectedItem);
+    }
+    if (deconCalcPlaceholder instanceof HTMLElement) deconCalcPlaceholder.hidden = false;
+    if (deconCalcContent instanceof HTMLElement) deconCalcContent.hidden = true;
+    if (deconResultPlaceholder instanceof HTMLElement) deconResultPlaceholder.hidden = false;
+    if (deconResultContent instanceof HTMLElement) deconResultContent.hidden = true;
+  });
 });
 
 // ---- Init ----
@@ -2499,6 +2529,53 @@ aside.panel {
 
 :global(.decon-strategy-card:hover) {
   border-left-color: var(--ink);
+}
+
+:global(.decon-confirm-overlay) {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+:global(.decon-confirm-dialog) {
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 20px 24px;
+  max-width: 360px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+}
+
+:global(.decon-confirm-dialog p) {
+  margin: 0 0 16px;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+:global(.decon-confirm-buttons) {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+:global(.decon-confirm-buttons button) {
+  padding: 6px 16px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface-soft);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+:global(.decon-confirm-buttons button:first-child) {
+  background: #e74c3c;
+  border-color: #e74c3c;
+  color: #fff;
 }
 
 :global(.decon-strategy-source) {
