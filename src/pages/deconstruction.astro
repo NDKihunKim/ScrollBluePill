@@ -274,6 +274,7 @@ import { searchKoreanItems } from '../lib/itemSearch.mjs';
 import { buildItemIconUrl, buildItemSearchUrl } from '../lib/maplestoryIo.mjs';
 import { HP_MP_KEYS } from '../lib/enhancementState.mjs';
 import { enumerateStrategies } from '../lib/deconstruction/engine.mjs';
+import { GEM_GRADES } from '../lib/makerData.mjs';
 import {
   createDeconstructionSlotState,
   setSuccessfulScrollCount,
@@ -1106,19 +1107,20 @@ const runAnalysis = () => {
   const equipmentKind = selectedItem.equipmentKind;
   const checkedKeys = getCheckedTargetKeys();
 
-  // Build targetDeltas from deconDeltas (only positive values for checked keys)
-  const targetDeltas = {};
-  for (const [k, v] of Object.entries(deconDeltas)) {
-    if (v > 0 && checkedKeys.includes(k)) {
-      targetDeltas[k] = v;
-    }
-  }
+  // Build targetDeltas for every checked key (including negative and zero)
+  const targetDeltas = Object.fromEntries(
+    checkedKeys.map((key) => [key, deconDeltas[key] ?? 0]),
+  );
 
   const result = enumerateStrategies({
     targetDeltas,
+    targetKeys: checkedKeys,
     successfulScrollCount: deconSlotState.successfulScrollCount,
     equipmentKind,
+    requiredLevel: selectedItem.requiredLevel ?? 0,
+    cleanStats: selectedItem.stats ?? {},
     scrollsByEquipmentKind,
+    levelUpDefinition: itemLevelUpByItemId.get(selectedItem.id) ?? null,
   });
 
   displayResults(result, targetDeltas);
@@ -1161,32 +1163,32 @@ const displayResults = (result, targetDeltas) => {
   summary.textContent = `총 ${totalLabel}개의 전략을 찾았습니다.`;
 
   // Filter chips
-  const allChip = document.createElement('button');
-  allChip.type = 'button';
-  allChip.className = 'decon-filter-chip decon-filter-chip--active';
-  allChip.dataset.deconFilter = 'all';
-  allChip.textContent = '전체';
-  allChip.addEventListener('click', () => setActiveFilter('all'));
+  const makeChip = (filter, label) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'decon-filter-chip';
+    if (filter === 'all') chip.classList.add('decon-filter-chip--active');
+    chip.dataset.deconFilter = filter;
+    chip.textContent = label;
+    chip.addEventListener('click', () => setActiveFilter(filter));
+    return chip;
+  };
 
-  const scrollChip = document.createElement('button');
-  scrollChip.type = 'button';
-  scrollChip.className = 'decon-filter-chip';
-  scrollChip.dataset.deconFilter = 'scrolls';
-  scrollChip.textContent = '주문서만';
-  scrollChip.addEventListener('click', () => setActiveFilter('scrolls'));
-
-  filterChipsContainer.append(allChip, scrollChip);
+  filterChipsContainer.append(
+    makeChip('all', '전체'),
+    makeChip('scrolls', '주문서만'),
+    makeChip('scrolls+stimulant', '주문서 + 촉진제'),
+    makeChip('scrolls+gems', '주문서 + 보석'),
+    makeChip('scrolls+itemLevelUp', '주문서 + 레벨업'),
+  );
 
   // Strategy list
   for (const strategy of result.strategies) {
     const card = document.createElement('div');
     card.className = 'decon-strategy-card';
 
-    // Probability
-    const probRow = document.createElement('div');
-    probRow.className = 'decon-strategy-prob';
-    probRow.textContent = `확률: ${(strategy.probability * 100).toFixed(1)}%`;
-    card.append(probRow);
+    // Source type for filtering
+    card.dataset.sourceTypes = strategy.sourceTypes.join(',');
 
     // Scrolls used
     const scrollRow = document.createElement('div');
@@ -1196,12 +1198,35 @@ const displayResults = (result, targetDeltas) => {
       .join(', ');
     card.append(scrollRow);
 
+    // Source details (stimulant, gems, itemLevelUp)
+    const formatSourceStats = (stats) => Object.entries(stats)
+      .filter(([, value]) => value !== 0)
+      .map(([key, value]) => `${statLabelByKey[key] ?? key}: ${value > 0 ? '+' : ''}${value}`)
+      .join(', ');
+
+    const appendSourceRow = (cardEl, label, stats) => {
+      const row = document.createElement('div');
+      row.className = 'decon-strategy-source';
+      row.textContent = `${label}: ${formatSourceStats(stats)}`;
+      cardEl.append(row);
+    };
+
+    if (strategy.stimulant) appendSourceRow(card, '촉진제', strategy.stimulant.stats);
+    if (strategy.gems.length > 0) {
+      for (const gem of strategy.gems) {
+        appendSourceRow(card, `${gem.nameKo ?? gem.gemKey} ${GEM_GRADES[gem.gradeIndex] ?? ''}`, gem.stats);
+      }
+    }
+    if (strategy.itemLevelUp) {
+      appendSourceRow(card, `아이템 레벨업 ${strategy.itemLevelUp.levelCount}회`, strategy.itemLevelUp.stats);
+    }
+
     // Total stats
     const statRow = document.createElement('div');
     statRow.className = 'decon-strategy-stats';
     const statParts = Object.entries(strategy.totalStats)
       .filter(([, v]) => v !== 0)
-      .map(([k, v]) => `${k}: ${v > 0 ? '+' : ''}${v}`);
+      .map(([k, v]) => `${statLabelByKey[k] ?? k}: ${v > 0 ? '+' : ''}${v}`);
     statRow.textContent = statParts.join(', ');
     card.append(statRow);
 
@@ -1232,9 +1257,12 @@ const setActiveFilter = (filter) => {
   cards.forEach((card) => {
     if (filter === 'all') {
       card.hidden = false;
-    } else if (filter === 'scrolls') {
-      // For now, all strategies use scrolls, so show all
-      card.hidden = false;
+    } else {
+      const sourceTypes = (card.dataset.sourceTypes || '').split(',').filter(Boolean);
+      const filterTypes = filter.split('+').filter(Boolean);
+      const matches = filterTypes.length === sourceTypes.length
+        && filterTypes.every((ft) => sourceTypes.includes(ft));
+      card.hidden = !matches;
     }
   });
 };
@@ -1454,13 +1482,23 @@ fetch('/data/items-gms83-ko.json')
     console.error(error);
   });
 
-// Load scroll data
-fetch('/data/scrolls-gms83-ko.json')
-  .then((response) => {
+// Load scroll and item-level-up data
+let itemLevelUpByItemId = new Map();
+
+Promise.all([
+  fetch('/data/scrolls-gms83-ko.json').then((response) => {
     if (!response.ok) throw new Error(`Unable to load scroll data: ${response.status}`);
     return response.json();
-  })
-  .then((scrolls) => {
+  }),
+  fetch('/data/item-level-ups-gms83-ko.json').then((response) => {
+    if (!response.ok) {
+      console.warn('Item level-up data unavailable, continuing without it');
+      return [];
+    }
+    return response.json();
+  }).catch(() => []),
+])
+  .then(([scrolls, itemLevelUps]) => {
     scrollIndex = Array.isArray(scrolls) ? scrolls : [];
     scrollsByEquipmentKind = new Map();
     for (const scroll of scrollIndex) {
@@ -1470,6 +1508,12 @@ fetch('/data/scrolls-gms83-ko.json')
       }
       scrollsByEquipmentKind.get(kind).push(scroll);
     }
+
+    itemLevelUpByItemId = new Map(
+      (Array.isArray(itemLevelUps) ? itemLevelUps : [])
+        .filter((definition) => Number.isInteger(definition.itemId))
+        .map((definition) => [definition.itemId, definition]),
+    );
   })
   .catch((error) => {
     console.error(error);
@@ -2290,10 +2334,10 @@ aside.panel {
   gap: 4px;
 }
 
-.decon-strategy-prob {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--green);
+.decon-strategy-source {
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.35;
 }
 
 .decon-strategy-scrolls {

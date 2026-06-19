@@ -79,6 +79,28 @@ test('analysis passes the exact successful-scroll count to the engine', () => {
   assert.doesNotMatch(runAnalysisSource, /\bupgradeSlots\b/);
 });
 
+test('page loads item-level data and passes complete exact-search inputs', () => {
+  assert.match(pageSource, /item-level-ups-gms83-ko\.json/);
+  assert.match(pageSource, /itemLevelUpByItemId/);
+  assert.match(pageSource, /targetKeys:\s*checkedKeys/);
+  assert.match(pageSource, /requiredLevel:\s*selectedItem\.requiredLevel/);
+  assert.match(pageSource, /cleanStats:\s*selectedItem\.stats/);
+  assert.match(pageSource, /levelUpDefinition:\s*itemLevelUpByItemId\.get\(selectedItem\.id\) \?\? null/);
+});
+
+test('deconstruction results contain source details without probability', () => {
+  assert.doesNotMatch(pageSource, /strategy\.probability/);
+  assert.doesNotMatch(pageSource, /decon-strategy-prob/);
+  assert.match(pageSource, /strategy\.stimulant/);
+  assert.match(pageSource, /strategy\.gems/);
+  assert.match(pageSource, /strategy\.itemLevelUp/);
+});
+
+test('target extraction includes checked negative and zero deltas', () => {
+  assert.match(pageSource, /checkedKeys\.map\(/);
+  assert.doesNotMatch(pageSource, /v > 0 && checkedKeys\.includes\(k\)/);
+});
+
 test('displayResults preserves result containers and clears only dynamic content', () => {
   const displayResultsStart = pageSource.indexOf('const displayResults = (result, targetDeltas) => {');
   const filterStart = pageSource.indexOf('// ---- Filter ----', displayResultsStart);
