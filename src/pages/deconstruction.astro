@@ -1238,38 +1238,44 @@ const displayResults = (result, targetDeltas) => {
         const row = document.createElement('div');
         row.className = 'decon-scroll-row';
 
-        // Count column
+        // Count
         const countCell = document.createElement('span');
         countCell.className = 'decon-scroll-count';
         countCell.textContent = `×${group.count}`;
         row.append(countCell);
 
-        // Name column (icon + name)
+        // Name + effect stacked
         const nameCell = document.createElement('span');
         nameCell.className = 'decon-scroll-name';
+
+        const topLine = document.createElement('span');
+        topLine.className = 'decon-scroll-name-top';
 
         const icon = document.createElement('img');
         icon.className = 'decon-scroll-icon';
         icon.src = buildItemIconUrl(group.scroll.id);
         icon.alt = '';
         icon.loading = 'lazy';
-        nameCell.append(icon);
+        topLine.append(icon);
 
         const label = document.createElement('span');
         label.textContent = group.scroll.nameKo;
-        nameCell.append(label);
+        topLine.append(label);
 
-        row.append(nameCell);
+        nameCell.append(topLine);
 
-        // Effect column (per-scroll stat contribution)
-        const effectCell = document.createElement('span');
-        effectCell.className = 'decon-scroll-effect';
+        // Effect sub-line
         const effects = Object.entries(group.scroll.stats)
           .filter(([, v]) => v !== 0)
           .map(([k, v]) => `${statLabelByKey[k] ?? k} ${v > 0 ? '+' : ''}${v}`);
-        effectCell.textContent = effects.join(', ');
-        row.append(effectCell);
+        if (effects.length > 0) {
+          const subLine = document.createElement('span');
+          subLine.className = 'decon-scroll-name-sub';
+          subLine.textContent = `└ ${effects.join(', ')}`;
+          nameCell.append(subLine);
+        }
 
+        row.append(nameCell);
         table.append(row);
       }
 
@@ -2496,9 +2502,9 @@ aside.panel {
 
 .decon-scroll-row {
   display: grid;
-  grid-template-columns: 32px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
   padding: 2px 0;
   font-size: 0.82rem;
   color: var(--ink);
@@ -2508,14 +2514,19 @@ aside.panel {
   font-weight: 600;
   color: var(--muted);
   text-align: right;
+  line-height: 1.4;
 }
 
 .decon-scroll-name {
   display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.decon-scroll-name-top {
+  display: flex;
   align-items: center;
   gap: 5px;
-  min-width: 0;
-  line-height: 1.25;
 }
 
 .decon-scroll-icon {
@@ -2526,11 +2537,11 @@ aside.panel {
   flex-shrink: 0;
 }
 
-.decon-scroll-effect {
-  font-size: 0.78rem;
+.decon-scroll-name-sub {
+  font-size: 0.76rem;
   color: var(--muted);
-  text-align: right;
-  white-space: nowrap;
+  padding-left: 2px;
+  line-height: 1.5;
 }
 
 .decon-strategy-stats {
