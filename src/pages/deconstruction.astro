@@ -2442,7 +2442,7 @@ aside.panel {
   font-weight: 600;
 }
 
-.decon-strategy-list {
+:global(.decon-strategy-list) {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -2451,7 +2451,7 @@ aside.panel {
   padding-right: 4px;
 }
 
-.decon-strategy-card {
+:global(.decon-strategy-card) {
   padding: 16px 18px;
   border: 1px solid var(--line);
   border-left: 4px solid var(--green);
@@ -2463,7 +2463,7 @@ aside.panel {
   position: relative;
 }
 
-.decon-strategy-card:not(:last-child)::after {
+:global(.decon-strategy-card:not(:last-child)::after) {
   content: '';
   position: absolute;
   bottom: -7px;
