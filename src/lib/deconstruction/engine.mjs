@@ -301,7 +301,7 @@ export function enumerateStrategies({
   };
 
   if (!normalizedAllowedSources.scrolls && normCount > 0) {
-    return { strategies: [], total: 0, tooManyResults: false };
+    return { strategies: [], total: 0, truncated: false, tooManyResults: false };
   }
 
   // Normalize bounds for fallback generation
