@@ -78,3 +78,23 @@ test('analysis passes the exact successful-scroll count to the engine', () => {
   );
   assert.doesNotMatch(runAnalysisSource, /\bupgradeSlots\b/);
 });
+
+test('displayResults preserves result containers and clears only dynamic content', () => {
+  const displayResultsStart = pageSource.indexOf('const displayResults = (result, targetDeltas) => {');
+  const filterStart = pageSource.indexOf('// ---- Filter ----', displayResultsStart);
+  assert.ok(displayResultsStart >= 0 && filterStart > displayResultsStart);
+  const displayResultsSource = pageSource.slice(displayResultsStart, filterStart);
+
+  assert.doesNotMatch(displayResultsSource, /deconResultContent\.replaceChildren\(\)/);
+  assert.match(
+    displayResultsSource,
+    /deconResultContent\.querySelector\('\.decon-summary'\)\?\.remove\(\)/,
+  );
+  assert.match(displayResultsSource, /deconResultContent\.prepend\(summary\)/);
+
+  const emptyResultIndex = displayResultsSource.indexOf('if (result.strategies.length === 0)');
+  const filterClearIndex = displayResultsSource.indexOf('filterChipsContainer.replaceChildren()');
+  const listClearIndex = displayResultsSource.indexOf('listContainer.replaceChildren()');
+  assert.ok(filterClearIndex >= 0 && filterClearIndex < emptyResultIndex);
+  assert.ok(listClearIndex >= 0 && listClearIndex < emptyResultIndex);
+});

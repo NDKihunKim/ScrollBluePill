@@ -1135,47 +1135,49 @@ const displayResults = (result, targetDeltas) => {
 
   deconResultPlaceholder.hidden = true;
   deconResultContent.hidden = false;
-  deconResultContent.replaceChildren();
+  deconResultContent.querySelector('.decon-summary')?.remove();
+
+  const filterChipsContainer = document.querySelector('[data-decon-filter-chips]');
+  const listContainer = document.querySelector('[data-decon-strategy-list]');
+  if (
+    !(filterChipsContainer instanceof HTMLElement) ||
+    !(listContainer instanceof HTMLElement)
+  ) {
+    return;
+  }
+  filterChipsContainer.replaceChildren();
+  listContainer.replaceChildren();
 
   // Summary line
   const summary = document.createElement('p');
   summary.className = 'decon-summary';
+  deconResultContent.prepend(summary);
   if (result.strategies.length === 0) {
     summary.textContent = '일치하는 전략을 찾을 수 없습니다.';
-    deconResultContent.append(summary);
     return;
   }
 
   const totalLabel = result.truncated ? `${result.total}+` : String(result.total);
   summary.textContent = `총 ${totalLabel}개의 전략을 찾았습니다.`;
-  deconResultContent.append(summary);
 
   // Filter chips
-  const filterChipsContainer = document.querySelector('[data-decon-filter-chips]');
-  if (filterChipsContainer instanceof HTMLElement) {
-    filterChipsContainer.replaceChildren();
-    const allChip = document.createElement('button');
-    allChip.type = 'button';
-    allChip.className = 'decon-filter-chip decon-filter-chip--active';
-    allChip.dataset.deconFilter = 'all';
-    allChip.textContent = '전체';
-    allChip.addEventListener('click', () => setActiveFilter('all'));
+  const allChip = document.createElement('button');
+  allChip.type = 'button';
+  allChip.className = 'decon-filter-chip decon-filter-chip--active';
+  allChip.dataset.deconFilter = 'all';
+  allChip.textContent = '전체';
+  allChip.addEventListener('click', () => setActiveFilter('all'));
 
-    const scrollChip = document.createElement('button');
-    scrollChip.type = 'button';
-    scrollChip.className = 'decon-filter-chip';
-    scrollChip.dataset.deconFilter = 'scrolls';
-    scrollChip.textContent = '주문서만';
-    scrollChip.addEventListener('click', () => setActiveFilter('scrolls'));
+  const scrollChip = document.createElement('button');
+  scrollChip.type = 'button';
+  scrollChip.className = 'decon-filter-chip';
+  scrollChip.dataset.deconFilter = 'scrolls';
+  scrollChip.textContent = '주문서만';
+  scrollChip.addEventListener('click', () => setActiveFilter('scrolls'));
 
-    filterChipsContainer.append(allChip, scrollChip);
-  }
+  filterChipsContainer.append(allChip, scrollChip);
 
   // Strategy list
-  const listContainer = document.querySelector('[data-decon-strategy-list]');
-  if (!(listContainer instanceof HTMLElement)) return;
-  listContainer.replaceChildren();
-
   for (const strategy of result.strategies) {
     const card = document.createElement('div');
     card.className = 'decon-strategy-card';
