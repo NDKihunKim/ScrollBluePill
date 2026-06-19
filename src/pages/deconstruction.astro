@@ -1217,15 +1217,20 @@ const displayResults = (result, targetDeltas) => {
     // Source type for filtering
     card.dataset.sourceTypes = strategy.sourceTypes.join(',');
 
-    // 1. Header — analysis number + total stats
+    // 1. Header — analysis number
     const headerRow = document.createElement('div');
     headerRow.className = 'decon-strategy-approach';
-    const headerStats = Object.entries(strategy.totalStats)
-      .filter(([, v]) => v !== 0)
-      .map(([k, v]) => `${statLabelByKey[k] ?? k} ${v > 0 ? '+' : ''}${v}`)
-      .join(', ');
-    headerRow.textContent = `분석 ${analysisIndex}번: ${headerStats}`;
+    headerRow.textContent = `분석 ${analysisIndex}번`;
     card.append(headerRow);
+
+    // 2. Total stats — summary subtitle
+    const statRow = document.createElement('div');
+    statRow.className = 'decon-strategy-stats';
+    const statParts = Object.entries(strategy.totalStats)
+      .filter(([, v]) => v !== 0)
+      .map(([k, v]) => `${statLabelByKey[k] ?? k} ${v > 0 ? '+' : ''}${v}`);
+    statRow.textContent = statParts.join(', ');
+    card.append(statRow);
 
     // 2. Scrolls — grouped by ID, rendered as a compact table
     const scrollGroups = new Map();
@@ -1310,15 +1315,6 @@ const displayResults = (result, targetDeltas) => {
     if (strategy.itemLevelUp) {
       appendSourceRow(card, `아이템 레벨업 ${strategy.itemLevelUp.levelCount}회`, strategy.itemLevelUp.stats);
     }
-
-    // 4. Total stats
-    const statRow = document.createElement('div');
-    statRow.className = 'decon-strategy-stats';
-    const statParts = Object.entries(strategy.totalStats)
-      .filter(([, v]) => v !== 0)
-      .map(([k, v]) => `${statLabelByKey[k] ?? k}: ${v > 0 ? '+' : ''}${v}`);
-    statRow.textContent = statParts.join(', ');
-    card.append(statRow);
 
     listContainer.append(card);
   }
