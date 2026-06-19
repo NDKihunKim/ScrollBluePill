@@ -415,15 +415,25 @@ test('allowed sources are permitted but not required', () => {
     strategy.sourceTypes.length === 1
     && strategy.sourceTypes[0] === 'scrolls'
     && strategy.scrolls[0].id === 7102));
+  assert.ok(result.strategies.some((strategy) =>
+    strategy.scrolls.length === 1
+    && strategy.scrolls[0].id === 7101
+    && strategy.hasStimulant
+    && strategy.stimulant.stats.str === 2));
 });
 
-for (const source of ['stimulant', 'gems', 'itemLevelUp']) {
+for (const [source, payloadIsAbsent] of [
+  ['stimulant', (strategy) => !strategy.hasStimulant && strategy.stimulant === null],
+  ['gems', (strategy) => strategy.gems.length === 0],
+  ['itemLevelUp', (strategy) => !strategy.hasItemLevelUp && strategy.itemLevelUp === null],
+]) {
   test(`disabled ${source} source is absent from nonempty results`, () => {
     const result = enumerateStrategies(makeAllowedSourcesFixture({
       allowedSources: { [source]: false },
     }));
 
     assert.ok(result.strategies.length > 0);
+    assert.ok(result.strategies.every(payloadIsAbsent));
     assert.ok(result.strategies.every((strategy) => !strategy.sourceTypes.includes(source)));
   });
 }
@@ -459,6 +469,7 @@ test('positive successful scroll count with scrolls disabled returns defensively
   assert.deepEqual(result, {
     strategies: [],
     total: 0,
+    truncated: false,
     tooManyResults: false,
   });
 });
