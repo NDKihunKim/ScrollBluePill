@@ -141,8 +141,8 @@ function buildStrategy(chosenScrolls) {
  * @param {object} opts
  * @param {object}          opts.targetDeltas           Desired net stat deltas
  *        (e.g. { weaponAttack: 2, str: 1 })
- * @param {number}          opts.upgradeSlots           Number of available
- *        enhancement slots on the item
+ * @param {number}          opts.successfulScrollCount  Exact number of
+ *        successful scroll applications required
  * @param {string}          opts.equipmentKind          Equipment kind key
  * @param {Map<string,Array<object>>} opts.scrollsByEquipmentKind  Map of
  *        equipment kind -> scroll array
@@ -150,7 +150,7 @@ function buildStrategy(chosenScrolls) {
  */
 export function enumerateStrategies({
   targetDeltas,
-  upgradeSlots,
+  successfulScrollCount,
   equipmentKind,
   scrollsByEquipmentKind,
 }) {
@@ -171,6 +171,31 @@ export function enumerateStrategies({
   const strategies = [];
   let truncated = false;
   const seenKeys = new Set();
+  let requiredScrollCount = 0;
+  try {
+    const count = Number(successfulScrollCount);
+    if (Number.isFinite(count)) {
+      requiredScrollCount = Math.min(
+        Number.MAX_SAFE_INTEGER,
+        Math.max(0, Math.floor(count)),
+      );
+    }
+  } catch {
+    requiredScrollCount = 0;
+  }
+
+  function addStrategy(chosen) {
+    const key = canonicalKey(chosen);
+    if (seenKeys.has(key)) return false;
+
+    seenKeys.add(key);
+    strategies.push(buildStrategy(chosen));
+    if (strategies.length >= MAX_STRATEGIES) {
+      truncated = true;
+      return true;
+    }
+    return false;
+  }
 
   // --- Separate scrolls into fixed and chaos pools ---
   const fixedScrolls = scrolls
@@ -212,55 +237,21 @@ export function enumerateStrategies({
    * scroll entries.
    *
    * @param {number} fixedIdx    Index into fixedScrolls to start from
-   * @param {number} remainingSlots  Available enhancement slots
+   * @param {number} remainingApplications  Required applications left
    * @param {object} remainingDeltas  Remaining stats needed {key: value}
    * @param {Array<object>} chosen  Scrolls selected so far
    * @returns {boolean}  true if we should stop (hit cap)
    */
-  function dfs(fixedIdx, remainingSlots, remainingDeltas, chosen) {
-    // Check exact match
-    if (isExactMatch(remainingDeltas)) {
-      const strategy = buildStrategy(chosen);
-      const key = canonicalKey(chosen);
-      if (!seenKeys.has(key)) {
-        seenKeys.add(key);
-        strategies.push(strategy);
-        if (strategies.length >= MAX_STRATEGIES) {
-          truncated = true;
-          return true;
-        }
+  function dfs(fixedIdx, remainingApplications, remainingDeltas, chosen) {
+    if (remainingApplications <= 0) {
+      if (
+        remainingApplications === 0
+        && chosen.length === requiredScrollCount
+        && isExactMatch(remainingDeltas)
+      ) {
+        return addStrategy(chosen);
       }
-      return;
-    }
-
-    // Dead end: any remaining positive delta with no more slots
-    const anyRemaining = allTargetKeys.some(
-      (k) => (remainingDeltas[k] || 0) > 0,
-    );
-    if (remainingSlots <= 0 && anyRemaining) return;
-
-    // Dead end: remaining slots but all deltas are already zero or negative
-    // (this means we've exceeded the target, which shouldn't happen with
-    // proper pruning but guard anyway)
-    const allNonPositive = allTargetKeys.every(
-      (k) => (remainingDeltas[k] || 0) <= 0,
-    );
-    if (allNonPositive && remainingSlots > 0) {
-      // Check exact match one more time (handles chaos scrolls adding
-      // negative values that could bring things back to zero)
-      if (isExactMatch(remainingDeltas)) {
-        const strategy = buildStrategy(chosen);
-        const key = canonicalKey(chosen);
-        if (!seenKeys.has(key)) {
-          seenKeys.add(key);
-          strategies.push(strategy);
-          if (strategies.length >= MAX_STRATEGIES) {
-            truncated = true;
-            return true;
-          }
-        }
-      }
-      return;
+      return false;
     }
 
     // --- Try fixed scrolls (count-based) ---
@@ -268,8 +259,8 @@ export function enumerateStrategies({
       const scroll = fixedScrolls[i];
       const stats = scroll.stats;
 
-      // Calculate max uses: bounded by remaining slots and target deltas
-      let maxUses = remainingSlots;
+      // Calculate max uses: bounded by remaining applications and target deltas
+      let maxUses = remainingApplications;
 
       for (const k of allTargetKeys) {
         const delta = stats[k] || 0;
@@ -302,14 +293,14 @@ export function enumerateStrategies({
           newChosen.push(scroll);
         }
 
-        if (dfs(i + 1, remainingSlots - count, newDeltas, newChosen)) {
+        if (dfs(i + 1, remainingApplications - count, newDeltas, newChosen)) {
           return true;
         }
       }
     }
 
     // --- Try chaos scrolls (one application at a time) ---
-    if (chaosPool.length > 0 && remainingSlots > 0) {
+    if (chaosPool.length > 0) {
       for (const entry of chaosPool) {
         const { baseScroll: cs, deltas } = entry;
 
@@ -336,7 +327,12 @@ export function enumerateStrategies({
 
         const newChosen = [...chosen, chaosApplication];
 
-        if (dfs(fixedIdx, remainingSlots - 1, newDeltas, newChosen)) {
+        if (dfs(
+          fixedIdx,
+          remainingApplications - 1,
+          newDeltas,
+          newChosen,
+        )) {
           return true;
         }
       }
@@ -349,7 +345,7 @@ export function enumerateStrategies({
   // In the current model we only handle positive target deltas. If any
   // target delta is negative, we still attempt enumeration though the
   // pruning will naturally filter.
-  dfs(0, upgradeSlots, { ...targetDeltas }, []);
+  dfs(0, requiredScrollCount, { ...targetDeltas }, []);
 
   return {
     strategies,
