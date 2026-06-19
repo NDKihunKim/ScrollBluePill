@@ -1,6 +1,10 @@
 function normalizeCount(value) {
-  const count = Number(value);
-  return Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0;
+  try {
+    const count = Number(value);
+    return Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0;
+  } catch {
+    return 0;
+  }
 }
 
 function normalizeState(state) {

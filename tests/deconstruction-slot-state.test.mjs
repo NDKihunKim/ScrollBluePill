@@ -77,3 +77,25 @@ test('max and input counts normalize to non-negative integers', () => {
   assert.equal(setRemainingSlotCount(withSuccesses, 99).remainingSlots, 4);
   assert.equal(setRemainingSlotCount(withSuccesses, 2.9).remainingSlots, 2);
 });
+
+test('symbol counts normalize to zero without throwing', () => {
+  assert.deepEqual(createDeconstructionSlotState(Symbol('count')), {
+    maxSlots: 0,
+    successfulScrollCount: 0,
+    remainingSlots: 0,
+  });
+});
+
+test('counts with throwing conversion hooks normalize to zero', () => {
+  const invalidCount = {
+    valueOf() {
+      throw new Error('conversion failed');
+    },
+  };
+
+  assert.deepEqual(createDeconstructionSlotState(invalidCount), {
+    maxSlots: 0,
+    successfulScrollCount: 0,
+    remainingSlots: 0,
+  });
+});
