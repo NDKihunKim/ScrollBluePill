@@ -1272,7 +1272,7 @@ let activeFilter = 'all';
 
 const setActiveFilter = (filter) => {
   activeFilter = filter;
-  const chips = document.querySelectorAll('[data-decon-filter-chip]');
+  const chips = document.querySelectorAll('[data-decon-filter]');
   chips.forEach((chip) => {
     chip.classList.toggle(
       'decon-filter-chip--active',
@@ -2332,11 +2332,10 @@ aside.panel {
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 :global(.decon-filter-chip:hover) {
-  background: var(--surface-soft);
   color: var(--ink);
 }
 
@@ -2345,14 +2344,22 @@ aside.panel {
 }
 
 :global(.decon-filter-chip--active) {
-  background: var(--green);
+  background: var(--ink);
   color: #fff;
   font-weight: 600;
 }
 
 :global(.decon-filter-chip--active:hover) {
-  background: var(--green);
+  background: var(--ink);
   color: #fff;
+}
+
+:global(.decon-strategy-card) {
+  transition: opacity 0.25s ease;
+}
+
+:global(.decon-strategy-card[hidden]) {
+  display: none;
 }
 
 .decon-summary {
