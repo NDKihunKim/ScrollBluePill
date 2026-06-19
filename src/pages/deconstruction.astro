@@ -1163,24 +1163,47 @@ const displayResults = (result, targetDeltas) => {
   summary.textContent = `총 ${totalLabel}개의 전략을 찾았습니다.`;
 
   // Filter chips
-  const makeChip = (filter, label) => {
+  const FILTER_DEFS = [
+    { filter: 'all', label: '전체' },
+    { filter: 'scrolls', label: '주문서' },
+    { filter: 'scrolls+stimulant', label: '주문서 + 촉진제' },
+    { filter: 'scrolls+gems', label: '주문서 + 보석' },
+    { filter: 'scrolls+itemLevelUp', label: '주문서 + 레벨업' },
+  ];
+
+  const filterChips = [];
+
+  for (const def of FILTER_DEFS) {
     const chip = document.createElement('button');
     chip.type = 'button';
     chip.className = 'decon-filter-chip';
-    if (filter === 'all') chip.classList.add('decon-filter-chip--active');
-    chip.dataset.deconFilter = filter;
-    chip.textContent = label;
-    chip.addEventListener('click', () => setActiveFilter(filter));
-    return chip;
-  };
+    if (def.filter === 'all') chip.classList.add('decon-filter-chip--active');
+    chip.dataset.deconFilter = def.filter;
+    chip.dataset.deconLabel = def.label;
+    chip.textContent = def.label;
+    chip.addEventListener('click', () => setActiveFilter(def.filter));
+    filterChipsContainer.append(chip);
+    filterChips.push(chip);
+  }
 
-  filterChipsContainer.append(
-    makeChip('all', '전체'),
-    makeChip('scrolls', '주문서'),
-    makeChip('scrolls+stimulant', '주문서 + 촉진제'),
-    makeChip('scrolls+gems', '주문서 + 보석'),
-    makeChip('scrolls+itemLevelUp', '주문서 + 레벨업'),
-  );
+  const updateFilterCounts = (strategies) => {
+    for (const chip of filterChips) {
+      const filter = chip.dataset.deconFilter;
+      const label = chip.dataset.deconLabel;
+      let count;
+      if (filter === 'all') {
+        count = strategies.length;
+      } else {
+        const filterTypes = filter.split('+').filter(Boolean);
+        count = strategies.filter((s) => {
+          const sourceTypes = s.sourceTypes ?? [];
+          return filterTypes.length === sourceTypes.length
+            && filterTypes.every((ft) => sourceTypes.includes(ft));
+        }).length;
+      }
+      chip.textContent = `${label} (${count})`;
+    }
+  };
 
   // Strategy list
   for (const strategy of result.strategies) {
@@ -1265,6 +1288,8 @@ const displayResults = (result, targetDeltas) => {
 
     listContainer.append(card);
   }
+
+  updateFilterCounts(result.strategies);
 };
 
 // ---- Filter ----
