@@ -16,6 +16,7 @@ test('enumerateStrategies returns empty for zero deltas', () => {
   assert.deepEqual(result.strategies, []);
   assert.equal(result.total, 0);
   assert.equal(result.truncated, false);
+  assert.equal(result.tooManyResults, false);
 });
 
 test('each strategy has required shape (no probability)', () => {
@@ -386,6 +387,88 @@ test('finds and prioritizes all single and mixed fallback sources', () => {
   assert.ok(result.strategies.some((strategy) => strategy.sourceTypes.length > 1));
   assert.deepEqual(result.strategies.map((strategy) => strategy.priorityRank),
     [...result.strategies.map((strategy) => strategy.priorityRank)].sort((a, b) => a - b));
+});
+
+function makeAllowedSourcesFixture(overrides = {}) {
+  return {
+    targetDeltas: { str: 3 },
+    targetKeys: ['str'],
+    successfulScrollCount: 1,
+    equipmentKind: 'Cape',
+    requiredLevel: 50,
+    cleanStats: { str: 5 },
+    scrollsByEquipmentKind: new Map([['Cape', [
+      { id: 7101, nameKo: '힘 주문서 +1', behavior_type: 'fixed', stats: { str: 1 } },
+      { id: 7102, nameKo: '힘 주문서 +3', behavior_type: 'fixed', stats: { str: 3 } },
+    ]]]),
+    levelUpDefinition: { maxLevelUps: 1, statRanges: { str: { min: 1, max: 1 } } },
+    ...overrides,
+  };
+}
+
+test('allowed sources are permitted but not required', () => {
+  const result = enumerateStrategies(makeAllowedSourcesFixture({
+    allowedSources: { scrolls: true, stimulant: true, gems: true, itemLevelUp: true },
+  }));
+
+  assert.ok(result.strategies.some((strategy) =>
+    strategy.sourceTypes.length === 1
+    && strategy.sourceTypes[0] === 'scrolls'
+    && strategy.scrolls[0].id === 7102));
+});
+
+for (const source of ['stimulant', 'gems', 'itemLevelUp']) {
+  test(`disabled ${source} source is absent from nonempty results`, () => {
+    const result = enumerateStrategies(makeAllowedSourcesFixture({
+      allowedSources: { [source]: false },
+    }));
+
+    assert.ok(result.strategies.length > 0);
+    assert.ok(result.strategies.every((strategy) => !strategy.sourceTypes.includes(source)));
+  });
+}
+
+test('zero successful scrolls supports a stimulant-only exact strategy', () => {
+  const result = enumerateStrategies(makeAllowedSourcesFixture({
+    successfulScrollCount: 0,
+    allowedSources: { scrolls: false, stimulant: true, gems: false, itemLevelUp: false },
+  }));
+
+  assert.ok(result.strategies.some((strategy) =>
+    strategy.sourceTypes.length === 1 && strategy.sourceTypes[0] === 'stimulant'));
+});
+
+test('zero successful scrolls supports an exact stimulant and item-level strategy', () => {
+  const result = enumerateStrategies(makeAllowedSourcesFixture({
+    targetDeltas: { str: 6 },
+    successfulScrollCount: 0,
+    allowedSources: { scrolls: false, stimulant: true, gems: false, itemLevelUp: true },
+  }));
+
+  assert.ok(result.strategies.some((strategy) =>
+    strategy.sourceTypes.length === 2
+    && strategy.sourceTypes.includes('stimulant')
+    && strategy.sourceTypes.includes('itemLevelUp')));
+});
+
+test('positive successful scroll count with scrolls disabled returns defensively empty', () => {
+  const result = enumerateStrategies(makeAllowedSourcesFixture({
+    allowedSources: { scrolls: false },
+  }));
+
+  assert.deepEqual(result, {
+    strategies: [],
+    total: 0,
+    tooManyResults: false,
+  });
+});
+
+test('omitted allowedSources preserves fallback source behavior', () => {
+  const result = enumerateStrategies(makeAllowedSourcesFixture());
+
+  assert.ok(result.strategies.some((strategy) => strategy.sourceTypes.includes('stimulant')));
+  assert.ok(result.strategies.some((strategy) => strategy.sourceTypes.includes('gems')));
+  assert.ok(result.strategies.some((strategy) => strategy.sourceTypes.includes('itemLevelUp')));
 });
 
 function makeLargeFixture() {

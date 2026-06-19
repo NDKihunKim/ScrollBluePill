@@ -262,6 +262,7 @@ function buildResult({ scrolls, stimulant, gems, itemLevelUp, priorityRank, targ
  * @param {object}          opts.cleanStats             Base item stats (before enhancement)
  * @param {Map<string,Array>} opts.scrollsByEquipmentKind  Scrolls grouped by equipment kind
  * @param {object|null}     opts.levelUpDefinition      Item level-up definition or null
+ * @param {object}          opts.allowedSources         Optional source permissions
  * @returns {{ strategies: Array, total: number, truncated: boolean }}
  */
 export function enumerateStrategies({
@@ -273,13 +274,14 @@ export function enumerateStrategies({
   cleanStats = {},
   scrollsByEquipmentKind,
   levelUpDefinition = null,
+  allowedSources,
 }) {
   const strategies = [];
   let truncated = false;
   const seenKeys = new Set();
 
   if (targetKeys.length === 0) {
-    return { strategies: [], total: 0, truncated: false };
+    return { strategies: [], total: 0, truncated: false, tooManyResults: false };
   }
 
   const normCount = (() => {
@@ -290,6 +292,17 @@ export function enumerateStrategies({
       return 0;
     }
   })();
+
+  const normalizedAllowedSources = {
+    scrolls: allowedSources?.scrolls ?? true,
+    stimulant: allowedSources?.stimulant ?? true,
+    gems: allowedSources?.gems ?? true,
+    itemLevelUp: allowedSources?.itemLevelUp ?? true,
+  };
+
+  if (!normalizedAllowedSources.scrolls && normCount > 0) {
+    return { strategies: [], total: 0, tooManyResults: false };
+  }
 
   // Normalize bounds for fallback generation
   const stimulantBounds = {};
@@ -309,19 +322,23 @@ export function enumerateStrategies({
   const gemSlotCount = computeGemSlotCount(requiredLevel);
 
   // Generate fallback contributions
-  const gemContributions = enumerateGemContributions({
-    gemSlotCount,
-    equipmentKind,
-    cleanStats,
-    targetKeys,
-    bounds: gemBounds,
-  });
+  const gemContributions = normalizedAllowedSources.gems
+    ? enumerateGemContributions({
+        gemSlotCount,
+        equipmentKind,
+        cleanStats,
+        targetKeys,
+        bounds: gemBounds,
+      })
+    : [];
 
-  const itemLevelContributions = enumerateItemLevelContributions({
-    levelUpDefinition,
-    targetKeys,
-    bounds: itemBounds,
-  });
+  const itemLevelContributions = normalizedAllowedSources.itemLevelUp
+    ? enumerateItemLevelContributions({
+        levelUpDefinition,
+        targetKeys,
+        bounds: itemBounds,
+      })
+    : [];
 
   const scrolls = scrollsByEquipmentKind.get(equipmentKind) ?? [];
 
@@ -329,7 +346,7 @@ export function enumerateStrategies({
   const stimulantOpts = { isWeapon: equipmentIsWeapon };
 
   // Generate exact-count scroll states
-  const scrollStates = scrolls.length > 0 && normCount > 0
+  const scrollStates = normalizedAllowedSources.scrolls && scrolls.length > 0 && normCount > 0
     ? enumerateExactCountScrollStates({
         scrolls,
         targetKeys,
@@ -361,17 +378,15 @@ export function enumerateStrategies({
     }
   }
 
-  // Only use an empty scroll state if normCount is 0 AND target is all zeros
-  const targetAllZero = targetKeys.every((k) => (targetDeltas[k] ?? 0) === 0);
   const effectiveScrollStates = scrollStates.length > 0
     ? scrollStates
-    : (normCount === 0 && targetAllZero ? [{ scrolls: [], stats: Object.fromEntries(targetKeys.map((k) => [k, 0])) }] : []);
+    : (normCount === 0 ? [{ scrolls: [], stats: Object.fromEntries(targetKeys.map((k) => [k, 0])) }] : []);
 
   for (const ss of effectiveScrollStates) {
     const residual = subtractVectors(targetVector, ss.stats, targetKeys);
 
     // Tier 0: scroll-only
-    if (isExactVector(ss.stats, targetVector, targetKeys)) {
+    if (normalizedAllowedSources.scrolls && isExactVector(ss.stats, targetVector, targetKeys)) {
       addResult({
         scrolls: ss.scrolls,
         stimulant: null,
@@ -382,7 +397,7 @@ export function enumerateStrategies({
     }
 
     // Tier 1: scroll + stimulant
-    if (strategies.length < MAX_STRATEGIES) {
+    if (normalizedAllowedSources.stimulant && strategies.length < MAX_STRATEGIES) {
       const stimStats = solveStimulantResidual(residual, targetKeys, stimulantOpts);
       if (stimStats) {
         addResult({
@@ -396,7 +411,7 @@ export function enumerateStrategies({
     }
 
     // Tier 2: scroll + gems (limit contributions to avoid starving later tiers)
-    if (strategies.length < MAX_STRATEGIES) {
+    if (normalizedAllowedSources.gems && strategies.length < MAX_STRATEGIES) {
       const gemCap = MAX_STRATEGIES - strategies.length;
       let gemAdded = 0;
       for (const gc of gemContributions) {
@@ -415,7 +430,7 @@ export function enumerateStrategies({
     }
 
     // Tier 3: scroll + itemLevelUp
-    if (strategies.length < MAX_STRATEGIES) {
+    if (normalizedAllowedSources.itemLevelUp && strategies.length < MAX_STRATEGIES) {
       const itemCap = MAX_STRATEGIES - strategies.length;
       let itemAdded = 0;
       for (const ilc of itemLevelContributions) {
@@ -434,7 +449,8 @@ export function enumerateStrategies({
     }
 
     // Tier 4: scroll + stimulant + gems
-    if (strategies.length < MAX_STRATEGIES) {
+    if (normalizedAllowedSources.stimulant && normalizedAllowedSources.gems
+      && strategies.length < MAX_STRATEGIES) {
       for (const gc of gemContributions) {
         if (strategies.length >= MAX_STRATEGIES) break;
         const afterGems = subtractVectors(residual, gc.stats, targetKeys);
@@ -452,7 +468,8 @@ export function enumerateStrategies({
     }
 
     // Tier 5: scroll + stimulant + itemLevelUp
-    if (strategies.length < MAX_STRATEGIES) {
+    if (normalizedAllowedSources.stimulant && normalizedAllowedSources.itemLevelUp
+      && strategies.length < MAX_STRATEGIES) {
       for (const ilc of itemLevelContributions) {
         if (strategies.length >= MAX_STRATEGIES) break;
         const afterLevel = subtractVectors(residual, ilc.stats, targetKeys);
@@ -470,7 +487,8 @@ export function enumerateStrategies({
     }
 
     // Tier 6: scroll + gems + itemLevelUp
-    if (strategies.length < MAX_STRATEGIES) {
+    if (normalizedAllowedSources.gems && normalizedAllowedSources.itemLevelUp
+      && strategies.length < MAX_STRATEGIES) {
       for (const gc of gemContributions) {
         if (strategies.length >= MAX_STRATEGIES) break;
         for (const ilc of itemLevelContributions) {
@@ -490,7 +508,8 @@ export function enumerateStrategies({
     }
 
     // Tier 7: scroll + stimulant + gems + itemLevelUp
-    if (strategies.length < MAX_STRATEGIES) {
+    if (normalizedAllowedSources.stimulant && normalizedAllowedSources.gems
+      && normalizedAllowedSources.itemLevelUp && strategies.length < MAX_STRATEGIES) {
       for (const gc of gemContributions) {
         if (strategies.length >= MAX_STRATEGIES) break;
         for (const ilc of itemLevelContributions) {
