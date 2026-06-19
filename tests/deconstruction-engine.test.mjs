@@ -5,7 +5,7 @@ import { enumerateStrategies } from '../src/lib/deconstruction/engine.mjs';
 test('enumerateStrategies returns empty for zero deltas', () => {
   const result = enumerateStrategies({
     targetDeltas: {},
-    upgradeSlots: 7,
+    successfulScrollCount: 0,
     equipmentKind: 'Glove',
     scrollsByEquipmentKind: new Map(),
   });
@@ -29,7 +29,7 @@ test('each strategy has required shape', () => {
 
   const result = enumerateStrategies({
     targetDeltas: { weaponAttack: 2 },
-    upgradeSlots: 7,
+    successfulScrollCount: 1,
     equipmentKind: 'Glove',
     scrollsByEquipmentKind: fakeScrolls,
   });
@@ -45,7 +45,7 @@ test('each strategy has required shape', () => {
 test('caps at 200 strategies', () => {
   const result = enumerateStrategies({
     targetDeltas: { str: 5, dex: 3 },
-    upgradeSlots: 7,
+    successfulScrollCount: 7,
     equipmentKind: 'Glove',
     scrollsByEquipmentKind: new Map(),
   });
@@ -73,18 +73,12 @@ test('fixed scroll exact match with single scroll', () => {
 
   const result = enumerateStrategies({
     targetDeltas: { str: 10 },
-    upgradeSlots: 7,
+    successfulScrollCount: 5,
     equipmentKind: 'Cape',
     scrollsByEquipmentKind: fakeScrolls,
   });
 
-  // Should find: 5 uses of str+2 (2*5=10)
-  // Or: 2 uses of str+5 (5*2=10)
-  // Or: 1 use of str+5 + variable of str+2
-  // Actually: scrolls being sorted by id, the recursion goes:
-  //   id 1101 (str+2): max 5 uses (10/2), try each
-  //     then id 1102 (str+5): what remains
-  // So we should find strategies
+  // The exact count requires 5 uses of str+2 (2*5=10).
   assert.ok(result.strategies.length > 0);
   assert.equal(result.truncated, false);
 
@@ -121,7 +115,7 @@ test('deduplicates same scroll set regardless of order', () => {
 
   const result = enumerateStrategies({
     targetDeltas: { weaponDefense: 3, maxHp: 30 },
-    upgradeSlots: 2,
+    successfulScrollCount: 2,
     equipmentKind: 'Helm',
     scrollsByEquipmentKind: fakeScrolls,
   });
@@ -131,7 +125,7 @@ test('deduplicates same scroll set regardless of order', () => {
   assert.equal(result.strategies[0].scrolls.length, 2);
 });
 
-test('multiple strategies from same scroll multiset', () => {
+test('finds a strategy with the exact successful scroll count', () => {
   const fakeScrolls = new Map();
   fakeScrolls.set('Overall', [
     {
@@ -152,22 +146,13 @@ test('multiple strategies from same scroll multiset', () => {
 
   const result = enumerateStrategies({
     targetDeltas: { luk: 4 },
-    upgradeSlots: 7,
+    successfulScrollCount: 3,
     equipmentKind: 'Overall',
     scrollsByEquipmentKind: fakeScrolls,
   });
 
-  // Possible combinations:
-  // - 4x luk+1 (100%)
-  // - 2x luk+2 (60%)
-  // - 2x luk+1 + 1x luk+2
-  // But note: scrolls are sorted by id, so 3001 then 3002
-  // After using all 3001 (4 uses), remaining = 0, so 3002 not needed
-  // After using 2 3001 (luk=2), remaining=2, can use 1 3002
-  // After using 1 3001, remaining=3, can't use 3002 (adds 2 -> remaining 1, can't continue)
-  // After using 0 3001, maxUses for 3002 is 2
-  // So: [3001,3001,3001,3001], [3002,3002], [3001,3001,3002]
-  assert.ok(result.strategies.length >= 2);
+  assert.equal(result.strategies.length, 1);
+  assert.equal(result.strategies[0].scrolls.length, 3);
 });
 
 test('probability is product of scroll success rates', () => {
@@ -184,7 +169,7 @@ test('probability is product of scroll success rates', () => {
 
   const result = enumerateStrategies({
     targetDeltas: { weaponAttack: 6 },
-    upgradeSlots: 7,
+    successfulScrollCount: 3,
     equipmentKind: 'Shield',
     scrollsByEquipmentKind: fakeScrolls,
   });
@@ -200,7 +185,7 @@ test('probability is product of scroll success rates', () => {
 test('empty scroll map returns empty', () => {
   const result = enumerateStrategies({
     targetDeltas: { str: 1 },
-    upgradeSlots: 7,
+    successfulScrollCount: 7,
     equipmentKind: 'Glove',
     scrollsByEquipmentKind: new Map(),
   });
@@ -209,7 +194,7 @@ test('empty scroll map returns empty', () => {
   assert.equal(result.truncated, false);
 });
 
-test('insufficient upgrade slots returns no strategies', () => {
+test('an insufficient exact successful scroll count returns no strategies', () => {
   const fakeScrolls = new Map();
   fakeScrolls.set('Glove', [
     {
@@ -223,10 +208,99 @@ test('insufficient upgrade slots returns no strategies', () => {
 
   const result = enumerateStrategies({
     targetDeltas: { weaponAttack: 10 },
-    upgradeSlots: 3, // Need 5 slots for 5x +2, but only 3 available
+    successfulScrollCount: 3,
     equipmentKind: 'Glove',
     scrollsByEquipmentKind: fakeScrolls,
   });
   assert.deepEqual(result.strategies, []);
   assert.equal(result.total, 0);
+});
+
+test('requires the exact successful scroll count for a scroll-only target', () => {
+  const fakeScrolls = new Map();
+  fakeScrolls.set('Glove', [
+    {
+      id: 6001,
+      nameKo: '공격력 주문서 100%',
+      equipmentKind: 'Glove',
+      behavior_type: 'fixed',
+      stats: { weaponAttack: 2 },
+    },
+  ]);
+
+  const enumerate = (successfulScrollCount) => enumerateStrategies({
+    targetDeltas: { weaponAttack: 6 },
+    successfulScrollCount,
+    equipmentKind: 'Glove',
+    scrollsByEquipmentKind: fakeScrolls,
+  });
+
+  const exact = enumerate(3);
+  assert.equal(exact.strategies.length, 1);
+  assert.equal(exact.strategies[0].scrolls.length, 3);
+  assert.deepEqual(enumerate(2).strategies, []);
+  assert.deepEqual(enumerate(4).strategies, []);
+});
+
+test('zero successful scrolls cannot satisfy a positive scroll-only target', () => {
+  const fakeScrolls = new Map();
+  fakeScrolls.set('Glove', [
+    {
+      id: 7001,
+      nameKo: '공격력 주문서 100%',
+      equipmentKind: 'Glove',
+      behavior_type: 'fixed',
+      stats: { weaponAttack: 2 },
+    },
+  ]);
+
+  const result = enumerateStrategies({
+    targetDeltas: { weaponAttack: 2 },
+    successfulScrollCount: 0,
+    equipmentKind: 'Glove',
+    scrollsByEquipmentKind: fakeScrolls,
+  });
+
+  assert.deepEqual(result.strategies, []);
+  assert.equal(result.total, 0);
+});
+
+test('successful scroll counts normalize to safe non-negative integers', () => {
+  const fakeScrolls = new Map();
+  fakeScrolls.set('Glove', [
+    {
+      id: 8001,
+      nameKo: '공격력 주문서 100%',
+      equipmentKind: 'Glove',
+      behavior_type: 'fixed',
+      stats: { weaponAttack: 2 },
+    },
+  ]);
+
+  const numericString = enumerateStrategies({
+    targetDeltas: { weaponAttack: 6 },
+    successfulScrollCount: '3.9',
+    equipmentKind: 'Glove',
+    scrollsByEquipmentKind: fakeScrolls,
+  });
+  assert.equal(numericString.strategies.length, 1);
+  assert.equal(numericString.strategies[0].scrolls.length, 3);
+
+  const invalidCount = {
+    valueOf() {
+      throw new Error('conversion failed');
+    },
+  };
+  assert.doesNotThrow(() => enumerateStrategies({
+    targetDeltas: { weaponAttack: 2 },
+    successfulScrollCount: invalidCount,
+    equipmentKind: 'Glove',
+    scrollsByEquipmentKind: fakeScrolls,
+  }));
+  assert.doesNotThrow(() => enumerateStrategies({
+    targetDeltas: { weaponAttack: 2 },
+    successfulScrollCount: Symbol('invalid'),
+    equipmentKind: 'Glove',
+    scrollsByEquipmentKind: fakeScrolls,
+  }));
 });
