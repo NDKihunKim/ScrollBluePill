@@ -1202,6 +1202,8 @@ const displayResults = (result, targetDeltas) => {
         }).length;
       }
       chip.textContent = `${label} (${count})`;
+      chip.classList.toggle('decon-filter-chip--empty', count === 0 && filter !== 'all');
+      chip.disabled = count === 0 && filter !== 'all';
     }
   };
 
@@ -2387,6 +2389,14 @@ aside.panel {
 :root[data-theme="dark"] :global(.decon-filter-chip--active:hover) {
   background: rgba(255, 255, 255, 0.18);
   color: #fff;
+}
+
+:global(.decon-filter-chip--empty),
+:global(.decon-filter-chip--empty:hover) {
+  opacity: 0.35;
+  cursor: default;
+  background: transparent;
+  color: var(--muted);
 }
 
 :global(.decon-strategy-card) {
