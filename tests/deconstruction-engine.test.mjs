@@ -43,13 +43,25 @@ test('each strategy has required shape', () => {
 });
 
 test('caps at 200 strategies', () => {
-  const result = enumerateStrategies({
-    targetDeltas: { str: 5, dex: 3 },
-    successfulScrollCount: 7,
+  const fakeScrolls = new Map();
+  fakeScrolls.set('Glove', Array.from({ length: 250 }, (_, index) => ({
+    id: 9000 + index,
+    nameKo: `힘 주문서 100% ${index}`,
     equipmentKind: 'Glove',
-    scrollsByEquipmentKind: new Map(),
+    behavior_type: 'fixed',
+    stats: { str: 1 },
+  })));
+
+  const result = enumerateStrategies({
+    targetDeltas: { str: 1 },
+    successfulScrollCount: 1,
+    equipmentKind: 'Glove',
+    scrollsByEquipmentKind: fakeScrolls,
   });
-  assert.ok(result.strategies.length <= 200);
+
+  assert.equal(result.strategies.length, 200);
+  assert.equal(result.total, 200);
+  assert.equal(result.truncated, true);
 });
 
 test('fixed scroll exact match with single scroll', () => {
@@ -175,11 +187,9 @@ test('probability is product of scroll success rates', () => {
   });
 
   // 3 uses of 60% scroll => 0.6^3 = 0.216
-  assert.ok(result.strategies.length > 0);
-  for (const s of result.strategies) {
-    assert.ok(s.probability > 0);
-    assert.ok(s.probability <= 1);
-  }
+  assert.equal(result.strategies.length, 1);
+  assert.equal(result.strategies[0].scrolls.length, 3);
+  assert.ok(Math.abs(result.strategies[0].probability - 0.216) < 1e-12);
 });
 
 test('empty scroll map returns empty', () => {
