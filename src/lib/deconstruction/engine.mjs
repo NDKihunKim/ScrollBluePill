@@ -1,5 +1,5 @@
 import { HP_MP_KEYS } from '../enhancementState.mjs';
-import { GEM_GRADES, GEM_TYPES, isWeaponKind } from '../makerData.mjs';
+import { computeGemSlotCount, GEM_GRADES, GEM_TYPES, isWeaponKind } from '../makerData.mjs';
 import { statLabelByKey } from '../makerData.mjs';
 import {
   addVectors,
@@ -304,8 +304,9 @@ export function enumerateStrategies({
     itemBounds[k] = { min: -Infinity, max: Infinity };
   }
 
-  // Compute gem slot count from required level (capped at 3, the Maker system maximum)
-  const gemSlotCount = Math.min(3, Math.max(0, Math.floor(requiredLevel / 10)));
+  // Compute gem slot count using Maker system level thresholds
+  //  0 for <48, 1 for 48-77, 2 for 78-105, 3 for 106+
+  const gemSlotCount = computeGemSlotCount(requiredLevel);
 
   // Generate fallback contributions
   const gemContributions = enumerateGemContributions({

@@ -373,7 +373,7 @@ test('finds and prioritizes all single and mixed fallback sources', () => {
     targetKeys: ['str'],
     successfulScrollCount: 1,
     equipmentKind: 'Cape',
-    requiredLevel: 10,
+    requiredLevel: 50,
     cleanStats: { str: 5 },
     scrollsByEquipmentKind: new Map([['Cape', [{
       id: 7002, nameKo: '힘 주문서', behavior_type: 'fixed', stats: { str: 1 },
