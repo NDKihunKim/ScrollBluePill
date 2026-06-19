@@ -2286,7 +2286,7 @@ aside.panel {
   cursor: not-allowed;
 }
 
-.decon-filter-chips {
+:global(.decon-filter-chips) {
   display: inline-flex;
   border: 1px solid var(--line);
   border-radius: 7px;
@@ -2294,7 +2294,7 @@ aside.panel {
   margin-bottom: 10px;
 }
 
-.decon-filter-chip {
+:global(.decon-filter-chip) {
   padding: 3px 11px;
   border: none;
   border-right: 1px solid var(--line);
@@ -2303,18 +2303,29 @@ aside.panel {
   color: var(--muted);
   font-size: 0.76rem;
   font-weight: 500;
+  white-space: nowrap;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 
-.decon-filter-chip:last-child {
+:global(.decon-filter-chip:hover) {
+  background: var(--surface-soft);
+  color: var(--ink);
+}
+
+:global(.decon-filter-chip:last-child) {
   border-right: none;
 }
 
-.decon-filter-chip--active {
+:global(.decon-filter-chip--active) {
   background: var(--green);
   color: #fff;
   font-weight: 600;
+}
+
+:global(.decon-filter-chip--active:hover) {
+  background: var(--green);
+  color: #fff;
 }
 
 .decon-summary {
