@@ -1190,15 +1190,48 @@ const displayResults = (result, targetDeltas) => {
     // Source type for filtering
     card.dataset.sourceTypes = strategy.sourceTypes.join(',');
 
-    // Scrolls used
-    const scrollRow = document.createElement('div');
-    scrollRow.className = 'decon-strategy-scrolls';
-    scrollRow.textContent = strategy.scrolls
-      .map((s) => s.nameKo)
-      .join(', ');
-    card.append(scrollRow);
+    // 1. Approach — first row
+    const approachRow = document.createElement('div');
+    approachRow.className = 'decon-strategy-approach';
+    approachRow.textContent = `접근: [${strategy.approach.join(', ')}]`;
+    card.append(approachRow);
 
-    // Source details (stimulant, gems, itemLevelUp)
+    // 2. Scrolls — grouped by ID, each on its own row with icon
+    const scrollGroups = new Map();
+    for (const s of strategy.scrolls) {
+      if (!scrollGroups.has(s.id)) {
+        scrollGroups.set(s.id, { scroll: s, count: 0 });
+      }
+      scrollGroups.get(s.id).count++;
+    }
+
+    for (const [, group] of scrollGroups) {
+      const row = document.createElement('div');
+      row.className = 'decon-strategy-scroll';
+
+      const icon = document.createElement('img');
+      icon.className = 'decon-scroll-icon';
+      icon.src = buildItemIconUrl(group.scroll.id);
+      icon.alt = '';
+      icon.loading = 'lazy';
+      row.append(icon);
+
+      const label = document.createElement('span');
+      label.className = 'decon-scroll-label';
+      label.textContent = group.scroll.nameKo;
+      row.append(label);
+
+      if (group.count > 1) {
+        const count = document.createElement('span');
+        count.className = 'decon-scroll-count';
+        count.textContent = `×${group.count}`;
+        row.append(count);
+      }
+
+      card.append(row);
+    }
+
+    // 3. Source details (stimulant, gems, itemLevelUp)
     const formatSourceStats = (stats) => Object.entries(stats)
       .filter(([, value]) => value !== 0)
       .map(([key, value]) => `${statLabelByKey[key] ?? key}: ${value > 0 ? '+' : ''}${value}`)
@@ -1207,7 +1240,7 @@ const displayResults = (result, targetDeltas) => {
     const appendSourceRow = (cardEl, label, stats) => {
       const row = document.createElement('div');
       row.className = 'decon-strategy-source';
-      row.textContent = `${label}: ${formatSourceStats(stats)}`;
+      row.textContent = `⤷ ${label}: ${formatSourceStats(stats)}`;
       cardEl.append(row);
     };
 
@@ -1221,7 +1254,7 @@ const displayResults = (result, targetDeltas) => {
       appendSourceRow(card, `아이템 레벨업 ${strategy.itemLevelUp.levelCount}회`, strategy.itemLevelUp.stats);
     }
 
-    // Total stats
+    // 4. Total stats
     const statRow = document.createElement('div');
     statRow.className = 'decon-strategy-stats';
     const statParts = Object.entries(strategy.totalStats)
@@ -1229,12 +1262,6 @@ const displayResults = (result, targetDeltas) => {
       .map(([k, v]) => `${statLabelByKey[k] ?? k}: ${v > 0 ? '+' : ''}${v}`);
     statRow.textContent = statParts.join(', ');
     card.append(statRow);
-
-    // Approach
-    const approachRow = document.createElement('div');
-    approachRow.className = 'decon-strategy-approach';
-    approachRow.textContent = `접근: [${strategy.approach.join(', ')}]`;
-    card.append(approachRow);
 
     listContainer.append(card);
   }
@@ -2358,21 +2385,46 @@ aside.panel {
   line-height: 1.35;
 }
 
-.decon-strategy-scrolls {
-  font-size: 0.82rem;
+.decon-strategy-approach {
+  font-size: 0.74rem;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.decon-strategy-scroll {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.84rem;
   color: var(--ink);
-  line-height: 1.35;
+  line-height: 1.3;
+}
+
+.decon-scroll-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.decon-scroll-label {
+  min-width: 0;
+}
+
+.decon-scroll-count {
+  font-weight: 700;
+  color: var(--green);
+  flex-shrink: 0;
 }
 
 .decon-strategy-stats {
   font-size: 0.8rem;
   color: var(--muted);
   line-height: 1.3;
-}
-
-.decon-strategy-approach {
-  font-size: 0.76rem;
-  color: var(--muted);
   margin-top: 2px;
 }
 
