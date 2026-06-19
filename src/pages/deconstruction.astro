@@ -629,7 +629,7 @@ const rebuildStatEditor = () => {
     const isHpMp = HP_MP_KEYS.has(k);
     const stepSize = isHpMp ? 10 : 1;
     const perScrollMax = isHpMp ? 50 : 5;
-    const rangeMax = Math.min(100, deconAvailableSlots * perScrollMax);
+    const rangeMax = Math.min(100, deconMaxSlots * perScrollMax);
     const baseValue = selectedItem?.stats?.[k] ?? 0;
     const rangeMin = -baseValue;
 
@@ -747,7 +747,6 @@ const setAvailableSlots = (value) => {
   deconAvailableSlots = value;
   if (deconSlotValue instanceof HTMLElement) deconSlotValue.textContent = String(value);
   updateTargetCard();
-  rebuildStatEditor();
 };
 
 // ---- Item search handling (adapted from expected-value.astro) ----
