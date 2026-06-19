@@ -211,11 +211,11 @@ test('empty scroll map returns empty', () => {
 
 test('insufficient scroll count may be filled by stimulant', () => {
   const fakeScrolls = new Map();
-  fakeScrolls.set('Glove', [
+  fakeScrolls.set('한손검', [
     {
       id: 5001,
       nameKo: '공격력 주문서 100%',
-      equipmentKind: 'Glove',
+      equipmentKind: '한손검',
       behavior_type: 'fixed',
       stats: { weaponAttack: 2 },
     },
@@ -225,7 +225,7 @@ test('insufficient scroll count may be filled by stimulant', () => {
     targetDeltas: { weaponAttack: 10 },
     targetKeys: ['weaponAttack'],
     successfulScrollCount: 3,
-    equipmentKind: 'Glove',
+    equipmentKind: '한손검',
     requiredLevel: 0,
     cleanStats: {},
     scrollsByEquipmentKind: fakeScrolls,
@@ -239,11 +239,11 @@ test('insufficient scroll count may be filled by stimulant', () => {
 
 test('requires the exact successful scroll count for a scroll-only target', () => {
   const fakeScrolls = new Map();
-  fakeScrolls.set('Glove', [
+  fakeScrolls.set('한손검', [
     {
       id: 6001,
       nameKo: '공격력 주문서 100%',
-      equipmentKind: 'Glove',
+      equipmentKind: '한손검',
       behavior_type: 'fixed',
       stats: { weaponAttack: 2 },
     },
@@ -253,7 +253,7 @@ test('requires the exact successful scroll count for a scroll-only target', () =
     targetDeltas: { weaponAttack: 6 },
     targetKeys: ['weaponAttack'],
     successfulScrollCount,
-    equipmentKind: 'Glove',
+    equipmentKind: '한손검',
     requiredLevel: 0,
     cleanStats: {},
     scrollsByEquipmentKind: fakeScrolls,
