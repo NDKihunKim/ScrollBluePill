@@ -103,6 +103,7 @@ function buildGemOutcomeOptions({ equipmentKind, cleanStats, targetKeys }) {
       if (isFixedGem(gem.key)) {
         options.push({
           gemKey: gem.key,
+          nameKo: gem.nameKo,
           gradeIndex,
           stats: projectVector(getFixedGemStats(gem.key, gradeIndex), targetKeys),
         });
@@ -116,7 +117,7 @@ function buildGemOutcomeOptions({ equipmentKind, cleanStats, targetKeys }) {
         (key) => targetKeys.includes(key) && Number.isFinite(cleanStats[key]),
       );
       for (const stats of enumerateIndependentStats(keys, uniqueValues(table))) {
-        options.push({ gemKey: gem.key, gradeIndex, stats: projectVector(stats, targetKeys) });
+        options.push({ gemKey: gem.key, nameKo: gem.nameKo, gradeIndex, stats: projectVector(stats, targetKeys) });
       }
     }
   }
