@@ -195,6 +195,14 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
           </p>
           <div data-decon-edit-content hidden>
             <div class="decon-stat-editor" data-decon-stat-editor></div>
+            <div class="chaos-stat-row decon-success-row" data-decon-success-row>
+              <span class="chaos-stat-label">주문서 성공 횟수</span>
+              <button type="button" class="chaos-stepper-btn chaos-stepper-btn--max" data-decon-success-min>MIN</button>
+              <button type="button" class="chaos-stepper-btn" data-decon-success-dec>−</button>
+              <span class="chaos-stepper-value" data-decon-success-value>0</span>
+              <button type="button" class="chaos-stepper-btn" data-decon-success-inc>+</button>
+              <button type="button" class="chaos-stepper-btn chaos-stepper-btn--max" data-decon-success-max>MAX</button>
+            </div>
             <div class="chaos-stat-row decon-slot-row">
               <span class="chaos-stat-label">남은 슬롯</span>
               <button type="button" class="chaos-stepper-btn chaos-stepper-btn--max" data-decon-slot-min>MIN</button>
@@ -266,6 +274,11 @@ import { searchKoreanItems } from '../lib/itemSearch.mjs';
 import { buildItemIconUrl, buildItemSearchUrl } from '../lib/maplestoryIo.mjs';
 import { HP_MP_KEYS } from '../lib/enhancementState.mjs';
 import { enumerateStrategies } from '../lib/deconstruction/engine.mjs';
+import {
+  createDeconstructionSlotState,
+  setSuccessfulScrollCount,
+  setRemainingSlotCount,
+} from '../lib/deconstruction/slotState.mjs';
 
 // ---- DOM refs ----
 const form = document.querySelector('[data-calculator-input]');
@@ -304,6 +317,11 @@ const deconEditPanel = document.querySelector('[data-decon-edit-panel]');
 const deconEditPlaceholder = document.querySelector('[data-decon-edit-placeholder]');
 const deconEditContent = document.querySelector('[data-decon-edit-content]');
 const deconStatEditor = document.querySelector('[data-decon-stat-editor]');
+const deconSuccessValue = document.querySelector('[data-decon-success-value]');
+const deconSuccessMin = document.querySelector('[data-decon-success-min]');
+const deconSuccessDec = document.querySelector('[data-decon-success-dec]');
+const deconSuccessInc = document.querySelector('[data-decon-success-inc]');
+const deconSuccessMax = document.querySelector('[data-decon-success-max]');
 const deconSlotValue = document.querySelector('[data-decon-slot-value]');
 const deconSlotMin = document.querySelector('[data-decon-slot-min]');
 const deconSlotDec = document.querySelector('[data-decon-slot-dec]');
@@ -328,8 +346,7 @@ let scrollsByEquipmentKind = new Map();
 let selectedItem = null;
 let deconDeltas = {};
 let deconStatKeys = [];
-let deconAvailableSlots = 0;
-let deconMaxSlots = 0;
+let deconSlotState = createDeconstructionSlotState(0);
 
 const STAT_PRIORITY = ['weaponAttack', 'magicAttack', 'str', 'dex', 'int', 'luk', 'maxHp', 'maxMp', 'weaponDefense', 'magicDefense', 'accuracy', 'avoidability', 'speed', 'jump'];
 
@@ -525,7 +542,7 @@ const renderTargetItemCard = (item) => {
     return;
   }
 
-  selectedItemName.textContent = item.nameKo;
+  selectedItemName.textContent = `${item.nameKo}${deconSlotState.successfulScrollCount > 0 ? ` (+${deconSlotState.successfulScrollCount})` : ''}`;
   selectedItemName.style.color = computeDeconGrade();
   selectedItemIcon.src = buildItemIconUrl(item.id);
   selectedItemRequirements.replaceChildren();
@@ -552,7 +569,7 @@ const renderTargetItemCard = (item) => {
       return;
     }
     if (key === 'upgradeSlots') {
-      selectedItemStats.append(createItemLine(label, deconAvailableSlots));
+      selectedItemStats.append(createItemLine(label, deconSlotState.remainingSlots));
       return;
     }
     const base = item.stats?.[key] ?? 0;
@@ -646,7 +663,7 @@ const rebuildStatEditor = () => {
     const isHpMp = HP_MP_KEYS.has(k);
     const stepSize = isHpMp ? 10 : 1;
     const perScrollMax = isHpMp ? 50 : 5;
-    const rangeMax = Math.min(100, deconMaxSlots * perScrollMax);
+    const rangeMax = Math.min(100, deconSlotState.maxSlots * perScrollMax);
     const baseValue = selectedItem?.stats?.[k] ?? 0;
     const rangeMin = -baseValue;
 
@@ -760,9 +777,13 @@ const updateAnalyzeButton = () => {
   deconAnalyzeBtn.disabled = checkedCount === 0;
 };
 
-const setAvailableSlots = (value) => {
-  deconAvailableSlots = value;
-  if (deconSlotValue instanceof HTMLElement) deconSlotValue.textContent = String(value);
+const renderDeconSlotState = () => {
+  if (deconSuccessValue instanceof HTMLElement) {
+    deconSuccessValue.textContent = String(deconSlotState.successfulScrollCount);
+  }
+  if (deconSlotValue instanceof HTMLElement) {
+    deconSlotValue.textContent = String(deconSlotState.remainingSlots);
+  }
   updateTargetCard();
 };
 
@@ -1058,9 +1079,9 @@ const activateDeconEditPanel = (item) => {
   if (deconCalcContent instanceof HTMLElement) deconCalcContent.hidden = false;
   renderTargetChips();
 
-  // Set max slots from item
-  deconMaxSlots = item.stats?.upgradeSlots ?? 0;
-  setAvailableSlots(deconMaxSlots);
+  // Reset slot history from the selected clean item
+  deconSlotState = createDeconstructionSlotState(item.stats?.upgradeSlots ?? 0);
+  renderDeconSlotState();
 
   // Build stat editor
   const statKeys = ['str', 'dex', 'int', 'luk', 'maxHp', 'maxMp', 'weaponAttack', 'magicAttack', 'weaponDefense', 'magicDefense', 'accuracy', 'avoidability', 'speed', 'jump'];
@@ -1082,7 +1103,6 @@ const getCheckedTargetKeys = () => {
 const runAnalysis = () => {
   if (!selectedItem) return;
 
-  const upgradeSlots = deconAvailableSlots;
   const equipmentKind = selectedItem.equipmentKind;
   const checkedKeys = getCheckedTargetKeys();
 
@@ -1096,7 +1116,7 @@ const runAnalysis = () => {
 
   const result = enumerateStrategies({
     targetDeltas,
-    upgradeSlots,
+    successfulScrollCount: deconSlotState.successfulScrollCount,
     equipmentKind,
     scrollsByEquipmentKind,
   });
@@ -1361,11 +1381,39 @@ jobClearAllButton?.addEventListener('click', () => {
   renderManualItemResults();
 });
 
-// ---- Slot stepper ----
-deconSlotMin?.addEventListener('click', () => setAvailableSlots(0));
-deconSlotDec?.addEventListener('click', () => setAvailableSlots(Math.max(0, deconAvailableSlots - 1)));
-deconSlotInc?.addEventListener('click', () => setAvailableSlots(Math.min(deconMaxSlots, deconAvailableSlots + 1)));
-deconSlotMax?.addEventListener('click', () => setAvailableSlots(deconMaxSlots));
+// ---- Slot steppers ----
+deconSuccessMin?.addEventListener('click', () => {
+  deconSlotState = setSuccessfulScrollCount(deconSlotState, 0);
+  renderDeconSlotState();
+});
+deconSuccessDec?.addEventListener('click', () => {
+  deconSlotState = setSuccessfulScrollCount(deconSlotState, deconSlotState.successfulScrollCount - 1);
+  renderDeconSlotState();
+});
+deconSuccessInc?.addEventListener('click', () => {
+  deconSlotState = setSuccessfulScrollCount(deconSlotState, deconSlotState.successfulScrollCount + 1);
+  renderDeconSlotState();
+});
+deconSuccessMax?.addEventListener('click', () => {
+  deconSlotState = setSuccessfulScrollCount(deconSlotState, deconSlotState.maxSlots);
+  renderDeconSlotState();
+});
+deconSlotMin?.addEventListener('click', () => {
+  deconSlotState = setRemainingSlotCount(deconSlotState, 0);
+  renderDeconSlotState();
+});
+deconSlotDec?.addEventListener('click', () => {
+  deconSlotState = setRemainingSlotCount(deconSlotState, deconSlotState.remainingSlots - 1);
+  renderDeconSlotState();
+});
+deconSlotInc?.addEventListener('click', () => {
+  deconSlotState = setRemainingSlotCount(deconSlotState, deconSlotState.remainingSlots + 1);
+  renderDeconSlotState();
+});
+deconSlotMax?.addEventListener('click', () => {
+  deconSlotState = setRemainingSlotCount(deconSlotState, deconSlotState.maxSlots);
+  renderDeconSlotState();
+});
 
 // ---- Add-stat accordion toggle ----
 deconAddStatToggle?.addEventListener('click', () => {
