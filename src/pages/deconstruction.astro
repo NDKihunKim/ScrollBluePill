@@ -1221,7 +1221,7 @@ const displayResults = (result, targetDeltas) => {
     approachRow.textContent = `접근: [${strategy.approach.join(', ')}]`;
     card.append(approachRow);
 
-    // 2. Scrolls — grouped by ID, each on its own row with icon
+    // 2. Scrolls — grouped by ID, rendered as a compact table
     const scrollGroups = new Map();
     for (const s of strategy.scrolls) {
       if (!scrollGroups.has(s.id)) {
@@ -1230,30 +1230,50 @@ const displayResults = (result, targetDeltas) => {
       scrollGroups.get(s.id).count++;
     }
 
-    for (const [, group] of scrollGroups) {
-      const row = document.createElement('div');
-      row.className = 'decon-strategy-scroll';
+    if (scrollGroups.size > 0) {
+      const table = document.createElement('div');
+      table.className = 'decon-scroll-table';
 
-      if (group.count > 1) {
-        const count = document.createElement('span');
-        count.className = 'decon-scroll-count';
-        count.textContent = `×${group.count}`;
-        row.append(count);
+      for (const [, group] of scrollGroups) {
+        const row = document.createElement('div');
+        row.className = 'decon-scroll-row';
+
+        // Count column
+        const countCell = document.createElement('span');
+        countCell.className = 'decon-scroll-count';
+        countCell.textContent = `×${group.count}`;
+        row.append(countCell);
+
+        // Name column (icon + name)
+        const nameCell = document.createElement('span');
+        nameCell.className = 'decon-scroll-name';
+
+        const icon = document.createElement('img');
+        icon.className = 'decon-scroll-icon';
+        icon.src = buildItemIconUrl(group.scroll.id);
+        icon.alt = '';
+        icon.loading = 'lazy';
+        nameCell.append(icon);
+
+        const label = document.createElement('span');
+        label.textContent = group.scroll.nameKo;
+        nameCell.append(label);
+
+        row.append(nameCell);
+
+        // Effect column (per-scroll stat contribution)
+        const effectCell = document.createElement('span');
+        effectCell.className = 'decon-scroll-effect';
+        const effects = Object.entries(group.scroll.stats)
+          .filter(([, v]) => v !== 0)
+          .map(([k, v]) => `${statLabelByKey[k] ?? k} ${v > 0 ? '+' : ''}${v}`);
+        effectCell.textContent = effects.join(', ');
+        row.append(effectCell);
+
+        table.append(row);
       }
 
-      const icon = document.createElement('img');
-      icon.className = 'decon-scroll-icon';
-      icon.src = buildItemIconUrl(group.scroll.id);
-      icon.alt = '';
-      icon.loading = 'lazy';
-      row.append(icon);
-
-      const label = document.createElement('span');
-      label.className = 'decon-scroll-label';
-      label.textContent = group.scroll.nameKo;
-      row.append(label);
-
-      card.append(row);
+      card.append(table);
     }
 
     // 3. Source details (stimulant, gems, itemLevelUp)
@@ -2446,12 +2466,32 @@ aside.panel {
   margin-bottom: 1px;
 }
 
-.decon-strategy-scroll {
+.decon-scroll-table {
+  display: grid;
+  gap: 3px;
+}
+
+.decon-scroll-row {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--ink);
+}
+
+.decon-scroll-count {
+  font-weight: 600;
+  color: var(--muted);
+  text-align: right;
+}
+
+.decon-scroll-name {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.84rem;
-  color: var(--ink);
+  gap: 5px;
+  min-width: 0;
+  line-height: 1.25;
 }
 
 .decon-scroll-icon {
@@ -2462,17 +2502,11 @@ aside.panel {
   flex-shrink: 0;
 }
 
-.decon-scroll-label {
-  min-width: 0;
-  line-height: 20px;
-}
-
-.decon-scroll-count {
+.decon-scroll-effect {
   font-size: 0.78rem;
-  font-weight: 600;
   color: var(--muted);
-  line-height: 20px;
-  flex-shrink: 0;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .decon-strategy-stats {
