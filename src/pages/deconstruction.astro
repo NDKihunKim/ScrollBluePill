@@ -2016,7 +2016,9 @@ aside.panel {
   align-items: center;
   justify-content: center;
   min-width: 36px;
-  padding: 0 6px;
+  max-width: 56px;
+  width: 48px;
+  padding: 0 4px;
   height: 28px;
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -2027,6 +2029,7 @@ aside.panel {
   font-variant-numeric: tabular-nums;
   text-align: center;
   outline: none;
+  box-sizing: border-box;
 }
 :global(.chaos-stepper-value::-webkit-inner-spin-button),
 :global(.chaos-stepper-value::-webkit-outer-spin-button) {
