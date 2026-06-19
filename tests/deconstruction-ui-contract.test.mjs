@@ -22,6 +22,13 @@ test('successful-scroll editor appears before the remaining-slot editor with eve
   assert.match(successRow, /data-decon-success-value>0</);
 });
 
+test('successful-scroll and remaining-slot rows share vertical spacing', () => {
+  assert.match(
+    pageSource,
+    /\.decon-success-row,\s*\.decon-slot-row\s*\{\s*margin-bottom:\s*10px;\s*\}/,
+  );
+});
+
 test('page uses the coupled slot-state model for both editors and selected-item resets', () => {
   assert.match(
     pageSource,
