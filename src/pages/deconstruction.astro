@@ -1234,6 +1234,13 @@ const displayResults = (result, targetDeltas) => {
       const row = document.createElement('div');
       row.className = 'decon-strategy-scroll';
 
+      if (group.count > 1) {
+        const count = document.createElement('span');
+        count.className = 'decon-scroll-count';
+        count.textContent = `×${group.count}`;
+        row.append(count);
+      }
+
       const icon = document.createElement('img');
       icon.className = 'decon-scroll-icon';
       icon.src = buildItemIconUrl(group.scroll.id);
@@ -1245,13 +1252,6 @@ const displayResults = (result, targetDeltas) => {
       label.className = 'decon-scroll-label';
       label.textContent = group.scroll.nameKo;
       row.append(label);
-
-      if (group.count > 1) {
-        const count = document.createElement('span');
-        count.className = 'decon-scroll-count';
-        count.textContent = `×${group.count}`;
-        row.append(count);
-      }
 
       card.append(row);
     }
@@ -2468,16 +2468,10 @@ aside.panel {
 }
 
 .decon-scroll-count {
-  display: inline-flex;
-  align-items: center;
-  height: 18px;
-  padding: 0 6px;
-  border-radius: 10px;
-  background: var(--green);
-  color: #fff;
-  font-size: 0.7rem;
-  font-weight: 700;
-  line-height: 1;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+  line-height: 20px;
   flex-shrink: 0;
 }
 
