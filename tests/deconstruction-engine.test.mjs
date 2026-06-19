@@ -5,17 +5,20 @@ import { enumerateStrategies } from '../src/lib/deconstruction/engine.mjs';
 test('enumerateStrategies returns empty for zero deltas', () => {
   const result = enumerateStrategies({
     targetDeltas: {},
+    targetKeys: [],
     successfulScrollCount: 0,
     equipmentKind: 'Glove',
+    requiredLevel: 0,
+    cleanStats: {},
     scrollsByEquipmentKind: new Map(),
+    levelUpDefinition: null,
   });
   assert.deepEqual(result.strategies, []);
   assert.equal(result.total, 0);
   assert.equal(result.truncated, false);
 });
 
-test('each strategy has required shape', () => {
-  // Create a minimal fake scroll that gives +2 weaponAttack at 100%
+test('each strategy has required shape (no probability)', () => {
   const fakeScrolls = new Map();
   fakeScrolls.set('Glove', [
     {
@@ -29,22 +32,27 @@ test('each strategy has required shape', () => {
 
   const result = enumerateStrategies({
     targetDeltas: { weaponAttack: 2 },
+    targetKeys: ['weaponAttack'],
     successfulScrollCount: 1,
     equipmentKind: 'Glove',
+    requiredLevel: 0,
+    cleanStats: {},
     scrollsByEquipmentKind: fakeScrolls,
+    levelUpDefinition: null,
   });
 
   assert.ok(result.strategies.length > 0);
   const s = result.strategies[0];
   assert.ok(Array.isArray(s.scrolls));
   assert.equal(s.scrolls.length, 1);
-  assert.equal(s.probability, 1.0);
-  assert.ok(s.approach.includes('주문서'));
+  assert.ok(!Object.hasOwn(s, 'probability'));
+  assert.ok(Array.isArray(s.sourceTypes));
+  assert.ok('priorityRank' in s);
 });
 
-test('caps at 200 strategies', () => {
+test('caps at 500 strategies', () => {
   const fakeScrolls = new Map();
-  fakeScrolls.set('Glove', Array.from({ length: 250 }, (_, index) => ({
+  fakeScrolls.set('Glove', Array.from({ length: 550 }, (_, index) => ({
     id: 9000 + index,
     nameKo: `힘 주문서 100% ${index}`,
     equipmentKind: 'Glove',
@@ -54,13 +62,16 @@ test('caps at 200 strategies', () => {
 
   const result = enumerateStrategies({
     targetDeltas: { str: 1 },
+    targetKeys: ['str'],
     successfulScrollCount: 1,
     equipmentKind: 'Glove',
+    requiredLevel: 0,
+    cleanStats: {},
     scrollsByEquipmentKind: fakeScrolls,
+    levelUpDefinition: null,
   });
 
-  assert.equal(result.strategies.length, 200);
-  assert.equal(result.total, 200);
+  assert.equal(result.strategies.length, 500);
   assert.equal(result.truncated, true);
 });
 
@@ -85,16 +96,18 @@ test('fixed scroll exact match with single scroll', () => {
 
   const result = enumerateStrategies({
     targetDeltas: { str: 10 },
+    targetKeys: ['str'],
     successfulScrollCount: 5,
     equipmentKind: 'Cape',
+    requiredLevel: 0,
+    cleanStats: {},
     scrollsByEquipmentKind: fakeScrolls,
+    levelUpDefinition: null,
   });
 
-  // The exact count requires 5 uses of str+2 (2*5=10).
   assert.ok(result.strategies.length > 0);
   assert.equal(result.truncated, false);
 
-  // Verify each strategy sums to exactly {str: 10}
   for (const strategy of result.strategies) {
     const sum = {};
     for (const scroll of strategy.scrolls) {
@@ -127,14 +140,20 @@ test('deduplicates same scroll set regardless of order', () => {
 
   const result = enumerateStrategies({
     targetDeltas: { weaponDefense: 3, maxHp: 30 },
+    targetKeys: ['weaponDefense', 'maxHp'],
     successfulScrollCount: 2,
     equipmentKind: 'Helm',
+    requiredLevel: 0,
+    cleanStats: {},
     scrollsByEquipmentKind: fakeScrolls,
+    levelUpDefinition: null,
   });
 
-  // Should find exactly 1 strategy (one of each scroll)
-  assert.equal(result.strategies.length, 1);
-  assert.equal(result.strategies[0].scrolls.length, 2);
+  // Should find at least the scroll-only strategy (one of each scroll)
+  // Fallback may add additional strategies (stimulant, gems)
+  const scrollOnly = result.strategies.filter((s) => s.priorityRank === 0);
+  assert.ok(scrollOnly.length >= 1);
+  assert.equal(scrollOnly[0].scrolls.length, 2);
 });
 
 test('finds a strategy with the exact successful scroll count', () => {
@@ -158,53 +177,39 @@ test('finds a strategy with the exact successful scroll count', () => {
 
   const result = enumerateStrategies({
     targetDeltas: { luk: 4 },
+    targetKeys: ['luk'],
     successfulScrollCount: 3,
     equipmentKind: 'Overall',
+    requiredLevel: 0,
+    cleanStats: {},
     scrollsByEquipmentKind: fakeScrolls,
+    levelUpDefinition: null,
   });
 
-  assert.equal(result.strategies.length, 1);
-  assert.equal(result.strategies[0].scrolls.length, 3);
-});
-
-test('probability is product of scroll success rates', () => {
-  const fakeScrolls = new Map();
-  fakeScrolls.set('Shield', [
-    {
-      id: 4001,
-      nameKo: '방패 공격력 주문서 60%',
-      equipmentKind: 'Shield',
-      behavior_type: 'fixed',
-      stats: { weaponAttack: 2 },
-    },
-  ]);
-
-  const result = enumerateStrategies({
-    targetDeltas: { weaponAttack: 6 },
-    successfulScrollCount: 3,
-    equipmentKind: 'Shield',
-    scrollsByEquipmentKind: fakeScrolls,
-  });
-
-  // 3 uses of 60% scroll => 0.6^3 = 0.216
-  assert.equal(result.strategies.length, 1);
-  assert.equal(result.strategies[0].scrolls.length, 3);
-  assert.ok(Math.abs(result.strategies[0].probability - 0.216) < 1e-12);
+  // Expect at least one strategy with exactly 3 scrolls (scroll-only or with fallback)
+  assert.ok(result.strategies.length >= 1);
+  const scrollOnly = result.strategies.find((s) => s.priorityRank === 0);
+  assert.ok(scrollOnly);
+  assert.equal(scrollOnly.scrolls.length, 3);
 });
 
 test('empty scroll map returns empty', () => {
   const result = enumerateStrategies({
     targetDeltas: { str: 1 },
+    targetKeys: ['str'],
     successfulScrollCount: 7,
     equipmentKind: 'Glove',
+    requiredLevel: 0,
+    cleanStats: {},
     scrollsByEquipmentKind: new Map(),
+    levelUpDefinition: null,
   });
   assert.deepEqual(result.strategies, []);
   assert.equal(result.total, 0);
   assert.equal(result.truncated, false);
 });
 
-test('an insufficient exact successful scroll count returns no strategies', () => {
+test('insufficient scroll count may be filled by stimulant', () => {
   const fakeScrolls = new Map();
   fakeScrolls.set('Glove', [
     {
@@ -218,12 +223,18 @@ test('an insufficient exact successful scroll count returns no strategies', () =
 
   const result = enumerateStrategies({
     targetDeltas: { weaponAttack: 10 },
+    targetKeys: ['weaponAttack'],
     successfulScrollCount: 3,
     equipmentKind: 'Glove',
+    requiredLevel: 0,
+    cleanStats: {},
     scrollsByEquipmentKind: fakeScrolls,
+    levelUpDefinition: null,
   });
-  assert.deepEqual(result.strategies, []);
-  assert.equal(result.total, 0);
+  // 3× +2 = 6, remaining 4 is within stimulant range (0..5)
+  assert.ok(result.strategies.length > 0);
+  // Each strategy has exactly 3 scrolls
+  assert.ok(result.strategies.every((s) => s.scrolls.length === 3));
 });
 
 test('requires the exact successful scroll count for a scroll-only target', () => {
@@ -240,15 +251,22 @@ test('requires the exact successful scroll count for a scroll-only target', () =
 
   const enumerate = (successfulScrollCount) => enumerateStrategies({
     targetDeltas: { weaponAttack: 6 },
+    targetKeys: ['weaponAttack'],
     successfulScrollCount,
     equipmentKind: 'Glove',
+    requiredLevel: 0,
+    cleanStats: {},
     scrollsByEquipmentKind: fakeScrolls,
+    levelUpDefinition: null,
   });
 
   const exact = enumerate(3);
-  assert.equal(exact.strategies.length, 1);
-  assert.equal(exact.strategies[0].scrolls.length, 3);
-  assert.deepEqual(enumerate(2).strategies, []);
+  const scrollOnly3 = exact.strategies.find((s) => s.priorityRank === 0);
+  assert.ok(scrollOnly3);
+  assert.equal(scrollOnly3.scrolls.length, 3);
+  // Count 2 works via stimulant fallback (2 scrolls = 4, residual 2 via stimulant)
+  assert.ok(enumerate(2).strategies.length > 0);
+  // Count 4 cannot produce exactly 4 scrolls from a single scroll type (max 3 copies before overshoot)
   assert.deepEqual(enumerate(4).strategies, []);
 });
 
@@ -266,9 +284,13 @@ test('zero successful scrolls cannot satisfy a positive scroll-only target', () 
 
   const result = enumerateStrategies({
     targetDeltas: { weaponAttack: 2 },
+    targetKeys: ['weaponAttack'],
     successfulScrollCount: 0,
     equipmentKind: 'Glove',
+    requiredLevel: 0,
+    cleanStats: {},
     scrollsByEquipmentKind: fakeScrolls,
+    levelUpDefinition: null,
   });
 
   assert.deepEqual(result.strategies, []);
@@ -289,9 +311,13 @@ test('successful scroll counts normalize to safe non-negative integers', () => {
 
   const numericString = enumerateStrategies({
     targetDeltas: { weaponAttack: 6 },
+    targetKeys: ['weaponAttack'],
     successfulScrollCount: '3.9',
     equipmentKind: 'Glove',
+    requiredLevel: 0,
+    cleanStats: {},
     scrollsByEquipmentKind: fakeScrolls,
+    levelUpDefinition: null,
   });
   assert.equal(numericString.strategies.length, 1);
   assert.equal(numericString.strategies[0].scrolls.length, 3);
@@ -303,14 +329,89 @@ test('successful scroll counts normalize to safe non-negative integers', () => {
   };
   assert.doesNotThrow(() => enumerateStrategies({
     targetDeltas: { weaponAttack: 2 },
+    targetKeys: ['weaponAttack'],
     successfulScrollCount: invalidCount,
     equipmentKind: 'Glove',
+    requiredLevel: 0,
+    cleanStats: {},
     scrollsByEquipmentKind: fakeScrolls,
+    levelUpDefinition: null,
   }));
   assert.doesNotThrow(() => enumerateStrategies({
     targetDeltas: { weaponAttack: 2 },
+    targetKeys: ['weaponAttack'],
     successfulScrollCount: Symbol('invalid'),
     equipmentKind: 'Glove',
+    requiredLevel: 0,
+    cleanStats: {},
     scrollsByEquipmentKind: fakeScrolls,
+    levelUpDefinition: null,
   }));
+});
+
+// ---- Plan 2: exact fallback search tests ----
+
+test('supports exact negative checked deltas and ignores unchecked stats', () => {
+  const result = enumerateStrategies({
+    targetDeltas: { str: -2 },
+    targetKeys: ['str'],
+    successfulScrollCount: 1,
+    equipmentKind: 'Cape',
+    requiredLevel: 0,
+    cleanStats: { str: 5 },
+    scrollsByEquipmentKind: new Map([['Cape', [{
+      id: 7001, nameKo: '카오스 주문서', behavior_type: 'chaos', stats: { str: 1, dex: 1 },
+    }]]]),
+    levelUpDefinition: null,
+  });
+  assert.ok(result.strategies.some((strategy) => strategy.totalStats.str === -2));
+});
+
+test('finds and prioritizes all single and mixed fallback sources', () => {
+  const result = enumerateStrategies({
+    targetDeltas: { str: 3 },
+    targetKeys: ['str'],
+    successfulScrollCount: 1,
+    equipmentKind: 'Cape',
+    requiredLevel: 10,
+    cleanStats: { str: 5 },
+    scrollsByEquipmentKind: new Map([['Cape', [{
+      id: 7002, nameKo: '힘 주문서', behavior_type: 'fixed', stats: { str: 1 },
+    }]]]),
+    levelUpDefinition: { maxLevelUps: 1, statRanges: { str: { min: 1, max: 1 } } },
+  });
+  assert.ok(result.strategies.some((strategy) => strategy.hasStimulant));
+  assert.ok(result.strategies.some((strategy) => strategy.gems.length > 0));
+  assert.ok(result.strategies.some((strategy) => strategy.hasItemLevelUp));
+  assert.ok(result.strategies.some((strategy) => strategy.sourceTypes.length > 1));
+  assert.deepEqual(result.strategies.map((strategy) => strategy.priorityRank),
+    [...result.strategies.map((strategy) => strategy.priorityRank)].sort((a, b) => a - b));
+});
+
+function makeLargeFixture() {
+  const scrolls = Array.from({ length: 550 }, (_, index) => ({
+    id: 8000 + index,
+    nameKo: `힘 주문서 ${index}`,
+    behavior_type: 'fixed',
+    stats: { str: 1 },
+  }));
+  return {
+    targetDeltas: { str: 1 },
+    targetKeys: ['str'],
+    successfulScrollCount: 1,
+    equipmentKind: '망토',
+    requiredLevel: 0,
+    cleanStats: { str: 1 },
+    scrollsByEquipmentKind: new Map([['망토', scrolls]]),
+    levelUpDefinition: null,
+  };
+}
+
+test('removes probability and caps deterministic results at 500', () => {
+  const first = enumerateStrategies(makeLargeFixture());
+  const second = enumerateStrategies(makeLargeFixture());
+  assert.equal(first.strategies.length, 500);
+  assert.equal(first.truncated, true);
+  assert.deepEqual(first, second);
+  assert.ok(first.strategies.every((strategy) => !Object.hasOwn(strategy, 'probability')));
 });

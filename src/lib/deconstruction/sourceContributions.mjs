@@ -10,13 +10,17 @@ import { addVectors, projectVector, vectorKey } from './statVectors.mjs';
 
 export function solveStimulantResidual(residual, targetKeys) {
   const stats = {};
+  let hasNonZero = false;
   for (const key of targetKeys) {
     const value = residual[key] || 0;
     const limit = HP_MP_KEYS.has(key) ? 50 : 5;
     const step = HP_MP_KEYS.has(key) ? 10 : 1;
     if (value < -limit || value > limit || value % step !== 0) return null;
     stats[key] = value;
+    if (value !== 0) hasNonZero = true;
   }
+  // Reject zero-only stimulants — they don't contribute anything meaningful
+  if (!hasNonZero) return null;
   return stats;
 }
 
