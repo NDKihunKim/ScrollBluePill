@@ -2437,18 +2437,25 @@ aside.panel {
 .decon-strategy-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
   max-height: 480px;
   overflow-y: auto;
+  padding-right: 2px;
 }
 
 .decon-strategy-card {
-  padding: 12px 14px;
+  padding: 14px 16px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-left: 3px solid var(--line);
+  border-radius: 6px;
   background: var(--surface);
   display: grid;
-  gap: 5px;
+  gap: 6px;
+  transition: border-left-color 0.2s ease;
+}
+
+.decon-strategy-card:hover {
+  border-left-color: var(--muted);
 }
 
 .decon-strategy-source {
@@ -2468,7 +2475,7 @@ aside.panel {
 
 .decon-scroll-table {
   display: grid;
-  gap: 3px;
+  gap: 4px;
 }
 
 .decon-scroll-row {
