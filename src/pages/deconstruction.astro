@@ -228,6 +228,28 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
           </p>
           <div data-decon-calc-content hidden>
             <div class="ev-target-chip-grid" data-decon-target-chips></div>
+            <fieldset class="decon-source-options">
+              <legend>분석에 사용할 강화 유형</legend>
+              <div class="decon-source-chip-grid">
+                <label class="ev-target-chip">
+                  <input type="checkbox" data-decon-source="scrolls" checked />
+                  <span class="ev-target-chip-label">주문서</span>
+                </label>
+                <label class="ev-target-chip">
+                  <input type="checkbox" data-decon-source="stimulant" />
+                  <span class="ev-target-chip-label">촉진제</span>
+                </label>
+                <label class="ev-target-chip">
+                  <input type="checkbox" data-decon-source="gems" />
+                  <span class="ev-target-chip-label">보석</span>
+                </label>
+                <label class="ev-target-chip" data-decon-level-up-source hidden>
+                  <input type="checkbox" data-decon-source="itemLevelUp" />
+                  <span class="ev-target-chip-label">레벨업</span>
+                </label>
+              </div>
+            </fieldset>
+            <p class="decon-source-message" data-decon-source-message hidden></p>
             <button type="button" class="ev-start-btn" data-decon-analyze-btn disabled>
               분석 시작
             </button>
@@ -338,6 +360,13 @@ const deconCalcPanel = document.querySelector('[data-decon-calc-panel]');
 const deconCalcPlaceholder = document.querySelector('[data-decon-calc-placeholder]');
 const deconCalcContent = document.querySelector('[data-decon-calc-content]');
 const deconTargetChips = document.querySelector('[data-decon-target-chips]');
+const deconSourceInputs = document.querySelectorAll('[data-decon-source]');
+const deconScrollSource = document.querySelector('[data-decon-source="scrolls"]');
+const deconStimulantSource = document.querySelector('[data-decon-source="stimulant"]');
+const deconGemsSource = document.querySelector('[data-decon-source="gems"]');
+const deconItemLevelUpSource = document.querySelector('[data-decon-source="itemLevelUp"]');
+const deconLevelUpSource = document.querySelector('[data-decon-level-up-source]');
+const deconSourceMessage = document.querySelector('[data-decon-source-message]');
 
 // ---- State ----
 let itemIndex = [];
@@ -358,6 +387,40 @@ const statLabelByKey = {
 };
 
 const CORE_STATS = new Set(['str', 'dex', 'int', 'luk', 'weaponAttack', 'magicAttack']);
+
+const getAllowedSources = () => ({
+  scrolls: deconScrollSource instanceof HTMLInputElement && deconScrollSource.checked,
+  stimulant: deconStimulantSource instanceof HTMLInputElement && deconStimulantSource.checked,
+  gems: deconGemsSource instanceof HTMLInputElement && deconGemsSource.checked,
+  itemLevelUp:
+    deconItemLevelUpSource instanceof HTMLInputElement &&
+    deconLevelUpSource instanceof HTMLElement &&
+    !deconLevelUpSource.hidden && deconItemLevelUpSource.checked,
+});
+
+const resetAllowedSources = () => {
+  if (deconScrollSource instanceof HTMLInputElement) deconScrollSource.checked = true;
+  if (deconStimulantSource instanceof HTMLInputElement) deconStimulantSource.checked = false;
+  if (deconGemsSource instanceof HTMLInputElement) deconGemsSource.checked = false;
+  if (deconItemLevelUpSource instanceof HTMLInputElement) deconItemLevelUpSource.checked = false;
+};
+
+const updateLevelUpSourceEligibility = () => {
+  if (!(deconLevelUpSource instanceof HTMLElement)) return;
+  deconLevelUpSource.hidden = !selectedItem || !itemLevelUpByItemId.has(selectedItem.id);
+  updateAnalyzeButton();
+};
+
+const getSourceValidationMessage = () => {
+  const allowedSources = getAllowedSources();
+  if (!Object.values(allowedSources).some(Boolean)) {
+    return '분석에 사용할 강화 유형을 하나 이상 선택해주세요';
+  }
+  if (!allowedSources.scrolls && deconSlotState.successfulScrollCount > 0) {
+    return '주문서 성공 횟수가 1회 이상으로 설정되어 있어 주문서를 제외할 수 없습니다. 성공한 주문서가 있는 아이템은 주문서를 사용하지 않은 전략으로 분석할 수 없습니다.';
+  }
+  return '';
+};
 
 const renderTargetChips = () => {
   if (!(deconTargetChips instanceof HTMLElement)) return;
@@ -778,9 +841,14 @@ const setStatDelta = (key, value) => {
 };
 
 const updateAnalyzeButton = () => {
-  if (!(deconAnalyzeBtn instanceof HTMLButtonElement)) return;
   const checkedCount = deconTargetChips?.querySelectorAll('input:checked').length ?? 0;
-  deconAnalyzeBtn.disabled = checkedCount === 0;
+  const sourceValidationMessage = getSourceValidationMessage();
+  if (deconSourceMessage instanceof HTMLElement) {
+    deconSourceMessage.textContent = sourceValidationMessage;
+    deconSourceMessage.hidden = sourceValidationMessage === '';
+  }
+  if (!(deconAnalyzeBtn instanceof HTMLButtonElement)) return;
+  deconAnalyzeBtn.disabled = checkedCount === 0 || sourceValidationMessage !== '';
 };
 
 const renderDeconSlotState = () => {
@@ -791,6 +859,7 @@ const renderDeconSlotState = () => {
     deconSlotValue.textContent = String(deconSlotState.remainingSlots);
   }
   updateTargetCard();
+  updateAnalyzeButton();
 };
 
 // ---- Item search handling (adapted from expected-value.astro) ----
@@ -856,6 +925,7 @@ const hideItemSuggestions = () => {
 
 const selectSuggestedItem = (item, { syncFilters = true } = {}) => {
   if (!(itemNameInput instanceof HTMLInputElement)) return;
+  const itemChanged = selectedItem?.id !== item.id;
   if (syncFilters) {
     itemNameInput.value = item.nameKo;
   }
@@ -867,6 +937,8 @@ const selectSuggestedItem = (item, { syncFilters = true } = {}) => {
     syncFiltersToSelectedItem(item);
   }
   selectedItem = item;
+  if (itemChanged) resetAllowedSources();
+  updateLevelUpSourceEligibility();
   renderTargetItemCard(item);
   activateDeconEditPanel(item);
   if (syncFilters) {
@@ -1542,6 +1614,9 @@ deconAddStatToggle?.addEventListener('click', () => {
 
 // ---- Analyze button ----
 deconAnalyzeBtn?.addEventListener('click', runAnalysis);
+deconSourceInputs.forEach((input) => {
+  input.addEventListener('change', updateAnalyzeButton);
+});
 
 // ---- Reset button ----
 const showDeconConfirmDialog = (onConfirm) => {
@@ -1577,6 +1652,7 @@ const showDeconConfirmDialog = (onConfirm) => {
 document.querySelector('[data-enhancement-reset]')?.addEventListener('click', () => {
   showDeconConfirmDialog(() => {
     deconDeltas = {};
+    resetAllowedSources();
     deconSlotState = createDeconstructionSlotState(selectedItem?.stats?.upgradeSlots ?? 0);
     renderDeconSlotState();
     if (deconStatEditor instanceof HTMLElement) {
@@ -1650,6 +1726,7 @@ Promise.all([
         .filter((definition) => Number.isInteger(definition.itemId))
         .map((definition) => [definition.itemId, definition]),
     );
+    updateLevelUpSourceEligibility();
   })
   .catch((error) => {
     console.error(error);
@@ -2393,6 +2470,36 @@ aside.panel {
 :global(.ev-target-chip input:focus-visible + .ev-target-chip-label) {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
+}
+
+.decon-source-options {
+  margin: 12px 0 8px;
+  padding: 0;
+  border: 0;
+}
+.decon-source-options legend {
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.decon-source-chip-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.decon-source-chip-grid [hidden] {
+  display: none;
+}
+.decon-source-message {
+  margin: 0 0 8px;
+  color: #d6453d;
+  font-size: 0.76rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+.decon-source-message[hidden] {
+  display: none;
 }
 
 .ev-start-btn {
