@@ -388,6 +388,17 @@ let selectedItem = null;
 let deconDeltas = {};
 let deconStatKeys = [];
 let deconSlotState = createDeconstructionSlotState(0);
+let deconHasResults = false;
+
+const guardDeconMutation = (fn) => {
+  if (!deconHasResults) { fn(); return; }
+  showDeconConfirmDialog(() => {
+    deconHasResults = false;
+    if (deconResultPlaceholder instanceof HTMLElement) deconResultPlaceholder.hidden = false;
+    if (deconResultContent instanceof HTMLElement) deconResultContent.hidden = true;
+    fn();
+  });
+};
 
 const STAT_PRIORITY = ['weaponAttack', 'magicAttack', 'str', 'dex', 'int', 'luk', 'maxHp', 'maxMp', 'weaponDefense', 'magicDefense', 'accuracy', 'avoidability', 'speed', 'jump'];
 
@@ -817,14 +828,14 @@ const populateAddStatList = () => {
     nameSpan.textContent = statLabelByKey[key] || key;
 
     row.append(nameSpan);
-    row.addEventListener('click', () => {
+    row.addEventListener('click', () => guardDeconMutation(() => {
       deconDeltas[key] = 0;
       deconStatKeys.push(key);
       rebuildStatEditor();
       // Collapse list after selection
       if (deconAddStatList instanceof HTMLElement) deconAddStatList.hidden = true;
       if (deconAddStatToggle instanceof HTMLElement) deconAddStatToggle.classList.remove('decon-add-stat-toggle--open');
-    });
+    }));
 
     deconAddStatList.append(row);
   }
@@ -835,15 +846,18 @@ const populateAddStatList = () => {
   }
 };
 
-const setStatDelta = (key, value) => {
-  deconDeltas[key] = value;
-  const valueInput = document.querySelector(`[data-decon-stat-value="${key}"]`);
-  if (valueInput instanceof HTMLInputElement) {
-    valueInput.value = String(value);
-  }
-  updateAnalyzeButton();
-  updateTargetCard();
-  renderTargetChips();
+const setStatDelta = (key, value, { skipGuard = false } = {}) => {
+  const apply = () => {
+    deconDeltas[key] = value;
+    const valueInput = document.querySelector(`[data-decon-stat-value="${key}"]`);
+    if (valueInput instanceof HTMLInputElement) {
+      valueInput.value = String(value);
+    }
+    updateAnalyzeButton();
+    updateTargetCard();
+    renderTargetChips();
+  };
+  if (skipGuard) { apply(); } else { guardDeconMutation(apply); }
 };
 
 const updateAnalyzeButton = () => {
@@ -1164,6 +1178,9 @@ const activateDeconEditPanel = (item) => {
   deconEditContent.hidden = false;
   if (deconCalcPlaceholder instanceof HTMLElement) deconCalcPlaceholder.hidden = true;
   if (deconCalcContent instanceof HTMLElement) deconCalcContent.hidden = false;
+  deconHasResults = false;
+  if (deconResultPlaceholder instanceof HTMLElement) deconResultPlaceholder.hidden = false;
+  if (deconResultContent instanceof HTMLElement) deconResultContent.hidden = true;
   renderTargetChips();
 
   // Reset slot history from the selected clean item
@@ -1224,6 +1241,7 @@ const displayResults = (result, targetDeltas) => {
 
   deconResultPlaceholder.hidden = true;
   deconResultContent.hidden = false;
+  deconHasResults = true;
   deconResultContent.querySelector('.decon-summary')?.remove();
 
   const filterChipsContainer = document.querySelector('[data-decon-filter-chips]');
@@ -1584,38 +1602,38 @@ jobClearAllButton?.addEventListener('click', () => {
 });
 
 // ---- Slot steppers ----
-deconSuccessMin?.addEventListener('click', () => {
+deconSuccessMin?.addEventListener('click', () => guardDeconMutation(() => {
   deconSlotState = setSuccessfulScrollCount(deconSlotState, 0);
   renderDeconSlotState();
-});
-deconSuccessDec?.addEventListener('click', () => {
+}));
+deconSuccessDec?.addEventListener('click', () => guardDeconMutation(() => {
   deconSlotState = setSuccessfulScrollCount(deconSlotState, deconSlotState.successfulScrollCount - 1);
   renderDeconSlotState();
-});
-deconSuccessInc?.addEventListener('click', () => {
+}));
+deconSuccessInc?.addEventListener('click', () => guardDeconMutation(() => {
   deconSlotState = setSuccessfulScrollCount(deconSlotState, deconSlotState.successfulScrollCount + 1);
   renderDeconSlotState();
-});
-deconSuccessMax?.addEventListener('click', () => {
+}));
+deconSuccessMax?.addEventListener('click', () => guardDeconMutation(() => {
   deconSlotState = setSuccessfulScrollCount(deconSlotState, deconSlotState.maxSlots);
   renderDeconSlotState();
-});
-deconSlotMin?.addEventListener('click', () => {
+}));
+deconSlotMin?.addEventListener('click', () => guardDeconMutation(() => {
   deconSlotState = setRemainingSlotCount(deconSlotState, 0);
   renderDeconSlotState();
-});
-deconSlotDec?.addEventListener('click', () => {
+}));
+deconSlotDec?.addEventListener('click', () => guardDeconMutation(() => {
   deconSlotState = setRemainingSlotCount(deconSlotState, deconSlotState.remainingSlots - 1);
   renderDeconSlotState();
-});
-deconSlotInc?.addEventListener('click', () => {
+}));
+deconSlotInc?.addEventListener('click', () => guardDeconMutation(() => {
   deconSlotState = setRemainingSlotCount(deconSlotState, deconSlotState.remainingSlots + 1);
   renderDeconSlotState();
-});
-deconSlotMax?.addEventListener('click', () => {
+}));
+deconSlotMax?.addEventListener('click', () => guardDeconMutation(() => {
   deconSlotState = setRemainingSlotCount(deconSlotState, deconSlotState.maxSlots);
   renderDeconSlotState();
-});
+}));
 
 // ---- Add-stat accordion toggle ----
 deconAddStatToggle?.addEventListener('click', () => {
@@ -1628,7 +1646,7 @@ deconAddStatToggle?.addEventListener('click', () => {
 // ---- Analyze button ----
 deconAnalyzeBtn?.addEventListener('click', runAnalysis);
 deconSourceInputs.forEach((input) => {
-  input.addEventListener('change', updateAnalyzeButton);
+  input.addEventListener('change', () => guardDeconMutation(() => updateAnalyzeButton()));
 });
 
 // ---- Reset button ----
@@ -1678,6 +1696,7 @@ document.querySelector('[data-enhancement-reset]')?.addEventListener('click', ()
     if (deconCalcContent instanceof HTMLElement) deconCalcContent.hidden = true;
     if (deconResultPlaceholder instanceof HTMLElement) deconResultPlaceholder.hidden = false;
     if (deconResultContent instanceof HTMLElement) deconResultContent.hidden = true;
+    deconHasResults = false;
   });
 });
 
