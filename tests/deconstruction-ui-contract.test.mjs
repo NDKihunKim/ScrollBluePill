@@ -120,3 +120,94 @@ test('displayResults preserves result containers and clears only dynamic content
   assert.ok(filterClearIndex >= 0 && filterClearIndex < emptyResultIndex);
   assert.ok(listClearIndex >= 0 && listClearIndex < emptyResultIndex);
 });
+
+test('calculation step exposes source chips with stable hooks and defaults', () => {
+  const targetIndex = pageSource.indexOf('data-decon-target-chips');
+  const analyzeIndex = pageSource.indexOf('data-decon-analyze-btn', targetIndex);
+  assert.ok(targetIndex >= 0 && analyzeIndex > targetIndex);
+  const sourceMarkup = pageSource.slice(targetIndex, analyzeIndex);
+
+  assert.match(sourceMarkup, /분석에 사용할 강화 유형/);
+  assert.match(sourceMarkup, /data-decon-source="scrolls"[^>]*checked/);
+  assert.match(sourceMarkup, /data-decon-source="stimulant"/);
+  assert.match(sourceMarkup, /data-decon-source="gems"/);
+  assert.match(sourceMarkup, /data-decon-level-up-source[^>]*hidden[\s\S]*data-decon-source="itemLevelUp"/);
+  assert.match(sourceMarkup, /주문서/);
+  assert.match(sourceMarkup, /촉진제/);
+  assert.match(sourceMarkup, /보석/);
+  assert.match(sourceMarkup, /레벨업/);
+  assert.match(sourceMarkup, /data-decon-source-message[^>]*hidden/);
+  assert.doesNotMatch(sourceMarkup, /data-decon-source="(?:stimulant|gems|itemLevelUp)"[^>]*checked/);
+});
+
+test('source permissions use checked visible controls and hide ineligible item level-up', () => {
+  assert.match(
+    pageSource,
+    /const getAllowedSources = \(\) => \(\{[\s\S]*scrolls:[\s\S]*stimulant:[\s\S]*gems:[\s\S]*itemLevelUp:[\s\S]*\}\);/,
+  );
+  assert.match(pageSource, /!deconLevelUpSource\.hidden && deconItemLevelUpSource\.checked/);
+  assert.match(
+    pageSource,
+    /deconLevelUpSource\.hidden = !selectedItem \|\| !itemLevelUpByItemId\.has\(selectedItem\.id\)/,
+  );
+});
+
+test('source validation has exact messages and controls analyze-button disabled state', () => {
+  assert.match(pageSource, /분석에 사용할 강화 유형을 하나 이상 선택해주세요/);
+  assert.match(
+    pageSource,
+    /주문서 성공 횟수가 1회 이상으로 설정되어 있어 주문서를 제외할 수 없습니다\. 성공한 주문서가 있는 아이템은 주문서를 사용하지 않은 전략으로 분석할 수 없습니다\./,
+  );
+  assert.match(
+    pageSource,
+    /deconSourceMessage\.textContent = sourceValidationMessage;[\s\S]*deconSourceMessage\.hidden = sourceValidationMessage === '';/,
+  );
+  assert.match(
+    pageSource,
+    /deconAnalyzeBtn\.disabled = checkedCount === 0 \|\| sourceValidationMessage !== '';/,
+  );
+});
+
+test('source choices reset only for selected-item and confirmed calculator resets', () => {
+  const selectStart = pageSource.indexOf('const selectSuggestedItem =');
+  const suggestionsStart = pageSource.indexOf('const renderItemSuggestions =', selectStart);
+  const selectSource = pageSource.slice(selectStart, suggestionsStart);
+  assert.match(selectSource, /resetAllowedSources\(\)/);
+
+  const resetStart = pageSource.indexOf("document.querySelector('[data-enhancement-reset]')?.addEventListener");
+  const initStart = pageSource.indexOf('// ---- Init ----', resetStart);
+  assert.match(pageSource.slice(resetStart, initStart), /resetAllowedSources\(\)/);
+
+  for (const [name, startMarker, endMarker] of [
+    ['target renderer', 'const renderTargetChips =', '// ---- Requirement/Stat row definitions'],
+    ['stat renderer', 'const rebuildStatEditor =', 'const populateAddStatList ='],
+    ['stat editor', 'const setStatDelta =', 'const updateAnalyzeButton ='],
+  ]) {
+    const start = pageSource.indexOf(startMarker);
+    const end = pageSource.indexOf(endMarker, start);
+    assert.doesNotMatch(pageSource.slice(start, end), /resetAllowedSources\(\)/, name);
+  }
+});
+
+test('level-up eligibility refreshes after either item or async level data without resetting choices', () => {
+  const selectStart = pageSource.indexOf('const selectSuggestedItem =');
+  const suggestionsStart = pageSource.indexOf('const renderItemSuggestions =', selectStart);
+  assert.match(pageSource.slice(selectStart, suggestionsStart), /updateLevelUpSourceEligibility\(\)/);
+
+  const levelMapIndex = pageSource.indexOf('itemLevelUpByItemId = new Map(');
+  const loadEnd = pageSource.indexOf('\n  })\n  .catch', levelMapIndex);
+  const levelLoadSource = pageSource.slice(levelMapIndex, loadEnd);
+  assert.match(levelLoadSource, /updateLevelUpSourceEligibility\(\)/);
+  assert.doesNotMatch(levelLoadSource, /resetAllowedSources\(\)/);
+});
+
+test('source and successful-scroll changes immediately revalidate analysis', () => {
+  assert.match(
+    pageSource,
+    /deconSourceInputs\.forEach\(\(input\) => \{[\s\S]*input\.addEventListener\('change', updateAnalyzeButton\);[\s\S]*\}\);/,
+  );
+  assert.match(
+    pageSource,
+    /const renderDeconSlotState = \(\) => \{[\s\S]*updateTargetCard\(\);[\s\S]*updateAnalyzeButton\(\);[\s\S]*\};/,
+  );
+});
