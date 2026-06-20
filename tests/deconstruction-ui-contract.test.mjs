@@ -66,7 +66,7 @@ test('item card shows a success-count suffix only above zero and renders remaini
   assert.match(pageSource, /selectedItemName\.style\.color = computeDeconGrade\(\);/);
 });
 
-test('analysis passes the exact successful-scroll count to the engine', () => {
+test('analysis passes the exact successful-scroll count and source permissions to the engine', () => {
   const runAnalysisStart = pageSource.indexOf('const runAnalysis = () => {');
   const displayResultsStart = pageSource.indexOf('// ---- Display results ----', runAnalysisStart);
   assert.ok(runAnalysisStart >= 0 && displayResultsStart > runAnalysisStart);
@@ -74,7 +74,7 @@ test('analysis passes the exact successful-scroll count to the engine', () => {
 
   assert.match(
     runAnalysisSource,
-    /enumerateStrategies\(\{[\s\S]*successfulScrollCount: deconSlotState\.successfulScrollCount,[\s\S]*equipmentKind,[\s\S]*scrollsByEquipmentKind,[\s\S]*\}\)/,
+    /enumerateStrategies\(\{[\s\S]*successfulScrollCount: deconSlotState\.successfulScrollCount,[\s\S]*equipmentKind,[\s\S]*allowedSources: getAllowedSources\(\),[\s\S]*scrollsByEquipmentKind,[\s\S]*\}\)/,
   );
   assert.doesNotMatch(runAnalysisSource, /\bupgradeSlots\b/);
 });
@@ -115,10 +115,21 @@ test('displayResults preserves result containers and clears only dynamic content
   assert.match(displayResultsSource, /deconResultContent\.prepend\(summary\)/);
 
   const emptyResultIndex = displayResultsSource.indexOf('if (result.strategies.length === 0)');
+  const overflowResultIndex = displayResultsSource.indexOf('if (result.tooManyResults)');
   const filterClearIndex = displayResultsSource.indexOf('filterChipsContainer.replaceChildren()');
   const listClearIndex = displayResultsSource.indexOf('listContainer.replaceChildren()');
-  assert.ok(filterClearIndex >= 0 && filterClearIndex < emptyResultIndex);
-  assert.ok(listClearIndex >= 0 && listClearIndex < emptyResultIndex);
+  assert.ok(overflowResultIndex >= 0 && overflowResultIndex < emptyResultIndex);
+  assert.ok(filterClearIndex >= 0 && filterClearIndex < overflowResultIndex);
+  assert.ok(listClearIndex >= 0 && listClearIndex < overflowResultIndex);
+  assert.match(
+    displayResultsSource,
+    /if \(result\.tooManyResults\) \{\s*summary\.textContent = '일치하는 전략이 1,000개를 초과합니다\. 위 패널에서 목표 조건을 더 구체적으로 선택해주세요\.';\s*return;\s*\}/,
+  );
+  assert.match(
+    displayResultsSource,
+    /summary\.textContent = `총 \$\{result\.total\}개의 전략을 찾았습니다\.`;/,
+  );
+  assert.doesNotMatch(displayResultsSource, /result\.truncated/);
 });
 
 test('calculation step exposes source chips with stable hooks and defaults', () => {
