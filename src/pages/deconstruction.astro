@@ -228,7 +228,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
           </p>
           <div data-decon-calc-content hidden>
             <div class="ev-target-chip-grid" data-decon-target-chips></div>
-            <fieldset class="decon-source-options">
+            <fieldset class="decon-source-options" aria-describedby="decon-source-message">
               <legend>분석에 사용할 강화 유형</legend>
               <div class="decon-source-chip-grid">
                 <label class="ev-target-chip">
@@ -249,7 +249,13 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
                 </label>
               </div>
             </fieldset>
-            <p class="decon-source-message" data-decon-source-message hidden></p>
+            <p
+              id="decon-source-message"
+              class="decon-source-message"
+              data-decon-source-message
+              aria-live="polite"
+              hidden
+            ></p>
             <button type="button" class="ev-start-btn" data-decon-analyze-btn disabled>
               분석 시작
             </button>
@@ -302,6 +308,11 @@ import {
   setSuccessfulScrollCount,
   setRemainingSlotCount,
 } from '../lib/deconstruction/slotState.mjs';
+import {
+  getDefaultSourceSelection,
+  getSourceValidationMessage,
+  resolveAllowedSources,
+} from '../lib/deconstruction/sourcePolicy.mjs';
 
 // ---- DOM refs ----
 const form = document.querySelector('[data-calculator-input]');
@@ -388,38 +399,33 @@ const statLabelByKey = {
 
 const CORE_STATS = new Set(['str', 'dex', 'int', 'luk', 'weaponAttack', 'magicAttack']);
 
-const getAllowedSources = () => ({
-  scrolls: deconScrollSource instanceof HTMLInputElement && deconScrollSource.checked,
-  stimulant: deconStimulantSource instanceof HTMLInputElement && deconStimulantSource.checked,
-  gems: deconGemsSource instanceof HTMLInputElement && deconGemsSource.checked,
-  itemLevelUp:
-    deconItemLevelUpSource instanceof HTMLInputElement &&
-    deconLevelUpSource instanceof HTMLElement &&
-    !deconLevelUpSource.hidden && deconItemLevelUpSource.checked,
-});
+const getAllowedSources = () => resolveAllowedSources(
+  {
+    scrolls: deconScrollSource instanceof HTMLInputElement && deconScrollSource.checked,
+    stimulant: deconStimulantSource instanceof HTMLInputElement && deconStimulantSource.checked,
+    gems: deconGemsSource instanceof HTMLInputElement && deconGemsSource.checked,
+    itemLevelUp: deconItemLevelUpSource instanceof HTMLInputElement && deconItemLevelUpSource.checked,
+  },
+  {
+    itemLevelUpEligible:
+      deconLevelUpSource instanceof HTMLElement && !deconLevelUpSource.hidden,
+  },
+);
 
 const resetAllowedSources = () => {
-  if (deconScrollSource instanceof HTMLInputElement) deconScrollSource.checked = true;
-  if (deconStimulantSource instanceof HTMLInputElement) deconStimulantSource.checked = false;
-  if (deconGemsSource instanceof HTMLInputElement) deconGemsSource.checked = false;
-  if (deconItemLevelUpSource instanceof HTMLInputElement) deconItemLevelUpSource.checked = false;
+  const defaults = getDefaultSourceSelection();
+  if (deconScrollSource instanceof HTMLInputElement) deconScrollSource.checked = defaults.scrolls;
+  if (deconStimulantSource instanceof HTMLInputElement) deconStimulantSource.checked = defaults.stimulant;
+  if (deconGemsSource instanceof HTMLInputElement) deconGemsSource.checked = defaults.gems;
+  if (deconItemLevelUpSource instanceof HTMLInputElement) {
+    deconItemLevelUpSource.checked = defaults.itemLevelUp;
+  }
 };
 
 const updateLevelUpSourceEligibility = () => {
   if (!(deconLevelUpSource instanceof HTMLElement)) return;
   deconLevelUpSource.hidden = !selectedItem || !itemLevelUpByItemId.has(selectedItem.id);
   updateAnalyzeButton();
-};
-
-const getSourceValidationMessage = () => {
-  const allowedSources = getAllowedSources();
-  if (!Object.values(allowedSources).some(Boolean)) {
-    return '분석에 사용할 강화 유형을 하나 이상 선택해주세요';
-  }
-  if (!allowedSources.scrolls && deconSlotState.successfulScrollCount > 0) {
-    return '주문서 성공 횟수가 1회 이상으로 설정되어 있어 주문서를 제외할 수 없습니다. 성공한 주문서가 있는 아이템은 주문서를 사용하지 않은 전략으로 분석할 수 없습니다.';
-  }
-  return '';
 };
 
 const renderTargetChips = () => {
@@ -842,10 +848,13 @@ const setStatDelta = (key, value) => {
 
 const updateAnalyzeButton = () => {
   const checkedCount = deconTargetChips?.querySelectorAll('input:checked').length ?? 0;
-  const sourceValidationMessage = getSourceValidationMessage();
+  const sourceValidationMessage = getSourceValidationMessage(
+    getAllowedSources(),
+    deconSlotState.successfulScrollCount,
+  );
   if (deconSourceMessage instanceof HTMLElement) {
-    deconSourceMessage.textContent = sourceValidationMessage;
     deconSourceMessage.hidden = sourceValidationMessage === '';
+    deconSourceMessage.textContent = sourceValidationMessage;
   }
   if (!(deconAnalyzeBtn instanceof HTMLButtonElement)) return;
   deconAnalyzeBtn.disabled = checkedCount === 0 || sourceValidationMessage !== '';
