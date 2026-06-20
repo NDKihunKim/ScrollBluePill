@@ -136,31 +136,37 @@ test('calculation step exposes source chips with stable hooks and defaults', () 
   assert.match(sourceMarkup, /촉진제/);
   assert.match(sourceMarkup, /보석/);
   assert.match(sourceMarkup, /레벨업/);
-  assert.match(sourceMarkup, /data-decon-source-message[^>]*hidden/);
+  assert.match(
+    sourceMarkup,
+    /id="decon-source-message"[^>]*data-decon-source-message[^>]*aria-live="polite"[^>]*hidden/,
+  );
+  assert.match(sourceMarkup, /fieldset[^>]*aria-describedby="decon-source-message"/);
   assert.doesNotMatch(sourceMarkup, /data-decon-source="(?:stimulant|gems|itemLevelUp)"[^>]*checked/);
 });
 
 test('source permissions use checked visible controls and hide ineligible item level-up', () => {
   assert.match(
     pageSource,
-    /const getAllowedSources = \(\) => \(\{[\s\S]*scrolls:[\s\S]*stimulant:[\s\S]*gems:[\s\S]*itemLevelUp:[\s\S]*\}\);/,
+    /import \{[\s\S]*getDefaultSourceSelection,[\s\S]*getSourceValidationMessage,[\s\S]*resolveAllowedSources,[\s\S]*\} from '\.\.\/lib\/deconstruction\/sourcePolicy\.mjs';/,
   );
-  assert.match(pageSource, /!deconLevelUpSource\.hidden && deconItemLevelUpSource\.checked/);
+  assert.match(
+    pageSource,
+    /const getAllowedSources = \(\) => resolveAllowedSources\([\s\S]*itemLevelUpEligible:[\s\S]*!deconLevelUpSource\.hidden/,
+  );
   assert.match(
     pageSource,
     /deconLevelUpSource\.hidden = !selectedItem \|\| !itemLevelUpByItemId\.has\(selectedItem\.id\)/,
   );
 });
 
-test('source validation has exact messages and controls analyze-button disabled state', () => {
-  assert.match(pageSource, /분석에 사용할 강화 유형을 하나 이상 선택해주세요/);
+test('source validation policy controls the message and analyze-button disabled state', () => {
   assert.match(
     pageSource,
-    /주문서 성공 횟수가 1회 이상으로 설정되어 있어 주문서를 제외할 수 없습니다\. 성공한 주문서가 있는 아이템은 주문서를 사용하지 않은 전략으로 분석할 수 없습니다\./,
+    /getSourceValidationMessage\([\s\S]*getAllowedSources\(\),[\s\S]*deconSlotState\.successfulScrollCount,[\s\S]*\)/,
   );
   assert.match(
     pageSource,
-    /deconSourceMessage\.textContent = sourceValidationMessage;[\s\S]*deconSourceMessage\.hidden = sourceValidationMessage === '';/,
+    /deconSourceMessage\.hidden = sourceValidationMessage === '';[\s\S]*deconSourceMessage\.textContent = sourceValidationMessage;/,
   );
   assert.match(
     pageSource,
