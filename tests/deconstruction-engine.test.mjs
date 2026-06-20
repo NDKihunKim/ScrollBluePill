@@ -15,8 +15,8 @@ test('enumerateStrategies returns empty for zero deltas', () => {
   });
   assert.deepEqual(result.strategies, []);
   assert.equal(result.total, 0);
-  assert.equal(result.truncated, false);
   assert.equal(result.tooManyResults, false);
+  assert.ok(!Object.hasOwn(result, 'truncated'));
 });
 
 test('each strategy has required shape (no probability)', () => {
@@ -51,31 +51,6 @@ test('each strategy has required shape (no probability)', () => {
   assert.ok('priorityRank' in s);
 });
 
-test('caps at 500 strategies', () => {
-  const fakeScrolls = new Map();
-  fakeScrolls.set('Glove', Array.from({ length: 550 }, (_, index) => ({
-    id: 9000 + index,
-    nameKo: `힘 주문서 100% ${index}`,
-    equipmentKind: 'Glove',
-    behavior_type: 'fixed',
-    stats: { str: 1 },
-  })));
-
-  const result = enumerateStrategies({
-    targetDeltas: { str: 1 },
-    targetKeys: ['str'],
-    successfulScrollCount: 1,
-    equipmentKind: 'Glove',
-    requiredLevel: 0,
-    cleanStats: {},
-    scrollsByEquipmentKind: fakeScrolls,
-    levelUpDefinition: null,
-  });
-
-  assert.equal(result.strategies.length, 500);
-  assert.equal(result.truncated, true);
-});
-
 test('fixed scroll exact match with single scroll', () => {
   const fakeScrolls = new Map();
   fakeScrolls.set('Cape', [
@@ -107,7 +82,7 @@ test('fixed scroll exact match with single scroll', () => {
   });
 
   assert.ok(result.strategies.length > 0);
-  assert.equal(result.truncated, false);
+  assert.equal(result.tooManyResults, false);
 
   for (const strategy of result.strategies) {
     const sum = {};
@@ -207,7 +182,7 @@ test('empty scroll map returns empty', () => {
   });
   assert.deepEqual(result.strategies, []);
   assert.equal(result.total, 0);
-  assert.equal(result.truncated, false);
+  assert.equal(result.tooManyResults, false);
 });
 
 test('insufficient scroll count may be filled by stimulant', () => {
@@ -469,9 +444,9 @@ test('positive successful scroll count with scrolls disabled returns defensively
   assert.deepEqual(result, {
     strategies: [],
     total: 0,
-    truncated: false,
     tooManyResults: false,
   });
+  assert.ok(!Object.hasOwn(result, 'truncated'));
 });
 
 test('omitted allowedSources preserves fallback source behavior', () => {
@@ -482,8 +457,8 @@ test('omitted allowedSources preserves fallback source behavior', () => {
   assert.ok(result.strategies.some((strategy) => strategy.sourceTypes.includes('itemLevelUp')));
 });
 
-function makeLargeFixture() {
-  const scrolls = Array.from({ length: 550 }, (_, index) => ({
+function makeLargeFixture(candidateCount) {
+  const scrolls = Array.from({ length: candidateCount }, (_, index) => ({
     id: 8000 + index,
     nameKo: `힘 주문서 ${index}`,
     behavior_type: 'fixed',
@@ -498,14 +473,29 @@ function makeLargeFixture() {
     cleanStats: { str: 1 },
     scrollsByEquipmentKind: new Map([['망토', scrolls]]),
     levelUpDefinition: null,
+    allowedSources: { scrolls: true, stimulant: false, gems: false, itemLevelUp: false },
   };
 }
 
-test('removes probability and caps deterministic results at 500', () => {
-  const first = enumerateStrategies(makeLargeFixture());
-  const second = enumerateStrategies(makeLargeFixture());
-  assert.equal(first.strategies.length, 500);
-  assert.equal(first.truncated, true);
-  assert.deepEqual(first, second);
-  assert.ok(first.strategies.every((strategy) => !Object.hasOwn(strategy, 'probability')));
-});
+for (const candidateCount of [1000, 1001]) {
+  test(`${candidateCount} distinct exact matches obey the result overflow contract`, () => {
+    const first = enumerateStrategies(makeLargeFixture(candidateCount));
+    const second = enumerateStrategies(makeLargeFixture(candidateCount));
+
+    assert.deepEqual(first, second);
+    assert.ok(!Object.hasOwn(first, 'truncated'));
+
+    if (candidateCount === 1000) {
+      assert.equal(first.strategies.length, 1000);
+      assert.equal(first.total, 1000);
+      assert.equal(first.tooManyResults, false);
+      assert.ok(first.strategies.every((strategy) => !Object.hasOwn(strategy, 'probability')));
+    } else {
+      assert.deepEqual(first, {
+        strategies: [],
+        total: 1001,
+        tooManyResults: true,
+      });
+    }
+  });
+}

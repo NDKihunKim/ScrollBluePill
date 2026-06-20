@@ -14,7 +14,8 @@ import {
   solveStimulantResidual,
 } from './sourceContributions.mjs';
 
-const MAX_STRATEGIES = 500;
+const MAX_DISPLAY_STRATEGIES = 1000;
+const OVERFLOW_TOTAL = 1001;
 
 /**
  * Check whether a scroll is a chaos-type scroll (random delta values).
@@ -63,7 +64,7 @@ function* generateChaosDeltas(stats, limit = 500) {
  * Each scroll state has { scrolls, stats } where scrolls is an array of applied
  * scroll entries and stats is the total stat vector.
  */
-function enumerateExactCountScrollStates({
+function* enumerateExactCountScrollStates({
   scrolls: allScrolls,
   targetKeys,
   targetDeltas,
@@ -101,16 +102,12 @@ function enumerateExactCountScrollStates({
     }
   }
 
-  const states = [];
-  const MAX_SCROLL_STATES = 1000;
-
-  function dfs(fixedIdx, remainingApps, currentStats, chosen) {
-    if (states.length >= MAX_SCROLL_STATES) return;
+  function* dfs(fixedIdx, remainingApps, currentStats, chosen) {
     if (remainingApps === 0 && chosen.length === requiredScrollCount) {
-      states.push({
+      yield {
         scrolls: [...chosen],
         stats: { ...currentStats },
-      });
+      };
       return;
     }
     if (remainingApps <= 0 || chosen.length >= requiredScrollCount) return;
@@ -146,7 +143,7 @@ function enumerateExactCountScrollStates({
             stats: { ...stats },
           });
         }
-        dfs(i + 1, remainingApps - count, newStats, newChosen);
+        yield* dfs(i + 1, remainingApps - count, newStats, newChosen);
       }
     }
 
@@ -164,13 +161,12 @@ function enumerateExactCountScrollStates({
           ...cs,
           stats: { ...deltas },
         };
-        dfs(fixedIdx, remainingApps - 1, newStats, [...chosen, chaosApp]);
+        yield* dfs(fixedIdx, remainingApps - 1, newStats, [...chosen, chaosApp]);
       }
     }
   }
 
-  dfs(0, requiredScrollCount, Object.fromEntries(targetKeys.map((k) => [k, 0])), []);
-  return states;
+  yield* dfs(0, requiredScrollCount, Object.fromEntries(targetKeys.map((k) => [k, 0])), []);
 }
 
 /**
@@ -263,7 +259,7 @@ function buildResult({ scrolls, stimulant, gems, itemLevelUp, priorityRank, targ
  * @param {Map<string,Array>} opts.scrollsByEquipmentKind  Scrolls grouped by equipment kind
  * @param {object|null}     opts.levelUpDefinition      Item level-up definition or null
  * @param {object}          opts.allowedSources         Optional source permissions
- * @returns {{ strategies: Array, total: number, truncated: boolean }}
+ * @returns {{ strategies: Array, total: number, tooManyResults: boolean }}
  */
 export function enumerateStrategies({
   targetDeltas,
@@ -277,11 +273,11 @@ export function enumerateStrategies({
   allowedSources,
 }) {
   const strategies = [];
-  let truncated = false;
+  let tooManyResults = false;
   const seenKeys = new Set();
 
   if (targetKeys.length === 0) {
-    return { strategies: [], total: 0, truncated: false, tooManyResults: false };
+    return { strategies: [], total: 0, tooManyResults: false };
   }
 
   const normCount = (() => {
@@ -301,7 +297,7 @@ export function enumerateStrategies({
   };
 
   if (!normalizedAllowedSources.scrolls && normCount > 0) {
-    return { strategies: [], total: 0, truncated: false, tooManyResults: false };
+    return { strategies: [], total: 0, tooManyResults: false };
   }
 
   // Normalize bounds for fallback generation
@@ -346,7 +342,7 @@ export function enumerateStrategies({
   const stimulantOpts = { isWeapon: equipmentIsWeapon };
 
   // Generate exact-count scroll states
-  const scrollStates = normalizedAllowedSources.scrolls && scrolls.length > 0 && normCount > 0
+  const effectiveScrollStates = normalizedAllowedSources.scrolls && normCount > 0
     ? enumerateExactCountScrollStates({
         scrolls,
         targetKeys,
@@ -354,7 +350,9 @@ export function enumerateStrategies({
         successfulScrollCount: normCount,
         correctionBounds: stimulantBounds,
       })
-    : [];
+    : (normCount === 0
+      ? [{ scrolls: [], stats: Object.fromEntries(targetKeys.map((k) => [k, 0])) }]
+      : []);
 
   const targetVector = targetKeys.reduce((acc, k) => {
     acc[k] = targetDeltas[k] ?? 0;
@@ -362,25 +360,19 @@ export function enumerateStrategies({
   }, {});
 
   function addResult(parts) {
-    if (strategies.length >= MAX_STRATEGIES) {
-      truncated = true;
-      return;
-    }
+    if (tooManyResults) return;
     const result = buildResult({ ...parts, targetKeys });
     // Verify total stats match target exactly on checked keys
     if (!isExactVector(result.totalStats, targetVector, targetKeys)) return;
     const key = strategyCanonicalKey(result, targetKeys);
     if (seenKeys.has(key)) return;
+    if (strategies.length >= MAX_DISPLAY_STRATEGIES) {
+      tooManyResults = true;
+      return;
+    }
     seenKeys.add(key);
     strategies.push(result);
-    if (strategies.length >= MAX_STRATEGIES) {
-      truncated = true;
-    }
   }
-
-  const effectiveScrollStates = scrollStates.length > 0
-    ? scrollStates
-    : (normCount === 0 ? [{ scrolls: [], stats: Object.fromEntries(targetKeys.map((k) => [k, 0])) }] : []);
 
   for (const ss of effectiveScrollStates) {
     const residual = subtractVectors(targetVector, ss.stats, targetKeys);
@@ -397,7 +389,7 @@ export function enumerateStrategies({
     }
 
     // Tier 1: scroll + stimulant
-    if (normalizedAllowedSources.stimulant && strategies.length < MAX_STRATEGIES) {
+    if (normalizedAllowedSources.stimulant && !tooManyResults) {
       const stimStats = solveStimulantResidual(residual, targetKeys, stimulantOpts);
       if (stimStats) {
         addResult({
@@ -410,12 +402,10 @@ export function enumerateStrategies({
       }
     }
 
-    // Tier 2: scroll + gems (limit contributions to avoid starving later tiers)
-    if (normalizedAllowedSources.gems && strategies.length < MAX_STRATEGIES) {
-      const gemCap = MAX_STRATEGIES - strategies.length;
-      let gemAdded = 0;
+    // Tier 2: scroll + gems
+    if (normalizedAllowedSources.gems && !tooManyResults) {
       for (const gc of gemContributions) {
-        if (gemAdded >= gemCap || strategies.length >= MAX_STRATEGIES) break;
+        if (tooManyResults) break;
         if (isExactVector(gc.stats, residual, targetKeys)) {
           addResult({
             scrolls: ss.scrolls,
@@ -424,17 +414,14 @@ export function enumerateStrategies({
             itemLevelUp: null,
             priorityRank: 2,
           });
-          gemAdded++;
         }
       }
     }
 
     // Tier 3: scroll + itemLevelUp
-    if (normalizedAllowedSources.itemLevelUp && strategies.length < MAX_STRATEGIES) {
-      const itemCap = MAX_STRATEGIES - strategies.length;
-      let itemAdded = 0;
+    if (normalizedAllowedSources.itemLevelUp && !tooManyResults) {
       for (const ilc of itemLevelContributions) {
-        if (itemAdded >= itemCap || strategies.length >= MAX_STRATEGIES) break;
+        if (tooManyResults) break;
         if (isExactVector(ilc.stats, residual, targetKeys)) {
           addResult({
             scrolls: ss.scrolls,
@@ -443,16 +430,15 @@ export function enumerateStrategies({
             itemLevelUp: ilc,
             priorityRank: 3,
           });
-          itemAdded++;
         }
       }
     }
 
     // Tier 4: scroll + stimulant + gems
     if (normalizedAllowedSources.stimulant && normalizedAllowedSources.gems
-      && strategies.length < MAX_STRATEGIES) {
+      && !tooManyResults) {
       for (const gc of gemContributions) {
-        if (strategies.length >= MAX_STRATEGIES) break;
+        if (tooManyResults) break;
         const afterGems = subtractVectors(residual, gc.stats, targetKeys);
         const stimStats = solveStimulantResidual(afterGems, targetKeys, stimulantOpts);
         if (stimStats) {
@@ -469,9 +455,9 @@ export function enumerateStrategies({
 
     // Tier 5: scroll + stimulant + itemLevelUp
     if (normalizedAllowedSources.stimulant && normalizedAllowedSources.itemLevelUp
-      && strategies.length < MAX_STRATEGIES) {
+      && !tooManyResults) {
       for (const ilc of itemLevelContributions) {
-        if (strategies.length >= MAX_STRATEGIES) break;
+        if (tooManyResults) break;
         const afterLevel = subtractVectors(residual, ilc.stats, targetKeys);
         const stimStats = solveStimulantResidual(afterLevel, targetKeys, stimulantOpts);
         if (stimStats) {
@@ -488,11 +474,11 @@ export function enumerateStrategies({
 
     // Tier 6: scroll + gems + itemLevelUp
     if (normalizedAllowedSources.gems && normalizedAllowedSources.itemLevelUp
-      && strategies.length < MAX_STRATEGIES) {
+      && !tooManyResults) {
       for (const gc of gemContributions) {
-        if (strategies.length >= MAX_STRATEGIES) break;
+        if (tooManyResults) break;
         for (const ilc of itemLevelContributions) {
-          if (strategies.length >= MAX_STRATEGIES) break;
+          if (tooManyResults) break;
           const combined = addVectors(gc.stats, ilc.stats, targetKeys);
           if (isExactVector(combined, residual, targetKeys)) {
             addResult({
@@ -509,11 +495,11 @@ export function enumerateStrategies({
 
     // Tier 7: scroll + stimulant + gems + itemLevelUp
     if (normalizedAllowedSources.stimulant && normalizedAllowedSources.gems
-      && normalizedAllowedSources.itemLevelUp && strategies.length < MAX_STRATEGIES) {
+      && normalizedAllowedSources.itemLevelUp && !tooManyResults) {
       for (const gc of gemContributions) {
-        if (strategies.length >= MAX_STRATEGIES) break;
+        if (tooManyResults) break;
         for (const ilc of itemLevelContributions) {
-          if (strategies.length >= MAX_STRATEGIES) break;
+          if (tooManyResults) break;
           const afterBoth = subtractVectors(residual, addVectors(gc.stats, ilc.stats, targetKeys), targetKeys);
           const stimStats = solveStimulantResidual(afterBoth, targetKeys, stimulantOpts);
           if (stimStats) {
@@ -528,7 +514,11 @@ export function enumerateStrategies({
         }
       }
     }
+
+    if (tooManyResults) break;
   }
 
-  return { strategies, total: strategies.length, truncated };
+  return tooManyResults
+    ? { strategies: [], total: OVERFLOW_TOTAL, tooManyResults: true }
+    : { strategies, total: strategies.length, tooManyResults: false };
 }
