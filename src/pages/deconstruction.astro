@@ -388,12 +388,12 @@ let selectedItem = null;
 let deconDeltas = {};
 let deconStatKeys = [];
 let deconSlotState = createDeconstructionSlotState(0);
-let deconHasResults = false;
+let deconHasActionableResults = false;
 
 const guardDeconMutation = (fn) => {
-  if (!deconHasResults) { fn(); return; }
+  if (!deconHasActionableResults) { fn(); return; }
   showDeconConfirmDialog(() => {
-    deconHasResults = false;
+    deconHasActionableResults = false;
     if (deconResultPlaceholder instanceof HTMLElement) deconResultPlaceholder.hidden = false;
     if (deconResultContent instanceof HTMLElement) deconResultContent.hidden = true;
     fn();
@@ -1178,7 +1178,7 @@ const activateDeconEditPanel = (item) => {
   deconEditContent.hidden = false;
   if (deconCalcPlaceholder instanceof HTMLElement) deconCalcPlaceholder.hidden = true;
   if (deconCalcContent instanceof HTMLElement) deconCalcContent.hidden = false;
-  deconHasResults = false;
+  deconHasActionableResults = false;
   if (deconResultPlaceholder instanceof HTMLElement) deconResultPlaceholder.hidden = false;
   if (deconResultContent instanceof HTMLElement) deconResultContent.hidden = true;
   renderTargetChips();
@@ -1241,7 +1241,7 @@ const displayResults = (result, targetDeltas) => {
 
   deconResultPlaceholder.hidden = true;
   deconResultContent.hidden = false;
-  deconHasResults = true;
+  deconHasActionableResults = false;
   deconResultContent.querySelector('.decon-summary')?.remove();
 
   const filterChipsContainer = document.querySelector('[data-decon-filter-chips]');
@@ -1268,6 +1268,7 @@ const displayResults = (result, targetDeltas) => {
     return;
   }
 
+  deconHasActionableResults = true;
   summary.textContent = `총 ${result.total}개의 전략을 찾았습니다.`;
 
   // Filter chips
@@ -1696,7 +1697,7 @@ document.querySelector('[data-enhancement-reset]')?.addEventListener('click', ()
     if (deconCalcContent instanceof HTMLElement) deconCalcContent.hidden = true;
     if (deconResultPlaceholder instanceof HTMLElement) deconResultPlaceholder.hidden = false;
     if (deconResultContent instanceof HTMLElement) deconResultContent.hidden = true;
-    deconHasResults = false;
+    deconHasActionableResults = false;
   });
 });
 
