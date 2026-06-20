@@ -102,7 +102,36 @@ function* enumerateExactCountScrollStates({
     }
   }
 
+  function canReachTarget(fixedIdx, remainingApps, currentStats) {
+    for (const key of targetKeys) {
+      let minPerApp = remainingApps === 0 ? 0 : Infinity;
+      let maxPerApp = remainingApps === 0 ? 0 : -Infinity;
+
+      for (let i = fixedIdx; i < fixedScrolls.length; i++) {
+        const value = fixedScrolls[i].stats?.[key] || 0;
+        minPerApp = Math.min(minPerApp, value);
+        maxPerApp = Math.max(maxPerApp, value);
+      }
+      for (const { deltas } of chaosPool) {
+        const value = deltas[key] || 0;
+        minPerApp = Math.min(minPerApp, value);
+        maxPerApp = Math.max(maxPerApp, value);
+      }
+
+      if (!Number.isFinite(minPerApp)) return false;
+
+      const correction = correctionBounds[key] ?? { min: 0, max: 0 };
+      const current = currentStats[key] || 0;
+      const minReachable = current + remainingApps * minPerApp + correction.min;
+      const maxReachable = current + remainingApps * maxPerApp + correction.max;
+      const target = targetDeltas[key] ?? 0;
+      if (target < minReachable || target > maxReachable) return false;
+    }
+    return true;
+  }
+
   function* dfs(fixedIdx, remainingApps, currentStats, chosen) {
+    if (!canReachTarget(fixedIdx, remainingApps, currentStats)) return;
     if (remainingApps === 0 && chosen.length === requiredScrollCount) {
       yield {
         scrolls: [...chosen],
@@ -336,6 +365,29 @@ export function enumerateStrategies({
       })
     : [];
 
+  const correctionBounds = {};
+  for (const key of targetKeys) {
+    let min = 0;
+    let max = 0;
+
+    if (normalizedAllowedSources.stimulant) {
+      min += Math.min(0, stimulantBounds[key].min);
+      max += Math.max(0, stimulantBounds[key].max);
+    }
+    if (normalizedAllowedSources.gems) {
+      const values = gemContributions.map((contribution) => contribution.stats[key] || 0);
+      min += Math.min(0, ...values);
+      max += Math.max(0, ...values);
+    }
+    if (normalizedAllowedSources.itemLevelUp) {
+      const values = itemLevelContributions.map((contribution) => contribution.stats[key] || 0);
+      min += Math.min(0, ...values);
+      max += Math.max(0, ...values);
+    }
+
+    correctionBounds[key] = { min, max };
+  }
+
   const scrolls = scrollsByEquipmentKind.get(equipmentKind) ?? [];
 
   const equipmentIsWeapon = isWeaponKind(equipmentKind);
@@ -348,7 +400,7 @@ export function enumerateStrategies({
         targetKeys,
         targetDeltas,
         successfulScrollCount: normCount,
-        correctionBounds: stimulantBounds,
+        correctionBounds,
       })
     : (normCount === 0
       ? [{ scrolls: [], stats: Object.fromEntries(targetKeys.map((k) => [k, 0])) }]

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { enumerateStrategies } from '../src/lib/deconstruction/engine.mjs';
 
@@ -341,6 +342,40 @@ test('supports exact negative checked deltas and ignores unchecked stats', () =>
     levelUpDefinition: null,
   });
   assert.ok(result.strategies.some((strategy) => strategy.totalStats.str === -2));
+});
+
+test('impossible high-branching chaos searches terminate promptly', () => {
+  const engineUrl = new URL('../src/lib/deconstruction/engine.mjs', import.meta.url).href;
+  const source = `
+    import { enumerateStrategies } from ${JSON.stringify(engineUrl)};
+    const result = enumerateStrategies({
+      targetDeltas: { str: 21, dex: 0 },
+      targetKeys: ['str', 'dex'],
+      successfulScrollCount: 4,
+      equipmentKind: 'Cape',
+      scrollsByEquipmentKind: new Map([['Cape', [{
+        id: 7003,
+        nameKo: '카오스 주문서',
+        behavior_type: 'chaos',
+        stats: { str: 1, dex: 1 },
+      }]]]),
+      allowedSources: { scrolls: true, stimulant: false, gems: false, itemLevelUp: false },
+    });
+    process.stdout.write(JSON.stringify(result));
+  `;
+
+  const child = spawnSync(process.execPath, ['--input-type=module', '-e', source], {
+    encoding: 'utf8',
+    timeout: 1000,
+  });
+
+  assert.notEqual(child.error?.code, 'ETIMEDOUT');
+  assert.equal(child.status, 0, child.stderr);
+  assert.deepEqual(JSON.parse(child.stdout), {
+    strategies: [],
+    total: 0,
+    tooManyResults: false,
+  });
 });
 
 test('finds and prioritizes all single and mixed fallback sources', () => {
