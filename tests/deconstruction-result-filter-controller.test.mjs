@@ -10,12 +10,7 @@ import { chromium } from 'playwright';
 const libRoot = fileURLToPath(new URL('../src/lib/', import.meta.url));
 const fixture = `<!doctype html>
 <html><body>
-  <div data-decon-filter-chips>
-    <button data-decon-filter="all" aria-pressed="false">전체 (3)</button>
-    <button data-decon-filter="scrolls" aria-pressed="false">주문서</button>
-    <button data-decon-filter="stimulant" aria-pressed="false">촉진제/추옵</button>
-    <button data-decon-filter="gems" aria-pressed="false">보석 (메이커)</button>
-  </div>
+  <div data-decon-filter-chips></div>
   <div data-decon-secondary-filters hidden></div>
   <div data-decon-strategy-list>
     <p data-decon-filter-empty hidden>empty</p>
@@ -25,6 +20,15 @@ const fixture = `<!doctype html>
   </div>
   <script type="module">
     import { createResultFilterController } from '/deconstruction/resultFilterController.mjs';
+    window.renderFilterChips = () => {
+      document.querySelector('[data-decon-filter-chips]').innerHTML = [
+        '<button data-decon-filter="all" aria-pressed="false">전체 (3)</button>',
+        '<button data-decon-filter="scrolls" aria-pressed="false">주문서</button>',
+        '<button data-decon-filter="stimulant" aria-pressed="false">촉진제/추옵</button>',
+        '<button data-decon-filter="gems" aria-pressed="false">보석 (메이커)</button>',
+      ].join('');
+    };
+    window.renderFilterChips();
     window.testStrategies = [
       { scrolls: [{ id: 'a', nameKo: 'A' }], stimulant: { stats: { str: 1 } }, gems: [], itemLevelUp: null },
       { scrolls: [{ id: 'b', nameKo: 'B' }], stimulant: { stats: { str: 2 } }, gems: [], itemLevelUp: null },
@@ -179,9 +183,10 @@ test('stimulant options preserve no-source fallback and switch to a checked stim
   assert.equal(await page.locator('[data-decon-filter="all"]').textContent(), '전체 (1)');
 
   await page.locator('[data-decon-option-key="stimulant:none"] input').click();
-  assert.equal(
-    await page.locator('[data-decon-option-key="stimulant:none"] input').isChecked(),
-    false,
+  assert.deepEqual(
+    await page.locator('[data-decon-option-key] input').evaluateAll((inputs) =>
+      inputs.map((input) => input.checked)),
+    [false, false, false],
   );
   assert.deepEqual(
     await page.locator('.decon-strategy-card:visible').evaluateAll((cards) =>
@@ -205,6 +210,7 @@ test('reset and reinitialize restore the full result set and stimulant selection
   await page.locator('[data-decon-option-key="stimulant:none"] input').click();
 
   await page.evaluate(() => {
+    window.renderFilterChips();
     window.controller.reset();
     window.controller.initialize(window.testStrategies);
   });
