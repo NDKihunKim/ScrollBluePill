@@ -316,11 +316,8 @@ import {
   resolveAllowedSources,
 } from '../lib/deconstruction/sourcePolicy.mjs';
 import {
-  buildSecondaryFilterModel,
-  createInitialSecondarySelections,
-  getFacetOptions,
-  getVisibleStrategyIndexes,
-} from '../lib/deconstruction/resultFilters.mjs';
+  createResultFilterController,
+} from '../lib/deconstruction/resultFilterController.mjs';
 
 // ---- DOM refs ----
 const form = document.querySelector('[data-calculator-input]');
@@ -387,6 +384,10 @@ const deconItemLevelUpSource = document.querySelector('[data-decon-source="itemL
 const deconLevelUpSource = document.querySelector('[data-decon-level-up-source]');
 const deconSourceMessage = document.querySelector('[data-decon-source-message]');
 const deconSecondaryFilters = document.querySelector('[data-decon-secondary-filters]');
+const resultFilterController = createResultFilterController({
+  root: document,
+  secondaryContainer: deconSecondaryFilters,
+});
 
 // ---- State ----
 let itemIndex = [];
@@ -1264,8 +1265,7 @@ const displayResults = (result, targetDeltas) => {
   filterChipsContainer.replaceChildren();
   listContainer.replaceChildren();
 
-  currentResultStrategies = result.strategies ?? [];
-  resetSecondaryFilters();
+  resultFilterController.reset();
 
   // Summary line
   const summary = document.createElement('p');
@@ -1297,10 +1297,10 @@ const displayResults = (result, targetDeltas) => {
     chip.type = 'button';
     chip.className = 'decon-filter-chip';
     chip.dataset.deconFilter = def.source ?? 'all';
+    chip.setAttribute('aria-pressed', 'false');
     chip.textContent = def.source === null
       ? `${def.label} (${result.strategies.length})`
       : def.label;
-    chip.addEventListener('click', () => setActiveFilter(def.source));
     filterChipsContainer.append(chip);
   }
 
@@ -1422,146 +1422,10 @@ const displayResults = (result, targetDeltas) => {
     listContainer.append(card);
   });
 
-  secondaryFilterModel = buildSecondaryFilterModel(currentResultStrategies);
-  selectedSecondaryOptions = createInitialSecondarySelections(secondaryFilterModel);
-  applySecondaryFilters();
-  setActiveFilter(null);
+  resultFilterController.initialize(result.strategies);
 };
 
 // ---- Filter ----
-const SOURCE_LABELS = {
-  scrolls: '주문서',
-  stimulant: '촉진제/추옵',
-  gems: '보석 (메이커)',
-  itemLevelUp: '레벨업',
-};
-
-let activePanelSource = null;
-let currentResultStrategies = [];
-let secondaryFilterModel = null;
-let selectedSecondaryOptions = new Map();
-
-const resetSecondaryFilters = () => {
-  activePanelSource = null;
-  secondaryFilterModel = null;
-  selectedSecondaryOptions = new Map();
-  if (deconSecondaryFilters instanceof HTMLElement) {
-    deconSecondaryFilters.replaceChildren();
-    deconSecondaryFilters.hidden = true;
-  }
-};
-
-const applySecondaryFilters = () => {
-  if (!secondaryFilterModel) return 0;
-  const visibleIndexes = new Set(
-    getVisibleStrategyIndexes(secondaryFilterModel, selectedSecondaryOptions),
-  );
-  let visibleCount = 0;
-  document.querySelectorAll('.decon-strategy-card').forEach((card) => {
-    const strategyIndex = Number.parseInt(card.dataset.strategyIndex ?? '', 10);
-    const matches = visibleIndexes.has(strategyIndex);
-    card.hidden = !matches;
-    if (matches) visibleCount++;
-  });
-  const allChip = document.querySelector('[data-decon-filter="all"]');
-  if (allChip instanceof HTMLElement) allChip.textContent = `전체 (${visibleCount})`;
-  const filterEmpty = document.querySelector('[data-decon-filter-empty]');
-  if (filterEmpty instanceof HTMLElement) filterEmpty.hidden = visibleCount > 0;
-  return visibleCount;
-};
-
-const refreshActiveSecondaryPanel = () => {
-  if (
-    !(deconSecondaryFilters instanceof HTMLElement)
-    || !secondaryFilterModel
-    || activePanelSource === null
-  ) return;
-  const list = deconSecondaryFilters.querySelector('.decon-secondary-filter-options');
-  if (!(list instanceof HTMLElement)) return;
-
-  const labels = new Map(
-    Array.from(list.querySelectorAll('[data-decon-option-key]'))
-      .map((label) => [label.dataset.deconOptionKey, label]),
-  );
-  for (const option of getFacetOptions(
-    secondaryFilterModel,
-    selectedSecondaryOptions,
-    activePanelSource,
-  )) {
-    const label = labels.get(option.key);
-    if (!(label instanceof HTMLLabelElement)) continue;
-    label.classList.toggle(
-      'decon-secondary-filter-option--unavailable',
-      !option.available,
-    );
-    const input = label.querySelector('input');
-    if (input instanceof HTMLInputElement) input.disabled = !option.available;
-    list.append(label);
-  }
-};
-
-const renderSecondaryFilterPanel = (source) => {
-  if (!(deconSecondaryFilters instanceof HTMLElement) || !secondaryFilterModel) return;
-  deconSecondaryFilters.replaceChildren();
-
-  const section = document.createElement('section');
-  section.className = 'decon-secondary-filter';
-  const heading = document.createElement('h3');
-  heading.textContent = SOURCE_LABELS[source];
-  const list = document.createElement('div');
-  list.className = 'decon-secondary-filter-options';
-
-  let checked = selectedSecondaryOptions.get(source);
-  if (!checked) {
-    checked = new Set();
-    selectedSecondaryOptions.set(source, checked);
-  }
-  for (const option of getFacetOptions(secondaryFilterModel, selectedSecondaryOptions, source)) {
-    const label = document.createElement('label');
-    label.className = 'decon-secondary-filter-option';
-    label.dataset.deconOptionKey = option.key;
-    label.classList.toggle('decon-secondary-filter-option--unavailable', !option.available);
-    const input = document.createElement('input');
-    input.type = 'checkbox';
-    input.checked = checked.has(option.key);
-    input.disabled = !option.available;
-    input.addEventListener('change', () => {
-      if (input.checked) checked.add(option.key);
-      else checked.delete(option.key);
-      applySecondaryFilters();
-      refreshActiveSecondaryPanel();
-    });
-    const text = document.createElement('span');
-    text.textContent = option.label;
-    label.append(input, text);
-    list.append(label);
-  }
-
-  section.append(heading, list);
-  deconSecondaryFilters.append(section);
-  deconSecondaryFilters.hidden = false;
-};
-
-const setActiveFilter = (source) => {
-  activePanelSource = source;
-  document.querySelectorAll('[data-decon-filter]').forEach((chip) => {
-    const chipSource = chip.dataset.deconFilter;
-    chip.classList.toggle(
-      'decon-filter-chip--active',
-      chipSource === (activePanelSource ?? 'all'),
-    );
-  });
-
-  if (source === null) {
-    if (deconSecondaryFilters instanceof HTMLElement) {
-      deconSecondaryFilters.replaceChildren();
-      deconSecondaryFilters.hidden = true;
-    }
-    return;
-  }
-
-  renderSecondaryFilterPanel(source);
-};
 
 // ---- Event listeners ----
 levelInputs?.forEach((input) => {
