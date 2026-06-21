@@ -58,30 +58,32 @@ test('normalizes source-specific identities and labels', () => {
   assert.equal(level.itemLevelUp[0].label, '5회 총합 — STR +3, DEX +2');
 });
 
-test('builds only the exact primary source universe and selects every option initially', () => {
-  const model = buildSecondaryFilterModel(strategies, new Set(['scrolls', 'gems']));
+test('builds a global strategy universe and selects every option initially', () => {
+  const model = buildSecondaryFilterModel(strategies);
   const selections = createInitialSecondarySelections(model);
 
   assert.deepEqual(RESULT_SOURCE_ORDER, ['scrolls', 'stimulant', 'gems', 'itemLevelUp']);
-  assert.deepEqual(model.entries.map(({ strategyIndex }) => strategyIndex), [0, 1]);
+  assert.deepEqual(model.entries.map(({ strategyIndex }) => strategyIndex), [0, 1, 2, 3]);
   assert.deepEqual([...selections.get('scrolls')].sort(), ['scroll:1001', 'scroll:1002']);
   assert.deepEqual([...selections.get('gems')].sort(), ['gem:dexCrystal:1', 'gem:strCrystal:2']);
-  assert.deepEqual(getVisibleStrategyIndexes(model, selections), [0, 1]);
+  assert.deepEqual([...selections.get('stimulant')], ['stimulant:dex:-1|str:3']);
+  assert.deepEqual([...selections.get('itemLevelUp')], ['level:dex:2|str:3']);
+  assert.deepEqual(getVisibleStrategyIndexes(model, selections), [0, 1, 2, 3]);
 });
 
-test('unchecked enhancements exclude every strategy that uses them', () => {
-  const model = buildSecondaryFilterModel(strategies, new Set(['scrolls', 'gems']));
+test('unchecked enhancements globally exclude only strategies that use them', () => {
+  const model = buildSecondaryFilterModel(strategies);
   const selections = createInitialSecondarySelections(model);
 
   selections.get('scrolls').delete('scroll:1001');
-  assert.deepEqual(getVisibleStrategyIndexes(model, selections), [1]);
+  assert.deepEqual(getVisibleStrategyIndexes(model, selections), [1, 2, 3]);
 
   selections.get('gems').delete('gem:dexCrystal:1');
-  assert.deepEqual(getVisibleStrategyIndexes(model, selections), []);
+  assert.deepEqual(getVisibleStrategyIndexes(model, selections), [2, 3]);
 });
 
 test('other facet selections move incompatible options to the disabled tail', () => {
-  const model = buildSecondaryFilterModel(strategies, new Set(['scrolls', 'gems']));
+  const model = buildSecondaryFilterModel(strategies);
   const selections = createInitialSecondarySelections(model);
   selections.get('gems').delete('gem:strCrystal:2');
 
@@ -94,27 +96,26 @@ test('other facet selections move incompatible options to the disabled tail', ()
 });
 
 test('an emptied facet remains recoverable while other facets become unavailable', () => {
-  const model = buildSecondaryFilterModel(strategies, new Set(['scrolls', 'gems']));
+  const model = buildSecondaryFilterModel(strategies);
   const selections = createInitialSecondarySelections(model);
   selections.get('scrolls').clear();
 
-  assert.deepEqual(getVisibleStrategyIndexes(model, selections), []);
+  assert.deepEqual(getVisibleStrategyIndexes(model, selections), [2, 3]);
   assert.ok(getFacetOptions(model, selections, 'scrolls').every(({ available }) => available));
   assert.ok(getFacetOptions(model, selections, 'gems').every(({ available }) => !available));
 });
 
-test('model output is deterministic when strategy input order changes', () => {
-  const forward = buildSecondaryFilterModel(strategies, new Set(['scrolls', 'gems']));
-  const reversed = buildSecondaryFilterModel([...strategies].reverse(), new Set(['scrolls', 'gems']));
+test('facet option ordering is deterministic when strategy input order changes', () => {
+  const forward = buildSecondaryFilterModel(strategies);
+  const reversed = buildSecondaryFilterModel([...strategies].reverse());
   const forwardSelections = createInitialSecondarySelections(forward);
   const reversedSelections = createInitialSecondarySelections(reversed);
 
-  assert.deepEqual(
-    getFacetOptions(forward, forwardSelections, 'scrolls').map(({ key }) => key),
-    getFacetOptions(reversed, reversedSelections, 'scrolls').map(({ key }) => key),
-  );
-  assert.deepEqual(
-    getFacetOptions(forward, forwardSelections, 'gems').map(({ key }) => key),
-    getFacetOptions(reversed, reversedSelections, 'gems').map(({ key }) => key),
-  );
+  for (const source of RESULT_SOURCE_ORDER) {
+    assert.deepEqual(
+      getFacetOptions(forward, forwardSelections, source).map(({ key }) => key),
+      getFacetOptions(reversed, reversedSelections, source).map(({ key }) => key),
+      source,
+    );
+  }
 });
