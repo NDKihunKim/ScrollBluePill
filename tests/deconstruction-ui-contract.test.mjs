@@ -149,22 +149,19 @@ test('result source filters expose the approved labels and count only all strate
   assert.doesNotMatch(displaySource, /updateFilterCounts/);
 });
 
-test('result source filters use exact multi-select matching with all fallback', () => {
+test('result source filters are mutually exclusive presentation tabs', () => {
   const filterStart = pageSource.indexOf('// ---- Filter ----');
   const listenersStart = pageSource.indexOf('// ---- Event listeners ----', filterStart);
   const filterSource = pageSource.slice(filterStart, listenersStart);
 
-  assert.match(filterSource, /const selectedResultSources = new Set\(\);/);
+  assert.match(filterSource, /let activePanelSource = null;/);
+  assert.doesNotMatch(filterSource, /selectedResultSources/);
+  assert.doesNotMatch(filterSource, /sourceSetsMatch/);
+  assert.match(filterSource, /const setActiveFilter = \(source\) => \{\s*activePanelSource = source;/);
   assert.match(
     filterSource,
-    /const sourceSetsMatch = \(selectedSources, sourceTypes\) =>\s*selectedSources\.size === sourceTypes\.length\s*&& sourceTypes\.every\(\(source\) => selectedSources\.has\(source\)\);/,
+    /chip\.classList\.toggle\(\s*'decon-filter-chip--active',\s*chipSource === \(activePanelSource \?\? 'all'\),\s*\);/,
   );
-  assert.match(filterSource, /if \(source === null\) \{\s*selectedResultSources\.clear\(\);/);
-  assert.match(filterSource, /selectedResultSources\.delete\(source\)/);
-  assert.match(filterSource, /selectedResultSources\.add\(source\)/);
-  assert.match(filterSource, /const showingAll = selectedResultSources\.size === 0;/);
-  assert.match(filterSource, /buildSecondaryFilterModel\(currentResultStrategies, selectedResultSources\)/);
-  assert.match(filterSource, /filterEmpty\.hidden = visibleCount > 0;/);
 });
 
 test('result filters render a dedicated zero-match message and reset to all per analysis', () => {
@@ -185,36 +182,92 @@ test('result panel exposes a secondary-filter container and imports the pure mod
   );
   assert.match(
     pageSource,
-    /import \{[\s\S]*RESULT_SOURCE_ORDER,[\s\S]*buildSecondaryFilterModel,[\s\S]*createInitialSecondarySelections,[\s\S]*getFacetOptions,[\s\S]*getVisibleStrategyIndexes,[\s\S]*\} from '\.\.\/lib\/deconstruction\/resultFilters\.mjs';/,
+    /import \{[\s\S]*buildSecondaryFilterModel,[\s\S]*createInitialSecondarySelections,[\s\S]*getFacetOptions,[\s\S]*getVisibleStrategyIndexes,[\s\S]*\} from '\.\.\/lib\/deconstruction\/resultFilters\.mjs';/,
   );
+  const resultFilterImport = pageSource.match(
+    /import \{[\s\S]*?\} from '\.\.\/lib\/deconstruction\/resultFilters\.mjs';/,
+  )?.[0] ?? '';
+  assert.doesNotMatch(resultFilterImport, /RESULT_SOURCE_ORDER/);
 });
 
-test('primary result changes rebuild or clear secondary filter state', () => {
+test('completed results initialize global secondary selections once before selecting all', () => {
+  const displayStart = pageSource.indexOf('const displayResults = (result, targetDeltas) => {');
+  const filterStart = pageSource.indexOf('// ---- Filter ----', displayStart);
+  const displaySource = pageSource.slice(displayStart, filterStart);
+
+  assert.match(
+    displaySource,
+    /secondaryFilterModel = buildSecondaryFilterModel\(currentResultStrategies\);\s*selectedSecondaryOptions = createInitialSecondarySelections\(secondaryFilterModel\);\s*applySecondaryFilters\(\);\s*setActiveFilter\(null\);/,
+  );
+  assert.match(displaySource, /currentResultStrategies = result\.strategies \?\? \[\];\s*resetSecondaryFilters\(\);/);
+});
+
+test('filter state resets active panel and primary tabs never rebuild global selections', () => {
   const filterStart = pageSource.indexOf('// ---- Filter ----');
   const listenersStart = pageSource.indexOf('// ---- Event listeners ----', filterStart);
   const filterSource = pageSource.slice(filterStart, listenersStart);
 
+  assert.match(filterSource, /let activePanelSource = null;/);
   assert.match(filterSource, /let currentResultStrategies = \[\];/);
   assert.match(filterSource, /let secondaryFilterModel = null;/);
   assert.match(filterSource, /let selectedSecondaryOptions = new Map\(\);/);
-  assert.match(filterSource, /const resetSecondaryFilters = \(\) =>/);
-  assert.match(filterSource, /buildSecondaryFilterModel\(currentResultStrategies, selectedResultSources\)/);
-  assert.match(filterSource, /createInitialSecondarySelections\(secondaryFilterModel\)/);
-  assert.match(filterSource, /if \(showingAll\) \{[\s\S]*resetSecondaryFilters\(\);/);
+  assert.match(filterSource, /const resetSecondaryFilters = \(\) => \{\s*activePanelSource = null;/);
+
+  const setActiveStart = filterSource.indexOf('const setActiveFilter =');
+  const setActiveSource = filterSource.slice(setActiveStart);
+  assert.doesNotMatch(setActiveSource, /buildSecondaryFilterModel/);
+  assert.doesNotMatch(setActiveSource, /createInitialSecondarySelections/);
+  assert.match(
+    setActiveSource,
+    /if \(source === null\) \{[\s\S]*deconSecondaryFilters\.replaceChildren\(\);[\s\S]*deconSecondaryFilters\.hidden = true;[\s\S]*return;/,
+  );
 });
 
-test('secondary checkboxes update selections, availability, and visible cards immediately', () => {
+test('global secondary filters toggle cards, count all visible results, and update empty state', () => {
+  const filterStart = pageSource.indexOf('// ---- Filter ----');
+  const listenersStart = pageSource.indexOf('// ---- Event listeners ----', filterStart);
+  const filterSource = pageSource.slice(filterStart, listenersStart);
+  const applyStart = filterSource.indexOf('const applySecondaryFilters =');
+  const renderStart = filterSource.indexOf('const renderSecondaryFilterPanel =', applyStart);
+  const applySource = filterSource.slice(applyStart, renderStart);
+
+  assert.equal((applySource.match(/getVisibleStrategyIndexes\(/g) ?? []).length, 1);
+  assert.match(applySource, /card\.hidden = !matches;/);
+  assert.match(applySource, /const allChip = document\.querySelector\('\[data-decon-filter="all"\]'\);/);
+  assert.match(applySource, /allChip\.textContent = `전체 \(\$\{visibleCount\}\)`;/);
+  assert.match(applySource, /filterEmpty\.hidden = visibleCount > 0;/);
+  assert.match(applySource, /return visibleCount;/);
+});
+
+test('only the active secondary panel renders and checkbox state persists globally', () => {
   const filterStart = pageSource.indexOf('// ---- Filter ----');
   const listenersStart = pageSource.indexOf('// ---- Event listeners ----', filterStart);
   const filterSource = pageSource.slice(filterStart, listenersStart);
 
+  assert.equal((filterSource.match(/const renderSecondaryFilterPanel =/g) ?? []).length, 1);
+  assert.doesNotMatch(filterSource, /for \(const source of RESULT_SOURCE_ORDER/);
   assert.match(filterSource, /getFacetOptions\(secondaryFilterModel, selectedSecondaryOptions, source\)/);
+  assert.match(filterSource, /label\.dataset\.deconOptionKey = option\.key;/);
   assert.match(filterSource, /input\.checked = checked\.has\(option\.key\);/);
   assert.match(filterSource, /input\.disabled = !option\.available;/);
   assert.match(filterSource, /input\.addEventListener\('change', \(\) =>/);
   assert.match(filterSource, /checked\.(?:add|delete)\(option\.key\)/);
-  assert.match(filterSource, /getVisibleStrategyIndexes\(secondaryFilterModel, selectedSecondaryOptions\)/);
-  assert.match(filterSource, /renderSecondaryFilters\(\);/);
+  assert.match(filterSource, /applySecondaryFilters\(\);\s*refreshActiveSecondaryPanel\(\);/);
+});
+
+test('active facet refresh updates and reorders existing option labels in place', () => {
+  const filterStart = pageSource.indexOf('// ---- Filter ----');
+  const listenersStart = pageSource.indexOf('// ---- Event listeners ----', filterStart);
+  const filterSource = pageSource.slice(filterStart, listenersStart);
+
+  assert.match(filterSource, /const refreshActiveSecondaryPanel = \(\) =>/);
+  assert.match(
+    filterSource,
+    /getFacetOptions\(\s*secondaryFilterModel,\s*selectedSecondaryOptions,\s*activePanelSource,?\s*\)/,
+  );
+  assert.match(filterSource, /label\.classList\.toggle\(\s*'decon-secondary-filter-option--unavailable',\s*!option\.available,\s*\);/);
+  assert.match(filterSource, /input\.disabled = !option\.available;/);
+  assert.match(filterSource, /list\.append\(label\);/);
 });
 
 test('calculation step exposes source chips with stable hooks and defaults', () => {
