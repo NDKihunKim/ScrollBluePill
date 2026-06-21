@@ -269,6 +269,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
           </p>
           <div data-decon-result-content hidden>
             <div class="decon-filter-chips" data-decon-filter-chips></div>
+            <div class="decon-secondary-filters" data-decon-secondary-filters hidden></div>
             <div class="decon-strategy-list" data-decon-strategy-list></div>
           </div>
         </section>
@@ -313,6 +314,13 @@ import {
   getSourceValidationMessage,
   resolveAllowedSources,
 } from '../lib/deconstruction/sourcePolicy.mjs';
+import {
+  RESULT_SOURCE_ORDER,
+  buildSecondaryFilterModel,
+  createInitialSecondarySelections,
+  getFacetOptions,
+  getVisibleStrategyIndexes,
+} from '../lib/deconstruction/resultFilters.mjs';
 
 // ---- DOM refs ----
 const form = document.querySelector('[data-calculator-input]');
@@ -378,6 +386,7 @@ const deconGemsSource = document.querySelector('[data-decon-source="gems"]');
 const deconItemLevelUpSource = document.querySelector('[data-decon-source="itemLevelUp"]');
 const deconLevelUpSource = document.querySelector('[data-decon-level-up-source]');
 const deconSourceMessage = document.querySelector('[data-decon-source-message]');
+const deconSecondaryFilters = document.querySelector('[data-decon-secondary-filters]');
 
 // ---- State ----
 let itemIndex = [];
@@ -1255,6 +1264,9 @@ const displayResults = (result, targetDeltas) => {
   filterChipsContainer.replaceChildren();
   listContainer.replaceChildren();
 
+  currentResultStrategies = result.strategies ?? [];
+  resetSecondaryFilters();
+
   // Summary line
   const summary = document.createElement('p');
   summary.className = 'decon-summary';
@@ -1300,11 +1312,10 @@ const displayResults = (result, targetDeltas) => {
   filterEmpty.hidden = true;
   listContainer.append(filterEmpty);
 
-  let analysisIndex = 0;
-  for (const strategy of result.strategies) {
-    analysisIndex++;
+  result.strategies.forEach((strategy, strategyIndex) => {
     const card = document.createElement('div');
     card.className = 'decon-strategy-card';
+    card.dataset.strategyIndex = String(strategyIndex);
 
     // Source type for filtering
     card.dataset.sourceTypes = strategy.sourceTypes.join(',');
@@ -1312,7 +1323,7 @@ const displayResults = (result, targetDeltas) => {
     // 1. Header — analysis number
     const headerRow = document.createElement('div');
     headerRow.className = 'decon-strategy-approach';
-    headerRow.textContent = `분석 ${analysisIndex}번`;
+    headerRow.textContent = `분석 ${strategyIndex + 1}번`;
     card.append(headerRow);
 
     // 2. Total stats — summary subtitle
@@ -1409,7 +1420,7 @@ const displayResults = (result, targetDeltas) => {
     }
 
     listContainer.append(card);
-  }
+  });
 
   setActiveFilter(null);
 };
@@ -1421,18 +1432,89 @@ const sourceSetsMatch = (selectedSources, sourceTypes) =>
   selectedSources.size === sourceTypes.length
   && sourceTypes.every((source) => selectedSources.has(source));
 
-const setActiveFilter = (source) => {
-  if (source === null) {
-    selectedResultSources.clear();
-  } else if (selectedResultSources.has(source)) {
-    selectedResultSources.delete(source);
-  } else {
-    selectedResultSources.add(source);
+const SOURCE_LABELS = {
+  scrolls: '주문서',
+  stimulant: '촉진제/추옵',
+  gems: '보석 (메이커)',
+  itemLevelUp: '레벨업',
+};
+
+let currentResultStrategies = [];
+let secondaryFilterModel = null;
+let selectedSecondaryOptions = new Map();
+
+const resetSecondaryFilters = () => {
+  secondaryFilterModel = null;
+  selectedSecondaryOptions = new Map();
+  if (deconSecondaryFilters instanceof HTMLElement) {
+    deconSecondaryFilters.replaceChildren();
+    deconSecondaryFilters.hidden = true;
   }
+};
+
+const applySecondaryFilters = () => {
+  if (!secondaryFilterModel) return 0;
+  const visibleIndexes = new Set(
+    getVisibleStrategyIndexes(secondaryFilterModel, selectedSecondaryOptions),
+  );
+  let visibleCount = 0;
+  document.querySelectorAll('.decon-strategy-card').forEach((card) => {
+    const strategyIndex = Number.parseInt(card.dataset.strategyIndex ?? '', 10);
+    const matches = visibleIndexes.has(strategyIndex);
+    card.hidden = !matches;
+    if (matches) visibleCount++;
+  });
+  const filterEmpty = document.querySelector('[data-decon-filter-empty]');
+  if (filterEmpty instanceof HTMLElement) filterEmpty.hidden = visibleCount > 0;
+  return visibleCount;
+};
+
+const renderSecondaryFilters = () => {
+  if (!(deconSecondaryFilters instanceof HTMLElement) || !secondaryFilterModel) return;
+  deconSecondaryFilters.replaceChildren();
+
+  for (const source of RESULT_SOURCE_ORDER.filter((entry) => selectedResultSources.has(entry))) {
+    const section = document.createElement('section');
+    section.className = 'decon-secondary-filter';
+    const heading = document.createElement('h3');
+    heading.textContent = SOURCE_LABELS[source];
+    const list = document.createElement('div');
+    list.className = 'decon-secondary-filter-options';
+
+    const checked = selectedSecondaryOptions.get(source) ?? new Set();
+    for (const option of getFacetOptions(secondaryFilterModel, selectedSecondaryOptions, source)) {
+      const label = document.createElement('label');
+      label.className = 'decon-secondary-filter-option';
+      label.classList.toggle('decon-secondary-filter-option--unavailable', !option.available);
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.checked = checked.has(option.key);
+      input.disabled = !option.available;
+      input.addEventListener('change', () => {
+        if (input.checked) checked.add(option.key);
+        else checked.delete(option.key);
+        applySecondaryFilters();
+        renderSecondaryFilters();
+      });
+      const text = document.createElement('span');
+      text.textContent = option.label;
+      label.append(input, text);
+      list.append(label);
+    }
+
+    section.append(heading, list);
+    deconSecondaryFilters.append(section);
+  }
+  deconSecondaryFilters.hidden = false;
+};
+
+const setActiveFilter = (source) => {
+  if (source === null) { selectedResultSources.clear(); }
+  else if (selectedResultSources.has(source)) { selectedResultSources.delete(source); }
+  else { selectedResultSources.add(source); }
 
   const showingAll = selectedResultSources.size === 0;
-  const chips = document.querySelectorAll('[data-decon-filter]');
-  chips.forEach((chip) => {
+  document.querySelectorAll('[data-decon-filter]').forEach((chip) => {
     const chipSource = chip.dataset.deconFilter;
     chip.classList.toggle(
       'decon-filter-chip--active',
@@ -1440,19 +1522,18 @@ const setActiveFilter = (source) => {
     );
   });
 
-  let visibleCount = 0;
-  const cards = document.querySelectorAll('.decon-strategy-card');
-  cards.forEach((card) => {
-    const sourceTypes = (card.dataset.sourceTypes || '').split(',').filter(Boolean);
-    const matches = showingAll || sourceSetsMatch(selectedResultSources, sourceTypes);
-    card.hidden = !matches;
-    if (matches) visibleCount++;
-  });
-
-  const filterEmpty = document.querySelector('[data-decon-filter-empty]');
-  if (filterEmpty instanceof HTMLElement) {
-    filterEmpty.hidden = showingAll || visibleCount > 0;
+  if (showingAll) {
+    resetSecondaryFilters();
+    document.querySelectorAll('.decon-strategy-card').forEach((card) => { card.hidden = false; });
+    const filterEmpty = document.querySelector('[data-decon-filter-empty]');
+    if (filterEmpty instanceof HTMLElement) filterEmpty.hidden = true;
+    return;
   }
+
+  secondaryFilterModel = buildSecondaryFilterModel(currentResultStrategies, selectedResultSources);
+  selectedSecondaryOptions = createInitialSecondarySelections(secondaryFilterModel);
+  applySecondaryFilters();
+  renderSecondaryFilters();
 };
 
 // ---- Event listeners ----
@@ -2636,6 +2717,55 @@ aside.panel {
 }
 :global(.decon-filter-empty[hidden]) {
   display: none;
+}
+
+:global(.decon-secondary-filters) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+:global(.decon-secondary-filters[hidden]) {
+  display: none;
+}
+
+:global(.decon-secondary-filter) {
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--panel) 92%, var(--line));
+}
+
+:global(.decon-secondary-filter h3) {
+  margin: 0 0 7px;
+  font-size: 0.78rem;
+  color: var(--ink);
+}
+
+:global(.decon-secondary-filter-options) {
+  display: grid;
+  gap: 5px;
+  max-height: 180px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+:global(.decon-secondary-filter-option) {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+:global(.decon-secondary-filter-option--unavailable) {
+  color: var(--muted);
+  opacity: 0.58;
+  cursor: not-allowed;
 }
 
 :global(.decon-strategy-card) {
