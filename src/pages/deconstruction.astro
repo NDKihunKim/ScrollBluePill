@@ -1481,7 +1481,11 @@ const renderSecondaryFilters = () => {
     const list = document.createElement('div');
     list.className = 'decon-secondary-filter-options';
 
-    const checked = selectedSecondaryOptions.get(source) ?? new Set();
+    let checked = selectedSecondaryOptions.get(source);
+    if (!checked) {
+      checked = new Set();
+      selectedSecondaryOptions.set(source, checked);
+    }
     for (const option of getFacetOptions(secondaryFilterModel, selectedSecondaryOptions, source)) {
       const label = document.createElement('label');
       label.className = 'decon-secondary-filter-option';
@@ -1494,7 +1498,6 @@ const renderSecondaryFilters = () => {
         if (input.checked) checked.add(option.key);
         else checked.delete(option.key);
         applySecondaryFilters();
-        renderSecondaryFilters();
       });
       const text = document.createElement('span');
       text.textContent = option.label;
