@@ -46,6 +46,13 @@ const strategies = [
 test('normalizes source-specific identities and labels', () => {
   const mixed = getStrategySecondaryOptions(strategies[0]);
   assert.deepEqual(mixed.scrolls.map(({ key }) => key), ['scroll:1001', 'scroll:1002']);
+  assert.deepEqual(mixed.stimulant, [{
+    source: 'stimulant',
+    key: 'stimulant:none',
+    label: '+0',
+    sortGroup: 1,
+    sortKey: '+0',
+  }]);
   assert.deepEqual(mixed.gems.map(({ key }) => key), ['gem:strCrystal:2']);
   assert.equal(mixed.gems[0].label, '힘의 크리스탈 상급');
 
@@ -66,7 +73,10 @@ test('builds a global strategy universe and selects every option initially', () 
   assert.deepEqual(model.entries.map(({ strategyIndex }) => strategyIndex), [0, 1, 2, 3]);
   assert.deepEqual([...selections.get('scrolls')].sort(), ['scroll:1001', 'scroll:1002']);
   assert.deepEqual([...selections.get('gems')].sort(), ['gem:dexCrystal:1', 'gem:strCrystal:2']);
-  assert.deepEqual([...selections.get('stimulant')], ['stimulant:dex:-1|str:3']);
+  assert.deepEqual([...selections.get('stimulant')].sort(), [
+    'stimulant:dex:-1|str:3',
+    'stimulant:none',
+  ]);
   assert.deepEqual([...selections.get('itemLevelUp')], ['level:dex:2|str:3']);
   assert.deepEqual(getVisibleStrategyIndexes(model, selections), [0, 1, 2, 3]);
 });
@@ -80,6 +90,30 @@ test('unchecked enhancements globally exclude only strategies that use them', ()
 
   selections.get('gems').delete('gem:dexCrystal:1');
   assert.deepEqual(getVisibleStrategyIndexes(model, selections), [2, 3]);
+});
+
+test('selecting only +0 shows strategies without a stimulant source', () => {
+  const model = buildSecondaryFilterModel(strategies);
+  const selections = createInitialSecondarySelections(model);
+  selections.set('stimulant', new Set(['stimulant:none']));
+
+  assert.deepEqual(getVisibleStrategyIndexes(model, selections), [0, 1, 3]);
+});
+
+test('an empty stimulant selection falls back to strategies without a stimulant source', () => {
+  const model = buildSecondaryFilterModel(strategies);
+  const selections = createInitialSecondarySelections(model);
+  selections.get('stimulant').clear();
+
+  assert.deepEqual(getVisibleStrategyIndexes(model, selections), [0, 1, 3]);
+});
+
+test('unchecking +0 while a nonzero stimulant remains excludes no-source strategies', () => {
+  const model = buildSecondaryFilterModel(strategies);
+  const selections = createInitialSecondarySelections(model);
+  selections.get('stimulant').delete('stimulant:none');
+
+  assert.deepEqual(getVisibleStrategyIndexes(model, selections), [2]);
 });
 
 test('other facet selections move incompatible options to the disabled tail', () => {
@@ -103,6 +137,49 @@ test('an emptied facet remains recoverable while other facets become unavailable
   assert.deepEqual(getVisibleStrategyIndexes(model, selections), [2, 3]);
   assert.ok(getFacetOptions(model, selections, 'scrolls').every(({ available }) => available));
   assert.ok(getFacetOptions(model, selections, 'gems').every(({ available }) => !available));
+});
+
+test('other facet exclusions make +0 unavailable without clearing its selection', () => {
+  const model = buildSecondaryFilterModel(strategies);
+  const selections = createInitialSecondarySelections(model);
+  selections.get('gems').clear();
+  selections.get('itemLevelUp').clear();
+
+  const zeroOption = getFacetOptions(model, selections, 'stimulant')
+    .find(({ key }) => key === 'stimulant:none');
+  assert.deepEqual(zeroOption, {
+    source: 'stimulant',
+    key: 'stimulant:none',
+    label: '+0',
+    sortGroup: 1,
+    sortKey: '+0',
+    available: false,
+  });
+  assert.equal(selections.get('stimulant').has('stimulant:none'), true);
+});
+
+test('stimulant options sort negative-only, +0, positive, then mixed', () => {
+  const variants = [
+    { stimulant: { stats: { str: 3, dex: -1 } } },
+    { stimulant: null },
+    { stimulant: { stats: { str: 1 } } },
+    { stimulant: { stats: { str: -2 } } },
+  ];
+  const model = buildSecondaryFilterModel(variants);
+  const selections = createInitialSecondarySelections(model);
+
+  assert.deepEqual(
+    getFacetOptions(model, selections, 'stimulant').map(({ key, sortGroup }) => ({
+      key,
+      sortGroup,
+    })),
+    [
+      { key: 'stimulant:str:-2', sortGroup: 0 },
+      { key: 'stimulant:none', sortGroup: 1 },
+      { key: 'stimulant:str:1', sortGroup: 2 },
+      { key: 'stimulant:dex:-1|str:3', sortGroup: 2 },
+    ],
+  );
 });
 
 test('facet option ordering is deterministic when strategy input order changes', () => {
