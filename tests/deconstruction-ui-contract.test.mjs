@@ -132,6 +132,52 @@ test('displayResults preserves result containers and clears only dynamic content
   assert.doesNotMatch(displayResultsSource, /result\.truncated/);
 });
 
+test('result source filters expose the approved labels and count only all strategies', () => {
+  const displayStart = pageSource.indexOf('const displayResults = (result, targetDeltas) => {');
+  const filterStart = pageSource.indexOf('// ---- Filter ----', displayStart);
+  const displaySource = pageSource.slice(displayStart, filterStart);
+
+  assert.match(displaySource, /\{ source: null, label: '전체' \}/);
+  assert.match(displaySource, /\{ source: 'scrolls', label: '주문서' \}/);
+  assert.match(displaySource, /\{ source: 'stimulant', label: '촉진제\/추옵' \}/);
+  assert.match(displaySource, /\{ source: 'gems', label: '보석 \(메이커\)' \}/);
+  assert.match(displaySource, /\{ source: 'itemLevelUp', label: '레벨업' \}/);
+  assert.match(
+    displaySource,
+    /chip\.textContent = def\.source === null\s*\? `\$\{def\.label\} \(\$\{result\.strategies\.length\}\)`\s*:\s*def\.label;/,
+  );
+  assert.doesNotMatch(displaySource, /updateFilterCounts/);
+});
+
+test('result source filters use exact multi-select matching with all fallback', () => {
+  const filterStart = pageSource.indexOf('// ---- Filter ----');
+  const listenersStart = pageSource.indexOf('// ---- Event listeners ----', filterStart);
+  const filterSource = pageSource.slice(filterStart, listenersStart);
+
+  assert.match(filterSource, /const selectedResultSources = new Set\(\);/);
+  assert.match(
+    filterSource,
+    /const sourceSetsMatch = \(selectedSources, sourceTypes\) =>\s*selectedSources\.size === sourceTypes\.length\s*&& sourceTypes\.every\(\(source\) => selectedSources\.has\(source\)\);/,
+  );
+  assert.match(filterSource, /if \(source === null\) \{\s*selectedResultSources\.clear\(\);/);
+  assert.match(filterSource, /selectedResultSources\.delete\(source\)/);
+  assert.match(filterSource, /selectedResultSources\.add\(source\)/);
+  assert.match(filterSource, /const showingAll = selectedResultSources\.size === 0;/);
+  assert.match(filterSource, /sourceSetsMatch\(selectedResultSources, sourceTypes\)/);
+  assert.match(filterSource, /filterEmpty\.hidden = showingAll \|\| visibleCount > 0;/);
+});
+
+test('result filters render a dedicated zero-match message and reset to all per analysis', () => {
+  const displayStart = pageSource.indexOf('const displayResults = (result, targetDeltas) => {');
+  const filterStart = pageSource.indexOf('// ---- Filter ----', displayStart);
+  const displaySource = pageSource.slice(displayStart, filterStart);
+
+  assert.match(displaySource, /filterEmpty\.dataset\.deconFilterEmpty = '';/);
+  assert.match(displaySource, /선택한 조합에 해당하는 전략이 없습니다\./);
+  assert.match(displaySource, /filterEmpty\.hidden = true;/);
+  assert.match(displaySource, /setActiveFilter\(null\);/);
+});
+
 test('calculation step exposes source chips with stable hooks and defaults', () => {
   const targetIndex = pageSource.indexOf('data-decon-target-chips');
   const analyzeIndex = pageSource.indexOf('data-decon-analyze-btn', targetIndex);
