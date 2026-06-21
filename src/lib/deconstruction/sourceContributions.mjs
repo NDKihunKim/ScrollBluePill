@@ -56,26 +56,27 @@ function withinBounds(stats, bounds, targetKeys) {
 }
 
 export function enumerateItemLevelContributions({ levelUpDefinition, targetKeys, bounds }) {
-  if (!Number.isInteger(levelUpDefinition?.maxLevelUps) || levelUpDefinition.maxLevelUps <= 0) return [];
+  const maxLevelUps = levelUpDefinition?.maxLevelUps;
+  if (!Number.isInteger(maxLevelUps) || maxLevelUps <= 0) return [];
+
   const oneLevel = enumerateRangeVectors(levelUpDefinition.statRanges ?? {}, targetKeys);
-  const results = [];
   let previous = [{ stats: Object.fromEntries(targetKeys.map((key) => [key, 0])) }];
 
-  for (let levelCount = 1; levelCount <= levelUpDefinition.maxLevelUps; levelCount++) {
+  for (let levelCount = 1; levelCount <= maxLevelUps; levelCount++) {
     const seen = new Map();
     for (const base of previous) {
       for (const outcome of oneLevel) {
         const stats = addVectors(base.stats, outcome, targetKeys);
-        if (!withinBounds(stats, bounds, targetKeys)) continue;
+        if (levelCount === maxLevelUps && !withinBounds(stats, bounds, targetKeys)) continue;
         seen.set(vectorKey(stats, targetKeys), { levelCount, stats });
       }
     }
-    previous = [...seen.values()].sort((a, b) =>
-      vectorKey(a.stats, targetKeys).localeCompare(vectorKey(b.stats, targetKeys)),
+    previous = [...seen.values()].sort((left, right) =>
+      vectorKey(left.stats, targetKeys).localeCompare(vectorKey(right.stats, targetKeys)),
     );
-    results.push(...previous);
   }
-  return results;
+
+  return previous;
 }
 
 // ---- Gem contribution helpers ----

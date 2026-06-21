@@ -15,19 +15,37 @@ test('stimulant solves only residuals inside existing ranges', () => {
   assert.equal(solveStimulantResidual({ maxHp: -60 }, ['maxHp']), null);
 });
 
-test('item-level contributions include every count and deduplicate totals', () => {
+test('item-level contributions include only deduplicated maximum-level totals', () => {
   const results = enumerateItemLevelContributions({
     levelUpDefinition: { maxLevelUps: 2, statRanges: { str: { min: 0, max: 1 } } },
     targetKeys: ['str'],
     bounds: { str: { min: 0, max: 2 } },
   });
-  assert.deepEqual(results.map(({ levelCount, stats }) => ({ levelCount, stats })), [
-    { levelCount: 1, stats: { str: 0 } },
-    { levelCount: 1, stats: { str: 1 } },
+
+  assert.deepEqual(results, [
     { levelCount: 2, stats: { str: 0 } },
     { levelCount: 2, stats: { str: 1 } },
     { levelCount: 2, stats: { str: 2 } },
   ]);
+  assert.ok(results.every(({ levelCount }) => levelCount === 2));
+});
+
+test('item-level totals use each item definition maximum and stat ranges', () => {
+  const reverse = enumerateItemLevelContributions({
+    levelUpDefinition: { maxLevelUps: 3, statRanges: { str: { min: 1, max: 1 } } },
+    targetKeys: ['str'],
+    bounds: { str: { min: -Infinity, max: Infinity } },
+  });
+  const timeless = enumerateItemLevelContributions({
+    levelUpDefinition: { maxLevelUps: 5, statRanges: { dex: { min: 0, max: 1 } } },
+    targetKeys: ['dex'],
+    bounds: { dex: { min: 0, max: 5 } },
+  });
+
+  assert.deepEqual(reverse, [{ levelCount: 3, stats: { str: 3 } }]);
+  assert.equal(timeless.length, 6);
+  assert.ok(timeless.every(({ levelCount }) => levelCount === 5));
+  assert.deepEqual(timeless.map(({ stats }) => stats.dex), [0, 1, 2, 3, 4, 5]);
 });
 
 test('missing level-up definitions produce no contributions', () => {
