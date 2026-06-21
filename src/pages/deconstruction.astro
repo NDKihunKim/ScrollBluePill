@@ -1273,50 +1273,33 @@ const displayResults = (result, targetDeltas) => {
 
   // Filter chips
   const FILTER_DEFS = [
-    { filter: 'all', label: '전체' },
-    { filter: 'scrolls', label: '주문서' },
-    { filter: 'scrolls+stimulant', label: '주문서 + 촉진제' },
-    { filter: 'scrolls+gems', label: '주문서 + 보석' },
-    { filter: 'scrolls+itemLevelUp', label: '주문서 + 레벨업' },
+    { source: null, label: '전체' },
+    { source: 'scrolls', label: '주문서' },
+    { source: 'stimulant', label: '촉진제/추옵' },
+    { source: 'gems', label: '보석 (메이커)' },
+    { source: 'itemLevelUp', label: '레벨업' },
   ];
-
-  const filterChips = [];
 
   for (const def of FILTER_DEFS) {
     const chip = document.createElement('button');
     chip.type = 'button';
     chip.className = 'decon-filter-chip';
-    if (def.filter === 'all') chip.classList.add('decon-filter-chip--active');
-    chip.dataset.deconFilter = def.filter;
-    chip.dataset.deconLabel = def.label;
-    chip.textContent = def.label;
-    chip.addEventListener('click', () => setActiveFilter(def.filter));
+    chip.dataset.deconFilter = def.source ?? 'all';
+    chip.textContent = def.source === null
+      ? `${def.label} (${result.strategies.length})`
+      : def.label;
+    chip.addEventListener('click', () => setActiveFilter(def.source));
     filterChipsContainer.append(chip);
-    filterChips.push(chip);
   }
 
-  const updateFilterCounts = (strategies) => {
-    for (const chip of filterChips) {
-      const filter = chip.dataset.deconFilter;
-      const label = chip.dataset.deconLabel;
-      let count;
-      if (filter === 'all') {
-        count = strategies.length;
-      } else {
-        const filterTypes = filter.split('+').filter(Boolean);
-        count = strategies.filter((s) => {
-          const sourceTypes = s.sourceTypes ?? [];
-          return filterTypes.length === sourceTypes.length
-            && filterTypes.every((ft) => sourceTypes.includes(ft));
-        }).length;
-      }
-      chip.textContent = `${label} (${count})`;
-      chip.classList.toggle('decon-filter-chip--empty', count === 0 && filter !== 'all');
-      chip.disabled = count === 0 && filter !== 'all';
-    }
-  };
-
   // Strategy list
+  const filterEmpty = document.createElement('p');
+  filterEmpty.className = 'decon-filter-empty';
+  filterEmpty.dataset.deconFilterEmpty = '';
+  filterEmpty.textContent = '선택한 조합에 해당하는 전략이 없습니다.';
+  filterEmpty.hidden = true;
+  listContainer.append(filterEmpty);
+
   let analysisIndex = 0;
   for (const strategy of result.strategies) {
     analysisIndex++;
@@ -1428,34 +1411,48 @@ const displayResults = (result, targetDeltas) => {
     listContainer.append(card);
   }
 
-  updateFilterCounts(result.strategies);
+  setActiveFilter(null);
 };
 
 // ---- Filter ----
-let activeFilter = 'all';
+const selectedResultSources = new Set();
 
-const setActiveFilter = (filter) => {
-  activeFilter = filter;
+const sourceSetsMatch = (selectedSources, sourceTypes) =>
+  selectedSources.size === sourceTypes.length
+  && sourceTypes.every((source) => selectedSources.has(source));
+
+const setActiveFilter = (source) => {
+  if (source === null) {
+    selectedResultSources.clear();
+  } else if (selectedResultSources.has(source)) {
+    selectedResultSources.delete(source);
+  } else {
+    selectedResultSources.add(source);
+  }
+
+  const showingAll = selectedResultSources.size === 0;
   const chips = document.querySelectorAll('[data-decon-filter]');
   chips.forEach((chip) => {
+    const chipSource = chip.dataset.deconFilter;
     chip.classList.toggle(
       'decon-filter-chip--active',
-      chip.dataset.deconFilter === filter,
+      showingAll ? chipSource === 'all' : selectedResultSources.has(chipSource),
     );
   });
 
+  let visibleCount = 0;
   const cards = document.querySelectorAll('.decon-strategy-card');
   cards.forEach((card) => {
-    if (filter === 'all') {
-      card.hidden = false;
-    } else {
-      const sourceTypes = (card.dataset.sourceTypes || '').split(',').filter(Boolean);
-      const filterTypes = filter.split('+').filter(Boolean);
-      const matches = filterTypes.length === sourceTypes.length
-        && filterTypes.every((ft) => sourceTypes.includes(ft));
-      card.hidden = !matches;
-    }
+    const sourceTypes = (card.dataset.sourceTypes || '').split(',').filter(Boolean);
+    const matches = showingAll || sourceSetsMatch(selectedResultSources, sourceTypes);
+    card.hidden = !matches;
+    if (matches) visibleCount++;
   });
+
+  const filterEmpty = document.querySelector('[data-decon-filter-empty]');
+  if (filterEmpty instanceof HTMLElement) {
+    filterEmpty.hidden = showingAll || visibleCount > 0;
+  }
 };
 
 // ---- Event listeners ----
@@ -2619,6 +2616,26 @@ aside.panel {
   cursor: default;
   background: transparent;
   color: var(--muted);
+}
+
+:global(.decon-filter-empty) {
+  margin: 12px 0;
+  padding: 10px 14px;
+  border: 1px solid #e6c800;
+  border-radius: 8px;
+  background: #fffbe6;
+  color: #6b5a00;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+:root[data-theme="dark"] :global(.decon-filter-empty) {
+  border-color: #a68c00;
+  background: #332e00;
+  color: #ffe066;
+}
+:global(.decon-filter-empty[hidden]) {
+  display: none;
 }
 
 :global(.decon-strategy-card) {
