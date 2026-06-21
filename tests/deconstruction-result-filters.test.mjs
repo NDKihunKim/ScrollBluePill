@@ -80,6 +80,24 @@ test('non-null zero-stat stimulant does not reuse the +0 sentinel identity', () 
   }]);
 });
 
+test('only explicit null stimulant creates the +0 sentinel', () => {
+  assert.deepEqual(
+    getStrategySecondaryOptions({ stimulant: null }).stimulant.map(({ key }) => key),
+    ['stimulant:none'],
+  );
+
+  const invalidStrategies = [
+    {},
+    { stimulant: undefined },
+    { stimulant: false },
+    { stimulant: 0 },
+    { stimulant: '' },
+  ];
+  for (const strategy of invalidStrategies) {
+    assert.deepEqual(getStrategySecondaryOptions(strategy).stimulant, []);
+  }
+});
+
 test('builds a global strategy universe and selects every option initially', () => {
   const model = buildSecondaryFilterModel(strategies);
   const selections = createInitialSecondarySelections(model);
