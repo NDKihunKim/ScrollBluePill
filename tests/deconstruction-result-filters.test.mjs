@@ -65,6 +65,21 @@ test('normalizes source-specific identities and labels', () => {
   assert.equal(level.itemLevelUp[0].label, '5회 총합 — STR +3, DEX +2');
 });
 
+test('non-null zero-stat stimulant does not reuse the +0 sentinel identity', () => {
+  const zeroStimulant = getStrategySecondaryOptions({
+    stimulant: { stats: { str: 0 } },
+  });
+
+  assert.notEqual(zeroStimulant.stimulant[0].key, 'stimulant:none');
+  assert.deepEqual(zeroStimulant.stimulant, [{
+    source: 'stimulant',
+    key: 'stimulant:stats:none',
+    label: '변화 없음',
+    sortGroup: 1,
+    sortKey: '변화 없음',
+  }]);
+});
+
 test('builds a global strategy universe and selects every option initially', () => {
   const model = buildSecondaryFilterModel(strategies);
   const selections = createInitialSecondarySelections(model);
@@ -145,7 +160,13 @@ test('other facet exclusions make +0 unavailable without clearing its selection'
   selections.get('gems').clear();
   selections.get('itemLevelUp').clear();
 
-  const zeroOption = getFacetOptions(model, selections, 'stimulant')
+  const stimulantOptions = getFacetOptions(model, selections, 'stimulant');
+  assert.deepEqual(stimulantOptions.map(({ key, available }) => ({ key, available })), [
+    { key: 'stimulant:dex:-1|str:3', available: true },
+    { key: 'stimulant:none', available: false },
+  ]);
+
+  const zeroOption = stimulantOptions
     .find(({ key }) => key === 'stimulant:none');
   assert.deepEqual(zeroOption, {
     source: 'stimulant',
