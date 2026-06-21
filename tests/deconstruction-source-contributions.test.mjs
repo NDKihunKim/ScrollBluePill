@@ -69,3 +69,47 @@ test('weapon-only and random gem outcomes follow existing rules', () => {
   });
   assert.ok(weapon.some((entry) => entry.gems[0].gemKey === 'blackAmethyst' && entry.stats.weaponAttack === -3));
 });
+
+test('gems that contribute nothing to target keys are excluded from enumeration', () => {
+  // When targeting only weaponAttack, gems like topaz (maxHp), amethyst (speed),
+  // aquamarine (jump), garnet (accuracy), opal (avoidability), emerald (maxMp)
+  // should never appear because they contribute zero to weaponAttack.
+  const results = enumerateGemContributions({
+    gemSlotCount: 3,
+    equipmentKind: '장갑',
+    cleanStats: { weaponAttack: 0, str: 10, dex: 10, int: 10, luk: 10 },
+    targetKeys: ['weaponAttack'],
+    bounds: { weaponAttack: { min: -Infinity, max: Infinity } },
+  });
+
+  const allGemKeys = new Set(results.flatMap((entry) => entry.gems.map((gem) => gem.gemKey)));
+  // Only gems that can contribute to weaponAttack on a glove: str/dex/int/luk crystals
+  // (via darkCrystal) and no weapon-only gems.
+  // Non-contributing gems like topaz, amethyst, aquamarine, garnet, opal, emerald
+  // must NOT appear.
+  const forbiddenKeys = ['topaz', 'amethyst', 'aquamarine', 'garnet', 'opal', 'emerald'];
+  for (const key of forbiddenKeys) {
+    assert.ok(!allGemKeys.has(key), `gem ${key} should be excluded when target is only weaponAttack`);
+  }
+});
+
+test('gems that contribute to at least one target key are included even if they contribute zero to others', () => {
+  // Target both weaponAttack and STR. strCrystal contributes to STR (not weaponAttack)
+  // so it should be included because it helps with at least one target.
+  const results = enumerateGemContributions({
+    gemSlotCount: 2,
+    equipmentKind: '장갑',
+    cleanStats: { weaponAttack: 0, str: 10 },
+    targetKeys: ['weaponAttack', 'str'],
+    bounds: {
+      weaponAttack: { min: -Infinity, max: Infinity },
+      str: { min: -Infinity, max: Infinity },
+    },
+  });
+
+  const allGemKeys = new Set(results.flatMap((entry) => entry.gems.map((gem) => gem.gemKey)));
+  // strCrystal contributes to STR so it should be present
+  assert.ok(allGemKeys.has('strCrystal'), 'strCrystal should be included because it contributes to STR');
+  // topaz contributes to maxHp (neither target) so it should NOT appear
+  assert.ok(!allGemKeys.has('topaz'), 'topaz should be excluded because it contributes to neither weaponAttack nor STR');
+});

@@ -101,11 +101,14 @@ function buildGemOutcomeOptions({ equipmentKind, cleanStats, targetKeys }) {
     if (gem.weaponOnly && !isWeaponKind(equipmentKind)) continue;
     for (let gradeIndex = 0; gradeIndex < GEM_GRADES.length; gradeIndex++) {
       if (isFixedGem(gem.key)) {
+        const stats = projectVector(getFixedGemStats(gem.key, gradeIndex), targetKeys);
+        // Skip gems that contribute nothing to any checked target key
+        if (Object.values(stats).every((v) => v === 0)) continue;
         options.push({
           gemKey: gem.key,
           nameKo: gem.nameKo,
           gradeIndex,
-          stats: projectVector(getFixedGemStats(gem.key, gradeIndex), targetKeys),
+          stats,
         });
         continue;
       }
@@ -116,8 +119,13 @@ function buildGemOutcomeOptions({ equipmentKind, cleanStats, targetKeys }) {
       const keys = gem.variableKeys.filter(
         (key) => targetKeys.includes(key) && Number.isFinite(cleanStats[key]),
       );
+      // Skip this gem entirely when none of its variable keys overlap with target keys
+      if (keys.length === 0) continue;
       for (const stats of enumerateIndependentStats(keys, uniqueValues(table))) {
-        options.push({ gemKey: gem.key, nameKo: gem.nameKo, gradeIndex, stats: projectVector(stats, targetKeys) });
+        const projected = projectVector(stats, targetKeys);
+        // Skip individual outcomes that add nothing to any checked target key
+        if (Object.values(projected).every((v) => v === 0)) continue;
+        options.push({ gemKey: gem.key, nameKo: gem.nameKo, gradeIndex, stats: projected });
       }
     }
   }
