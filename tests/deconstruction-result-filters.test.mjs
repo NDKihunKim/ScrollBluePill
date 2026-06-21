@@ -119,3 +119,19 @@ test('facet option ordering is deterministic when strategy input order changes',
     );
   }
 });
+
+test('facet option ordering breaks sort-key ties by option key', () => {
+  const collisions = ['alphaCrystal', 'zetaCrystal'].map((gemKey) => ({
+    gems: [{ gemKey, nameKo: '같은 이름', gradeIndex: 1 }],
+  }));
+  const expected = ['gem:alphaCrystal:1', 'gem:zetaCrystal:1'];
+
+  for (const input of [collisions, [...collisions].reverse()]) {
+    const model = buildSecondaryFilterModel(input);
+    const selections = createInitialSecondarySelections(model);
+    assert.deepEqual(
+      getFacetOptions(model, selections, 'gems').map(({ key }) => key),
+      expected,
+    );
+  }
+});
