@@ -303,6 +303,7 @@ import { searchKoreanItems } from '../lib/itemSearch.mjs';
 import { buildItemIconUrl, buildItemSearchUrl } from '../lib/maplestoryIo.mjs';
 import { HP_MP_KEYS } from '../lib/enhancementState.mjs';
 import { enumerateStrategies } from '../lib/deconstruction/engine.mjs';
+import { guardCheckboxMutation } from '../lib/deconstruction/guardedCheckboxMutation.mjs';
 import { GEM_GRADES } from '../lib/makerData.mjs';
 import {
   createDeconstructionSlotState,
@@ -409,15 +410,6 @@ const guardDeconMutation = (fn) => {
   });
 };
 
-const guardDeconCheckboxMutation = (input, apply) => {
-  const nextChecked = input.checked;
-  input.checked = !nextChecked;
-  guardDeconMutation(() => {
-    input.checked = nextChecked;
-    apply();
-  });
-};
-
 const STAT_PRIORITY = ['weaponAttack', 'magicAttack', 'str', 'dex', 'int', 'luk', 'maxHp', 'maxMp', 'weaponDefense', 'magicDefense', 'accuracy', 'avoidability', 'speed', 'jump'];
 
 const statLabelByKey = {
@@ -496,7 +488,7 @@ const renderTargetChips = () => {
     if (checkbox.checked) anyChecked = true;
 
     checkbox.addEventListener('change', () => {
-      guardDeconCheckboxMutation(checkbox, updateAnalyzeButton);
+      guardCheckboxMutation(checkbox, guardDeconMutation, updateAnalyzeButton);
     });
 
     const chipLabel = document.createElement('span');
@@ -1738,7 +1730,7 @@ deconAddStatToggle?.addEventListener('click', () => {
 deconAnalyzeBtn?.addEventListener('click', runAnalysis);
 deconSourceInputs.forEach((input) => {
   input.addEventListener('change', () => {
-    guardDeconCheckboxMutation(input, updateAnalyzeButton);
+    guardCheckboxMutation(input, guardDeconMutation, updateAnalyzeButton);
   });
 });
 

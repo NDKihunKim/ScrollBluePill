@@ -313,14 +313,14 @@ test('successful-scroll changes immediately revalidate analysis', () => {
 test('guarded calculation checkboxes defer their visual state until confirmation', () => {
   assert.match(
     pageSource,
-    /const guardDeconCheckboxMutation = \(input, apply\) => \{\s*const nextChecked = input\.checked;\s*input\.checked = !nextChecked;\s*guardDeconMutation\(\(\) => \{\s*input\.checked = nextChecked;\s*apply\(\);\s*\}\);\s*\};/,
+    /import \{ guardCheckboxMutation \} from '\.\.\/lib\/deconstruction\/guardedCheckboxMutation\.mjs';/,
   );
   assert.match(
     pageSource,
-    /checkbox\.addEventListener\('change', \(\) => \{\s*guardDeconCheckboxMutation\(checkbox, updateAnalyzeButton\);\s*\}\);/,
+    /checkbox\.addEventListener\('change', \(\) => \{\s*guardCheckboxMutation\(checkbox, guardDeconMutation, updateAnalyzeButton\);\s*\}\);/,
   );
   assert.match(
     pageSource,
-    /deconSourceInputs\.forEach\(\(input\) => \{\s*input\.addEventListener\('change', \(\) => \{\s*guardDeconCheckboxMutation\(input, updateAnalyzeButton\);\s*\}\);\s*\}\);/,
+    /deconSourceInputs\.forEach\(\(input\) => \{\s*input\.addEventListener\('change', \(\) => \{\s*guardCheckboxMutation\(input, guardDeconMutation, updateAnalyzeButton\);\s*\}\);\s*\}\);/,
   );
 });
