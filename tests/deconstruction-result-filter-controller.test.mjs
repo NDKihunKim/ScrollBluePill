@@ -25,7 +25,7 @@ const fixture = `<!doctype html>
   </div>
   <script type="module">
     import { createResultFilterController } from '/deconstruction/resultFilterController.mjs';
-    const strategies = [
+    window.testStrategies = [
       { scrolls: [{ id: 'a', nameKo: 'A' }], stimulant: { stats: { str: 1 } }, gems: [], itemLevelUp: null },
       { scrolls: [{ id: 'b', nameKo: 'B' }], stimulant: { stats: { str: 2 } }, gems: [], itemLevelUp: null },
       { scrolls: [{ id: 'c', nameKo: 'C' }], stimulant: null, gems: [], itemLevelUp: null },
@@ -35,7 +35,7 @@ const fixture = `<!doctype html>
         root: document,
         secondaryContainer: document.querySelector('[data-decon-secondary-filters]'),
       });
-      window.controller.initialize(strategies);
+      window.controller.initialize(window.testStrategies);
     } catch (error) {
       window.harnessError = String(error?.message ?? error);
     }
@@ -149,4 +149,74 @@ test('hidden-facet changes disable and reorder active labels without replacing n
 
   await page.locator('[data-decon-filter="gems"]').click();
   assert.equal(await page.locator('[data-decon-secondary-filters]').isHidden(), true);
+});
+
+test('stimulant options preserve no-source fallback and switch to a checked stimulant', async (t) => {
+  t.after(() => page.close());
+  await page.locator('[data-decon-filter="stimulant"]').click();
+
+  assert.deepEqual(
+    await page.locator('[data-decon-option-key]').evaluateAll((labels) =>
+      labels.map((label) => [
+        label.dataset.deconOptionKey,
+        label.querySelector('span')?.textContent,
+        label.querySelector('input')?.checked,
+      ])),
+    [
+      ['stimulant:none', '+0', true],
+      ['stimulant:str:1', 'STR +1', true],
+      ['stimulant:str:2', 'STR +2', true],
+    ],
+  );
+
+  await page.locator('[data-decon-option-key="stimulant:str:1"] input').click();
+  await page.locator('[data-decon-option-key="stimulant:str:2"] input').click();
+  assert.deepEqual(
+    await page.locator('.decon-strategy-card:visible').evaluateAll((cards) =>
+      cards.map((card) => card.dataset.strategyIndex)),
+    ['2'],
+  );
+  assert.equal(await page.locator('[data-decon-filter="all"]').textContent(), '전체 (1)');
+
+  await page.locator('[data-decon-option-key="stimulant:none"] input').click();
+  assert.equal(
+    await page.locator('[data-decon-option-key="stimulant:none"] input').isChecked(),
+    false,
+  );
+  assert.deepEqual(
+    await page.locator('.decon-strategy-card:visible').evaluateAll((cards) =>
+      cards.map((card) => card.dataset.strategyIndex)),
+    ['2'],
+  );
+  assert.equal(await page.locator('[data-decon-filter="all"]').textContent(), '전체 (1)');
+
+  await page.locator('[data-decon-option-key="stimulant:str:1"] input').click();
+  assert.deepEqual(
+    await page.locator('.decon-strategy-card:visible').evaluateAll((cards) =>
+      cards.map((card) => card.dataset.strategyIndex)),
+    ['0'],
+  );
+  assert.equal(await page.locator('[data-strategy-index="2"]').isHidden(), true);
+});
+
+test('reset and reinitialize restore the full result set and stimulant selections', async (t) => {
+  t.after(() => page.close());
+  await page.locator('[data-decon-filter="stimulant"]').click();
+  await page.locator('[data-decon-option-key="stimulant:none"] input').click();
+
+  await page.evaluate(() => {
+    window.controller.reset();
+    window.controller.initialize(window.testStrategies);
+  });
+
+  assert.equal(await page.locator('[data-decon-filter="all"]').getAttribute('aria-pressed'), 'true');
+  assert.equal(await page.locator('[data-decon-secondary-filters]').isHidden(), true);
+  assert.equal(await page.locator('[data-decon-filter="all"]').textContent(), '전체 (3)');
+  assert.equal(await page.locator('.decon-strategy-card:visible').count(), 3);
+
+  await page.locator('[data-decon-filter="stimulant"]').click();
+  assert.equal(
+    await page.locator('[data-decon-option-key="stimulant:none"] input').isChecked(),
+    true,
+  );
 });
