@@ -163,8 +163,8 @@ test('result source filters use exact multi-select matching with all fallback', 
   assert.match(filterSource, /selectedResultSources\.delete\(source\)/);
   assert.match(filterSource, /selectedResultSources\.add\(source\)/);
   assert.match(filterSource, /const showingAll = selectedResultSources\.size === 0;/);
-  assert.match(filterSource, /sourceSetsMatch\(selectedResultSources, sourceTypes\)/);
-  assert.match(filterSource, /filterEmpty\.hidden = showingAll \|\| visibleCount > 0;/);
+  assert.match(filterSource, /buildSecondaryFilterModel\(currentResultStrategies, selectedResultSources\)/);
+  assert.match(filterSource, /filterEmpty\.hidden = visibleCount > 0;/);
 });
 
 test('result filters render a dedicated zero-match message and reset to all per analysis', () => {
@@ -176,6 +176,45 @@ test('result filters render a dedicated zero-match message and reset to all per 
   assert.match(displaySource, /선택한 조합에 해당하는 전략이 없습니다\./);
   assert.match(displaySource, /filterEmpty\.hidden = true;/);
   assert.match(displaySource, /setActiveFilter\(null\);/);
+});
+
+test('result panel exposes a secondary-filter container and imports the pure model', () => {
+  assert.match(
+    pageSource,
+    /data-decon-filter-chips><\/div>\s*<div class="decon-secondary-filters" data-decon-secondary-filters hidden><\/div>/,
+  );
+  assert.match(
+    pageSource,
+    /import \{[\s\S]*RESULT_SOURCE_ORDER,[\s\S]*buildSecondaryFilterModel,[\s\S]*createInitialSecondarySelections,[\s\S]*getFacetOptions,[\s\S]*getVisibleStrategyIndexes,[\s\S]*\} from '\.\.\/lib\/deconstruction\/resultFilters\.mjs';/,
+  );
+});
+
+test('primary result changes rebuild or clear secondary filter state', () => {
+  const filterStart = pageSource.indexOf('// ---- Filter ----');
+  const listenersStart = pageSource.indexOf('// ---- Event listeners ----', filterStart);
+  const filterSource = pageSource.slice(filterStart, listenersStart);
+
+  assert.match(filterSource, /let currentResultStrategies = \[\];/);
+  assert.match(filterSource, /let secondaryFilterModel = null;/);
+  assert.match(filterSource, /let selectedSecondaryOptions = new Map\(\);/);
+  assert.match(filterSource, /const resetSecondaryFilters = \(\) =>/);
+  assert.match(filterSource, /buildSecondaryFilterModel\(currentResultStrategies, selectedResultSources\)/);
+  assert.match(filterSource, /createInitialSecondarySelections\(secondaryFilterModel\)/);
+  assert.match(filterSource, /if \(showingAll\) \{[\s\S]*resetSecondaryFilters\(\);/);
+});
+
+test('secondary checkboxes update selections, availability, and visible cards immediately', () => {
+  const filterStart = pageSource.indexOf('// ---- Filter ----');
+  const listenersStart = pageSource.indexOf('// ---- Event listeners ----', filterStart);
+  const filterSource = pageSource.slice(filterStart, listenersStart);
+
+  assert.match(filterSource, /getFacetOptions\(secondaryFilterModel, selectedSecondaryOptions, source\)/);
+  assert.match(filterSource, /input\.checked = checked\.has\(option\.key\);/);
+  assert.match(filterSource, /input\.disabled = !option\.available;/);
+  assert.match(filterSource, /input\.addEventListener\('change', \(\) =>/);
+  assert.match(filterSource, /checked\.(?:add|delete)\(option\.key\)/);
+  assert.match(filterSource, /getVisibleStrategyIndexes\(secondaryFilterModel, selectedSecondaryOptions\)/);
+  assert.match(filterSource, /renderSecondaryFilters\(\);/);
 });
 
 test('calculation step exposes source chips with stable hooks and defaults', () => {
