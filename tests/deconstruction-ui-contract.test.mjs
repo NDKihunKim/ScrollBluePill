@@ -303,13 +303,24 @@ test('level-up eligibility refreshes after either item or async level data witho
   assert.doesNotMatch(levelLoadSource, /resetAllowedSources\(\)/);
 });
 
-test('source and successful-scroll changes immediately revalidate analysis', () => {
-  assert.match(
-    pageSource,
-    /deconSourceInputs\.forEach\(\(input\) => \{[\s\S]*input\.addEventListener\('change', updateAnalyzeButton\);[\s\S]*\}\);/,
-  );
+test('successful-scroll changes immediately revalidate analysis', () => {
   assert.match(
     pageSource,
     /const renderDeconSlotState = \(\) => \{[\s\S]*updateTargetCard\(\);[\s\S]*updateAnalyzeButton\(\);[\s\S]*\};/,
+  );
+});
+
+test('guarded calculation checkboxes defer their visual state until confirmation', () => {
+  assert.match(
+    pageSource,
+    /const guardDeconCheckboxMutation = \(input, apply\) => \{\s*const nextChecked = input\.checked;\s*input\.checked = !nextChecked;\s*guardDeconMutation\(\(\) => \{\s*input\.checked = nextChecked;\s*apply\(\);\s*\}\);\s*\};/,
+  );
+  assert.match(
+    pageSource,
+    /checkbox\.addEventListener\('change', \(\) => \{\s*guardDeconCheckboxMutation\(checkbox, updateAnalyzeButton\);\s*\}\);/,
+  );
+  assert.match(
+    pageSource,
+    /deconSourceInputs\.forEach\(\(input\) => \{\s*input\.addEventListener\('change', \(\) => \{\s*guardDeconCheckboxMutation\(input, updateAnalyzeButton\);\s*\}\);\s*\}\);/,
   );
 });
