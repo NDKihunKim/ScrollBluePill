@@ -1,0 +1,84 @@
+<h2>Filter Chip Design Approaches</h2>
+<p class="subtitle">Each approach shown at two sizes. The chip for "주문서 + 보석" is the active/selected state.</p>
+
+<div class="section">
+  <h3>A — Ghost / Outline Only</h3>
+  <p class="subtitle">Inactive: transparent bg, subtle border, normal weight. Active: filled accent bg, white text, no border. <strong>Maximum contrast between states.</strong></p>
+
+  <p style="margin-top:16px;margin-bottom:10px;font-weight:600;font-size:0.82rem;color:var(--muted)">Default size (padding 6px 14px, 0.82rem)</p>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+    <button type="button" style="padding:6px 14px;border:1px solid #d0d5dd;border-radius:6px;background:transparent;color:#475569;font-size:0.82rem;font-weight:500;cursor:pointer">전체</button>
+    <button type="button" style="padding:6px 14px;border:1px solid #d0d5dd;border-radius:6px;background:transparent;color:#475569;font-size:0.82rem;font-weight:500;cursor:pointer">주문서만</button>
+    <button type="button" style="padding:6px 14px;border:1px solid #d0d5dd;border-radius:6px;background:transparent;color:#475569;font-size:0.82rem;font-weight:500;cursor:pointer">주문서 + 촉진제</button>
+    <button type="button" style="padding:6px 14px;border:1px solid #16a34a;border-radius:6px;background:#16a34a;color:#fff;font-size:0.82rem;font-weight:600;cursor:pointer">주문서 + 보석</button>
+    <button type="button" style="padding:6px 14px;border:1px solid #d0d5dd;border-radius:6px;background:transparent;color:#475569;font-size:0.82rem;font-weight:500;cursor:pointer">주문서 + 레벨업</button>
+  </div>
+
+  <p style="margin-top:14px;margin-bottom:10px;font-weight:600;font-size:0.82rem;color:var(--muted)">Compact (padding 3px 10px, 0.76rem)</p>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <button type="button" style="padding:3px 10px;border:1px solid #d0d5dd;border-radius:5px;background:transparent;color:#475569;font-size:0.76rem;font-weight:500;cursor:pointer">전체</button>
+    <button type="button" style="padding:3px 10px;border:1px solid #d0d5dd;border-radius:5px;background:transparent;color:#475569;font-size:0.76rem;font-weight:500;cursor:pointer">주문서만</button>
+    <button type="button" style="padding:3px 10px;border:1px solid #d0d5dd;border-radius:5px;background:transparent;color:#475569;font-size:0.76rem;font-weight:500;cursor:pointer">주문서 + 촉진제</button>
+    <button type="button" style="padding:3px 10px;border:1px solid #16a34a;border-radius:5px;background:#16a34a;color:#fff;font-size:0.76rem;font-weight:600;cursor:pointer">주문서 + 보석</button>
+    <button type="button" style="padding:3px 10px;border:1px solid #d0d5dd;border-radius:5px;background:transparent;color:#475569;font-size:0.76rem;font-weight:500;cursor:pointer">주문서 + 레벨업</button>
+  </div>
+</div>
+
+<div class="section">
+  <h3>B — Muted Pill Tags</h3>
+  <p class="subtitle">Inactive: very subtle gray fill, no visible border, pill shape. Active: accent bg, white text. <strong>Most compact and understated.</strong></p>
+
+  <p style="margin-top:16px;margin-bottom:10px;font-weight:600;font-size:0.82rem;color:var(--muted)">Default size (padding 4px 12px, 0.80rem)</p>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
+    <button type="button" style="padding:4px 12px;border:none;border-radius:100px;background:#f1f5f9;color:#64748b;font-size:0.80rem;font-weight:500;cursor:pointer">전체</button>
+    <button type="button" style="padding:4px 12px;border:none;border-radius:100px;background:#f1f5f9;color:#64748b;font-size:0.80rem;font-weight:500;cursor:pointer">주문서만</button>
+    <button type="button" style="padding:4px 12px;border:none;border-radius:100px;background:#f1f5f9;color:#64748b;font-size:0.80rem;font-weight:500;cursor:pointer">주문서 + 촉진제</button>
+    <button type="button" style="padding:4px 12px;border:none;border-radius:100px;background:#16a34a;color:#fff;font-size:0.80rem;font-weight:600;cursor:pointer">주문서 + 보석</button>
+    <button type="button" style="padding:4px 12px;border:none;border-radius:100px;background:#f1f5f9;color:#64748b;font-size:0.80rem;font-weight:500;cursor:pointer">주문서 + 레벨업</button>
+  </div>
+
+  <p style="margin-top:14px;margin-bottom:10px;font-weight:600;font-size:0.82rem;color:var(--muted)">Compact (padding 2px 10px, 0.74rem)</p>
+  <div style="display:flex;gap:5px;flex-wrap:wrap">
+    <button type="button" style="padding:2px 10px;border:none;border-radius:100px;background:#f1f5f9;color:#64748b;font-size:0.74rem;font-weight:500;cursor:pointer">전체</button>
+    <button type="button" style="padding:2px 10px;border:none;border-radius:100px;background:#f1f5f9;color:#64748b;font-size:0.74rem;font-weight:500;cursor:pointer">주문서만</button>
+    <button type="button" style="padding:2px 10px;border:none;border-radius:100px;background:#f1f5f9;color:#64748b;font-size:0.74rem;font-weight:500;cursor:pointer">주문서 + 촉진제</button>
+    <button type="button" style="padding:2px 10px;border:none;border-radius:100px;background:#16a34a;color:#fff;font-size:0.74rem;font-weight:600;cursor:pointer">주문서 + 보석</button>
+    <button type="button" style="padding:2px 10px;border:none;border-radius:100px;background:#f1f5f9;color:#64748b;font-size:0.74rem;font-weight:500;cursor:pointer">주문서 + 레벨업</button>
+  </div>
+</div>
+
+<div class="section">
+  <h3>C — Segmented Control</h3>
+  <p class="subtitle">All chips joined into a single bar. Only the selected segment is filled. <strong>Unmistakable selection, very compact.</strong></p>
+
+  <p style="margin-top:16px;margin-bottom:10px;font-weight:600;font-size:0.82rem;color:var(--muted)">Default size (padding 5px 14px, 0.80rem)</p>
+  <div style="display:inline-flex;border:1px solid #d0d5dd;border-radius:8px;overflow:hidden;margin-bottom:16px">
+    <button type="button" style="padding:5px 14px;border:none;border-right:1px solid #d0d5dd;background:transparent;color:#64748b;font-size:0.80rem;font-weight:500;cursor:pointer">전체</button>
+    <button type="button" style="padding:5px 14px;border:none;border-right:1px solid #d0d5dd;background:transparent;color:#64748b;font-size:0.80rem;font-weight:500;cursor:pointer">주문서만</button>
+    <button type="button" style="padding:5px 14px;border:none;border-right:1px solid #d0d5dd;background:transparent;color:#64748b;font-size:0.80rem;font-weight:500;cursor:pointer">주문서 + 촉진제</button>
+    <button type="button" style="padding:5px 14px;border:none;border-right:1px solid #d0d5dd;background:#16a34a;color:#fff;font-size:0.80rem;font-weight:600;cursor:pointer">주문서 + 보석</button>
+    <button type="button" style="padding:5px 14px;border:none;background:transparent;color:#64748b;font-size:0.80rem;font-weight:500;cursor:pointer">주문서 + 레벨업</button>
+  </div>
+
+  <p style="margin-top:14px;margin-bottom:10px;font-weight:600;font-size:0.82rem;color:var(--muted)">Compact (padding 3px 10px, 0.74rem)</p>
+  <div style="display:inline-flex;border:1px solid #d0d5dd;border-radius:7px;overflow:hidden">
+    <button type="button" style="padding:3px 10px;border:none;border-right:1px solid #d0d5dd;background:transparent;color:#64748b;font-size:0.74rem;font-weight:500;cursor:pointer">전체</button>
+    <button type="button" style="padding:3px 10px;border:none;border-right:1px solid #d0d5dd;background:transparent;color:#64748b;font-size:0.74rem;font-weight:500;cursor:pointer">주문서만</button>
+    <button type="button" style="padding:3px 10px;border:none;border-right:1px solid #d0d5dd;background:transparent;color:#64748b;font-size:0.74rem;font-weight:500;cursor:pointer">주문서 + 촉진제</button>
+    <button type="button" style="padding:3px 10px;border:none;border-right:1px solid #d0d5dd;background:#16a34a;color:#fff;font-size:0.74rem;font-weight:600;cursor:pointer">주문서 + 보석</button>
+    <button type="button" style="padding:3px 10px;border:none;background:transparent;color:#64748b;font-size:0.74rem;font-weight:500;cursor:pointer">주문서 + 레벨업</button>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Current — For Comparison</h3>
+  <p class="subtitle">The problem: ALL chips have filled backgrounds and bold weight. The active/inactive distinction is too subtle.</p>
+
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <button type="button" style="padding:5px 12px;border:1px solid #d0d5dd;border-radius:5px;background:#f5f4f0;color:#333;font-size:0.82rem;font-weight:650;cursor:pointer">전체</button>
+    <button type="button" style="padding:5px 12px;border:1px solid #d0d5dd;border-radius:5px;background:#f5f4f0;color:#333;font-size:0.82rem;font-weight:650;cursor:pointer">주문서만</button>
+    <button type="button" style="padding:5px 12px;border:1px solid #d0d5dd;border-radius:5px;background:#f5f4f0;color:#333;font-size:0.82rem;font-weight:650;cursor:pointer">주문서 + 촉진제</button>
+    <button type="button" style="padding:5px 12px;border:1px solid #16a34a;border-radius:5px;background:#16a34a;color:#fff;font-size:0.82rem;font-weight:650;cursor:pointer">주문서 + 보석</button>
+    <button type="button" style="padding:5px 12px;border:1px solid #d0d5dd;border-radius:5px;background:#f5f4f0;color:#333;font-size:0.82rem;font-weight:650;cursor:pointer">주문서 + 레벨업</button>
+  </div>
+</div>
