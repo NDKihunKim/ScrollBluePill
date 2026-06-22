@@ -390,6 +390,12 @@ const deconStimulantSource = document.querySelector('[data-decon-source="stimula
 const deconGemsSource = document.querySelector('[data-decon-source="gems"]');
 const deconItemLevelUpSource = document.querySelector('[data-decon-source="itemLevelUp"]');
 const deconLevelUpSource = document.querySelector('[data-decon-level-up-source]');
+const deconLevelRow = document.querySelector('[data-decon-level-row]');
+const deconLevelMinBtn = document.querySelector('[data-decon-level-min]');
+const deconLevelDecBtn = document.querySelector('[data-decon-level-dec]');
+const deconLevelIncBtn = document.querySelector('[data-decon-level-inc]');
+const deconLevelMaxBtn = document.querySelector('[data-decon-level-max]');
+const deconLevelValue = document.querySelector('[data-decon-level-value]');
 const deconSourceMessage = document.querySelector('[data-decon-source-message]');
 const deconSecondaryFilters = document.querySelector('[data-decon-secondary-filters]');
 const resultFilterController = createResultFilterController({
@@ -407,6 +413,7 @@ let deconDeltas = {};
 let deconStatKeys = [];
 let deconSlotState = createDeconstructionSlotState(0);
 let deconHasActionableResults = false;
+let deconItemLevel = 1;
 
 const guardDeconMutation = (fn) => {
   if (!deconHasActionableResults) { fn(); return; }
@@ -437,7 +444,7 @@ const getAllowedSources = () => resolveAllowedSources(
   },
   {
     itemLevelUpEligible:
-      deconLevelUpSource instanceof HTMLElement && !deconLevelUpSource.hidden,
+      deconLevelUpSource instanceof HTMLElement && !deconLevelUpSource.hidden && getDeconItemLevelSourceEligibility(),
   },
 );
 
@@ -451,9 +458,19 @@ const resetAllowedSources = () => {
   }
 };
 
+const getDeconItemLevelSourceEligibility = () => {
+  if (!selectedItem) return false;
+  const def = itemLevelUpByItemId.get(selectedItem.id);
+  if (!def) return false;
+  const maxLevelUps = Number.isInteger(def.maxLevelUps) ? def.maxLevelUps : 0;
+  return deconItemLevel < maxLevelUps;
+};
+
 const updateLevelUpSourceEligibility = () => {
   if (!(deconLevelUpSource instanceof HTMLElement)) return;
-  deconLevelUpSource.hidden = !selectedItem || !itemLevelUpByItemId.has(selectedItem.id);
+  const def = selectedItem ? itemLevelUpByItemId.get(selectedItem.id) : null;
+  const maxLevelUps = Number.isInteger(def?.maxLevelUps) ? def.maxLevelUps : 0;
+  deconLevelUpSource.hidden = !selectedItem || !itemLevelUpByItemId.has(selectedItem.id) || deconItemLevel >= maxLevelUps;
   updateAnalyzeButton();
 };
 
@@ -659,9 +676,13 @@ const renderTargetItemCard = (item) => {
     selectedItemRequirements.append(createItemLine(label, value, 'selected-item-line--requirement'));
   });
 
+  const levelUpDef = itemLevelUpByItemId.get(item.id);
+  const maxLevelUps = Number.isInteger(levelUpDef?.maxLevelUps) ? levelUpDef.maxLevelUps : 0;
+  const alreadyApplied = Math.max(0, Math.min(maxLevelUps, deconItemLevel - 1));
+  const virtualSlots = Array(maxLevelUps).fill(null).map((_, i) => i < alreadyApplied ? { stats: {} } : null);
   const itemLevelUpMeta = computeItemLevelUpCardMeta(
-    { itemLevelUpSlots: [] },
-    itemLevelUpByItemId.get(item.id) ?? null,
+    { itemLevelUpSlots: virtualSlots },
+    levelUpDef ?? null,
   );
   if (itemLevelUpMeta) {
     selectedItemRequirements.append(
@@ -920,6 +941,21 @@ const renderDeconSlotState = () => {
   updateAnalyzeButton();
 };
 
+const renderDeconItemLevel = () => {
+  if (!(deconLevelRow instanceof HTMLElement)) return;
+  const def = selectedItem ? itemLevelUpByItemId.get(selectedItem.id) : null;
+  const maxLevelUps = Number.isInteger(def?.maxLevelUps) ? def.maxLevelUps : 0;
+  // data-decon-level-row.hidden = !selectedItem
+  deconLevelRow.hidden = !selectedItem || maxLevelUps <= 0;
+  if (maxLevelUps > 0 && deconLevelMaxBtn instanceof HTMLButtonElement) {
+    deconLevelMaxBtn.textContent = `MAX ${maxLevelUps}`;
+  }
+  if (deconLevelValue instanceof HTMLElement) {
+    deconLevelValue.textContent = String(deconItemLevel);
+  }
+  updateTargetCard();
+};
+
 // ---- Item search handling (adapted from expected-value.astro) ----
 const syncJobButtons = () => {
   jobInputs?.forEach((input) => {
@@ -997,6 +1033,8 @@ const selectSuggestedItem = (item, { syncFilters = true } = {}) => {
   selectedItem = item;
   if (itemChanged) resetAllowedSources();
   updateLevelUpSourceEligibility();
+  deconItemLevel = 1;
+  renderDeconItemLevel();
   renderTargetItemCard(item);
   activateDeconEditPanel(item);
   if (syncFilters) {
@@ -1220,7 +1258,9 @@ const activateDeconEditPanel = (item) => {
 
   // Reset slot history from the selected clean item
   deconSlotState = createDeconstructionSlotState(item.stats?.upgradeSlots ?? 0);
+  deconItemLevel = 1;
   renderDeconSlotState();
+  renderDeconItemLevel();
 
   // Build stat editor
   const statKeys = ['str', 'dex', 'int', 'luk', 'maxHp', 'maxMp', 'weaponAttack', 'magicAttack', 'weaponDefense', 'magicDefense', 'accuracy', 'avoidability', 'speed', 'jump'];
@@ -1250,6 +1290,7 @@ const runAnalysis = () => {
     checkedKeys.map((key) => [key, deconDeltas[key] ?? 0]),
   );
 
+  const levelUpDef = itemLevelUpByItemId.get(selectedItem.id);
   const result = enumerateStrategies({
     targetDeltas,
     targetKeys: checkedKeys,
@@ -1259,7 +1300,8 @@ const runAnalysis = () => {
     requiredLevel: selectedItem.requiredLevel ?? 0,
     cleanStats: selectedItem.stats ?? {},
     scrollsByEquipmentKind,
-    levelUpDefinition: itemLevelUpByItemId.get(selectedItem.id) ?? null,
+    levelUpDefinition: levelUpDef ?? null,
+    alreadyAppliedLevels: deconItemLevel - 1,
   });
 
   displayResults(result, targetDeltas);
@@ -1628,6 +1670,36 @@ deconSlotInc?.addEventListener('click', () => guardDeconMutation(() => {
 deconSlotMax?.addEventListener('click', () => guardDeconMutation(() => {
   deconSlotState = setRemainingSlotCount(deconSlotState, deconSlotState.maxSlots);
   renderDeconSlotState();
+}));
+
+// ---- Level steppers ----
+deconLevelMinBtn?.addEventListener('click', () => guardDeconMutation(() => {
+  deconItemLevel = 1;
+  renderDeconItemLevel();
+  updateLevelUpSourceEligibility();
+}));
+deconLevelDecBtn?.addEventListener('click', () => guardDeconMutation(() => {
+  if (deconItemLevel > 1) {
+    deconItemLevel--;
+    renderDeconItemLevel();
+    updateLevelUpSourceEligibility();
+  }
+}));
+deconLevelIncBtn?.addEventListener('click', () => guardDeconMutation(() => {
+  const def = selectedItem ? itemLevelUpByItemId.get(selectedItem.id) : null;
+  const maxLevelUps = Number.isInteger(def?.maxLevelUps) ? def.maxLevelUps : 0;
+  if (deconItemLevel < maxLevelUps) {
+    deconItemLevel++;
+    renderDeconItemLevel();
+    updateLevelUpSourceEligibility();
+  }
+}));
+deconLevelMaxBtn?.addEventListener('click', () => guardDeconMutation(() => {
+  const def = selectedItem ? itemLevelUpByItemId.get(selectedItem.id) : null;
+  const maxLevelUps = Number.isInteger(def?.maxLevelUps) ? def.maxLevelUps : 0;
+  deconItemLevel = Math.max(1, maxLevelUps);
+  renderDeconItemLevel();
+  updateLevelUpSourceEligibility();
 }));
 
 // ---- Add-stat accordion toggle ----
