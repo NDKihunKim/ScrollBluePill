@@ -10,16 +10,23 @@ import { addVectors, projectVector, vectorKey } from './statVectors.mjs';
 
 const WEAPON_ONLY_STIM_KEYS = new Set(['weaponAttack', 'magicAttack']);
 
-export function solveStimulantResidual(residual, targetKeys, { isWeapon = true } = {}) {
+export function solveStimulantResidual(residual, targetKeys, { isWeapon = true, bounds = null } = {}) {
   const stats = {};
   let hasNonZero = false;
   for (const key of targetKeys) {
     const value = residual[key] || 0;
-    const limit = HP_MP_KEYS.has(key) ? 50 : 5;
+    const baseLimit = HP_MP_KEYS.has(key) ? 50 : 5;
     const step = HP_MP_KEYS.has(key) ? 10 : 1;
+    const boundRange = bounds?.[key];
+    const effectiveMin = boundRange && Number.isFinite(boundRange.min)
+      ? Math.max(-baseLimit, Math.min(baseLimit, boundRange.min))
+      : -baseLimit;
+    const effectiveMax = boundRange && Number.isFinite(boundRange.max)
+      ? Math.max(-baseLimit, Math.min(baseLimit, boundRange.max))
+      : baseLimit;
     // 촉진제 can only affect weaponAttack/magicAttack on weapons
     if (!isWeapon && WEAPON_ONLY_STIM_KEYS.has(key) && value !== 0) return null;
-    if (value < -limit || value > limit || value % step !== 0) return null;
+    if (value < effectiveMin || value > effectiveMax || value % step !== 0) return null;
     stats[key] = value;
     if (value !== 0) hasNonZero = true;
   }
@@ -55,18 +62,36 @@ function withinBounds(stats, bounds, targetKeys) {
   });
 }
 
-export function enumerateItemLevelContributions({ levelUpDefinition, targetKeys, bounds, alreadyAppliedLevels = 0 }) {
+export function enumerateItemLevelContributions({ levelUpDefinition, targetKeys, bounds, alreadyAppliedLevels = 0, perSlotRanges = null }) {
   const maxLevelUps = levelUpDefinition?.maxLevelUps;
   if (!Number.isInteger(maxLevelUps) || maxLevelUps <= 0) return [];
 
   const remainingLevels = maxLevelUps - (Number.isFinite(alreadyAppliedLevels) ? Math.max(0, Math.trunc(alreadyAppliedLevels)) : 0);
   if (remainingLevels <= 0) return [];
 
-  const oneLevel = enumerateRangeVectors(levelUpDefinition.statRanges ?? {}, targetKeys);
+  const defaultRanges = levelUpDefinition.statRanges ?? {};
   let previous = [{ stats: Object.fromEntries(targetKeys.map((key) => [key, 0])) }];
 
   for (let levelCount = 1; levelCount <= remainingLevels; levelCount++) {
     const seen = new Map();
+    const slotIndex = levelCount - 1;
+    const slotRanges = perSlotRanges?.[slotIndex];
+    let effectiveRanges = defaultRanges;
+    if (slotRanges) {
+      effectiveRanges = {};
+      for (const key of targetKeys) {
+        const defRange = defaultRanges[key] ?? { min: 0, max: 0 };
+        effectiveRanges[key] = {
+          min: slotRanges[key] && Number.isFinite(slotRanges[key].min)
+            ? Math.max(defRange.min, Math.min(defRange.max, slotRanges[key].min))
+            : defRange.min,
+          max: slotRanges[key] && Number.isFinite(slotRanges[key].max)
+            ? Math.max(defRange.min, Math.min(defRange.max, slotRanges[key].max))
+            : defRange.max,
+        };
+      }
+    }
+    const oneLevel = enumerateRangeVectors(effectiveRanges, targetKeys);
     for (const base of previous) {
       for (const outcome of oneLevel) {
         const stats = addVectors(base.stats, outcome, targetKeys);
