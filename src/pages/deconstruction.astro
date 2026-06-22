@@ -215,7 +215,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
               <span class="chaos-stat-label">아이템 레벨</span>
               <button type="button" class="chaos-stepper-btn chaos-stepper-btn--max" data-decon-level-min>MIN</button>
               <button type="button" class="chaos-stepper-btn" data-decon-level-dec>−</button>
-              <span class="chaos-stepper-value" data-decon-level-value>0</span>
+              <span class="chaos-stepper-value" data-decon-level-value>1</span>
               <button type="button" class="chaos-stepper-btn" data-decon-level-inc>+</button>
               <button type="button" class="chaos-stepper-btn chaos-stepper-btn--max" data-decon-level-max>MAX</button>
             </div>
@@ -413,7 +413,7 @@ let deconDeltas = {};
 let deconStatKeys = [];
 let deconSlotState = createDeconstructionSlotState(0);
 let deconHasActionableResults = false;
-let deconItemLevel = 0;
+let deconItemLevel = 1;
 
 const guardDeconMutation = (fn) => {
   if (!deconHasActionableResults) { fn(); return; }
@@ -463,7 +463,7 @@ const getDeconItemLevelSourceEligibility = () => {
   const def = itemLevelUpByItemId.get(selectedItem.id);
   if (!def) return false;
   const maxLevelUps = Number.isInteger(def.maxLevelUps) ? def.maxLevelUps : 0;
-  return deconItemLevel < maxLevelUps;
+  return deconItemLevel <= maxLevelUps;
 };
 
 const updateLevelUpSourceEligibility = () => {
@@ -676,7 +676,7 @@ const renderTargetItemCard = (item) => {
 
   const levelUpDef = itemLevelUpByItemId.get(item.id);
   const maxLevelUps = Number.isInteger(levelUpDef?.maxLevelUps) ? levelUpDef.maxLevelUps : 0;
-  const alreadyApplied = Math.max(0, Math.min(maxLevelUps, deconItemLevel));
+  const alreadyApplied = Math.max(0, Math.min(maxLevelUps, deconItemLevel - 1));
   const virtualSlots = Array(maxLevelUps).fill(null).map((_, i) => i < alreadyApplied ? { stats: {} } : null);
   const itemLevelUpMeta = computeItemLevelUpCardMeta(
     { itemLevelUpSlots: virtualSlots },
@@ -1031,7 +1031,7 @@ const selectSuggestedItem = (item, { syncFilters = true } = {}) => {
   selectedItem = item;
   if (itemChanged) resetAllowedSources();
   updateLevelUpSourceEligibility();
-  deconItemLevel = 0;
+  deconItemLevel = 1;
   renderDeconItemLevel();
   renderTargetItemCard(item);
   activateDeconEditPanel(item);
@@ -1256,7 +1256,7 @@ const activateDeconEditPanel = (item) => {
 
   // Reset slot history from the selected clean item
   deconSlotState = createDeconstructionSlotState(item.stats?.upgradeSlots ?? 0);
-  deconItemLevel = 0;
+  deconItemLevel = 1;
   renderDeconSlotState();
   renderDeconItemLevel();
 
@@ -1300,7 +1300,7 @@ const runAnalysis = () => {
     cleanStats: selectedItem.stats ?? {},
     scrollsByEquipmentKind,
     levelUpDefinition: levelUpDef ?? null,
-    alreadyAppliedLevels: Math.max(0, Math.min(maxLevelUps, deconItemLevel)),
+    alreadyAppliedLevels: Math.max(0, Math.min(maxLevelUps, deconItemLevel - 1)),
   });
 
   displayResults(result, targetDeltas);
@@ -1673,12 +1673,12 @@ deconSlotMax?.addEventListener('click', () => guardDeconMutation(() => {
 
 // ---- Level steppers ----
 deconLevelMinBtn?.addEventListener('click', () => guardDeconMutation(() => {
-  deconItemLevel = 0;
+  deconItemLevel = 1;
   renderDeconItemLevel();
   updateLevelUpSourceEligibility();
 }));
 deconLevelDecBtn?.addEventListener('click', () => guardDeconMutation(() => {
-  if (deconItemLevel > 0) {
+  if (deconItemLevel > 1) {
     deconItemLevel--;
     renderDeconItemLevel();
     updateLevelUpSourceEligibility();
@@ -1687,7 +1687,7 @@ deconLevelDecBtn?.addEventListener('click', () => guardDeconMutation(() => {
 deconLevelIncBtn?.addEventListener('click', () => guardDeconMutation(() => {
   const def = selectedItem ? itemLevelUpByItemId.get(selectedItem.id) : null;
   const maxLevelUps = Number.isInteger(def?.maxLevelUps) ? def.maxLevelUps : 0;
-  if (deconItemLevel < maxLevelUps) {
+  if (deconItemLevel <= maxLevelUps) {
     deconItemLevel++;
     renderDeconItemLevel();
     updateLevelUpSourceEligibility();
@@ -1696,7 +1696,7 @@ deconLevelIncBtn?.addEventListener('click', () => guardDeconMutation(() => {
 deconLevelMaxBtn?.addEventListener('click', () => guardDeconMutation(() => {
   const def = selectedItem ? itemLevelUpByItemId.get(selectedItem.id) : null;
   const maxLevelUps = Number.isInteger(def?.maxLevelUps) ? def.maxLevelUps : 0;
-  deconItemLevel = Math.max(0, maxLevelUps);
+  deconItemLevel = maxLevelUps + 1;
   renderDeconItemLevel();
   updateLevelUpSourceEligibility();
 }));
