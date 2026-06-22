@@ -468,9 +468,7 @@ const getDeconItemLevelSourceEligibility = () => {
 
 const updateLevelUpSourceEligibility = () => {
   if (!(deconLevelUpSource instanceof HTMLElement)) return;
-  const def = selectedItem ? itemLevelUpByItemId.get(selectedItem.id) : null;
-  const maxLevelUps = Number.isInteger(def?.maxLevelUps) ? def.maxLevelUps : 0;
-  deconLevelUpSource.hidden = !selectedItem || !itemLevelUpByItemId.has(selectedItem.id) || deconItemLevel >= maxLevelUps;
+  deconLevelUpSource.hidden = !selectedItem || !itemLevelUpByItemId.has(selectedItem.id);
   updateAnalyzeButton();
 };
 
