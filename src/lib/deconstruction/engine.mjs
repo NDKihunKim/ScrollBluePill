@@ -287,6 +287,7 @@ function buildResult({ scrolls, stimulant, gems, itemLevelUp, priorityRank, targ
  * @param {object}          opts.cleanStats             Base item stats (before enhancement)
  * @param {Map<string,Array>} opts.scrollsByEquipmentKind  Scrolls grouped by equipment kind
  * @param {object|null}     opts.levelUpDefinition      Item level-up definition or null
+ * @param {number}             opts.alreadyAppliedLevels  Level-ups already consumed (default 0)
  * @param {object}          opts.allowedSources         Optional source permissions
  * @returns {{ strategies: Array, total: number, tooManyResults: boolean }}
  */
@@ -300,6 +301,7 @@ export function enumerateStrategies({
   scrollsByEquipmentKind,
   levelUpDefinition = null,
   allowedSources,
+  alreadyAppliedLevels = 0,
 }) {
   const strategies = [];
   let tooManyResults = false;
@@ -362,6 +364,7 @@ export function enumerateStrategies({
         levelUpDefinition,
         targetKeys,
         bounds: itemBounds,
+        alreadyAppliedLevels,
       })
     : [];
 

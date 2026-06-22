@@ -55,19 +55,22 @@ function withinBounds(stats, bounds, targetKeys) {
   });
 }
 
-export function enumerateItemLevelContributions({ levelUpDefinition, targetKeys, bounds }) {
+export function enumerateItemLevelContributions({ levelUpDefinition, targetKeys, bounds, alreadyAppliedLevels = 0 }) {
   const maxLevelUps = levelUpDefinition?.maxLevelUps;
   if (!Number.isInteger(maxLevelUps) || maxLevelUps <= 0) return [];
+
+  const remainingLevels = maxLevelUps - (Number.isFinite(alreadyAppliedLevels) ? Math.max(0, Math.trunc(alreadyAppliedLevels)) : 0);
+  if (remainingLevels <= 0) return [];
 
   const oneLevel = enumerateRangeVectors(levelUpDefinition.statRanges ?? {}, targetKeys);
   let previous = [{ stats: Object.fromEntries(targetKeys.map((key) => [key, 0])) }];
 
-  for (let levelCount = 1; levelCount <= maxLevelUps; levelCount++) {
+  for (let levelCount = 1; levelCount <= remainingLevels; levelCount++) {
     const seen = new Map();
     for (const base of previous) {
       for (const outcome of oneLevel) {
         const stats = addVectors(base.stats, outcome, targetKeys);
-        if (levelCount === maxLevelUps && !withinBounds(stats, bounds, targetKeys)) continue;
+        if (levelCount === remainingLevels && !withinBounds(stats, bounds, targetKeys)) continue;
         seen.set(vectorKey(stats, targetKeys), { levelCount, stats });
       }
     }
