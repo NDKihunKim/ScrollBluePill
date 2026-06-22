@@ -655,3 +655,87 @@ test('scrollRateFilter null preserves all scrolls (backward compat)', () => {
   });
   assert.equal(withFilter.strategies.length, withoutFilter.strategies.length);
 });
+
+test('stimulantStatBounds restricts stimulant outcomes', () => {
+  const result = enumerateStrategies({
+    targetDeltas: { str: 3 },
+    targetKeys: ['str'],
+    successfulScrollCount: 0,
+    equipmentKind: 'Cape',
+    requiredLevel: 50,
+    cleanStats: { str: 0 },
+    scrollsByEquipmentKind: new Map([['Cape', []]]),
+    levelUpDefinition: null,
+    allowedSources: { scrolls: false, stimulant: true, gems: false, itemLevelUp: false },
+    stimulantStatBounds: { str: { min: 2, max: 4 } },
+  });
+  assert.ok(result.strategies.length > 0);
+  for (const s of result.strategies) {
+    assert.ok(s.hasStimulant);
+    assert.ok(s.stimulant.stats.str >= 2 && s.stimulant.stats.str <= 4,
+      `stimulant str ${s.stimulant.stats.str} should be within [2,4]`);
+  }
+});
+
+test('stimulantStatBounds outside default range is clamped', () => {
+  const result = enumerateStrategies({
+    targetDeltas: { str: 3 },
+    targetKeys: ['str'],
+    successfulScrollCount: 0,
+    equipmentKind: 'Cape',
+    requiredLevel: 50,
+    cleanStats: { str: 0 },
+    scrollsByEquipmentKind: new Map([['Cape', []]]),
+    levelUpDefinition: null,
+    allowedSources: { scrolls: false, stimulant: true, gems: false, itemLevelUp: false },
+    stimulantStatBounds: { str: { min: -100, max: 100 } },
+  });
+  for (const s of result.strategies) {
+    if (s.hasStimulant) {
+      assert.ok(s.stimulant.stats.str >= -5 && s.stimulant.stats.str <= 5);
+    }
+  }
+});
+
+test('levelUpSlotStatRanges overrides per-slot stat ranges', () => {
+  const levelUpDef = { maxLevelUps: 2, statRanges: { str: { min: 0, max: 3 } } };
+  const result = enumerateStrategies({
+    targetDeltas: { str: 2 },
+    targetKeys: ['str'],
+    successfulScrollCount: 0,
+    equipmentKind: 'Cape',
+    requiredLevel: 0,
+    cleanStats: { str: 0 },
+    scrollsByEquipmentKind: new Map([['Cape', []]]),
+    levelUpDefinition: levelUpDef,
+    allowedSources: { scrolls: false, stimulant: false, gems: false, itemLevelUp: true },
+    alreadyAppliedLevels: 0,
+    levelUpSlotStatRanges: [
+      { str: { min: 1, max: 1 } },
+      { str: { min: 1, max: 1 } },
+    ],
+  });
+  for (const s of result.strategies) {
+    if (s.hasItemLevelUp) {
+      assert.equal(s.itemLevelUp.stats.str, 2);
+    }
+  }
+});
+
+test('levelUpSlotStatRanges missing slot falls back to definition', () => {
+  const levelUpDef = { maxLevelUps: 2, statRanges: { str: { min: 0, max: 2 } } };
+  const result = enumerateStrategies({
+    targetDeltas: { str: 1 },
+    targetKeys: ['str'],
+    successfulScrollCount: 0,
+    equipmentKind: 'Cape',
+    requiredLevel: 0,
+    cleanStats: { str: 0 },
+    scrollsByEquipmentKind: new Map([['Cape', []]]),
+    levelUpDefinition: levelUpDef,
+    allowedSources: { scrolls: false, stimulant: false, gems: false, itemLevelUp: true },
+    alreadyAppliedLevels: 0,
+    levelUpSlotStatRanges: [],
+  });
+  assert.ok(result.strategies.length > 0);
+});
