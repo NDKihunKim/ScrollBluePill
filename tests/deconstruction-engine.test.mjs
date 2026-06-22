@@ -513,7 +513,7 @@ function makeLargeFixture(candidateCount) {
   };
 }
 
-for (const candidateCount of [1000, 1001]) {
+for (const candidateCount of [10000, 10001]) {
   test(`${candidateCount} distinct exact matches obey the result overflow contract`, () => {
     const first = enumerateStrategies(makeLargeFixture(candidateCount));
     const second = enumerateStrategies(makeLargeFixture(candidateCount));
@@ -521,15 +521,15 @@ for (const candidateCount of [1000, 1001]) {
     assert.deepEqual(first, second);
     assert.ok(!Object.hasOwn(first, 'truncated'));
 
-    if (candidateCount === 1000) {
-      assert.equal(first.strategies.length, 1000);
-      assert.equal(first.total, 1000);
+    if (candidateCount === 10000) {
+      assert.equal(first.strategies.length, 10000);
+      assert.equal(first.total, 10000);
       assert.equal(first.tooManyResults, false);
       assert.ok(first.strategies.every((strategy) => !Object.hasOwn(strategy, 'probability')));
     } else {
       assert.deepEqual(first, {
         strategies: [],
-        total: 1001,
+        total: 10001,
         tooManyResults: true,
       });
     }
