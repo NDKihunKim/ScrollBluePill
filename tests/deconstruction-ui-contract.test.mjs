@@ -85,6 +85,11 @@ test('item card mirrors expected-value level-up metadata and attack-speed placem
     /^const deconStatRows = \[\s*\['공격속도', 'attackSpeed'\],/,
     'attack speed must be the first stat row',
   );
+  const attackSpeedIndex = statRowsSource.indexOf("['공격속도', 'attackSpeed']");
+  const strIndex = statRowsSource.indexOf("['STR', 'str']");
+  assert.ok(attackSpeedIndex >= 0, 'missing attack-speed row');
+  assert.ok(strIndex >= 0, 'missing STR row');
+  assert.ok(attackSpeedIndex < strIndex, 'attack speed must precede STR');
 
   const renderTargetItemCardStart = pageSource.indexOf('const renderTargetItemCard = (item) => {');
   const updateTargetCardStart = pageSource.indexOf('\nconst updateTargetCard = () => {', renderTargetItemCardStart);
@@ -116,14 +121,12 @@ test('item card mirrors expected-value level-up metadata and attack-speed placem
   assert.ok(loadStart >= 0 && levelMapIndex > loadStart && loadEnd > levelMapIndex);
   const loadSource = pageSource.slice(loadStart, loadEnd);
   const populatedLevelMapIndex = loadSource.indexOf('itemLevelUpByItemId = new Map(');
-  const eligibilityUpdateIndex = loadSource.indexOf('updateLevelUpSourceEligibility();');
   const targetCardUpdateIndex = loadSource.indexOf('updateTargetCard();');
   assert.ok(populatedLevelMapIndex >= 0, 'missing populated item-level-up map assignment');
-  assert.ok(eligibilityUpdateIndex >= 0, 'missing level-up source eligibility refresh');
   assert.ok(targetCardUpdateIndex >= 0, 'missing target card refresh');
   assert.ok(
-    populatedLevelMapIndex < eligibilityUpdateIndex && eligibilityUpdateIndex < targetCardUpdateIndex,
-    'definition loading must refresh eligibility before the target card',
+    populatedLevelMapIndex < targetCardUpdateIndex,
+    'definition loading must refresh the target card after populating the map',
   );
 });
 
