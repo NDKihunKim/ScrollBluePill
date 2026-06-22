@@ -238,23 +238,47 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
             <div class="ev-target-chip-grid" data-decon-target-chips></div>
             <fieldset class="decon-source-options" aria-describedby="decon-source-message">
               <legend>분석에 사용할 강화 유형</legend>
-              <div class="decon-source-chip-grid">
-                <label class="ev-target-chip">
-                  <input type="checkbox" data-decon-source="scrolls" checked />
-                  <span class="ev-target-chip-label">주문서</span>
-                </label>
-                <label class="ev-target-chip">
-                  <input type="checkbox" data-decon-source="stimulant" />
-                  <span class="ev-target-chip-label">촉진제</span>
-                </label>
-                <label class="ev-target-chip">
-                  <input type="checkbox" data-decon-source="gems" />
-                  <span class="ev-target-chip-label">보석</span>
-                </label>
-                <label class="ev-target-chip" data-decon-level-up-source hidden>
-                  <input type="checkbox" data-decon-source="itemLevelUp" />
-                  <span class="ev-target-chip-label">레벨업</span>
-                </label>
+              <div class="decon-source-accordion">
+                <div class="decon-source-row">
+                  <label class="ev-target-chip">
+                    <input type="checkbox" data-decon-source="scrolls" />
+                    <span class="ev-target-chip-label">주문서</span>
+                  </label>
+                  <div class="decon-source-sub" data-decon-scroll-rate-sub>
+                    <span class="decon-source-sub-label">스크롤 등급:</span>
+                    <label class="decon-rate-chip"><input type="checkbox" data-decon-scroll-rate="100" checked />100%</label>
+                    <label class="decon-rate-chip"><input type="checkbox" data-decon-scroll-rate="60" checked />60%</label>
+                    <label class="decon-rate-chip"><input type="checkbox" data-decon-scroll-rate="10" checked />10%</label>
+                    <label class="decon-rate-chip"><input type="checkbox" data-decon-scroll-rate="chaos" checked />Chaos</label>
+                  </div>
+                </div>
+                <div class="decon-source-row">
+                  <label class="ev-target-chip">
+                    <input type="checkbox" data-decon-source="stimulant" />
+                    <span class="ev-target-chip-label">촉진제</span>
+                  </label>
+                  <div class="decon-source-sub" data-decon-stimulant-bounds hidden>
+                    <span class="decon-source-sub-label">스탯 범위:</span>
+                    <div data-decon-stimulant-bounds-list></div>
+                  </div>
+                </div>
+                <div class="decon-source-row">
+                  <label class="ev-target-chip">
+                    <input type="checkbox" data-decon-source="gems" />
+                    <span class="ev-target-chip-label">보석</span>
+                  </label>
+                  <div class="decon-source-sub" hidden></div>
+                </div>
+                <div class="decon-source-row" data-decon-level-up-source hidden>
+                  <label class="ev-target-chip">
+                    <input type="checkbox" data-decon-source="itemLevelUp" />
+                    <span class="ev-target-chip-label">레벨업</span>
+                  </label>
+                  <div class="decon-source-sub" data-decon-level-slot-ranges hidden>
+                    <span class="decon-source-sub-label" data-decon-level-slot-label></span>
+                    <div data-decon-level-slot-list></div>
+                  </div>
+                </div>
               </div>
             </fieldset>
             <p
@@ -2599,6 +2623,101 @@ aside.panel {
 }
 .decon-source-chip-grid [hidden] {
   display: none;
+}
+.decon-source-row {
+  margin-bottom: 8px;
+}
+.decon-source-row:last-child {
+  margin-bottom: 0;
+}
+.decon-source-sub {
+  margin-left: 28px;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-left: 3px solid #3366ff;
+  font-size: 0.84rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.decon-source-sub[hidden] {
+  display: none;
+}
+.decon-source-sub-label {
+  color: #aaa;
+  font-size: 0.8rem;
+}
+:global(.decon-rate-chip) {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-family: inherit;
+}
+:global(.decon-rate-chip) input {
+  width: 14px;
+  height: 14px;
+  accent-color: #3366ff;
+}
+:global(.decon-rate-chip):has(input:not(:checked)) {
+  border-color: #444;
+  opacity: 0.6;
+}
+.decon-level-slot {
+  background: #1e1e24;
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin: 4px 0;
+  width: 100%;
+}
+.decon-level-slot-label {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: #c28b39;
+  margin-bottom: 3px;
+}
+.decon-level-slot-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 0.78rem;
+  color: #bbb;
+}
+.decon-level-slot-stats input {
+  width: 28px;
+  padding: 1px 3px;
+  font-size: 0.78rem;
+  background: #333;
+  border: 1px solid #555;
+  border-radius: 3px;
+  color: #ddd;
+  text-align: center;
+}
+:global(.decon-stimulant-bound) {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.82rem;
+}
+:global(.decon-stimulant-bound) button {
+  width: 20px;
+  height: 20px;
+  font-size: 0.75rem;
+  border: 1px solid #555;
+  border-radius: 3px;
+  background: #2a2a2a;
+  color: #ddd;
+  cursor: pointer;
+}
+:global(.decon-stimulant-bound) .decon-stimulant-bound-val {
+  min-width: 28px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 .decon-source-message {
   margin: 0 0 8px;
