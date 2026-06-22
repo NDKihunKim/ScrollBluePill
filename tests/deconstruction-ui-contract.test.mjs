@@ -97,7 +97,7 @@ test('item card mirrors expected-value level-up metadata and attack-speed placem
   const renderTargetItemCardSource = pageSource.slice(renderTargetItemCardStart, updateTargetCardStart);
   assert.match(
     renderTargetItemCardSource,
-    /const itemLevelUpMeta = computeItemLevelUpCardMeta\(\s*\{ itemLevelUpSlots: \[\] \},\s*itemLevelUpByItemId\.get\(item\.id\) \?\? null,\s*\);/,
+    /const itemLevelUpMeta = computeItemLevelUpCardMeta\(\s*\{ itemLevelUpSlots: virtualSlots \},\s*levelUpDef \?\? null,\s*\);/,
   );
 
   const itemLevelUpGuardStart = renderTargetItemCardSource.indexOf('if (itemLevelUpMeta) {');
@@ -187,7 +187,7 @@ test('item level card display uses virtual slots from deconItemLevel', () => {
   const renderSource = pageSource.slice(renderTargetItemCardStart, updateTargetCardStart);
   assert.match(
     renderSource,
-    /const alreadyApplied = (?:deconItemLevel\s*-\s*1|\(deconItemLevel\b[^)]*\)\s*-\s*1)/,
+    /const alreadyApplied = Math\.max\(0,\s*Math\.min\(maxLevelUps,\s*deconItemLevel\s*-\s*1\)\)/,
   );
   assert.match(
     renderSource,
@@ -214,7 +214,7 @@ test('page loads item-level data and passes complete exact-search inputs', () =>
   assert.match(pageSource, /targetKeys:\s*checkedKeys/);
   assert.match(pageSource, /requiredLevel:\s*selectedItem\.requiredLevel/);
   assert.match(pageSource, /cleanStats:\s*selectedItem\.stats/);
-  assert.match(pageSource, /levelUpDefinition:\s*itemLevelUpByItemId\.get\(selectedItem\.id\) \?\? null/);
+  assert.match(pageSource, /levelUpDefinition:\s*levelUpDef \?\? null/);
 });
 
 test('deconstruction results contain source details without probability', () => {
