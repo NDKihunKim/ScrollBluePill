@@ -581,3 +581,77 @@ test('enumerateItemLevelContributions returns empty when alreadyAppliedLevels eq
   });
   assert.equal(contributions.length, 0);
 });
+
+test('scrollRateFilter excludes non-matching rate scrolls', () => {
+  const scrolls = [
+    { id: 1001, nameKo: '힘 주문서 100%', behavior_type: 'fixed', stats: { str: 1 } },
+    { id: 1002, nameKo: '힘 주문서 60%', behavior_type: 'fixed', stats: { str: 1 } },
+    { id: 1003, nameKo: '힘 주문서 10%', behavior_type: 'fixed', stats: { str: 1 } },
+  ];
+  const result = enumerateStrategies({
+    targetDeltas: { str: 1 },
+    targetKeys: ['str'],
+    successfulScrollCount: 1,
+    equipmentKind: 'Cape',
+    requiredLevel: 0,
+    cleanStats: { str: 0 },
+    scrollsByEquipmentKind: new Map([['Cape', scrolls]]),
+    levelUpDefinition: null,
+    allowedSources: { scrolls: true, stimulant: false, gems: false, itemLevelUp: false },
+    scrollRateFilter: new Set(['100']),
+  });
+  assert.ok(result.strategies.length > 0);
+  for (const s of result.strategies) {
+    assert.ok(s.scrolls.every(sc => sc.id === 1001));
+  }
+});
+
+test('scrollRateFilter empty set returns no strategies', () => {
+  const scrolls = [
+    { id: 1001, nameKo: '힘 주문서 100%', behavior_type: 'fixed', stats: { str: 1 } },
+  ];
+  const result = enumerateStrategies({
+    targetDeltas: { str: 1 },
+    targetKeys: ['str'],
+    successfulScrollCount: 1,
+    equipmentKind: 'Cape',
+    requiredLevel: 0,
+    cleanStats: { str: 0 },
+    scrollsByEquipmentKind: new Map([['Cape', scrolls]]),
+    levelUpDefinition: null,
+    allowedSources: { scrolls: true, stimulant: false, gems: false, itemLevelUp: false },
+    scrollRateFilter: new Set([]),
+  });
+  assert.equal(result.strategies.length, 0);
+});
+
+test('scrollRateFilter null preserves all scrolls (backward compat)', () => {
+  const scrolls = [
+    { id: 1001, nameKo: '힘 주문서 100%', behavior_type: 'fixed', stats: { str: 1 } },
+    { id: 1002, nameKo: '힘 주문서 60%', behavior_type: 'fixed', stats: { str: 1 } },
+  ];
+  const withFilter = enumerateStrategies({
+    targetDeltas: { str: 1 },
+    targetKeys: ['str'],
+    successfulScrollCount: 1,
+    equipmentKind: 'Cape',
+    requiredLevel: 0,
+    cleanStats: { str: 0 },
+    scrollsByEquipmentKind: new Map([['Cape', scrolls]]),
+    levelUpDefinition: null,
+    allowedSources: { scrolls: true, stimulant: false, gems: false, itemLevelUp: false },
+    scrollRateFilter: null,
+  });
+  const withoutFilter = enumerateStrategies({
+    targetDeltas: { str: 1 },
+    targetKeys: ['str'],
+    successfulScrollCount: 1,
+    equipmentKind: 'Cape',
+    requiredLevel: 0,
+    cleanStats: { str: 0 },
+    scrollsByEquipmentKind: new Map([['Cape', scrolls]]),
+    levelUpDefinition: null,
+    allowedSources: { scrolls: true, stimulant: false, gems: false, itemLevelUp: false },
+  });
+  assert.equal(withFilter.strategies.length, withoutFilter.strategies.length);
+});
