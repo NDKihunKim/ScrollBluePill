@@ -177,7 +177,7 @@ test('item level stepper respects level-up definition visibility and engine pass
   const runAnalysisSource = pageSource.slice(runAnalysisStart, displayResultsStart);
   assert.match(
     runAnalysisSource,
-    /alreadyAppliedLevels:\s*deconItemLevel\s*-?\s*1/,
+    /alreadyAppliedLevels:\s*deconItemLevel\s*-\s*1/,
   );
 });
 
