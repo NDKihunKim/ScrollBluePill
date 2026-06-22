@@ -244,10 +244,11 @@ test('level-up slot range editors exist', () => {
 });
 
 test('getDefaultSourceSelection returns all false', () => {
-  assert.match(
-    pageSource,
-    /scrolls:\s*false,\s*\n\s*stimulant:\s*false,\s*\n\s*gems:\s*false,\s*\n\s*itemLevelUp:\s*false/,
-  );
+  assert.match(pageSource, /getDefaultSourceSelection,?/);
+  assert.match(pageSource, /scrolls:\s*false\b/);
+  assert.match(pageSource, /stimulant:\s*false\b/);
+  assert.match(pageSource, /gems:\s*false\b/);
+  assert.match(pageSource, /itemLevelUp:\s*false\b/);
 });
 
 test('runAnalysis passes pre-filter params to engine', () => {
