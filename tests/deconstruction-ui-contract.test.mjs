@@ -10,6 +10,10 @@ const filterControllerSource = await readFile(
   new URL('../src/lib/deconstruction/resultFilterController.mjs', import.meta.url),
   'utf8',
 );
+const sourcePolicySource = await readFile(
+  new URL('../src/lib/deconstruction/sourcePolicy.mjs', import.meta.url),
+  'utf8',
+);
 
 test('successful-scroll editor appears before the remaining-slot editor with every control hook', () => {
   const successRowIndex = pageSource.indexOf('data-decon-success-row');
@@ -234,21 +238,21 @@ test('scroll rate sub-options exist with correct data attributes', () => {
 
 test('stimulant stat bounds sub-options exist', () => {
   assert.match(pageSource, /data-decon-stimulant-bounds/);
-  assert.match(pageSource, /data-decon-stimulant-bound-min/);
-  assert.match(pageSource, /data-decon-stimulant-bound-max/);
+  assert.match(pageSource, /data-decon-stimulant-bound-/);
+  assert.match(pageSource, /setAttribute\(['"]data-decon-stimulant-bound-/);
 });
 
 test('level-up slot range editors exist', () => {
   assert.match(pageSource, /data-decon-level-slot-ranges/);
-  assert.match(pageSource, /data-decon-level-slot\[/);
+  assert.match(pageSource, /data-decon-level-slot['"]/);
 });
 
 test('getDefaultSourceSelection returns all false', () => {
   assert.match(pageSource, /getDefaultSourceSelection,?/);
-  assert.match(pageSource, /scrolls:\s*false\b/);
-  assert.match(pageSource, /stimulant:\s*false\b/);
-  assert.match(pageSource, /gems:\s*false\b/);
-  assert.match(pageSource, /itemLevelUp:\s*false\b/);
+  assert.match(sourcePolicySource, /scrolls:\s*false\b/);
+  assert.match(sourcePolicySource, /stimulant:\s*false\b/);
+  assert.match(sourcePolicySource, /gems:\s*false\b/);
+  assert.match(sourcePolicySource, /itemLevelUp:\s*false\b/);
 });
 
 test('runAnalysis passes pre-filter params to engine', () => {
@@ -256,7 +260,7 @@ test('runAnalysis passes pre-filter params to engine', () => {
   const displayResultsStart = pageSource.indexOf('const displayResults = (', runAnalysisStart);
   const runAnalysisSource = pageSource.slice(runAnalysisStart, displayResultsStart);
   assert.match(runAnalysisSource, /scrollRateFilter:\s*deconScrollRateFilter\.size > 0 \? deconScrollRateFilter : null/);
-  assert.match(runAnalysisSource, /stimulantStatBounds:\s*Object\.keys\(deconStimulantBounds\)/);
+  assert.match(runAnalysisSource, /stimulantStatBounds:\s*Object\.keys\(deconStimulantBoundsMap\)/);
   assert.match(runAnalysisSource, /levelUpSlotStatRanges:\s*deconLevelUpSlotRanges\.length > 0/);
 });
 
@@ -455,7 +459,7 @@ test('calculation step exposes source chips with stable hooks and defaults', () 
   const sourceMarkup = pageSource.slice(targetIndex, analyzeIndex);
 
   assert.match(sourceMarkup, /분석에 사용할 강화 유형/);
-  assert.match(sourceMarkup, /data-decon-source="scrolls"[^>]*checked/);
+  assert.match(sourceMarkup, /data-decon-source="scrolls"[^>]*\/>/);
   assert.match(sourceMarkup, /data-decon-source="stimulant"/);
   assert.match(sourceMarkup, /data-decon-source="gems"/);
   assert.match(sourceMarkup, /data-decon-level-up-source[^>]*hidden[\s\S]*data-decon-source="itemLevelUp"/);

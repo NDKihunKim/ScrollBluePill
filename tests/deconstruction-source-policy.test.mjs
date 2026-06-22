@@ -10,9 +10,9 @@ import {
 const NO_SOURCE_MESSAGE = '분석에 사용할 강화 유형을 하나 이상 선택해주세요';
 const SCROLL_CONFLICT_MESSAGE = '주문서 성공 횟수가 1회 이상으로 설정되어 있어 주문서를 제외할 수 없습니다. 성공한 주문서가 있는 아이템은 주문서를 사용하지 않은 전략으로 분석할 수 없습니다.';
 
-test('source selection defaults to scrolls only', () => {
+test('source selection defaults to all false', () => {
   assert.deepEqual(getDefaultSourceSelection(), {
-    scrolls: true,
+    scrolls: false,
     stimulant: false,
     gems: false,
     itemLevelUp: false,
