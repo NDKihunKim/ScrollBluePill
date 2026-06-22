@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { enumerateStrategies } from '../src/lib/deconstruction/engine.mjs';
+import { enumerateItemLevelContributions } from '../src/lib/deconstruction/sourceContributions.mjs';
 
 test('enumerateStrategies returns empty for zero deltas', () => {
   const result = enumerateStrategies({
@@ -534,3 +535,49 @@ for (const candidateCount of [1000, 1001]) {
     }
   });
 }
+
+test('enumerateItemLevelContributions alreadyAppliedLevels=0 matches full range (regression)', () => {
+  const levelUpDef = { maxLevelUps: 2, statRanges: { str: { min: 1, max: 1 } } };
+  const base = enumerateItemLevelContributions({
+    levelUpDefinition: levelUpDef,
+    targetKeys: ['str'],
+    bounds: { str: { min: -Infinity, max: Infinity } },
+  });
+  const withZero = enumerateItemLevelContributions({
+    levelUpDefinition: levelUpDef,
+    targetKeys: ['str'],
+    bounds: { str: { min: -Infinity, max: Infinity } },
+    alreadyAppliedLevels: 0,
+  });
+  assert.equal(base.length, withZero.length);
+  for (let i = 0; i < base.length; i++) {
+    assert.equal(base[i].levelCount, withZero[i].levelCount);
+    assert.deepEqual(base[i].stats, withZero[i].stats);
+  }
+});
+
+test('enumerateItemLevelContributions respects alreadyAppliedLevels', () => {
+  const levelUpDef = { maxLevelUps: 5, statRanges: { str: { min: 1, max: 1 }, dex: { min: 0, max: 1 } } };
+  const contributions = enumerateItemLevelContributions({
+    levelUpDefinition: levelUpDef,
+    targetKeys: ['str', 'dex'],
+    bounds: { str: { min: -Infinity, max: Infinity }, dex: { min: -Infinity, max: Infinity } },
+    alreadyAppliedLevels: 3,
+  });
+  assert.ok(contributions.length > 0, 'should have contributions for remaining 2 levels');
+  for (const c of contributions) {
+    assert.ok(c.levelCount <= 2, `levelCount ${c.levelCount} should not exceed remaining levels (2)`);
+    assert.ok(c.levelCount >= 1, `levelCount ${c.levelCount} should be at least 1`);
+  }
+});
+
+test('enumerateItemLevelContributions returns empty when alreadyAppliedLevels equals maxLevelUps', () => {
+  const levelUpDef = { maxLevelUps: 5, statRanges: { str: { min: 1, max: 1 } } };
+  const contributions = enumerateItemLevelContributions({
+    levelUpDefinition: levelUpDef,
+    targetKeys: ['str'],
+    bounds: { str: { min: -Infinity, max: Infinity } },
+    alreadyAppliedLevels: 5,
+  });
+  assert.equal(contributions.length, 0);
+});
