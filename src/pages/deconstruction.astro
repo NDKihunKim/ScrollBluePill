@@ -420,12 +420,34 @@ const deconLevelDecBtn = document.querySelector('[data-decon-level-dec]');
 const deconLevelIncBtn = document.querySelector('[data-decon-level-inc]');
 const deconLevelMaxBtn = document.querySelector('[data-decon-level-max]');
 const deconLevelValue = document.querySelector('[data-decon-level-value]');
+const deconScrollRateSub = document.querySelector('[data-decon-scroll-rate-sub]');
+const deconScrollRateInputs = document.querySelectorAll('[data-decon-scroll-rate]');
+const deconStimulantBounds = document.querySelector('[data-decon-stimulant-bounds]');
+const deconStimulantBoundsList = document.querySelector('[data-decon-stimulant-bounds-list]');
+const deconLevelSlotRanges = document.querySelector('[data-decon-level-slot-ranges]');
+const deconLevelSlotList = document.querySelector('[data-decon-level-slot-list]');
+const deconLevelSlotLabel = document.querySelector('[data-decon-level-slot-label]');
 const deconSourceMessage = document.querySelector('[data-decon-source-message]');
 const deconSecondaryFilters = document.querySelector('[data-decon-secondary-filters]');
 const resultFilterController = createResultFilterController({
   root: document,
   secondaryContainer: deconSecondaryFilters,
 });
+
+const toggleSourceSub = (sourceCheckbox, subContainer, onFirstEnable) => {
+  if (!(sourceCheckbox instanceof HTMLInputElement) || !(subContainer instanceof HTMLElement)) return;
+  const enabled = sourceCheckbox.checked;
+  subContainer.hidden = !enabled;
+  if (enabled && typeof onFirstEnable === 'function') onFirstEnable();
+};
+
+const buildDefaultSlotRanges = (statRanges) => {
+  const defaults = {};
+  for (const [key, range] of Object.entries(statRanges)) {
+    defaults[key] = { min: range.min, max: range.max };
+  }
+  return defaults;
+};
 
 // ---- State ----
 let itemIndex = [];
@@ -437,6 +459,9 @@ let deconDeltas = {};
 let deconStatKeys = [];
 let deconSlotState = createDeconstructionSlotState(0);
 let deconHasActionableResults = false;
+let deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
+let deconStimulantBoundsMap = {};
+let deconLevelUpSlotRanges = [];
 let deconItemLevel = 1;
 
 const guardDeconMutation = (fn) => {
@@ -495,6 +520,32 @@ const updateLevelUpSourceEligibility = () => {
   deconLevelUpSource.hidden = !selectedItem || !itemLevelUpByItemId.has(selectedItem.id);
   updateAnalyzeButton();
 };
+
+deconScrollSource?.addEventListener('change', () => {
+  toggleSourceSub(deconScrollSource, deconScrollRateSub, () => {
+    deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
+    deconScrollRateInputs.forEach(inp => { if (inp instanceof HTMLInputElement) inp.checked = true; });
+  });
+  updateAnalyzeButton();
+});
+
+deconStimulantSource?.addEventListener('change', () => {
+  toggleSourceSub(deconStimulantSource, deconStimulantBounds, () => {
+    buildStimulantBoundsEditor();
+  });
+  updateAnalyzeButton();
+});
+
+deconGemsSource?.addEventListener('change', () => {
+  updateAnalyzeButton();
+});
+
+deconItemLevelUpSource?.addEventListener('change', () => {
+  toggleSourceSub(deconItemLevelUpSource, deconLevelSlotRanges, () => {
+    buildLevelUpSlotEditors();
+  });
+  updateAnalyzeButton();
+});
 
 const renderTargetChips = () => {
   if (!(deconTargetChips instanceof HTMLElement)) return;
@@ -952,6 +1003,116 @@ const updateAnalyzeButton = () => {
   deconAnalyzeBtn.disabled = checkedCount === 0 || sourceValidationMessage !== '';
 };
 
+const buildStimulantBoundsEditor = () => {
+  if (!(deconStimulantBoundsList instanceof HTMLElement)) return;
+  deconStimulantBoundsList.replaceChildren();
+  if (!selectedItem) return;
+  deconStimulantBoundsMap = {};
+  for (const key of deconStatKeys) {
+    const isHpMp = HP_MP_KEYS.has(key);
+    const defaultLimit = isHpMp ? 50 : 5;
+    const stepSize = isHpMp ? 10 : 1;
+    deconStimulantBoundsMap[key] = { min: -defaultLimit, max: defaultLimit };
+    const row = document.createElement('span');
+    row.className = 'decon-stimulant-bound';
+    const label = document.createElement('span');
+    label.textContent = (statLabelByKey[key] || key) + ': ';
+    row.append(label);
+    for (const side of ['min', 'max']) {
+      const btnDec = document.createElement('button');
+      btnDec.type = 'button';
+      btnDec.textContent = '−';
+      const valSpan = document.createElement('span');
+      valSpan.className = 'decon-stimulant-bound-val';
+      valSpan.setAttribute('data-decon-stimulant-bound-' + side, key);
+      valSpan.textContent = side === 'min' ? String(-defaultLimit) : String(defaultLimit);
+      const btnInc = document.createElement('button');
+      btnInc.type = 'button';
+      btnInc.textContent = '+';
+      btnDec.addEventListener('click', () => {
+        const current = deconStimulantBoundsMap[key]?.[side] ?? (side === 'min' ? -defaultLimit : defaultLimit);
+        const newVal = Math.max(-defaultLimit, Math.min(defaultLimit, current - stepSize));
+        deconStimulantBoundsMap[key] = { ...deconStimulantBoundsMap[key], [side]: newVal };
+        valSpan.textContent = String(newVal);
+      });
+      btnInc.addEventListener('click', () => {
+        const current = deconStimulantBoundsMap[key]?.[side] ?? (side === 'min' ? -defaultLimit : defaultLimit);
+        const newVal = Math.max(-defaultLimit, Math.min(defaultLimit, current + stepSize));
+        deconStimulantBoundsMap[key] = { ...deconStimulantBoundsMap[key], [side]: newVal };
+        valSpan.textContent = String(newVal);
+      });
+      row.append(btnDec, valSpan, btnInc);
+    }
+    deconStimulantBoundsList.append(row);
+  }
+};
+
+const buildLevelUpSlotEditors = () => {
+  if (!(deconLevelSlotList instanceof HTMLElement) || !(deconLevelSlotLabel instanceof HTMLElement)) return;
+  deconLevelSlotList.replaceChildren();
+  if (!selectedItem) return;
+  const def = itemLevelUpByItemId.get(selectedItem.id);
+  const maxLevelUps = Number.isInteger(def?.maxLevelUps) ? def.maxLevelUps : 0;
+  if (maxLevelUps <= 0) return;
+  const alreadyApplied = Math.max(0, Math.min(maxLevelUps, deconItemLevel - 1));
+  const remaining = maxLevelUps - alreadyApplied;
+  deconLevelSlotLabel.textContent = `남은 레벨 (${remaining}개, 총 ${maxLevelUps}회):`;
+  const statRanges = def?.statRanges ?? {};
+  if (deconLevelUpSlotRanges.length !== maxLevelUps) {
+    const newRanges = [];
+    for (let i = 0; i < maxLevelUps; i++) {
+      newRanges.push(deconLevelUpSlotRanges[i] ?? buildDefaultSlotRanges(statRanges));
+    }
+    deconLevelUpSlotRanges = newRanges;
+  }
+  for (let i = 0; i < remaining; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'decon-level-slot';
+    slot.setAttribute('data-decon-level-slot', String(i));
+    const header = document.createElement('div');
+    header.className = 'decon-level-slot-label';
+    header.textContent = `슬롯 ${i + 1}`;
+    slot.append(header);
+    const statsRow = document.createElement('div');
+    statsRow.className = 'decon-level-slot-stats';
+    const slotRanges = deconLevelUpSlotRanges[i];
+    for (const key of Object.keys(statRanges)) {
+      const defRange = statRanges[key] ?? { min: 0, max: 0 };
+      if (!slotRanges[key]) slotRanges[key] = { ...defRange };
+      const statEl = document.createElement('span');
+      statEl.textContent = (statLabelByKey[key] || key) + ' ';
+      const minInput = document.createElement('input');
+      minInput.type = 'number';
+      minInput.min = defRange.min;
+      minInput.max = defRange.max;
+      minInput.value = slotRanges[key].min;
+      minInput.addEventListener('change', () => {
+        const val = Number(minInput.value);
+        if (Number.isFinite(val)) {
+          slotRanges[key] = { ...slotRanges[key], min: Math.max(defRange.min, Math.min(defRange.max, val)) };
+          minInput.value = slotRanges[key].min;
+        }
+      });
+      const maxInput = document.createElement('input');
+      maxInput.type = 'number';
+      maxInput.min = defRange.min;
+      maxInput.max = defRange.max;
+      maxInput.value = slotRanges[key].max;
+      maxInput.addEventListener('change', () => {
+        const val = Number(maxInput.value);
+        if (Number.isFinite(val)) {
+          slotRanges[key] = { ...slotRanges[key], max: Math.max(defRange.min, Math.min(defRange.max, val)) };
+          maxInput.value = slotRanges[key].max;
+        }
+      });
+      statEl.append(minInput, document.createTextNode(' ~ '), maxInput, ' ');
+      statsRow.append(statEl);
+    }
+    slot.append(statsRow);
+    deconLevelSlotList.append(slot);
+  }
+};
+
 const renderDeconSlotState = () => {
   if (deconSuccessValue instanceof HTMLElement) {
     deconSuccessValue.textContent = String(deconSlotState.successfulScrollCount);
@@ -976,6 +1137,9 @@ const renderDeconItemLevel = () => {
     deconLevelValue.textContent = String(deconItemLevel);
   }
   updateTargetCard();
+  if (deconItemLevelUpSource instanceof HTMLInputElement && deconItemLevelUpSource.checked) {
+    buildLevelUpSlotEditors();
+  }
 };
 
 // ---- Item search handling (adapted from expected-value.astro) ----
@@ -1056,6 +1220,10 @@ const selectSuggestedItem = (item, { syncFilters = true } = {}) => {
   if (itemChanged) resetAllowedSources();
   updateLevelUpSourceEligibility();
   deconItemLevel = 1;
+  deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
+  deconStimulantBoundsMap = {};
+  deconLevelUpSlotRanges = [];
+  deconScrollRateInputs.forEach(inp => { if (inp instanceof HTMLInputElement) inp.checked = true; });
   renderDeconItemLevel();
   renderTargetItemCard(item);
   activateDeconEditPanel(item);
@@ -1281,6 +1449,10 @@ const activateDeconEditPanel = (item) => {
   // Reset slot history from the selected clean item
   deconSlotState = createDeconstructionSlotState(item.stats?.upgradeSlots ?? 0);
   deconItemLevel = 1;
+  deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
+  deconStimulantBoundsMap = {};
+  deconLevelUpSlotRanges = [];
+  deconScrollRateInputs.forEach(inp => { if (inp instanceof HTMLInputElement) inp.checked = true; });
   renderDeconSlotState();
   renderDeconItemLevel();
 
@@ -1325,6 +1497,9 @@ const runAnalysis = () => {
     scrollsByEquipmentKind,
     levelUpDefinition: levelUpDef ?? null,
     alreadyAppliedLevels: Math.max(0, Math.min(maxLevelUps, deconItemLevel - 1)),
+    scrollRateFilter: deconScrollRateFilter.size > 0 ? deconScrollRateFilter : null,
+    stimulantStatBounds: Object.keys(deconStimulantBoundsMap).length > 0 ? deconStimulantBoundsMap : null,
+    levelUpSlotStatRanges: deconLevelUpSlotRanges.length > 0 ? deconLevelUpSlotRanges : null,
   });
 
   displayResults(result, targetDeltas);
@@ -1724,6 +1899,18 @@ deconLevelMaxBtn?.addEventListener('click', () => guardDeconMutation(() => {
   renderDeconItemLevel();
   updateLevelUpSourceEligibility();
 }));
+
+deconScrollRateInputs.forEach((chip) => {
+  chip.addEventListener('change', () => {
+    if (!(chip instanceof HTMLInputElement)) return;
+    const rate = chip.dataset.deconScrollRate;
+    if (chip.checked) {
+      deconScrollRateFilter.add(rate);
+    } else {
+      deconScrollRateFilter.delete(rate);
+    }
+  });
+});
 
 // ---- Add-stat accordion toggle ----
 deconAddStatToggle?.addEventListener('click', () => {
