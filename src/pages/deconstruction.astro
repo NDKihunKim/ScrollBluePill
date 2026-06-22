@@ -211,6 +211,14 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
               <button type="button" class="chaos-stepper-btn" data-decon-slot-inc>+</button>
               <button type="button" class="chaos-stepper-btn chaos-stepper-btn--max" data-decon-slot-max>MAX</button>
             </div>
+            <div class="chaos-stat-row decon-level-row" data-decon-level-row hidden>
+              <span class="chaos-stat-label">아이템 레벨</span>
+              <button type="button" class="chaos-stepper-btn chaos-stepper-btn--max" data-decon-level-min>MIN</button>
+              <button type="button" class="chaos-stepper-btn" data-decon-level-dec>−</button>
+              <span class="chaos-stepper-value" data-decon-level-value>1</span>
+              <button type="button" class="chaos-stepper-btn" data-decon-level-inc>+</button>
+              <button type="button" class="chaos-stepper-btn chaos-stepper-btn--max" data-decon-level-max>MAX</button>
+            </div>
             <div class="decon-add-stat-area">
               <button type="button" class="decon-add-stat-toggle" data-decon-add-stat-toggle>
                 + 스탯 추가
@@ -2079,6 +2087,11 @@ Promise.all([
   height: 16px;
   line-height: 16px;
 }
+:global(.selected-item-line--item-level) {
+  min-height: 16px;
+  line-height: 16px;
+  color: #c28b39;
+}
 
 :global(.selected-item-line strong) {
   font-weight: 500;
@@ -2389,6 +2402,9 @@ aside.panel {
 
 .decon-success-row,
 .decon-slot-row {
+  margin-bottom: 10px;
+}
+.decon-level-row {
   margin-bottom: 10px;
 }
 
