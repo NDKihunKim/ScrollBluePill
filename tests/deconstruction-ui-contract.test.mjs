@@ -70,6 +70,44 @@ test('item card shows a success-count suffix only above zero and renders remaini
   assert.match(pageSource, /selectedItemName\.style\.color = computeDeconGrade\(\);/);
 });
 
+test('item card mirrors expected-value level-up metadata and attack-speed placement', () => {
+  assert.match(
+    pageSource,
+    /import \{ HP_MP_KEYS, computeItemLevelUpCardMeta \} from '\.\.\/lib\/enhancementState\.mjs';/,
+  );
+
+  const statRowsStart = pageSource.indexOf('const deconStatRows = [');
+  const statRowsEnd = pageSource.indexOf('];', statRowsStart);
+  assert.ok(statRowsStart >= 0 && statRowsEnd > statRowsStart);
+  const statRowsSource = pageSource.slice(statRowsStart, statRowsEnd);
+  const attackSpeedIndex = statRowsSource.indexOf("['공격속도', 'attackSpeed']");
+  const strIndex = statRowsSource.indexOf("['STR', 'str']");
+  assert.ok(attackSpeedIndex >= 0, 'missing attack-speed row');
+  assert.ok(strIndex >= 0, 'missing STR row');
+  assert.ok(
+    attackSpeedIndex < strIndex,
+    'attack speed must be the first stat row',
+  );
+
+  assert.match(
+    pageSource,
+    /const itemLevelUpMeta = computeItemLevelUpCardMeta\(\s*\{ itemLevelUpSlots: \[\] \},\s*itemLevelUpByItemId\.get\(item\.id\) \?\? null,\s*\);/,
+  );
+  assert.match(
+    pageSource,
+    /createItemLine\('ITEM LEV', itemLevelUpMeta\.itemLevel, 'selected-item-line--item-level'\)/,
+  );
+  assert.match(
+    pageSource,
+    /createItemLine\('ITEM EXP', itemLevelUpMeta\.itemExp, 'selected-item-line--item-level'\)/,
+  );
+
+  const levelMapIndex = pageSource.indexOf('itemLevelUpByItemId = new Map(');
+  const loadEnd = pageSource.indexOf('\n  })\n  .catch', levelMapIndex);
+  assert.ok(levelMapIndex >= 0 && loadEnd > levelMapIndex);
+  assert.match(pageSource.slice(levelMapIndex, loadEnd), /updateTargetCard\(\);/);
+});
+
 test('analysis passes the exact successful-scroll count and source permissions to the engine', () => {
   const runAnalysisStart = pageSource.indexOf('const runAnalysis = () => {');
   const displayResultsStart = pageSource.indexOf('// ---- Display results ----', runAnalysisStart);
