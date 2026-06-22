@@ -708,7 +708,11 @@ const renderTargetItemCard = (item) => {
 };
 
 const updateTargetCard = () => {
-  if (selectedItem) {
+  if (
+    selectedItem &&
+    selectedItemIdInput instanceof HTMLInputElement &&
+    selectedItemIdInput.value === String(selectedItem.id)
+  ) {
     renderTargetItemCard(selectedItem);
   }
 };
