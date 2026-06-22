@@ -80,32 +80,51 @@ test('item card mirrors expected-value level-up metadata and attack-speed placem
   const statRowsEnd = pageSource.indexOf('];', statRowsStart);
   assert.ok(statRowsStart >= 0 && statRowsEnd > statRowsStart);
   const statRowsSource = pageSource.slice(statRowsStart, statRowsEnd);
-  const attackSpeedIndex = statRowsSource.indexOf("['공격속도', 'attackSpeed']");
-  const strIndex = statRowsSource.indexOf("['STR', 'str']");
-  assert.ok(attackSpeedIndex >= 0, 'missing attack-speed row');
-  assert.ok(strIndex >= 0, 'missing STR row');
-  assert.ok(
-    attackSpeedIndex < strIndex,
+  assert.match(
+    statRowsSource,
+    /^const deconStatRows = \[\s*\['공격속도', 'attackSpeed'\],/,
     'attack speed must be the first stat row',
   );
 
+  const renderTargetItemCardStart = pageSource.indexOf('const renderTargetItemCard = (item) => {');
+  const updateTargetCardStart = pageSource.indexOf('\nconst updateTargetCard = () => {', renderTargetItemCardStart);
+  assert.ok(renderTargetItemCardStart >= 0 && updateTargetCardStart > renderTargetItemCardStart);
+  const renderTargetItemCardSource = pageSource.slice(renderTargetItemCardStart, updateTargetCardStart);
   assert.match(
-    pageSource,
+    renderTargetItemCardSource,
     /const itemLevelUpMeta = computeItemLevelUpCardMeta\(\s*\{ itemLevelUpSlots: \[\] \},\s*itemLevelUpByItemId\.get\(item\.id\) \?\? null,\s*\);/,
   );
+
+  const itemLevelUpGuardStart = renderTargetItemCardSource.indexOf('if (itemLevelUpMeta) {');
+  const itemLevelUpGuardEnd = renderTargetItemCardSource.indexOf('\n  }', itemLevelUpGuardStart);
+  assert.ok(itemLevelUpGuardStart >= 0 && itemLevelUpGuardEnd > itemLevelUpGuardStart);
+  const itemLevelUpGuardSource = renderTargetItemCardSource.slice(itemLevelUpGuardStart, itemLevelUpGuardEnd);
   assert.match(
-    pageSource,
-    /createItemLine\('ITEM LEV', itemLevelUpMeta\.itemLevel, 'selected-item-line--item-level'\)/,
+    itemLevelUpGuardSource,
+    /selectedItemRequirements\.append\(\s*createItemLine\('ITEM LEV', itemLevelUpMeta\.itemLevel, 'selected-item-line--item-level'\),?\s*\);/,
   );
   assert.match(
-    pageSource,
-    /createItemLine\('ITEM EXP', itemLevelUpMeta\.itemExp, 'selected-item-line--item-level'\)/,
+    itemLevelUpGuardSource,
+    /selectedItemRequirements\.append\(\s*createItemLine\('ITEM EXP', itemLevelUpMeta\.itemExp, 'selected-item-line--item-level'\),?\s*\);/,
   );
 
-  const levelMapIndex = pageSource.indexOf('itemLevelUpByItemId = new Map(');
+  const levelMapIndex = pageSource.indexOf(
+    'itemLevelUpByItemId = new Map(\n      (Array.isArray(itemLevelUps)',
+  );
+  const loadStart = pageSource.lastIndexOf('.then(([scrolls, itemLevelUps]) => {', levelMapIndex);
   const loadEnd = pageSource.indexOf('\n  })\n  .catch', levelMapIndex);
-  assert.ok(levelMapIndex >= 0 && loadEnd > levelMapIndex);
-  assert.match(pageSource.slice(levelMapIndex, loadEnd), /updateTargetCard\(\);/);
+  assert.ok(loadStart >= 0 && levelMapIndex > loadStart && loadEnd > levelMapIndex);
+  const loadSource = pageSource.slice(loadStart, loadEnd);
+  const populatedLevelMapIndex = loadSource.indexOf('itemLevelUpByItemId = new Map(');
+  const eligibilityUpdateIndex = loadSource.indexOf('updateLevelUpSourceEligibility();');
+  const targetCardUpdateIndex = loadSource.indexOf('updateTargetCard();');
+  assert.ok(populatedLevelMapIndex >= 0, 'missing populated item-level-up map assignment');
+  assert.ok(eligibilityUpdateIndex >= 0, 'missing level-up source eligibility refresh');
+  assert.ok(targetCardUpdateIndex >= 0, 'missing target card refresh');
+  assert.ok(
+    populatedLevelMapIndex < eligibilityUpdateIndex && eligibilityUpdateIndex < targetCardUpdateIndex,
+    'definition loading must refresh eligibility before the target card',
+  );
 });
 
 test('analysis passes the exact successful-scroll count and source permissions to the engine', () => {
