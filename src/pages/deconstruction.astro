@@ -2038,6 +2038,7 @@ Promise.all([
         .map((definition) => [definition.itemId, definition]),
     );
     updateLevelUpSourceEligibility();
+    renderDeconItemLevel();
     updateTargetCard();
   })
   .catch((error) => {
@@ -2689,7 +2690,9 @@ aside.panel {
 .decon-level-row {
   margin-bottom: 10px;
 }
-
+.decon-level-row[hidden] {
+  display: none;
+}
 :global(.decon-add-stat-area) {
   margin-top: 4px;
 }
