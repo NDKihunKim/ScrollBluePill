@@ -130,6 +130,24 @@ test('item card mirrors expected-value level-up metadata and attack-speed placem
   );
 });
 
+test('target card refresh ignores stale in-memory selection after the selection marker clears', () => {
+  const updateTargetCardStart = pageSource.indexOf('const updateTargetCard = () => {');
+  const clearSelectedItemCardStart = pageSource.indexOf(
+    '\nconst clearSelectedItemCard = () => {',
+    updateTargetCardStart,
+  );
+  assert.ok(updateTargetCardStart >= 0 && clearSelectedItemCardStart > updateTargetCardStart);
+  const updateTargetCardSource = pageSource.slice(
+    updateTargetCardStart,
+    clearSelectedItemCardStart,
+  );
+
+  assert.match(
+    updateTargetCardSource,
+    /if \(\s*selectedItem\s*&&\s*selectedItemIdInput instanceof HTMLInputElement\s*&&\s*selectedItemIdInput\.value === String\(selectedItem\.id\)\s*\) \{\s*renderTargetItemCard\(selectedItem\);\s*\}/,
+  );
+});
+
 test('analysis passes the exact successful-scroll count and source permissions to the engine', () => {
   const runAnalysisStart = pageSource.indexOf('const runAnalysis = () => {');
   const displayResultsStart = pageSource.indexOf('// ---- Display results ----', runAnalysisStart);
