@@ -1291,6 +1291,7 @@ const runAnalysis = () => {
   );
 
   const levelUpDef = itemLevelUpByItemId.get(selectedItem.id);
+  const maxLevelUps = Number.isInteger(levelUpDef?.maxLevelUps) ? levelUpDef.maxLevelUps : 0;
   const result = enumerateStrategies({
     targetDeltas,
     targetKeys: checkedKeys,
