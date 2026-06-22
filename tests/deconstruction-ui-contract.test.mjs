@@ -163,7 +163,7 @@ test('item level stepper respects level-up definition visibility and engine pass
   const toggleSource = pageSource.slice(toggleStart, toggleEnd);
   assert.match(
     toggleSource,
-    /deconLevelUpSource\.hidden = !selectedItem \|\| !itemLevelUpByItemId\.has\(selectedItem\.id\)\s*\|\|\s*deconItemLevel\s*>=/,
+    /deconLevelUpSource\.hidden = !selectedItem \|\| !itemLevelUpByItemId\.has\(selectedItem\.id\);/
   );
 
   assert.match(
