@@ -678,7 +678,7 @@ const renderTargetItemCard = (item) => {
 
   const levelUpDef = itemLevelUpByItemId.get(item.id);
   const maxLevelUps = Number.isInteger(levelUpDef?.maxLevelUps) ? levelUpDef.maxLevelUps : 0;
-  const alreadyApplied = Math.max(0, Math.min(maxLevelUps, deconItemLevel - 1));
+  const alreadyApplied = deconItemLevel >= maxLevelUps ? maxLevelUps : Math.max(0, Math.min(maxLevelUps, deconItemLevel - 1));
   const virtualSlots = Array(maxLevelUps).fill(null).map((_, i) => i < alreadyApplied ? { stats: {} } : null);
   const itemLevelUpMeta = computeItemLevelUpCardMeta(
     { itemLevelUpSlots: virtualSlots },
@@ -948,7 +948,7 @@ const renderDeconItemLevel = () => {
   // data-decon-level-row.hidden = !selectedItem
   deconLevelRow.hidden = !selectedItem || maxLevelUps <= 0;
   if (maxLevelUps > 0 && deconLevelMaxBtn instanceof HTMLButtonElement) {
-    deconLevelMaxBtn.textContent = `MAX ${maxLevelUps}`;
+    deconLevelMaxBtn.textContent = 'MAX';
   }
   if (deconLevelValue instanceof HTMLElement) {
     deconLevelValue.textContent = String(deconItemLevel);
@@ -1301,7 +1301,7 @@ const runAnalysis = () => {
     cleanStats: selectedItem.stats ?? {},
     scrollsByEquipmentKind,
     levelUpDefinition: levelUpDef ?? null,
-    alreadyAppliedLevels: deconItemLevel - 1,
+    alreadyAppliedLevels: deconItemLevel >= maxLevelUps ? maxLevelUps : deconItemLevel - 1,
   });
 
   displayResults(result, targetDeltas);
