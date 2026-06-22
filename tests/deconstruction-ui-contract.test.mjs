@@ -148,6 +148,53 @@ test('target card refresh ignores stale in-memory selection after the selection 
   );
 });
 
+test('item level stepper markup exists and is hidden by default', () => {
+  assert.match(pageSource, /data-decon-level-row[^>]*hidden/);
+  assert.match(pageSource, /data-decon-level-value/);
+  assert.match(pageSource, /data-decon-level-min/);
+  assert.match(pageSource, /data-decon-level-inc/);
+  assert.match(pageSource, /data-decon-level-dec/);
+  assert.match(pageSource, /data-decon-level-max/);
+});
+
+test('item level stepper respects level-up definition visibility and engine passthrough', () => {
+  const toggleStart = pageSource.indexOf('const updateLevelUpSourceEligibility = () => {');
+  const toggleEnd = pageSource.indexOf('\n}', toggleStart);
+  const toggleSource = pageSource.slice(toggleStart, toggleEnd);
+  assert.match(
+    toggleSource,
+    /deconLevelUpSource\.hidden = !selectedItem \|\| !itemLevelUpByItemId\.has\(selectedItem\.id\)\s*\|\|\s*deconItemLevel\s*>=/,
+  );
+
+  assert.match(
+    pageSource,
+    /data-decon-level-row\.hidden = !selectedItem\b/,
+  );
+
+  const runAnalysisStart = pageSource.indexOf('const runAnalysis = () => {');
+  const displayResultsStart = pageSource.indexOf('const displayResults = (', runAnalysisStart);
+  assert.ok(runAnalysisStart >= 0 && displayResultsStart > runAnalysisStart);
+  const runAnalysisSource = pageSource.slice(runAnalysisStart, displayResultsStart);
+  assert.match(
+    runAnalysisSource,
+    /alreadyAppliedLevels:\s*deconItemLevel\s*-?\s*1/,
+  );
+});
+
+test('item level card display uses virtual slots from deconItemLevel', () => {
+  const renderTargetItemCardStart = pageSource.indexOf('const renderTargetItemCard = (item) => {');
+  const updateTargetCardStart = pageSource.indexOf('\nconst updateTargetCard = () => {', renderTargetItemCardStart);
+  const renderSource = pageSource.slice(renderTargetItemCardStart, updateTargetCardStart);
+  assert.match(
+    renderSource,
+    /const alreadyApplied = (?:deconItemLevel\s*-\s*1|\(deconItemLevel\b[^)]*\)\s*-\s*1)/,
+  );
+  assert.match(
+    renderSource,
+    /Array\(maxLevelUps\)\.fill\(null\)\.map\(\(_\,\s*i\)\s*=>\s*i\s*<\s*alreadyApplied/,
+  );
+});
+
 test('analysis passes the exact successful-scroll count and source permissions to the engine', () => {
   const runAnalysisStart = pageSource.indexOf('const runAnalysis = () => {');
   const displayResultsStart = pageSource.indexOf('// ---- Display results ----', runAnalysisStart);
