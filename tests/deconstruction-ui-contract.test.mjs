@@ -177,6 +177,10 @@ test('item level stepper respects level-up definition visibility and engine pass
   const runAnalysisSource = pageSource.slice(runAnalysisStart, displayResultsStart);
   assert.match(
     runAnalysisSource,
+    /const maxLevelUps = Number\.isInteger\(levelUpDef\?\.maxLevelUps\) \? levelUpDef\.maxLevelUps : 0;/,
+  );
+  assert.match(
+    runAnalysisSource,
     /alreadyAppliedLevels:\s*deconItemLevel >= maxLevelUps \? maxLevelUps : deconItemLevel\s*-\s*1/,
   );
 });
