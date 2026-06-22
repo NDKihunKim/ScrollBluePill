@@ -244,7 +244,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
                     <input type="checkbox" data-decon-source="scrolls" />
                     <span class="ev-target-chip-label">주문서</span>
                   </label>
-                  <div class="decon-source-sub" data-decon-scroll-rate-sub hidden>
+                  <div class="decon-source-sub" data-decon-scroll-rate-sub>
                     <span class="decon-source-sub-label">스크롤 등급:</span>
                     <label class="decon-rate-chip"><input type="checkbox" data-decon-scroll-rate="100" checked />100%</label>
                     <label class="decon-rate-chip"><input type="checkbox" data-decon-scroll-rate="60" checked />60%</label>
@@ -257,7 +257,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
                     <input type="checkbox" data-decon-source="stimulant" />
                     <span class="ev-target-chip-label">촉진제</span>
                   </label>
-                  <div class="decon-source-sub" data-decon-stimulant-bounds hidden>
+                  <div class="decon-source-sub" data-decon-stimulant-bounds>
                     <span class="decon-source-sub-label">스탯 범위:</span>
                     <div data-decon-stimulant-bounds-list></div>
                   </div>
@@ -267,7 +267,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
                     <input type="checkbox" data-decon-source="gems" />
                     <span class="ev-target-chip-label">보석</span>
                   </label>
-                  <div class="decon-source-sub" hidden></div>
+                  <div class="decon-source-sub"></div>
                 </div>
                 <div class="decon-source-row" data-decon-level-up-source hidden>
                   <label class="ev-target-chip">
@@ -437,7 +437,7 @@ const resultFilterController = createResultFilterController({
 const toggleSourceSub = (sourceCheckbox, subContainer, onFirstEnable) => {
   if (!(sourceCheckbox instanceof HTMLInputElement) || !(subContainer instanceof HTMLElement)) return;
   const enabled = sourceCheckbox.checked;
-  subContainer.hidden = !enabled;
+  subContainer.classList.toggle('decon-source-sub--open', enabled);
   if (enabled && typeof onFirstEnable === 'function') onFirstEnable();
 };
 
@@ -2819,17 +2819,24 @@ aside.panel {
 }
 .decon-source-sub {
   margin-left: 28px;
-  margin-top: 6px;
-  padding: 6px 10px;
-  border-left: 3px solid #3366ff;
+  max-height: 0;
+  overflow: hidden;
+  padding: 0 10px;
+  margin-top: 0;
+  border-left: 0 solid #3366ff;
   font-size: 0.84rem;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
+  transition: max-height 0.3s ease, padding 0.3s ease, margin-top 0.3s ease, border-left-width 0.3s ease;
 }
-.decon-source-sub[hidden] {
-  display: none;
+.decon-source-sub--open {
+  max-height: 600px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  margin-top: 6px;
+  border-left-width: 3px;
 }
 .decon-source-sub-label {
   color: #aaa;
