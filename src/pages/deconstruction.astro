@@ -301,7 +301,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 <script>
 import { searchKoreanItems } from '../lib/itemSearch.mjs';
 import { buildItemIconUrl, buildItemSearchUrl } from '../lib/maplestoryIo.mjs';
-import { HP_MP_KEYS } from '../lib/enhancementState.mjs';
+import { HP_MP_KEYS, computeItemLevelUpCardMeta } from '../lib/enhancementState.mjs';
 import { enumerateStrategies } from '../lib/deconstruction/engine.mjs';
 import { guardCheckboxMutation } from '../lib/deconstruction/guardedCheckboxMutation.mjs';
 import { GEM_GRADES } from '../lib/makerData.mjs';
@@ -515,6 +515,7 @@ const requirementRows = [
   ['REQPOP', 'pop'],
 ];
 const deconStatRows = [
+  ['공격속도', 'attackSpeed'],
   ['STR', 'str'],
   ['DEX', 'dex'],
   ['INT', 'int'],
@@ -529,7 +530,6 @@ const deconStatRows = [
   ['회피율', 'avoidability'],
   ['이동속도', 'speed'],
   ['점프력', 'jump'],
-  ['공격속도', 'attackSpeed'],
   ['업그레이드 가능 횟수', 'upgradeSlots'],
 ];
 const jobKindByRequiredJob = {
@@ -650,6 +650,19 @@ const renderTargetItemCard = (item) => {
         : (item.requirements?.[key] ?? 0);
     selectedItemRequirements.append(createItemLine(label, value, 'selected-item-line--requirement'));
   });
+
+  const itemLevelUpMeta = computeItemLevelUpCardMeta(
+    { itemLevelUpSlots: [] },
+    itemLevelUpByItemId.get(item.id) ?? null,
+  );
+  if (itemLevelUpMeta) {
+    selectedItemRequirements.append(
+      createItemLine('ITEM LEV', itemLevelUpMeta.itemLevel, 'selected-item-line--item-level'),
+    );
+    selectedItemRequirements.append(
+      createItemLine('ITEM EXP', itemLevelUpMeta.itemExp, 'selected-item-line--item-level'),
+    );
+  }
 
   deconStatRows.forEach(([label, key]) => {
     if (key === 'attackSpeed') {
@@ -1731,6 +1744,7 @@ Promise.all([
         .map((definition) => [definition.itemId, definition]),
     );
     updateLevelUpSourceEligibility();
+    updateTargetCard();
   })
   .catch((error) => {
     console.error(error);
