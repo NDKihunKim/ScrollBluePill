@@ -14,8 +14,8 @@ import {
   solveStimulantResidual,
 } from './sourceContributions.mjs';
 
-const MAX_DISPLAY_STRATEGIES = 1000;
-const OVERFLOW_TOTAL = 1001;
+const MAX_DISPLAY_STRATEGIES = 10000;
+const OVERFLOW_TOTAL = 10001;
 
 /**
  * Check whether a scroll is a chaos-type scroll (random delta values).

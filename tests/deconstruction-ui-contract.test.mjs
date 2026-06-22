@@ -271,7 +271,7 @@ test('displayResults preserves result containers and clears only dynamic content
   assert.ok(listClearIndex >= 0 && listClearIndex < overflowResultIndex);
   assert.match(
     displayResultsSource,
-    /if \(result\.tooManyResults\) \{\s*summary\.textContent = '일치하는 전략이 1,000개를 초과합니다\. 위 패널에서 목표 조건을 더 구체적으로 선택해주세요\.';\s*return;\s*\}/,
+    /if \(result\.tooManyResults\) \{\s*summary\.textContent = '일치하는 전략이 10,000개를 초과합니다\. 위 패널에서 목표 조건을 더 구체적으로 선택해주세요\.';\s*return;\s*\}/,
   );
   assert.match(
     displayResultsSource,

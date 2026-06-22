@@ -1340,7 +1340,7 @@ const displayResults = (result, targetDeltas) => {
   summary.className = 'decon-summary';
   deconResultContent.prepend(summary);
   if (result.tooManyResults) {
-    summary.textContent = '일치하는 전략이 1,000개를 초과합니다. 위 패널에서 목표 조건을 더 구체적으로 선택해주세요.';
+    summary.textContent = '일치하는 전략이 10,000개를 초과합니다. 위 패널에서 목표 조건을 더 구체적으로 선택해주세요.';
     return;
   }
   if (result.strategies.length === 0) {
