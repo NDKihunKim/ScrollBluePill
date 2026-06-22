@@ -305,6 +305,8 @@ function buildResult({ scrolls, stimulant, gems, itemLevelUp, priorityRank, targ
  * @param {number}             opts.alreadyAppliedLevels  Level-ups already consumed (default 0)
  * @param {object}          opts.allowedSources         Optional source permissions
  * @param {Set<string>|null}    opts.scrollRateFilter       Allowed scroll rates: '100','60','10','chaos' (null=all)
+ * @param {object|null}        opts.stimulantStatBounds     Per-key min/max for stimulant (null=default -5/+5)
+ * @param {Array<object>|null} opts.levelUpSlotStatRanges   Per-slot stat ranges for level-ups (null=use definition)
  * @returns {{ strategies: Array, total: number, tooManyResults: boolean }}
  */
 export function enumerateStrategies({
@@ -318,6 +320,8 @@ export function enumerateStrategies({
   levelUpDefinition = null,
   allowedSources,
   scrollRateFilter = null,
+  stimulantStatBounds = null,
+  levelUpSlotStatRanges = null,
   alreadyAppliedLevels = 0,
 }) {
   const strategies = [];
@@ -382,6 +386,7 @@ export function enumerateStrategies({
         targetKeys,
         bounds: itemBounds,
         alreadyAppliedLevels,
+        perSlotRanges: levelUpSlotStatRanges,
       })
     : [];
 
@@ -463,7 +468,7 @@ export function enumerateStrategies({
 
     // Tier 1: scroll + stimulant
     if (normalizedAllowedSources.stimulant && !tooManyResults) {
-      const stimStats = solveStimulantResidual(residual, targetKeys, stimulantOpts);
+      const stimStats = solveStimulantResidual(residual, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
       if (stimStats) {
         addResult({
           scrolls: ss.scrolls,
