@@ -214,6 +214,51 @@ test('item level max boundary fills all slots for card and engine', () => {
   );
 });
 
+test('source checkboxes deselected by default', () => {
+  const sourceSectionStart = pageSource.indexOf('<fieldset class="decon-source-options"');
+  const sourceSectionEnd = pageSource.indexOf('</fieldset>', sourceSectionStart);
+  const sourceSection = pageSource.slice(sourceSectionStart, sourceSectionEnd);
+  assert.match(sourceSection, /<input type="checkbox" data-decon-source="scrolls"\s*\/>/);
+  assert.match(sourceSection, /<input type="checkbox" data-decon-source="stimulant"\s*\/>/);
+  assert.match(sourceSection, /<input type="checkbox" data-decon-source="gems"\s*\/>/);
+  assert.match(sourceSection, /<input type="checkbox" data-decon-source="itemLevelUp"\s*\/>/);
+});
+
+test('scroll rate sub-options exist with correct data attributes', () => {
+  assert.match(pageSource, /data-decon-scroll-rate="100"/);
+  assert.match(pageSource, /data-decon-scroll-rate="60"/);
+  assert.match(pageSource, /data-decon-scroll-rate="10"/);
+  assert.match(pageSource, /data-decon-scroll-rate="chaos"/);
+  assert.match(pageSource, /data-decon-scroll-rate-sub/);
+});
+
+test('stimulant stat bounds sub-options exist', () => {
+  assert.match(pageSource, /data-decon-stimulant-bounds/);
+  assert.match(pageSource, /data-decon-stimulant-bound-min/);
+  assert.match(pageSource, /data-decon-stimulant-bound-max/);
+});
+
+test('level-up slot range editors exist', () => {
+  assert.match(pageSource, /data-decon-level-slot-ranges/);
+  assert.match(pageSource, /data-decon-level-slot\[/);
+});
+
+test('getDefaultSourceSelection returns all false', () => {
+  assert.match(
+    pageSource,
+    /scrolls:\s*false,\s*\n\s*stimulant:\s*false,\s*\n\s*gems:\s*false,\s*\n\s*itemLevelUp:\s*false/,
+  );
+});
+
+test('runAnalysis passes pre-filter params to engine', () => {
+  const runAnalysisStart = pageSource.indexOf('const runAnalysis = () => {');
+  const displayResultsStart = pageSource.indexOf('const displayResults = (', runAnalysisStart);
+  const runAnalysisSource = pageSource.slice(runAnalysisStart, displayResultsStart);
+  assert.match(runAnalysisSource, /scrollRateFilter:\s*deconScrollRateFilter\.size > 0 \? deconScrollRateFilter : null/);
+  assert.match(runAnalysisSource, /stimulantStatBounds:\s*Object\.keys\(deconStimulantBounds\)/);
+  assert.match(runAnalysisSource, /levelUpSlotStatRanges:\s*deconLevelUpSlotRanges\.length > 0/);
+});
+
 test('analysis passes the exact successful-scroll count and source permissions to the engine', () => {
   const runAnalysisStart = pageSource.indexOf('const runAnalysis = () => {');
   const displayResultsStart = pageSource.indexOf('// ---- Display results ----', runAnalysisStart);
