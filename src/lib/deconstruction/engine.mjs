@@ -24,6 +24,21 @@ function isChaosScroll(scroll) {
   return scroll.behavior_type === 'chaos';
 }
 
+function parseScrollRate(nameKo) {
+  if (/혼돈|chaos/i.test(nameKo)) return 'chaos';
+  const match = nameKo.match(/(\d+)%/);
+  return match ? match[1] : null;
+}
+
+function filterScrollsByRate(scrolls, rateFilter) {
+  if (!rateFilter) return scrolls;
+  if (rateFilter.size === 0) return [];
+  return scrolls.filter((s) => {
+    const rate = parseScrollRate(s.nameKo);
+    return rate !== null && rateFilter.has(rate);
+  });
+}
+
 function getChaosRange(statKey) {
   if (HP_MP_KEYS.has(statKey)) return { min: -50, max: 50 };
   return { min: -5, max: 5 };
@@ -289,6 +304,7 @@ function buildResult({ scrolls, stimulant, gems, itemLevelUp, priorityRank, targ
  * @param {object|null}     opts.levelUpDefinition      Item level-up definition or null
  * @param {number}             opts.alreadyAppliedLevels  Level-ups already consumed (default 0)
  * @param {object}          opts.allowedSources         Optional source permissions
+ * @param {Set<string>|null}    opts.scrollRateFilter       Allowed scroll rates: '100','60','10','chaos' (null=all)
  * @returns {{ strategies: Array, total: number, tooManyResults: boolean }}
  */
 export function enumerateStrategies({
@@ -301,6 +317,7 @@ export function enumerateStrategies({
   scrollsByEquipmentKind,
   levelUpDefinition = null,
   allowedSources,
+  scrollRateFilter = null,
   alreadyAppliedLevels = 0,
 }) {
   const strategies = [];
@@ -391,7 +408,8 @@ export function enumerateStrategies({
     correctionBounds[key] = { min, max };
   }
 
-  const scrolls = scrollsByEquipmentKind.get(equipmentKind) ?? [];
+  const rawScrolls = scrollsByEquipmentKind.get(equipmentKind) ?? [];
+  const scrolls = scrollRateFilter ? filterScrollsByRate(rawScrolls, scrollRateFilter) : rawScrolls;
 
   const equipmentIsWeapon = isWeaponKind(equipmentKind);
   const stimulantOpts = { isWeapon: equipmentIsWeapon };
