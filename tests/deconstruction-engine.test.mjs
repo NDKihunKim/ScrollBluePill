@@ -536,7 +536,7 @@ for (const candidateCount of [10000, 10001]) {
   });
 }
 
-test('enumerateItemLevelContributions alreadyAppliedLevels=0 matches full range (regression)', () => {
+test('enumerateItemLevelContributions appliedLevelCount=0 matches full range (regression)', () => {
   const levelUpDef = { maxLevelUps: 2, statRanges: { str: { min: 1, max: 1 } } };
   const base = enumerateItemLevelContributions({
     levelUpDefinition: levelUpDef,
@@ -547,7 +547,7 @@ test('enumerateItemLevelContributions alreadyAppliedLevels=0 matches full range 
     levelUpDefinition: levelUpDef,
     targetKeys: ['str'],
     bounds: { str: { min: -Infinity, max: Infinity } },
-    alreadyAppliedLevels: 0,
+    appliedLevelCount: 0,
   });
   assert.equal(base.length, withZero.length);
   for (let i = 0; i < base.length; i++) {
@@ -556,13 +556,13 @@ test('enumerateItemLevelContributions alreadyAppliedLevels=0 matches full range 
   }
 });
 
-test('enumerateItemLevelContributions respects alreadyAppliedLevels', () => {
+test('enumerateItemLevelContributions respects appliedLevelCount', () => {
   const levelUpDef = { maxLevelUps: 5, statRanges: { str: { min: 1, max: 1 }, dex: { min: 0, max: 1 } } };
   const contributions = enumerateItemLevelContributions({
     levelUpDefinition: levelUpDef,
     targetKeys: ['str', 'dex'],
     bounds: { str: { min: -Infinity, max: Infinity }, dex: { min: -Infinity, max: Infinity } },
-    alreadyAppliedLevels: 3,
+    appliedLevelCount: 3,
   });
   assert.ok(contributions.length > 0, 'should have contributions for remaining 2 levels');
   for (const c of contributions) {
@@ -571,13 +571,13 @@ test('enumerateItemLevelContributions respects alreadyAppliedLevels', () => {
   }
 });
 
-test('enumerateItemLevelContributions returns empty when alreadyAppliedLevels equals maxLevelUps', () => {
+test('enumerateItemLevelContributions returns empty when appliedLevelCount equals maxLevelUps', () => {
   const levelUpDef = { maxLevelUps: 5, statRanges: { str: { min: 1, max: 1 } } };
   const contributions = enumerateItemLevelContributions({
     levelUpDefinition: levelUpDef,
     targetKeys: ['str'],
     bounds: { str: { min: -Infinity, max: Infinity } },
-    alreadyAppliedLevels: 5,
+    appliedLevelCount: 5,
   });
   assert.equal(contributions.length, 0);
 });
@@ -709,7 +709,7 @@ test('levelUpSlotStatRanges overrides per-slot stat ranges', () => {
     scrollsByEquipmentKind: new Map([['Cape', []]]),
     levelUpDefinition: levelUpDef,
     allowedSources: { scrolls: false, stimulant: false, gems: false, itemLevelUp: true },
-    alreadyAppliedLevels: 0,
+    appliedLevelCount: 0,
     levelUpSlotStatRanges: [
       { str: { min: 1, max: 1 } },
       { str: { min: 1, max: 1 } },
@@ -734,7 +734,7 @@ test('levelUpSlotStatRanges missing slot falls back to definition', () => {
     scrollsByEquipmentKind: new Map([['Cape', []]]),
     levelUpDefinition: levelUpDef,
     allowedSources: { scrolls: false, stimulant: false, gems: false, itemLevelUp: true },
-    alreadyAppliedLevels: 0,
+    appliedLevelCount: 0,
     levelUpSlotStatRanges: [],
   });
   assert.ok(result.strategies.length > 0);

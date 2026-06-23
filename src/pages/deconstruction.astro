@@ -462,7 +462,8 @@ let deconHasActionableResults = false;
 let deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
 let deconStimulantBoundsMap = {};
 let deconLevelUpSlotRanges = [];
-let deconItemLevel = 1;
+let deconAppliedLevelCount = 0;      // how many level-ups are already applied (0..maxLevelUps)
+let deconAppliedLevelStats = {};     // total stat vector for all applied levels combined
 
 const guardDeconMutation = (fn) => {
   if (!deconHasActionableResults) { fn(); return; }
@@ -511,8 +512,7 @@ const getDeconItemLevelSourceEligibility = () => {
   if (!selectedItem) return false;
   const def = itemLevelUpByItemId.get(selectedItem.id);
   if (!def) return false;
-  const maxLevelUps = Number.isInteger(def.maxLevelUps) ? def.maxLevelUps : 0;
-  return deconItemLevel <= maxLevelUps;
+  return true;
 };
 
 const updateLevelUpSourceEligibility = () => {
@@ -751,7 +751,7 @@ const renderTargetItemCard = (item) => {
 
   const levelUpDef = itemLevelUpByItemId.get(item.id);
   const maxLevelUps = Number.isInteger(levelUpDef?.maxLevelUps) ? levelUpDef.maxLevelUps : 0;
-  const alreadyApplied = Math.max(0, Math.min(maxLevelUps, deconItemLevel - 1));
+  const alreadyApplied = Math.max(0, Math.min(maxLevelUps, deconAppliedLevelCount));
   const virtualSlots = Array(maxLevelUps).fill(null).map((_, i) => i < alreadyApplied ? { stats: {} } : null);
   const itemLevelUpMeta = computeItemLevelUpCardMeta(
     { itemLevelUpSlots: virtualSlots },
@@ -1054,13 +1054,72 @@ const buildLevelUpSlotEditors = () => {
   const def = itemLevelUpByItemId.get(selectedItem.id);
   const maxLevelUps = Number.isInteger(def?.maxLevelUps) ? def.maxLevelUps : 0;
   if (maxLevelUps <= 0) return;
-  const alreadyApplied = Math.max(0, Math.min(maxLevelUps, deconItemLevel - 1));
-  const remaining = maxLevelUps - alreadyApplied;
-  deconLevelSlotLabel.textContent = `남은 레벨 (${remaining}개, 총 ${maxLevelUps}회):`;
+
   const statRanges = def?.statRanges ?? {};
-  if (deconLevelUpSlotRanges.length !== maxLevelUps) {
+  const applied = deconAppliedLevelCount;
+
+  // ── Applied levels total stats editor ──
+  if (applied > 0) {
+    const slot = document.createElement('div');
+    slot.className = 'decon-level-slot';
+    const header = document.createElement('div');
+    header.className = 'decon-level-slot-label';
+    header.textContent = `적용된 레벨업 총합 (${applied}회)`;
+    slot.append(header);
+    const statsRow = document.createElement('div');
+    statsRow.className = 'decon-level-slot-stats';
+
+    // Initialize applied stats from defaults if empty
+    if (Object.keys(deconAppliedLevelStats).length === 0) {
+      deconAppliedLevelStats = {};
+      for (const key of Object.keys(statRanges)) {
+        const defRange = statRanges[key] ?? { min: 0, max: 0 };
+        deconAppliedLevelStats[key] = defRange.min * applied;
+      }
+    }
+
+    for (const key of Object.keys(statRanges)) {
+      const defRange = statRanges[key] ?? { min: 0, max: 0 };
+      const totalMin = defRange.min * applied;
+      const totalMax = defRange.max * applied;
+      if (!(key in deconAppliedLevelStats)) {
+        deconAppliedLevelStats[key] = totalMin;
+      }
+
+      const statEl = document.createElement('span');
+      statEl.textContent = (statLabelByKey[key] || key) + ' ';
+
+      const valInput = document.createElement('input');
+      valInput.type = 'number';
+      valInput.min = totalMin;
+      valInput.max = totalMax;
+      valInput.value = deconAppliedLevelStats[key];
+      valInput.addEventListener('change', () => {
+        const val = Number(valInput.value);
+        if (Number.isFinite(val)) {
+          deconAppliedLevelStats[key] = Math.max(totalMin, Math.min(totalMax, val));
+          valInput.value = deconAppliedLevelStats[key];
+          updateAnalyzeButton();
+        }
+      });
+      statEl.append(valInput);
+      statsRow.append(statEl);
+    }
+    slot.append(statsRow);
+    deconLevelSlotList.append(slot);
+  }
+
+  // ── Remaining slot range editors ──
+  const remaining = maxLevelUps - applied;
+  deconLevelSlotLabel.textContent = applied > 0
+    ? `남은 레벨 (${remaining}개, 총 ${maxLevelUps}회):`
+    : `남은 레벨 (${remaining}개, 총 ${maxLevelUps}회):`;
+
+  if (remaining <= 0) return;
+
+  if (deconLevelUpSlotRanges.length !== remaining) {
     const newRanges = [];
-    for (let i = 0; i < maxLevelUps; i++) {
+    for (let i = 0; i < remaining; i++) {
       newRanges.push(deconLevelUpSlotRanges[i] ?? buildDefaultSlotRanges(statRanges));
     }
     deconLevelUpSlotRanges = newRanges;
@@ -1071,7 +1130,7 @@ const buildLevelUpSlotEditors = () => {
     slot.setAttribute('data-decon-level-slot', String(i));
     const header = document.createElement('div');
     header.className = 'decon-level-slot-label';
-    header.textContent = `슬롯 ${i + 1}`;
+    header.textContent = `남은 슬롯 ${i + 1}`;
     slot.append(header);
     const statsRow = document.createElement('div');
     statsRow.className = 'decon-level-slot-stats';
@@ -1134,7 +1193,7 @@ const renderDeconItemLevel = () => {
     deconLevelMaxBtn.textContent = 'MAX';
   }
   if (deconLevelValue instanceof HTMLElement) {
-    deconLevelValue.textContent = String(deconItemLevel);
+    deconLevelValue.textContent = String(deconAppliedLevelCount + 1);
   }
   updateTargetCard();
   if (deconItemLevelUpSource instanceof HTMLInputElement && deconItemLevelUpSource.checked) {
@@ -1219,7 +1278,8 @@ const selectSuggestedItem = (item, { syncFilters = true } = {}) => {
   selectedItem = item;
   if (itemChanged) resetAllowedSources();
   updateLevelUpSourceEligibility();
-  deconItemLevel = 1;
+  deconAppliedLevelCount = 0;
+  deconAppliedLevelStats = {};
   deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
   deconStimulantBoundsMap = {};
   deconLevelUpSlotRanges = [];
@@ -1448,7 +1508,8 @@ const activateDeconEditPanel = (item) => {
 
   // Reset slot history from the selected clean item
   deconSlotState = createDeconstructionSlotState(item.stats?.upgradeSlots ?? 0);
-  deconItemLevel = 1;
+  deconAppliedLevelCount = 0;
+  deconAppliedLevelStats = {};
   deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
   deconStimulantBoundsMap = {};
   deconLevelUpSlotRanges = [];
@@ -1486,6 +1547,7 @@ const runAnalysis = () => {
 
   const levelUpDef = itemLevelUpByItemId.get(selectedItem.id);
   const maxLevelUps = Number.isInteger(levelUpDef?.maxLevelUps) ? levelUpDef.maxLevelUps : 0;
+  const appliedCount = Math.max(0, Math.min(maxLevelUps, deconAppliedLevelCount));
   const result = enumerateStrategies({
     targetDeltas,
     targetKeys: checkedKeys,
@@ -1496,7 +1558,9 @@ const runAnalysis = () => {
     cleanStats: selectedItem.stats ?? {},
     scrollsByEquipmentKind,
     levelUpDefinition: levelUpDef ?? null,
-    alreadyAppliedLevels: Math.max(0, Math.min(maxLevelUps, deconItemLevel - 1)),
+    appliedLevelStats: appliedCount > 0
+      ? { levelCount: appliedCount, stats: deconAppliedLevelStats }
+      : null,
     scrollRateFilter: deconScrollRateFilter.size > 0 ? deconScrollRateFilter : null,
     stimulantStatBounds: Object.keys(deconStimulantBoundsMap).length > 0 ? deconStimulantBoundsMap : null,
     levelUpSlotStatRanges: deconLevelUpSlotRanges.length > 0 ? deconLevelUpSlotRanges : null,
@@ -1681,7 +1745,13 @@ const displayResults = (result, targetDeltas) => {
       }
     }
     if (strategy.itemLevelUp) {
-      appendSourceRow(card, `아이템 레벨업 ${strategy.itemLevelUp.levelCount}회`, strategy.itemLevelUp.stats);
+      const il = strategy.itemLevelUp;
+      if (il.appliedLevelCount > 0 && il.levelCount > il.appliedLevelCount) {
+        // Both applied and remaining
+        appendSourceRow(card, `아이템 레벨업 ${il.levelCount}회 (적용 ${il.appliedLevelCount}회)`, il.stats);
+      } else {
+        appendSourceRow(card, `아이템 레벨업 ${il.levelCount}회`, il.stats);
+      }
     }
 
     listContainer.append(card);
@@ -1872,13 +1942,17 @@ deconSlotMax?.addEventListener('click', () => guardDeconMutation(() => {
 
 // ---- Level steppers ----
 deconLevelMinBtn?.addEventListener('click', () => guardDeconMutation(() => {
-  deconItemLevel = 1;
+  deconAppliedLevelCount = 0;
+  deconAppliedLevelStats = {};
+  deconLevelUpSlotRanges = [];
   renderDeconItemLevel();
   updateLevelUpSourceEligibility();
 }));
 deconLevelDecBtn?.addEventListener('click', () => guardDeconMutation(() => {
-  if (deconItemLevel > 1) {
-    deconItemLevel--;
+  if (deconAppliedLevelCount > 0) {
+    deconAppliedLevelCount--;
+    deconAppliedLevelStats = {};
+    deconLevelUpSlotRanges = [];
     renderDeconItemLevel();
     updateLevelUpSourceEligibility();
   }
@@ -1886,8 +1960,10 @@ deconLevelDecBtn?.addEventListener('click', () => guardDeconMutation(() => {
 deconLevelIncBtn?.addEventListener('click', () => guardDeconMutation(() => {
   const def = selectedItem ? itemLevelUpByItemId.get(selectedItem.id) : null;
   const maxLevelUps = Number.isInteger(def?.maxLevelUps) ? def.maxLevelUps : 0;
-  if (deconItemLevel <= maxLevelUps) {
-    deconItemLevel++;
+  if (deconAppliedLevelCount < maxLevelUps) {
+    deconAppliedLevelCount++;
+    deconAppliedLevelStats = {};
+    deconLevelUpSlotRanges = [];
     renderDeconItemLevel();
     updateLevelUpSourceEligibility();
   }
@@ -1895,7 +1971,9 @@ deconLevelIncBtn?.addEventListener('click', () => guardDeconMutation(() => {
 deconLevelMaxBtn?.addEventListener('click', () => guardDeconMutation(() => {
   const def = selectedItem ? itemLevelUpByItemId.get(selectedItem.id) : null;
   const maxLevelUps = Number.isInteger(def?.maxLevelUps) ? def.maxLevelUps : 0;
-  deconItemLevel = maxLevelUps + 1;
+  deconAppliedLevelCount = maxLevelUps;
+  deconAppliedLevelStats = {};
+  deconLevelUpSlotRanges = [];
   renderDeconItemLevel();
   updateLevelUpSourceEligibility();
 }));

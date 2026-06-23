@@ -185,17 +185,21 @@ test('item level stepper respects level-up definition visibility and engine pass
   );
   assert.match(
     runAnalysisSource,
-    /alreadyAppliedLevels:\s*Math\.max\(0,\s*Math\.min\(maxLevelUps,\s*deconItemLevel\s*-\s*1\)\)/,
+    /const appliedCount = Math\.max\(0,\s*Math\.min\(maxLevelUps,\s*deconAppliedLevelCount\)\);/,
+  );
+  assert.match(
+    runAnalysisSource,
+    /appliedLevelStats:\s*appliedCount > 0/,
   );
 });
 
-test('item level card display uses virtual slots from deconItemLevel', () => {
+test('item level card display uses virtual slots from deconAppliedLevelCount', () => {
   const renderTargetItemCardStart = pageSource.indexOf('const renderTargetItemCard = (item) => {');
   const updateTargetCardStart = pageSource.indexOf('\nconst updateTargetCard = () => {', renderTargetItemCardStart);
   const renderSource = pageSource.slice(renderTargetItemCardStart, updateTargetCardStart);
   assert.match(
     renderSource,
-    /const alreadyApplied = Math\.max\(0,\s*Math\.min\(maxLevelUps,\s*deconItemLevel\s*-\s*1\)\)/,
+    /const alreadyApplied = Math\.max\(0,\s*Math\.min\(maxLevelUps,\s*deconAppliedLevelCount\)\);/,
   );
   assert.match(
     renderSource,
@@ -209,7 +213,11 @@ test('item level max boundary fills all slots for card and engine', () => {
   const runAnalysisSource = pageSource.slice(runAnalysisStart, displayResultsStart);
   assert.match(
     runAnalysisSource,
-    /alreadyAppliedLevels:\s*Math\.max\(0,\s*Math\.min\(maxLevelUps,\s*deconItemLevel\s*-\s*1\)\)/,
+    /const appliedCount = Math\.max\(0,\s*Math\.min\(maxLevelUps,\s*deconAppliedLevelCount\)\);/,
+  );
+  assert.match(
+    runAnalysisSource,
+    /appliedLevelStats:\s*appliedCount > 0/,
   );
 
   assert.match(
