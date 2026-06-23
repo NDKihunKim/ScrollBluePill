@@ -62,11 +62,11 @@ function withinBounds(stats, bounds, targetKeys) {
   });
 }
 
-export function enumerateItemLevelContributions({ levelUpDefinition, targetKeys, bounds, alreadyAppliedLevels = 0, perSlotRanges = null }) {
+export function enumerateItemLevelContributions({ levelUpDefinition, targetKeys, bounds, appliedLevelCount = 0, perSlotRanges = null }) {
   const maxLevelUps = levelUpDefinition?.maxLevelUps;
   if (!Number.isInteger(maxLevelUps) || maxLevelUps <= 0) return [];
 
-  const remainingLevels = maxLevelUps - (Number.isFinite(alreadyAppliedLevels) ? Math.max(0, Math.trunc(alreadyAppliedLevels)) : 0);
+  const remainingLevels = maxLevelUps - (Number.isFinite(appliedLevelCount) ? Math.max(0, Math.trunc(appliedLevelCount)) : 0);
   if (remainingLevels <= 0) return [];
 
   const defaultRanges = levelUpDefinition.statRanges ?? {};

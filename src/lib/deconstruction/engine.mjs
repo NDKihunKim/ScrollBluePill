@@ -243,7 +243,10 @@ function strategyCanonicalKey({ scrolls, stimulant, gems, itemLevelUp }, targetK
 /**
  * Build a strategy result object.
  */
-function buildResult({ scrolls, stimulant, gems, itemLevelUp, priorityRank, targetKeys }) {
+function buildResult({ scrolls, stimulant, gems, itemLevelUp, priorityRank, targetKeys, appliedLevelStats: applyApplied }) {
+  const appliedLevelCount = applyApplied?.levelCount ?? 0;
+  const appliedStats = applyApplied?.stats ?? {};
+
   const scrollEntries = scrolls.map((s) => ({
     id: s.id,
     nameKo: s.nameKo,
@@ -251,7 +254,24 @@ function buildResult({ scrolls, stimulant, gems, itemLevelUp, priorityRank, targ
   }));
 
   const hasStimulant = stimulant !== null;
-  const hasItemLevelUp = itemLevelUp !== null;
+
+  // Merge remaining level-up with applied level stats
+  let mergedItemLevelUp = null;
+  if (itemLevelUp || appliedLevelCount > 0) {
+    const remainingStats = itemLevelUp?.stats ?? {};
+    const remainingCount = itemLevelUp?.levelCount ?? 0;
+    const mergedStats = {};
+    for (const key of targetKeys) {
+      const v = (remainingStats[key] ?? 0) + (appliedStats[key] ?? 0);
+      if (v !== 0) mergedStats[key] = v;
+    }
+    mergedItemLevelUp = {
+      levelCount: remainingCount + appliedLevelCount,
+      stats: mergedStats,
+      ...(appliedLevelCount > 0 ? { appliedLevelCount, appliedStats: { ...appliedStats } } : {}),
+    };
+  }
+  const hasItemLevelUp = mergedItemLevelUp !== null;
 
   const sourceTypes = [];
   if (scrolls.length > 0) sourceTypes.push('scrolls');
@@ -274,13 +294,13 @@ function buildResult({ scrolls, stimulant, gems, itemLevelUp, priorityRank, targ
   for (const s of scrollEntries) addStats(s.stats);
   if (stimulant) addStats(stimulant.stats);
   for (const g of gems) addStats(g.stats);
-  if (itemLevelUp) addStats(itemLevelUp.stats);
+  if (mergedItemLevelUp) addStats(mergedItemLevelUp.stats);
 
   return {
     scrolls: scrollEntries,
     stimulant,
     gems,
-    itemLevelUp,
+    itemLevelUp: mergedItemLevelUp,
     hasStimulant,
     hasItemLevelUp,
     sourceTypes,
@@ -302,11 +322,11 @@ function buildResult({ scrolls, stimulant, gems, itemLevelUp, priorityRank, targ
  * @param {object}          opts.cleanStats             Base item stats (before enhancement)
  * @param {Map<string,Array>} opts.scrollsByEquipmentKind  Scrolls grouped by equipment kind
  * @param {object|null}     opts.levelUpDefinition      Item level-up definition or null
- * @param {number}             opts.alreadyAppliedLevels  Level-ups already consumed (default 0)
+ * @param {{ levelCount: number, stats: Record<string,number> }|null} opts.appliedLevelStats  Total stats from already-applied level-ups
  * @param {object}          opts.allowedSources         Optional source permissions
  * @param {Set<string>|null}    opts.scrollRateFilter       Allowed scroll rates: '100','60','10','chaos' (null=all)
  * @param {object|null}        opts.stimulantStatBounds     Per-key min/max for stimulant (null=default -5/+5)
- * @param {Array<object>|null} opts.levelUpSlotStatRanges   Per-slot stat ranges for level-ups (null=use definition)
+ * @param {Array<object>|null} opts.levelUpSlotStatRanges   Per-slot stat ranges for remaining level-ups (null=use definition)
  * @returns {{ strategies: Array, total: number, tooManyResults: boolean }}
  */
 export function enumerateStrategies({
@@ -322,7 +342,7 @@ export function enumerateStrategies({
   scrollRateFilter = null,
   stimulantStatBounds = null,
   levelUpSlotStatRanges = null,
-  alreadyAppliedLevels = 0,
+  appliedLevelStats: appliedLevelStatsRaw = null,
 }) {
   const strategies = [];
   let tooManyResults = false;
@@ -340,6 +360,38 @@ export function enumerateStrategies({
       return 0;
     }
   })();
+
+  // ── Applied level-up stats ──────────────────────────────────────────
+  // When the item already has level-ups applied, their total stat
+  // contribution is subtracted from the target deltas so the strategy
+  // engine only searches for the remainder.  The applied stats are then
+  // added back as a fixed source in every result that uses itemLevelUp.
+  const appliedLevelStats = (() => {
+    if (!appliedLevelStatsRaw) return null;
+    const levelCount = Number.isFinite(appliedLevelStatsRaw.levelCount)
+      ? Math.max(0, Math.trunc(appliedLevelStatsRaw.levelCount))
+      : 0;
+    if (levelCount <= 0) return null;
+    const stats = {};
+    let hasNonZero = false;
+    for (const [key, value] of Object.entries(appliedLevelStatsRaw.stats ?? {})) {
+      if (Number.isFinite(value) && targetKeys.includes(key)) {
+        stats[key] = value;
+        if (value !== 0) hasNonZero = true;
+      }
+    }
+    return { levelCount, stats };
+  })();
+  const appliedLevelCount = appliedLevelStats?.levelCount ?? 0;
+  const appliedStats = appliedLevelStats?.stats ?? {};
+
+  // Effective target: what scrolls + stimulant + gems + remaining level-ups must cover
+  const effectiveTargetDeltas = { ...targetDeltas };
+  for (const [key, value] of Object.entries(appliedStats)) {
+    if (targetKeys.includes(key)) {
+      effectiveTargetDeltas[key] = (effectiveTargetDeltas[key] ?? 0) - value;
+    }
+  }
 
   const normalizedAllowedSources = {
     scrolls: allowedSources?.scrolls ?? true,
@@ -385,7 +437,7 @@ export function enumerateStrategies({
         levelUpDefinition,
         targetKeys,
         bounds: itemBounds,
-        alreadyAppliedLevels,
+        appliedLevelCount,
         perSlotRanges: levelUpSlotStatRanges,
       })
     : [];
@@ -419,12 +471,12 @@ export function enumerateStrategies({
   const equipmentIsWeapon = isWeaponKind(equipmentKind);
   const stimulantOpts = { isWeapon: equipmentIsWeapon };
 
-  // Generate exact-count scroll states
+  // Generate exact-count scroll states against the effective (post-applied-stats) target
   const effectiveScrollStates = normalizedAllowedSources.scrolls && normCount > 0
     ? enumerateExactCountScrollStates({
         scrolls,
         targetKeys,
-        targetDeltas,
+        targetDeltas: effectiveTargetDeltas,
         successfulScrollCount: normCount,
         correctionBounds,
       })
@@ -432,6 +484,7 @@ export function enumerateStrategies({
       ? [{ scrolls: [], stats: Object.fromEntries(targetKeys.map((k) => [k, 0])) }]
       : []);
 
+  // Full target vector (original, for exact-match verification)
   const targetVector = targetKeys.reduce((acc, k) => {
     acc[k] = targetDeltas[k] ?? 0;
     return acc;
@@ -439,7 +492,7 @@ export function enumerateStrategies({
 
   function addResult(parts) {
     if (tooManyResults) return;
-    const result = buildResult({ ...parts, targetKeys });
+    const result = buildResult({ ...parts, targetKeys, appliedLevelStats });
     // Verify total stats match target exactly on checked keys
     if (!isExactVector(result.totalStats, targetVector, targetKeys)) return;
     const key = strategyCanonicalKey(result, targetKeys);
@@ -453,10 +506,11 @@ export function enumerateStrategies({
   }
 
   for (const ss of effectiveScrollStates) {
-    const residual = subtractVectors(targetVector, ss.stats, targetKeys);
+    const residual = subtractVectors(effectiveTargetDeltas, ss.stats, targetKeys);
 
-    // Tier 0: scroll-only
-    if (normalizedAllowedSources.scrolls && isExactVector(ss.stats, targetVector, targetKeys)) {
+    // Tier 0: scroll-only (scrolls cover the entire effective target)
+    if (normalizedAllowedSources.scrolls
+        && isExactVector(ss.stats, effectiveTargetDeltas, targetKeys)) {
       addResult({
         scrolls: ss.scrolls,
         stimulant: null,
