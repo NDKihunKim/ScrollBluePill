@@ -531,7 +531,7 @@ export function enumerateStrategies({
     strategies.push(result);
   }
 
-  if (normalizedAllowedSources.itemLevelUp) {
+  if (normalizedAllowedSources.itemLevelUp && itemLevelContributions.length > 0) {
     // itemLevelUp outer loop — levelUp is base layer, scroll/stim/gems fill remainder
     for (const ilc of itemLevelContributions) {
       if (tooManyResults) break;
