@@ -417,20 +417,25 @@ function makeAllowedSourcesFixture(overrides = {}) {
   };
 }
 
-test('allowed sources are permitted but not required', () => {
+test('allowed sources are permitted with itemLevelUp as base', () => {
   const result = enumerateStrategies(makeAllowedSourcesFixture({
     allowedSources: { scrolls: true, stimulant: true, gems: true, itemLevelUp: true },
   }));
 
-  assert.ok(result.strategies.some((strategy) =>
-    strategy.sourceTypes.length === 1
-    && strategy.sourceTypes[0] === 'scrolls'
-    && strategy.scrolls[0].id === 7102));
-  assert.ok(result.strategies.some((strategy) =>
-    strategy.scrolls.length === 1
-    && strategy.scrolls[0].id === 7101
-    && strategy.hasStimulant
-    && strategy.stimulant.stats.str === 2));
+  // Every strategy must include itemLevelUp when enabled
+  assert.ok(result.strategies.length > 0, 'should produce strategies');
+  assert.ok(result.strategies.every(s => s.hasItemLevelUp), 'every strategy must include itemLevelUp');
+
+  // Should find scroll+stim+levelUp combination
+  assert.ok(result.strategies.some(s =>
+    s.scrolls.length === 1 && s.scrolls[0].id === 7101
+    && s.hasStimulant && s.stimulant.stats.str > 0
+    && s.hasItemLevelUp), 'should find scroll+stim+levelUp');
+
+  // Should find scroll+gem+levelUp combination
+  assert.ok(result.strategies.some(s =>
+    s.scrolls.length === 1 && s.gems.length > 0 && s.hasItemLevelUp),
+    'should find scroll+gem+levelUp');
 });
 
 for (const [source, payloadIsAbsent] of [
@@ -448,6 +453,48 @@ for (const [source, payloadIsAbsent] of [
     assert.ok(result.strategies.every((strategy) => !strategy.sourceTypes.includes(source)));
   });
 }
+
+test('when itemLevelUp is enabled, every strategy includes it', () => {
+  const result = enumerateStrategies(makeAllowedSourcesFixture({
+    allowedSources: { scrolls: true, stimulant: true, gems: true, itemLevelUp: true },
+  }));
+
+  assert.ok(result.strategies.length > 0, 'should produce strategies');
+  for (const s of result.strategies) {
+    assert.ok(s.hasItemLevelUp, 'every strategy must include itemLevelUp');
+    assert.ok(s.itemLevelUp !== null, 'itemLevelUp payload must be non-null');
+    assert.ok(s.sourceTypes.includes('itemLevelUp'), 'sourceTypes must include itemLevelUp');
+  }
+});
+
+test('when itemLevelUp is disabled, no strategy includes it', () => {
+  const result = enumerateStrategies(makeAllowedSourcesFixture({
+    allowedSources: { scrolls: true, stimulant: true, gems: true, itemLevelUp: false },
+  }));
+
+  assert.ok(result.strategies.length > 0, 'should produce strategies');
+  for (const s of result.strategies) {
+    assert.ok(!s.hasItemLevelUp, 'no strategy should include itemLevelUp');
+    assert.equal(s.itemLevelUp, null);
+    assert.ok(!s.sourceTypes.includes('itemLevelUp'));
+  }
+});
+
+test('itemLevelUp with zero scrolls produces stim and gem combinations', () => {
+  const result = enumerateStrategies(makeAllowedSourcesFixture({
+    targetDeltas: { str: 5 },
+    successfulScrollCount: 0,
+    allowedSources: { scrolls: false, stimulant: true, gems: true, itemLevelUp: true },
+  }));
+
+  assert.ok(result.strategies.length > 0, 'should produce strategies');
+  for (const s of result.strategies) {
+    assert.ok(s.hasItemLevelUp, 'every strategy must include itemLevelUp');
+    assert.equal(s.scrolls.length, 0);
+  }
+  assert.ok(result.strategies.some(s => s.hasStimulant && s.gems.length === 0), 'should have stim-only result');
+  assert.ok(result.strategies.some(s => !s.hasStimulant && s.gems.length > 0), 'should have gem-only result');
+});
 
 test('zero successful scrolls supports a stimulant-only exact strategy', () => {
   const result = enumerateStrategies(makeAllowedSourcesFixture({
@@ -770,9 +817,11 @@ test('levelUpSlotStatRanges missing slot falls back to definition', () => {
     cleanStats: { str: 0 },
     scrollsByEquipmentKind: new Map([['Cape', []]]),
     levelUpDefinition: levelUpDef,
-    allowedSources: { scrolls: false, stimulant: false, gems: false, itemLevelUp: true },
+    allowedSources: { scrolls: true, stimulant: true, gems: true, itemLevelUp: true },
     appliedLevelCount: 0,
     levelUpSlotStatRanges: [],
   });
   assert.ok(result.strategies.length > 0);
+  // Every strategy should include itemLevelUp when enabled
+  assert.ok(result.strategies.every(s => s.hasItemLevelUp));
 });
