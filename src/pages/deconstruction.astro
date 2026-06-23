@@ -1029,18 +1029,18 @@ const buildStimulantBoundsEditor = () => {
       const btnInc = document.createElement('button');
       btnInc.type = 'button';
       btnInc.textContent = '+';
-      btnDec.addEventListener('click', () => {
+      btnDec.addEventListener('click', () => guardDeconMutation(() => {
         const current = deconStimulantBoundsMap[key]?.[side] ?? (side === 'min' ? -defaultLimit : defaultLimit);
         const newVal = Math.max(-defaultLimit, Math.min(defaultLimit, current - stepSize));
         deconStimulantBoundsMap[key] = { ...deconStimulantBoundsMap[key], [side]: newVal };
         valSpan.textContent = String(newVal);
-      });
-      btnInc.addEventListener('click', () => {
+      }));
+      btnInc.addEventListener('click', () => guardDeconMutation(() => {
         const current = deconStimulantBoundsMap[key]?.[side] ?? (side === 'min' ? -defaultLimit : defaultLimit);
         const newVal = Math.max(-defaultLimit, Math.min(defaultLimit, current + stepSize));
         deconStimulantBoundsMap[key] = { ...deconStimulantBoundsMap[key], [side]: newVal };
         valSpan.textContent = String(newVal);
-      });
+      }));
       row.append(btnDec, valSpan, btnInc);
     }
     deconStimulantBoundsList.append(row);
@@ -1956,7 +1956,7 @@ deconLevelMaxBtn?.addEventListener('click', () => guardDeconMutation(() => {
 }));
 
 deconScrollRateInputs.forEach((chip) => {
-  chip.addEventListener('change', () => {
+  chip.addEventListener('change', () => guardDeconMutation(() => {
     if (!(chip instanceof HTMLInputElement)) return;
     const rate = chip.dataset.deconScrollRate;
     if (chip.checked) {
@@ -1964,7 +1964,7 @@ deconScrollRateInputs.forEach((chip) => {
     } else {
       deconScrollRateFilter.delete(rate);
     }
-  });
+  }));
 });
 
 // ---- Add-stat accordion toggle ----
