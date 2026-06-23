@@ -20,6 +20,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
   let model = null;
   let selections = new Map();
   let stimulantRanges = new Map();
+  let itemLevelUpRanges = new Map();
 
   const hidePanel = () => {
     secondaryContainer.replaceChildren();
@@ -37,10 +38,12 @@ export function createResultFilterController({ root, secondaryContainer }) {
 
   const applyFilters = () => {
     if (!model) return 0;
-    const hasRanges = stimulantRanges.size > 0;
+    const hasStimRanges = stimulantRanges.size > 0;
+    const hasLevelRanges = itemLevelUpRanges.size > 0;
     const visibleIndexes = new Set(getVisibleStrategyIndexes(
       model, selections,
-      hasRanges ? stimulantRanges : null,
+      hasStimRanges ? stimulantRanges : null,
+      hasLevelRanges ? itemLevelUpRanges : null,
     ));
     let visibleCount = 0;
     root.querySelectorAll('.decon-strategy-card').forEach((card) => {
@@ -60,6 +63,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
     if (!model || activePanelSource === null) return;
     // Stimulant panel manages its own state via sliders — skip
     if (activePanelSource === 'stimulant') return;
+    if (activePanelSource === 'itemLevelUp') return;
     // Re-render the panel for the active source
     renderPanel(activePanelSource);
   };
@@ -153,6 +157,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
       }
 
       secondaryContainer.append(grid);
+      secondaryContainer.hidden = false;
     };
 
     const showGrades = (cat) => {
@@ -213,6 +218,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
       }
 
       secondaryContainer.append(header, gradeList);
+      secondaryContainer.hidden = false;
     };
 
     showCategories();
@@ -224,19 +230,16 @@ export function createResultFilterController({ root, secondaryContainer }) {
     const statRange = new Map();
     for (const option of options) {
       if (option.key === 'stimulant:none') continue;
-      const parts = option.label.split(', ');
-      for (const part of parts) {
-        const match = part.match(/^([A-Za-z]+)\s+([+-]?\d+)$/);
-        if (match) {
-          const key = match[1];
-          const value = Number(match[2]);
-          if (!statRange.has(key)) {
-            statRange.set(key, { min: value, max: value });
-          } else {
-            const r = statRange.get(key);
-            r.min = Math.min(r.min, value);
-            r.max = Math.max(r.max, value);
-          }
+      const stats = option.stats;
+      if (!stats) continue;
+      for (const [key, value] of Object.entries(stats)) {
+        if (!Number.isFinite(value)) continue;
+        if (!statRange.has(key)) {
+          statRange.set(key, { min: value, max: value });
+        } else {
+          const r = statRange.get(key);
+          r.min = Math.min(r.min, value);
+          r.max = Math.max(r.max, value);
         }
       }
     }
@@ -315,6 +318,99 @@ export function createResultFilterController({ root, secondaryContainer }) {
     secondaryContainer.hidden = false;
   };
 
+  const renderItemLevelUpPanel = (options) => {
+    secondaryContainer.replaceChildren();
+
+    const statRange = new Map();
+    for (const option of options) {
+      const stats = option.stats;
+      if (!stats) continue;
+      for (const [key, value] of Object.entries(stats)) {
+        if (!Number.isFinite(value)) continue;
+        if (!statRange.has(key)) {
+          statRange.set(key, { min: value, max: value });
+        } else {
+          const r = statRange.get(key);
+          r.min = Math.min(r.min, value);
+          r.max = Math.max(r.max, value);
+        }
+      }
+    }
+
+    if (statRange.size === 0) {
+      secondaryContainer.hidden = true;
+      return;
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'decon-secondary-stimulant';
+
+    for (const [key, fullRange] of statRange) {
+      const limit = HP_MP_KEYS.has(key) ? 50 : 5;
+      const absMin = Math.max(-limit, fullRange.min);
+      const absMax = Math.min(limit, fullRange.max);
+
+      if (!itemLevelUpRanges.has(key)) {
+        itemLevelUpRanges.set(key, { min: absMin, max: absMax });
+      }
+      const currentRange = itemLevelUpRanges.get(key);
+
+      const row = document.createElement('div');
+      row.className = 'decon-secondary-stimulant-row';
+
+      const label = document.createElement('span');
+      label.className = 'decon-secondary-stimulant-stat';
+      label.textContent = statLabelByKey[key] ?? key;
+
+      const minSlider = document.createElement('input');
+      minSlider.type = 'range';
+      minSlider.min = absMin;
+      minSlider.max = absMax;
+      minSlider.value = currentRange.min;
+      minSlider.className = 'decon-secondary-stimulant-slider';
+
+      const minVal = document.createElement('span');
+      minVal.className = 'decon-secondary-stimulant-value';
+      minVal.textContent = String(currentRange.min);
+
+      const sep = document.createElement('span');
+      sep.className = 'decon-secondary-stimulant-sep';
+      sep.textContent = '–';
+
+      const maxVal = document.createElement('span');
+      maxVal.className = 'decon-secondary-stimulant-value';
+      maxVal.textContent = String(currentRange.max);
+
+      const maxSlider = document.createElement('input');
+      maxSlider.type = 'range';
+      maxSlider.min = absMin;
+      maxSlider.max = absMax;
+      maxSlider.value = currentRange.max;
+      maxSlider.className = 'decon-secondary-stimulant-slider';
+
+      const updateRange = () => {
+        let mn = Number(minSlider.value);
+        let mx = Number(maxSlider.value);
+        if (mn > mx) [mn, mx] = [mx, mn];
+        itemLevelUpRanges.set(key, { min: mn, max: mx });
+        minSlider.value = mn;
+        maxSlider.value = mx;
+        minVal.textContent = String(mn);
+        maxVal.textContent = String(mx);
+        applyFilters();
+      };
+
+      minSlider.addEventListener('input', updateRange);
+      maxSlider.addEventListener('input', updateRange);
+
+      row.append(label, minSlider, minVal, sep, maxVal, maxSlider);
+      wrapper.append(row);
+    }
+
+    secondaryContainer.append(wrapper);
+    secondaryContainer.hidden = false;
+  };
+
   const renderPanel = (source) => {
     if (!model) return;
     const options = getFacetOptions(model, selections, source);
@@ -330,6 +426,8 @@ export function createResultFilterController({ root, secondaryContainer }) {
       renderGemPanel(options, selected);
     } else if (source === 'stimulant') {
       renderStimulantPanel(options);
+    } else if (source === 'itemLevelUp') {
+      renderItemLevelUpPanel(options);
     } else {
       secondaryContainer.replaceChildren();
       const list = document.createElement('div');
@@ -367,6 +465,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
     model = null;
     selections = new Map();
     stimulantRanges = new Map();
+    itemLevelUpRanges = new Map();
     hidePanel();
   };
 
