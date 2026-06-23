@@ -361,7 +361,7 @@ test('result source filters expose the approved labels and count only all strate
   assert.match(displaySource, /\{ source: 'scrolls', label: '주문서' \}/);
   assert.match(displaySource, /\{ source: 'stimulant', label: '촉진제\/추옵' \}/);
   assert.match(displaySource, /\{ source: 'gems', label: '보석 \(메이커\)' \}/);
-  assert.match(displaySource, /\{ source: 'itemLevelUp', label: '레벨업' \}/);
+  assert.doesNotMatch(displaySource, /\{ source: 'itemLevelUp', label: '레벨업' \}/);
   assert.match(
     displaySource,
     /chip\.textContent = def\.source === null\s*\? `\$\{def\.label\} \(\$\{result\.strategies\.length\}\)`\s*:\s*def\.label;/,
