@@ -485,6 +485,12 @@ export function enumerateStrategies({
     includeItemLevelUp: normalizedAllowedSources.itemLevelUp,
   });
 
+  const scrollCorrectionBounds = computeCorrectionBounds(targetKeys, {
+    includeStimulant: normalizedAllowedSources.stimulant,
+    includeGems: normalizedAllowedSources.gems,
+    includeItemLevelUp: false,
+  });
+
   const rawScrolls = scrollsByEquipmentKind.get(equipmentKind) ?? [];
   const scrolls = scrollRateFilter ? filterScrollsByRate(rawScrolls, scrollRateFilter) : rawScrolls;
 
@@ -525,149 +531,236 @@ export function enumerateStrategies({
     strategies.push(result);
   }
 
-  for (const ss of effectiveScrollStates) {
-    const residual = subtractVectors(effectiveTargetDeltas, ss.stats, targetKeys);
+  if (normalizedAllowedSources.itemLevelUp) {
+    // itemLevelUp outer loop — levelUp is base layer, scroll/stim/gems fill remainder
+    for (const ilc of itemLevelContributions) {
+      if (tooManyResults) break;
+      const remainingTarget = subtractVectors(effectiveTargetDeltas, ilc.stats, targetKeys);
+      const scrollStates = normalizedAllowedSources.scrolls && normCount > 0
+        ? enumerateExactCountScrollStates({
+            scrolls,
+            targetKeys,
+            targetDeltas: remainingTarget,
+            successfulScrollCount: normCount,
+            correctionBounds: scrollCorrectionBounds,
+          })
+        : (normCount === 0
+          ? [{ scrolls: [], stats: Object.fromEntries(targetKeys.map((k) => [k, 0])) }]
+          : []);
+      for (const ss of scrollStates) {
+        if (tooManyResults) break;
+        const residual = subtractVectors(remainingTarget, ss.stats, targetKeys);
 
-    // Tier 0: scroll-only (scrolls cover the entire effective target)
-    if (normalizedAllowedSources.scrolls
-        && isExactVector(ss.stats, effectiveTargetDeltas, targetKeys)) {
-      addResult({
-        scrolls: ss.scrolls,
-        stimulant: null,
-        gems: [],
-        itemLevelUp: null,
-        priorityRank: 0,
-      });
+        // Tier A (0): scroll-only fills remainingTarget
+        if (normalizedAllowedSources.scrolls
+            && isExactVector(ss.stats, remainingTarget, targetKeys)) {
+          addResult({
+            scrolls: ss.scrolls,
+            stimulant: null,
+            gems: [],
+            itemLevelUp: ilc,
+            priorityRank: 0,
+          });
+        }
+
+        // Tier B (1): scroll + stimulant
+        if (normalizedAllowedSources.stimulant && !tooManyResults) {
+          const stimStats = solveStimulantResidual(residual, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
+          if (stimStats) {
+            addResult({
+              scrolls: ss.scrolls,
+              stimulant: { stats: stimStats },
+              gems: [],
+              itemLevelUp: ilc,
+              priorityRank: 1,
+            });
+          }
+        }
+
+        // Tier C (2): scroll + gems
+        if (normalizedAllowedSources.gems && !tooManyResults) {
+          for (const gc of gemContributions) {
+            if (tooManyResults) break;
+            if (isExactVector(gc.stats, residual, targetKeys)) {
+              addResult({
+                scrolls: ss.scrolls,
+                stimulant: null,
+                gems: gc.gems,
+                itemLevelUp: ilc,
+                priorityRank: 2,
+              });
+            }
+          }
+        }
+
+        // Tier D (4): scroll + stimulant + gems
+        if (normalizedAllowedSources.stimulant && normalizedAllowedSources.gems
+          && !tooManyResults) {
+          for (const gc of gemContributions) {
+            if (tooManyResults) break;
+            const afterGems = subtractVectors(residual, gc.stats, targetKeys);
+            const stimStats = solveStimulantResidual(afterGems, targetKeys, stimulantOpts);
+            if (stimStats) {
+              addResult({
+                scrolls: ss.scrolls,
+                stimulant: { stats: stimStats },
+                gems: gc.gems,
+                itemLevelUp: ilc,
+                priorityRank: 4,
+              });
+            }
+          }
+        }
+
+        if (tooManyResults) break;
+      }
     }
+  } else {
+    // EXISTING loop verbatim — copy of the current for loop, do not modify
+    for (const ss of effectiveScrollStates) {
+      const residual = subtractVectors(effectiveTargetDeltas, ss.stats, targetKeys);
 
-    // Tier 1: scroll + stimulant
-    if (normalizedAllowedSources.stimulant && !tooManyResults) {
-      const stimStats = solveStimulantResidual(residual, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
-      if (stimStats) {
+      // Tier 0: scroll-only (scrolls cover the entire effective target)
+      if (normalizedAllowedSources.scrolls
+          && isExactVector(ss.stats, effectiveTargetDeltas, targetKeys)) {
         addResult({
           scrolls: ss.scrolls,
-          stimulant: { stats: stimStats },
+          stimulant: null,
           gems: [],
           itemLevelUp: null,
-          priorityRank: 1,
+          priorityRank: 0,
         });
       }
-    }
 
-    // Tier 2: scroll + gems
-    if (normalizedAllowedSources.gems && !tooManyResults) {
-      for (const gc of gemContributions) {
-        if (tooManyResults) break;
-        if (isExactVector(gc.stats, residual, targetKeys)) {
-          addResult({
-            scrolls: ss.scrolls,
-            stimulant: null,
-            gems: gc.gems,
-            itemLevelUp: null,
-            priorityRank: 2,
-          });
-        }
-      }
-    }
-
-    // Tier 3: scroll + itemLevelUp
-    if (normalizedAllowedSources.itemLevelUp && !tooManyResults) {
-      for (const ilc of itemLevelContributions) {
-        if (tooManyResults) break;
-        if (isExactVector(ilc.stats, residual, targetKeys)) {
-          addResult({
-            scrolls: ss.scrolls,
-            stimulant: null,
-            gems: [],
-            itemLevelUp: ilc,
-            priorityRank: 3,
-          });
-        }
-      }
-    }
-
-    // Tier 4: scroll + stimulant + gems
-    if (normalizedAllowedSources.stimulant && normalizedAllowedSources.gems
-      && !tooManyResults) {
-      for (const gc of gemContributions) {
-        if (tooManyResults) break;
-        const afterGems = subtractVectors(residual, gc.stats, targetKeys);
-        const stimStats = solveStimulantResidual(afterGems, targetKeys, stimulantOpts);
-        if (stimStats) {
-          addResult({
-            scrolls: ss.scrolls,
-            stimulant: { stats: stimStats },
-            gems: gc.gems,
-            itemLevelUp: null,
-            priorityRank: 4,
-          });
-        }
-      }
-    }
-
-    // Tier 5: scroll + stimulant + itemLevelUp
-    if (normalizedAllowedSources.stimulant && normalizedAllowedSources.itemLevelUp
-      && !tooManyResults) {
-      for (const ilc of itemLevelContributions) {
-        if (tooManyResults) break;
-        const afterLevel = subtractVectors(residual, ilc.stats, targetKeys);
-        const stimStats = solveStimulantResidual(afterLevel, targetKeys, stimulantOpts);
+      // Tier 1: scroll + stimulant
+      if (normalizedAllowedSources.stimulant && !tooManyResults) {
+        const stimStats = solveStimulantResidual(residual, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
         if (stimStats) {
           addResult({
             scrolls: ss.scrolls,
             stimulant: { stats: stimStats },
             gems: [],
-            itemLevelUp: ilc,
-            priorityRank: 5,
+            itemLevelUp: null,
+            priorityRank: 1,
           });
         }
       }
-    }
 
-    // Tier 6: scroll + gems + itemLevelUp
-    if (normalizedAllowedSources.gems && normalizedAllowedSources.itemLevelUp
-      && !tooManyResults) {
-      for (const gc of gemContributions) {
-        if (tooManyResults) break;
-        for (const ilc of itemLevelContributions) {
+      // Tier 2: scroll + gems
+      if (normalizedAllowedSources.gems && !tooManyResults) {
+        for (const gc of gemContributions) {
           if (tooManyResults) break;
-          const combined = addVectors(gc.stats, ilc.stats, targetKeys);
-          if (isExactVector(combined, residual, targetKeys)) {
+          if (isExactVector(gc.stats, residual, targetKeys)) {
             addResult({
               scrolls: ss.scrolls,
               stimulant: null,
               gems: gc.gems,
-              itemLevelUp: ilc,
-              priorityRank: 6,
+              itemLevelUp: null,
+              priorityRank: 2,
             });
           }
         }
       }
-    }
 
-    // Tier 7: scroll + stimulant + gems + itemLevelUp
-    if (normalizedAllowedSources.stimulant && normalizedAllowedSources.gems
-      && normalizedAllowedSources.itemLevelUp && !tooManyResults) {
-      for (const gc of gemContributions) {
-        if (tooManyResults) break;
+      // Tier 3: scroll + itemLevelUp
+      if (normalizedAllowedSources.itemLevelUp && !tooManyResults) {
         for (const ilc of itemLevelContributions) {
           if (tooManyResults) break;
-          const afterBoth = subtractVectors(residual, addVectors(gc.stats, ilc.stats, targetKeys), targetKeys);
-          const stimStats = solveStimulantResidual(afterBoth, targetKeys, stimulantOpts);
+          if (isExactVector(ilc.stats, residual, targetKeys)) {
+            addResult({
+              scrolls: ss.scrolls,
+              stimulant: null,
+              gems: [],
+              itemLevelUp: ilc,
+              priorityRank: 3,
+            });
+          }
+        }
+      }
+
+      // Tier 4: scroll + stimulant + gems
+      if (normalizedAllowedSources.stimulant && normalizedAllowedSources.gems
+        && !tooManyResults) {
+        for (const gc of gemContributions) {
+          if (tooManyResults) break;
+          const afterGems = subtractVectors(residual, gc.stats, targetKeys);
+          const stimStats = solveStimulantResidual(afterGems, targetKeys, stimulantOpts);
           if (stimStats) {
             addResult({
               scrolls: ss.scrolls,
               stimulant: { stats: stimStats },
               gems: gc.gems,
-              itemLevelUp: ilc,
-              priorityRank: 7,
+              itemLevelUp: null,
+              priorityRank: 4,
             });
           }
         }
       }
-    }
 
-    if (tooManyResults) break;
+      // Tier 5: scroll + stimulant + itemLevelUp
+      if (normalizedAllowedSources.stimulant && normalizedAllowedSources.itemLevelUp
+        && !tooManyResults) {
+        for (const ilc of itemLevelContributions) {
+          if (tooManyResults) break;
+          const afterLevel = subtractVectors(residual, ilc.stats, targetKeys);
+          const stimStats = solveStimulantResidual(afterLevel, targetKeys, stimulantOpts);
+          if (stimStats) {
+            addResult({
+              scrolls: ss.scrolls,
+              stimulant: { stats: stimStats },
+              gems: [],
+              itemLevelUp: ilc,
+              priorityRank: 5,
+            });
+          }
+        }
+      }
+
+      // Tier 6: scroll + gems + itemLevelUp
+      if (normalizedAllowedSources.gems && normalizedAllowedSources.itemLevelUp
+        && !tooManyResults) {
+        for (const gc of gemContributions) {
+          if (tooManyResults) break;
+          for (const ilc of itemLevelContributions) {
+            if (tooManyResults) break;
+            const combined = addVectors(gc.stats, ilc.stats, targetKeys);
+            if (isExactVector(combined, residual, targetKeys)) {
+              addResult({
+                scrolls: ss.scrolls,
+                stimulant: null,
+                gems: gc.gems,
+                itemLevelUp: ilc,
+                priorityRank: 6,
+              });
+            }
+          }
+        }
+      }
+
+      // Tier 7: scroll + stimulant + gems + itemLevelUp
+      if (normalizedAllowedSources.stimulant && normalizedAllowedSources.gems
+        && normalizedAllowedSources.itemLevelUp && !tooManyResults) {
+        for (const gc of gemContributions) {
+          if (tooManyResults) break;
+          for (const ilc of itemLevelContributions) {
+            if (tooManyResults) break;
+            const afterBoth = subtractVectors(residual, addVectors(gc.stats, ilc.stats, targetKeys), targetKeys);
+            const stimStats = solveStimulantResidual(afterBoth, targetKeys, stimulantOpts);
+            if (stimStats) {
+              addResult({
+                scrolls: ss.scrolls,
+                stimulant: { stats: stimStats },
+                gems: gc.gems,
+                itemLevelUp: ilc,
+                priorityRank: 7,
+              });
+            }
+          }
+        }
+      }
+
+      if (tooManyResults) break;
+    }
   }
 
   return tooManyResults
