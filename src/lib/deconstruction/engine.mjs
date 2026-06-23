@@ -453,28 +453,37 @@ export function enumerateStrategies({
       })
     : [];
 
-  const correctionBounds = {};
-  for (const key of targetKeys) {
-    let min = 0;
-    let max = 0;
+  function computeCorrectionBounds(targetKeys, { includeStimulant, includeGems, includeItemLevelUp }) {
+    const bounds = {};
+    for (const key of targetKeys) {
+      let min = 0;
+      let max = 0;
 
-    if (normalizedAllowedSources.stimulant) {
-      min += Math.min(0, stimulantBounds[key].min);
-      max += Math.max(0, stimulantBounds[key].max);
-    }
-    if (normalizedAllowedSources.gems) {
-      const values = gemContributions.map((contribution) => contribution.stats[key] || 0);
-      min += Math.min(0, ...values);
-      max += Math.max(0, ...values);
-    }
-    if (normalizedAllowedSources.itemLevelUp) {
-      const values = itemLevelContributions.map((contribution) => contribution.stats[key] || 0);
-      min += Math.min(0, ...values);
-      max += Math.max(0, ...values);
-    }
+      if (includeStimulant) {
+        min += Math.min(0, stimulantBounds[key].min);
+        max += Math.max(0, stimulantBounds[key].max);
+      }
+      if (includeGems) {
+        const values = gemContributions.map((c) => c.stats[key] || 0);
+        min += Math.min(0, ...values);
+        max += Math.max(0, ...values);
+      }
+      if (includeItemLevelUp) {
+        const values = itemLevelContributions.map((c) => c.stats[key] || 0);
+        min += Math.min(0, ...values);
+        max += Math.max(0, ...values);
+      }
 
-    correctionBounds[key] = { min, max };
+      bounds[key] = { min, max };
+    }
+    return bounds;
   }
+
+  const correctionBounds = computeCorrectionBounds(targetKeys, {
+    includeStimulant: normalizedAllowedSources.stimulant,
+    includeGems: normalizedAllowedSources.gems,
+    includeItemLevelUp: normalizedAllowedSources.itemLevelUp,
+  });
 
   const rawScrolls = scrollsByEquipmentKind.get(equipmentKind) ?? [];
   const scrolls = scrollRateFilter ? filterScrollsByRate(rawScrolls, scrollRateFilter) : rawScrolls;
