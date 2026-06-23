@@ -4,6 +4,9 @@ import {
   getFacetOptions,
   getVisibleStrategyIndexes,
 } from './resultFilters.mjs';
+import { buildItemIconUrl } from '../maplestoryIo.mjs';
+import { GEM_GRADES, GEM_ITEM_IDS, statLabelByKey } from '../makerData.mjs';
+import { HP_MP_KEYS } from '../enhancementState.mjs';
 
 const SOURCE_LABELS = {
   scrolls: '주문서',
@@ -16,6 +19,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
   let activePanelSource = null;
   let model = null;
   let selections = new Map();
+  let stimulantRanges = new Map();
 
   const hidePanel = () => {
     secondaryContainer.replaceChildren();
@@ -33,7 +37,11 @@ export function createResultFilterController({ root, secondaryContainer }) {
 
   const applyFilters = () => {
     if (!model) return 0;
-    const visibleIndexes = new Set(getVisibleStrategyIndexes(model, selections));
+    const hasRanges = stimulantRanges.size > 0;
+    const visibleIndexes = new Set(getVisibleStrategyIndexes(
+      model, selections,
+      hasRanges ? stimulantRanges : null,
+    ));
     let visibleCount = 0;
     root.querySelectorAll('.decon-strategy-card').forEach((card) => {
       const strategyIndex = Number.parseInt(card.dataset.strategyIndex ?? '', 10);
@@ -50,26 +58,10 @@ export function createResultFilterController({ root, secondaryContainer }) {
 
   const refreshActivePanel = () => {
     if (!model || activePanelSource === null) return;
-    const list = secondaryContainer.querySelector('.decon-secondary-filter-options');
-    if (!list) return;
-    const labels = new Map(
-      Array.from(list.querySelectorAll('[data-decon-option-key]'))
-        .map((label) => [label.dataset.deconOptionKey, label]),
-    );
-    for (const option of getFacetOptions(model, selections, activePanelSource)) {
-      const label = labels.get(option.key);
-      if (!label) continue;
-      label.classList.toggle(
-        'decon-secondary-filter-option--unavailable',
-        !option.available,
-      );
-      const input = label.querySelector('input');
-      if (input) {
-        input.checked = selections.get(activePanelSource)?.has(option.key) ?? false;
-        input.disabled = !option.available;
-      }
-      list.append(label);
-    }
+    // Stimulant panel manages its own state via sliders — skip
+    if (activePanelSource === 'stimulant') return;
+    // Re-render the panel for the active source
+    renderPanel(activePanelSource);
   };
 
   const setSecondaryOption = (source, key, checked) => {
@@ -81,6 +73,248 @@ export function createResultFilterController({ root, secondaryContainer }) {
     refreshActivePanel();
   };
 
+  const renderScrollPanel = (options, selected) => {
+    secondaryContainer.replaceChildren();
+    const list = document.createElement('div');
+    list.className = 'decon-secondary-scroll-list';
+
+    for (const option of options) {
+      const label = document.createElement('label');
+      label.className = 'decon-secondary-scroll-row';
+      label.classList.toggle('decon-secondary-scroll-row--unavailable', !option.available);
+
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.checked = selected.has(option.key);
+      input.disabled = !option.available;
+      input.addEventListener('change', () => {
+        setSecondaryOption('scrolls', option.key, input.checked);
+      });
+
+      const icon = document.createElement('img');
+      icon.className = 'decon-secondary-scroll-icon';
+      icon.src = buildItemIconUrl(option.iconId);
+      icon.alt = option.label;
+      icon.loading = 'lazy';
+      icon.addEventListener('error', () => { icon.hidden = true; });
+
+      const text = document.createElement('span');
+      text.textContent = option.label;
+
+      label.append(input, icon, text);
+      list.append(label);
+    }
+
+    secondaryContainer.append(list);
+    secondaryContainer.hidden = false;
+  };
+
+  const renderGemPanel = (options, selected) => {
+    const categories = new Map();
+    for (const option of options) {
+      const gemKey = option.gemKey;
+      if (!categories.has(gemKey)) {
+        categories.set(gemKey, {
+          gemKey,
+          nameKo: option.label.replace(/\s(상급|중급|하급)$/, ''),
+          iconId: GEM_ITEM_IDS[gemKey]?.base ?? 0,
+          grades: [],
+        });
+      }
+      categories.get(gemKey).grades.push(option);
+    }
+
+    const showCategories = () => {
+      secondaryContainer.replaceChildren();
+      const label = document.createElement('div');
+      label.className = 'decon-secondary-gem-label';
+      label.textContent = '보석 종류 선택';
+      secondaryContainer.append(label);
+
+      const grid = document.createElement('div');
+      grid.className = 'decon-secondary-gem-grid';
+
+      for (const cat of categories.values()) {
+        const item = document.createElement('div');
+        item.className = 'decon-secondary-gem-category';
+
+        const icon = document.createElement('img');
+        icon.src = buildItemIconUrl(cat.iconId);
+        icon.alt = cat.nameKo;
+        icon.loading = 'lazy';
+        icon.addEventListener('error', () => { icon.hidden = true; });
+
+        const name = document.createElement('span');
+        name.textContent = cat.nameKo;
+
+        item.append(icon, name);
+        item.addEventListener('click', () => showGrades(cat));
+        grid.append(item);
+      }
+
+      secondaryContainer.append(grid);
+    };
+
+    const showGrades = (cat) => {
+      secondaryContainer.replaceChildren();
+
+      const header = document.createElement('div');
+      header.className = 'decon-secondary-gem-header';
+
+      const backBtn = document.createElement('button');
+      backBtn.type = 'button';
+      backBtn.className = 'decon-secondary-gem-back';
+      backBtn.textContent = '← 뒤로';
+      backBtn.addEventListener('click', showCategories);
+
+      const icon = document.createElement('img');
+      icon.src = buildItemIconUrl(cat.iconId);
+      icon.alt = cat.nameKo;
+      icon.loading = 'lazy';
+      icon.addEventListener('error', () => { icon.hidden = true; });
+
+      const name = document.createElement('span');
+      name.className = 'decon-secondary-gem-name';
+      name.textContent = cat.nameKo;
+
+      header.append(backBtn, icon, name);
+
+      const gradeList = document.createElement('div');
+      gradeList.className = 'decon-secondary-gem-grades';
+
+      for (const gradeOpt of cat.grades) {
+        const gradeLabel = document.createElement('label');
+        gradeLabel.className = 'decon-secondary-gem-grade';
+        if (!gradeOpt.available) {
+          gradeLabel.classList.add('decon-secondary-gem-grade--unavailable');
+        }
+
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.checked = selected.has(gradeOpt.key);
+        input.disabled = !gradeOpt.available;
+        input.addEventListener('change', () => {
+          setSecondaryOption('gems', gradeOpt.key, input.checked);
+        });
+
+        const gradeIcon = document.createElement('img');
+        const gradeKey = gradeOpt.gradeIndex === 0 ? 'low' : gradeOpt.gradeIndex === 1 ? 'mid' : 'high';
+        const gradeIconId = GEM_ITEM_IDS[cat.gemKey]?.[gradeKey] ?? 0;
+        gradeIcon.src = buildItemIconUrl(gradeIconId);
+        gradeIcon.alt = GEM_GRADES[gradeOpt.gradeIndex] ?? '';
+        gradeIcon.loading = 'lazy';
+        gradeIcon.addEventListener('error', () => { gradeIcon.hidden = true; });
+
+        const gradeText = document.createElement('span');
+        gradeText.textContent = GEM_GRADES[gradeOpt.gradeIndex] ?? '';
+
+        gradeLabel.append(input, gradeIcon, gradeText);
+        gradeList.append(gradeLabel);
+      }
+
+      secondaryContainer.append(header, gradeList);
+    };
+
+    showCategories();
+  };
+
+  const renderStimulantPanel = (options) => {
+    secondaryContainer.replaceChildren();
+
+    const statRange = new Map();
+    for (const option of options) {
+      if (option.key === 'stimulant:none') continue;
+      const parts = option.label.split(', ');
+      for (const part of parts) {
+        const match = part.match(/^([A-Za-z]+)\s+([+-]?\d+)$/);
+        if (match) {
+          const key = match[1];
+          const value = Number(match[2]);
+          if (!statRange.has(key)) {
+            statRange.set(key, { min: value, max: value });
+          } else {
+            const r = statRange.get(key);
+            r.min = Math.min(r.min, value);
+            r.max = Math.max(r.max, value);
+          }
+        }
+      }
+    }
+
+    if (statRange.size === 0) {
+      secondaryContainer.hidden = true;
+      return;
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'decon-secondary-stimulant';
+
+    for (const [key, fullRange] of statRange) {
+      const limit = HP_MP_KEYS.has(key) ? 50 : 5;
+      const absMin = Math.max(-limit, fullRange.min);
+      const absMax = Math.min(limit, fullRange.max);
+
+      if (!stimulantRanges.has(key)) {
+        stimulantRanges.set(key, { min: absMin, max: absMax });
+      }
+      const currentRange = stimulantRanges.get(key);
+
+      const row = document.createElement('div');
+      row.className = 'decon-secondary-stimulant-row';
+
+      const label = document.createElement('span');
+      label.className = 'decon-secondary-stimulant-stat';
+      label.textContent = statLabelByKey[key] ?? key;
+
+      const minSlider = document.createElement('input');
+      minSlider.type = 'range';
+      minSlider.min = absMin;
+      minSlider.max = absMax;
+      minSlider.value = currentRange.min;
+      minSlider.className = 'decon-secondary-stimulant-slider';
+
+      const minVal = document.createElement('span');
+      minVal.className = 'decon-secondary-stimulant-value';
+      minVal.textContent = String(currentRange.min);
+
+      const sep = document.createElement('span');
+      sep.className = 'decon-secondary-stimulant-sep';
+      sep.textContent = '–';
+
+      const maxVal = document.createElement('span');
+      maxVal.className = 'decon-secondary-stimulant-value';
+      maxVal.textContent = String(currentRange.max);
+
+      const maxSlider = document.createElement('input');
+      maxSlider.type = 'range';
+      maxSlider.min = absMin;
+      maxSlider.max = absMax;
+      maxSlider.value = currentRange.max;
+      maxSlider.className = 'decon-secondary-stimulant-slider';
+
+      const updateRange = () => {
+        let mn = Number(minSlider.value);
+        let mx = Number(maxSlider.value);
+        if (mn > mx) [mn, mx] = [mx, mn];
+        stimulantRanges.set(key, { min: mn, max: mx });
+        minSlider.value = mn;
+        maxSlider.value = mx;
+        minVal.textContent = String(mn);
+        maxVal.textContent = String(mx);
+        applyFilters();
+      };
+
+      minSlider.addEventListener('input', updateRange);
+      maxSlider.addEventListener('input', updateRange);
+
+      row.append(label, minSlider, minVal, sep, maxVal, maxSlider);
+      wrapper.append(row);
+    }
+
+    secondaryContainer.append(wrapper);
+    secondaryContainer.hidden = false;
+  };
+
   const renderPanel = (source) => {
     if (!model) return;
     const options = getFacetOptions(model, selections, source);
@@ -88,37 +322,37 @@ export function createResultFilterController({ root, secondaryContainer }) {
       hidePanel();
       return;
     }
-
-    secondaryContainer.replaceChildren();
-    const section = document.createElement('section');
-    section.className = 'decon-secondary-filter';
-    const heading = document.createElement('h3');
-    heading.textContent = SOURCE_LABELS[source];
-    const list = document.createElement('div');
-    list.className = 'decon-secondary-filter-options';
     const selected = selections.get(source) ?? new Set();
 
-    for (const option of options) {
-      const label = document.createElement('label');
-      label.className = 'decon-secondary-filter-option';
-      label.dataset.deconOptionKey = option.key;
-      label.classList.toggle('decon-secondary-filter-option--unavailable', !option.available);
-      const input = document.createElement('input');
-      input.type = 'checkbox';
-      input.checked = selected.has(option.key);
-      input.disabled = !option.available;
-      input.addEventListener('change', () => {
-        setSecondaryOption(source, option.key, input.checked);
-      });
-      const text = document.createElement('span');
-      text.textContent = option.label;
-      label.append(input, text);
-      list.append(label);
+    if (source === 'scrolls') {
+      renderScrollPanel(options, selected);
+    } else if (source === 'gems') {
+      renderGemPanel(options, selected);
+    } else if (source === 'stimulant') {
+      renderStimulantPanel(options);
+    } else {
+      secondaryContainer.replaceChildren();
+      const list = document.createElement('div');
+      list.className = 'decon-secondary-checkboxes';
+      for (const option of options) {
+        const label = document.createElement('label');
+        label.className = 'decon-secondary-checkbox';
+        label.classList.toggle('decon-secondary-checkbox--unavailable', !option.available);
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.checked = selected.has(option.key);
+        input.disabled = !option.available;
+        input.addEventListener('change', () => {
+          setSecondaryOption(source, option.key, input.checked);
+        });
+        const text = document.createElement('span');
+        text.textContent = option.label;
+        label.append(input, text);
+        list.append(label);
+      }
+      secondaryContainer.append(list);
+      secondaryContainer.hidden = false;
     }
-
-    section.append(heading, list);
-    secondaryContainer.append(section);
-    secondaryContainer.hidden = false;
   };
 
   const setActiveFilter = (source) => {
@@ -132,6 +366,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
     activePanelSource = null;
     model = null;
     selections = new Map();
+    stimulantRanges = new Map();
     hidePanel();
   };
 
