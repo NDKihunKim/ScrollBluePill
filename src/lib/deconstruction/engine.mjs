@@ -263,7 +263,7 @@ function buildResult({ scrolls, stimulant, gems, itemLevelUp, priorityRank, targ
     const mergedStats = {};
     for (const key of targetKeys) {
       const v = (remainingStats[key] ?? 0) + (appliedStats[key] ?? 0);
-      if (v !== 0) mergedStats[key] = v;
+      mergedStats[key] = v;
     }
     mergedItemLevelUp = {
       levelCount: remainingCount + appliedLevelCount,
