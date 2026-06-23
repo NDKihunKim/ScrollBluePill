@@ -1713,9 +1713,11 @@ const displayResults = (result, targetDeltas) => {
       .join(', ');
 
     const appendSourceRow = (cardEl, label, stats) => {
+      const formatted = formatSourceStats(stats);
+      if (!formatted) return;
       const row = document.createElement('div');
       row.className = 'decon-strategy-source';
-      row.textContent = `⤷ ${label}: ${formatSourceStats(stats)}`;
+      row.textContent = `⤷ ${label}: ${formatted}`;
       cardEl.append(row);
     };
 
