@@ -582,6 +582,43 @@ test('enumerateItemLevelContributions returns empty when appliedLevelCount equal
   assert.equal(contributions.length, 0);
 });
 
+test('exact item-level count prevents matching higher total level-up counts', () => {
+  const levelUpDef = { maxLevelUps: 5, statRanges: { str: { min: 1, max: 1 } } };
+  const result = enumerateStrategies({
+    targetDeltas: { str: 2 },
+    targetKeys: ['str'],
+    successfulScrollCount: 0,
+    equipmentKind: 'Cape',
+    requiredLevel: 0,
+    cleanStats: { str: 0 },
+    scrollsByEquipmentKind: new Map([['Cape', []]]),
+    levelUpDefinition: levelUpDef,
+    allowedSources: { scrolls: false, stimulant: false, gems: false, itemLevelUp: true },
+    levelUpExactLevelCount: 1,
+  });
+
+  assert.equal(result.strategies.length, 0);
+});
+
+test('item-level total range constrains exact-count strategy totals', () => {
+  const levelUpDef = { maxLevelUps: 5, statRanges: { str: { min: 0, max: 2 } } };
+  const result = enumerateStrategies({
+    targetDeltas: { str: 4 },
+    targetKeys: ['str'],
+    successfulScrollCount: 0,
+    equipmentKind: 'Cape',
+    requiredLevel: 0,
+    cleanStats: { str: 0 },
+    scrollsByEquipmentKind: new Map([['Cape', []]]),
+    levelUpDefinition: levelUpDef,
+    allowedSources: { scrolls: false, stimulant: false, gems: false, itemLevelUp: true },
+    levelUpExactLevelCount: 3,
+    levelUpTotalStatRanges: { str: { min: 2, max: 3 } },
+  });
+
+  assert.equal(result.strategies.length, 0);
+});
+
 test('scrollRateFilter excludes non-matching rate scrolls', () => {
   const scrolls = [
     { id: 1001, nameKo: '힘 주문서 100%', behavior_type: 'fixed', stats: { str: 1 } },

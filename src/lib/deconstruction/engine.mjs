@@ -327,6 +327,8 @@ function buildResult({ scrolls, stimulant, gems, itemLevelUp, priorityRank, targ
  * @param {Set<string>|null}    opts.scrollRateFilter       Allowed scroll rates: '100','60','10','chaos' (null=all)
  * @param {object|null}        opts.stimulantStatBounds     Per-key min/max for stimulant (null=default -5/+5)
  * @param {Array<object>|null} opts.levelUpSlotStatRanges   Per-slot stat ranges for remaining level-ups (null=use definition)
+ * @param {number|null}        opts.levelUpExactLevelCount  Exact total item level-up count to enumerate
+ * @param {object|null}        opts.levelUpTotalStatRanges  Per-key total min/max for exact item level-ups
  * @returns {{ strategies: Array, total: number, tooManyResults: boolean }}
  */
 export function enumerateStrategies({
@@ -342,6 +344,8 @@ export function enumerateStrategies({
   scrollRateFilter = null,
   stimulantStatBounds = null,
   levelUpSlotStatRanges = null,
+  levelUpExactLevelCount = null,
+  levelUpTotalStatRanges = null,
   appliedLevelStats: appliedLevelStatsRaw = null,
 }) {
   const strategies = [];
@@ -361,12 +365,17 @@ export function enumerateStrategies({
     }
   })();
 
+  const exactLevelCount = Number.isFinite(levelUpExactLevelCount)
+    ? Math.max(0, Math.trunc(levelUpExactLevelCount))
+    : null;
+
   // ── Applied level-up stats ──────────────────────────────────────────
   // When the item already has level-ups applied, their total stat
   // contribution is subtracted from the target deltas so the strategy
   // engine only searches for the remainder.  The applied stats are then
   // added back as a fixed source in every result that uses itemLevelUp.
   const appliedLevelStats = (() => {
+    if (exactLevelCount !== null) return null;
     if (!appliedLevelStatsRaw) return null;
     const levelCount = Number.isFinite(appliedLevelStatsRaw.levelCount)
       ? Math.max(0, Math.trunc(appliedLevelStatsRaw.levelCount))
@@ -439,6 +448,8 @@ export function enumerateStrategies({
         bounds: itemBounds,
         appliedLevelCount,
         perSlotRanges: levelUpSlotStatRanges,
+        exactLevelCount,
+        totalRanges: levelUpTotalStatRanges,
       })
     : [];
 

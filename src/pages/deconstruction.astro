@@ -437,6 +437,7 @@ const resultFilterController = createResultFilterController({
 const toggleSourceSub = (sourceCheckbox, subContainer, onFirstEnable) => {
   if (!(sourceCheckbox instanceof HTMLInputElement) || !(subContainer instanceof HTMLElement)) return;
   const enabled = sourceCheckbox.checked;
+  if (enabled) subContainer.hidden = false;
   subContainer.classList.toggle('decon-source-sub--open', enabled);
   if (enabled && typeof onFirstEnable === 'function') onFirstEnable();
 };
@@ -461,9 +462,8 @@ let deconSlotState = createDeconstructionSlotState(0);
 let deconHasActionableResults = false;
 let deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
 let deconStimulantBoundsMap = {};
-let deconLevelUpSlotRanges = [];
+let deconLevelUpTotalRanges = {};
 let deconAppliedLevelCount = 0;      // how many level-ups are already applied (0..maxLevelUps)
-let deconAppliedLevelStats = {};     // total stat vector for all applied levels combined
 
 const guardDeconMutation = (fn) => {
   if (!deconHasActionableResults) { fn(); return; }
@@ -1058,118 +1058,76 @@ const buildLevelUpSlotEditors = () => {
   const statRanges = def?.statRanges ?? {};
   const applied = deconAppliedLevelCount;
 
-  // ── Applied levels total stats editor ──
-  if (applied > 0) {
-    const slot = document.createElement('div');
-    slot.className = 'decon-level-slot';
-    const header = document.createElement('div');
-    header.className = 'decon-level-slot-label';
-    header.textContent = `적용된 레벨업 총합 (${applied}회)`;
-    slot.append(header);
-    const statsRow = document.createElement('div');
-    statsRow.className = 'decon-level-slot-stats';
+  if (applied <= 0) {
+    deconLevelSlotLabel.textContent = '아이템 레벨 +1 이상 설정 시 레벨업 총합 범위를 입력할 수 있습니다.';
+    deconLevelUpTotalRanges = {};
+    return;
+  }
 
-    // Initialize applied stats from defaults if empty
-    if (Object.keys(deconAppliedLevelStats).length === 0) {
-      deconAppliedLevelStats = {};
-      for (const key of Object.keys(statRanges)) {
-        const defRange = statRanges[key] ?? { min: 0, max: 0 };
-        deconAppliedLevelStats[key] = defRange.min * applied;
+  deconLevelSlotLabel.textContent = `아이템 레벨 +${applied} 레벨업 총합 범위:`;
+
+  const slot = document.createElement('div');
+  slot.className = 'decon-level-slot';
+  slot.setAttribute('data-decon-level-total-range', String(applied));
+  const header = document.createElement('div');
+  header.className = 'decon-level-slot-label';
+  header.textContent = `레벨업 총합 (+${applied})`;
+  slot.append(header);
+
+  const statsRow = document.createElement('div');
+  statsRow.className = 'decon-level-slot-stats';
+
+  for (const key of Object.keys(statRanges)) {
+    const defRange = statRanges[key] ?? { min: 0, max: 0 };
+    const totalMin = defRange.min * applied;
+    const totalMax = defRange.max * applied;
+    if (!deconLevelUpTotalRanges[key]) {
+      deconLevelUpTotalRanges[key] = { min: totalMin, max: totalMax };
+    }
+
+    const statEl = document.createElement('span');
+    statEl.textContent = (statLabelByKey[key] || key) + ' ';
+
+    const minInput = document.createElement('input');
+    minInput.type = 'number';
+    minInput.min = totalMin;
+    minInput.max = totalMax;
+    minInput.value = deconLevelUpTotalRanges[key].min;
+    minInput.addEventListener('change', () => {
+      const val = Number(minInput.value);
+      if (Number.isFinite(val)) {
+        const nextMin = Math.max(totalMin, Math.min(totalMax, val));
+        deconLevelUpTotalRanges[key] = {
+          ...deconLevelUpTotalRanges[key],
+          min: Math.min(nextMin, deconLevelUpTotalRanges[key].max),
+        };
+        minInput.value = deconLevelUpTotalRanges[key].min;
       }
-    }
+    });
 
-    for (const key of Object.keys(statRanges)) {
-      const defRange = statRanges[key] ?? { min: 0, max: 0 };
-      const totalMin = defRange.min * applied;
-      const totalMax = defRange.max * applied;
-      if (!(key in deconAppliedLevelStats)) {
-        deconAppliedLevelStats[key] = totalMin;
+    const maxInput = document.createElement('input');
+    maxInput.type = 'number';
+    maxInput.min = totalMin;
+    maxInput.max = totalMax;
+    maxInput.value = deconLevelUpTotalRanges[key].max;
+    maxInput.addEventListener('change', () => {
+      const val = Number(maxInput.value);
+      if (Number.isFinite(val)) {
+        const nextMax = Math.max(totalMin, Math.min(totalMax, val));
+        deconLevelUpTotalRanges[key] = {
+          ...deconLevelUpTotalRanges[key],
+          max: Math.max(nextMax, deconLevelUpTotalRanges[key].min),
+        };
+        maxInput.value = deconLevelUpTotalRanges[key].max;
       }
+    });
 
-      const statEl = document.createElement('span');
-      statEl.textContent = (statLabelByKey[key] || key) + ' ';
-
-      const valInput = document.createElement('input');
-      valInput.type = 'number';
-      valInput.min = totalMin;
-      valInput.max = totalMax;
-      valInput.value = deconAppliedLevelStats[key];
-      valInput.addEventListener('change', () => {
-        const val = Number(valInput.value);
-        if (Number.isFinite(val)) {
-          deconAppliedLevelStats[key] = Math.max(totalMin, Math.min(totalMax, val));
-          valInput.value = deconAppliedLevelStats[key];
-          updateAnalyzeButton();
-        }
-      });
-      statEl.append(valInput);
-      statsRow.append(statEl);
-    }
-    slot.append(statsRow);
-    deconLevelSlotList.append(slot);
+    statEl.append(minInput, document.createTextNode(' ~ '), maxInput, ' ');
+    statsRow.append(statEl);
   }
 
-  // ── Remaining slot range editors ──
-  const remaining = maxLevelUps - applied;
-  deconLevelSlotLabel.textContent = applied > 0
-    ? `남은 레벨 (${remaining}개, 총 ${maxLevelUps}회):`
-    : `남은 레벨 (${remaining}개, 총 ${maxLevelUps}회):`;
-
-  if (remaining <= 0) return;
-
-  if (deconLevelUpSlotRanges.length !== remaining) {
-    const newRanges = [];
-    for (let i = 0; i < remaining; i++) {
-      newRanges.push(deconLevelUpSlotRanges[i] ?? buildDefaultSlotRanges(statRanges));
-    }
-    deconLevelUpSlotRanges = newRanges;
-  }
-  for (let i = 0; i < remaining; i++) {
-    const slot = document.createElement('div');
-    slot.className = 'decon-level-slot';
-    slot.setAttribute('data-decon-level-slot', String(i));
-    const header = document.createElement('div');
-    header.className = 'decon-level-slot-label';
-    header.textContent = `남은 슬롯 ${i + 1}`;
-    slot.append(header);
-    const statsRow = document.createElement('div');
-    statsRow.className = 'decon-level-slot-stats';
-    const slotRanges = deconLevelUpSlotRanges[i];
-    for (const key of Object.keys(statRanges)) {
-      const defRange = statRanges[key] ?? { min: 0, max: 0 };
-      if (!slotRanges[key]) slotRanges[key] = { ...defRange };
-      const statEl = document.createElement('span');
-      statEl.textContent = (statLabelByKey[key] || key) + ' ';
-      const minInput = document.createElement('input');
-      minInput.type = 'number';
-      minInput.min = defRange.min;
-      minInput.max = defRange.max;
-      minInput.value = slotRanges[key].min;
-      minInput.addEventListener('change', () => {
-        const val = Number(minInput.value);
-        if (Number.isFinite(val)) {
-          slotRanges[key] = { ...slotRanges[key], min: Math.max(defRange.min, Math.min(defRange.max, val)) };
-          minInput.value = slotRanges[key].min;
-        }
-      });
-      const maxInput = document.createElement('input');
-      maxInput.type = 'number';
-      maxInput.min = defRange.min;
-      maxInput.max = defRange.max;
-      maxInput.value = slotRanges[key].max;
-      maxInput.addEventListener('change', () => {
-        const val = Number(maxInput.value);
-        if (Number.isFinite(val)) {
-          slotRanges[key] = { ...slotRanges[key], max: Math.max(defRange.min, Math.min(defRange.max, val)) };
-          maxInput.value = slotRanges[key].max;
-        }
-      });
-      statEl.append(minInput, document.createTextNode(' ~ '), maxInput, ' ');
-      statsRow.append(statEl);
-    }
-    slot.append(statsRow);
-    deconLevelSlotList.append(slot);
-  }
+  slot.append(statsRow);
+  deconLevelSlotList.append(slot);
 };
 
 const renderDeconSlotState = () => {
@@ -1262,9 +1220,35 @@ const hideItemSuggestions = () => {
   }
 };
 
-const selectSuggestedItem = (item, { syncFilters = true } = {}) => {
+const hasDeconDraftState = () => (
+  selectedItem !== null &&
+  (
+    deconHasActionableResults ||
+    (deconResultContent instanceof HTMLElement && !deconResultContent.hidden) ||
+    Object.values(deconDeltas).some((value) => Number.isFinite(value) && value !== 0) ||
+    deconSlotState.successfulScrollCount !== 0 ||
+    deconSlotState.remainingSlots !== deconSlotState.maxSlots ||
+    deconAppliedLevelCount !== 0
+  )
+);
+
+const clearDeconCalculationState = (item) => {
+  deconDeltas = {};
+  deconHasActionableResults = false;
+  deconSlotState = createDeconstructionSlotState(item?.stats?.upgradeSlots ?? 0);
+  deconAppliedLevelCount = 0;
+  deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
+  deconStimulantBoundsMap = {};
+  deconLevelUpTotalRanges = {};
+  deconScrollRateInputs.forEach(inp => { if (inp instanceof HTMLInputElement) inp.checked = true; });
+};
+
+const commitSuggestedItem = (item, { syncFilters = true } = {}) => {
   if (!(itemNameInput instanceof HTMLInputElement)) return;
   const itemChanged = selectedItem?.id !== item.id;
+  if (itemChanged) {
+    clearDeconCalculationState(item);
+  }
   if (syncFilters) {
     itemNameInput.value = item.nameKo;
   }
@@ -1278,12 +1262,6 @@ const selectSuggestedItem = (item, { syncFilters = true } = {}) => {
   selectedItem = item;
   if (itemChanged) resetAllowedSources();
   updateLevelUpSourceEligibility();
-  deconAppliedLevelCount = 0;
-  deconAppliedLevelStats = {};
-  deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
-  deconStimulantBoundsMap = {};
-  deconLevelUpSlotRanges = [];
-  deconScrollRateInputs.forEach(inp => { if (inp instanceof HTMLInputElement) inp.checked = true; });
   renderDeconItemLevel();
   renderTargetItemCard(item);
   activateDeconEditPanel(item);
@@ -1294,15 +1272,19 @@ const selectSuggestedItem = (item, { syncFilters = true } = {}) => {
   }
 };
 
+const selectSuggestedItem = (item, { syncFilters = true } = {}) => {
+  const itemChanged = selectedItem?.id !== item.id;
+  if (itemChanged && hasDeconDraftState()) {
+    showDeconItemChangeDialog(() => {
+      commitSuggestedItem(item, { syncFilters });
+    });
+    return;
+  }
+  commitSuggestedItem(item, { syncFilters });
+};
+
 const renderItemSuggestions = () => {
   if (!(itemNameInput instanceof HTMLInputElement) || !(itemSuggestions instanceof HTMLElement)) return;
-  if (selectedItemIdInput instanceof HTMLInputElement) {
-    selectedItemIdInput.value = '';
-  }
-  form?.removeAttribute('data-selected-item-id');
-  clearSelectedItemCard();
-  if (deconCalcPlaceholder instanceof HTMLElement) deconCalcPlaceholder.hidden = false;
-  if (deconCalcContent instanceof HTMLElement) deconCalcContent.hidden = true;
   itemSuggestions.replaceChildren();
 
   const results = searchKoreanItems(itemNameInput.value, { items: itemIndex });
@@ -1509,10 +1491,9 @@ const activateDeconEditPanel = (item) => {
   // Reset slot history from the selected clean item
   deconSlotState = createDeconstructionSlotState(item.stats?.upgradeSlots ?? 0);
   deconAppliedLevelCount = 0;
-  deconAppliedLevelStats = {};
   deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
   deconStimulantBoundsMap = {};
-  deconLevelUpSlotRanges = [];
+  deconLevelUpTotalRanges = {};
   deconScrollRateInputs.forEach(inp => { if (inp instanceof HTMLInputElement) inp.checked = true; });
   renderDeconSlotState();
   renderDeconItemLevel();
@@ -1558,12 +1539,12 @@ const runAnalysis = () => {
     cleanStats: selectedItem.stats ?? {},
     scrollsByEquipmentKind,
     levelUpDefinition: levelUpDef ?? null,
-    appliedLevelStats: appliedCount > 0
-      ? { levelCount: appliedCount, stats: deconAppliedLevelStats }
-      : null,
     scrollRateFilter: deconScrollRateFilter.size > 0 ? deconScrollRateFilter : null,
     stimulantStatBounds: Object.keys(deconStimulantBoundsMap).length > 0 ? deconStimulantBoundsMap : null,
-    levelUpSlotStatRanges: deconLevelUpSlotRanges.length > 0 ? deconLevelUpSlotRanges : null,
+    levelUpExactLevelCount: appliedCount,
+    levelUpTotalStatRanges: appliedCount > 0 && Object.keys(deconLevelUpTotalRanges).length > 0
+      ? deconLevelUpTotalRanges
+      : null,
   });
 
   displayResults(result, targetDeltas);
@@ -1943,16 +1924,14 @@ deconSlotMax?.addEventListener('click', () => guardDeconMutation(() => {
 // ---- Level steppers ----
 deconLevelMinBtn?.addEventListener('click', () => guardDeconMutation(() => {
   deconAppliedLevelCount = 0;
-  deconAppliedLevelStats = {};
-  deconLevelUpSlotRanges = [];
+  deconLevelUpTotalRanges = {};
   renderDeconItemLevel();
   updateLevelUpSourceEligibility();
 }));
 deconLevelDecBtn?.addEventListener('click', () => guardDeconMutation(() => {
   if (deconAppliedLevelCount > 0) {
     deconAppliedLevelCount--;
-    deconAppliedLevelStats = {};
-    deconLevelUpSlotRanges = [];
+    deconLevelUpTotalRanges = {};
     renderDeconItemLevel();
     updateLevelUpSourceEligibility();
   }
@@ -1962,8 +1941,7 @@ deconLevelIncBtn?.addEventListener('click', () => guardDeconMutation(() => {
   const maxLevelUps = Number.isInteger(def?.maxLevelUps) ? def.maxLevelUps : 0;
   if (deconAppliedLevelCount < maxLevelUps) {
     deconAppliedLevelCount++;
-    deconAppliedLevelStats = {};
-    deconLevelUpSlotRanges = [];
+    deconLevelUpTotalRanges = {};
     renderDeconItemLevel();
     updateLevelUpSourceEligibility();
   }
@@ -1972,8 +1950,7 @@ deconLevelMaxBtn?.addEventListener('click', () => guardDeconMutation(() => {
   const def = selectedItem ? itemLevelUpByItemId.get(selectedItem.id) : null;
   const maxLevelUps = Number.isInteger(def?.maxLevelUps) ? def.maxLevelUps : 0;
   deconAppliedLevelCount = maxLevelUps;
-  deconAppliedLevelStats = {};
-  deconLevelUpSlotRanges = [];
+  deconLevelUpTotalRanges = {};
   renderDeconItemLevel();
   updateLevelUpSourceEligibility();
 }));
@@ -2037,6 +2014,36 @@ const showDeconConfirmDialog = (onConfirm) => {
   document.body.append(overlay);
 };
 
+const showDeconItemChangeDialog = (onConfirm) => {
+  const overlay = document.createElement('div');
+  overlay.className = 'decon-confirm-overlay';
+
+  const dialog = document.createElement('div');
+  dialog.className = 'decon-confirm-dialog';
+
+  const msg = document.createElement('p');
+  msg.textContent = '아이템을 변경하면 현재 스탯 편집과 분석 결과가 초기화됩니다. 계속하시겠습니까?';
+
+  const buttonRow = document.createElement('div');
+  buttonRow.className = 'decon-confirm-buttons';
+
+  const confirmBtn = document.createElement('button');
+  confirmBtn.textContent = '변경';
+  confirmBtn.addEventListener('click', () => {
+    overlay.remove();
+    onConfirm();
+  });
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = '취소';
+  cancelBtn.addEventListener('click', () => overlay.remove());
+
+  buttonRow.append(confirmBtn, cancelBtn);
+  dialog.append(msg, buttonRow);
+  overlay.append(dialog);
+  document.body.append(overlay);
+};
+
 document.querySelector('[data-enhancement-reset]')?.addEventListener('click', () => {
   showDeconConfirmDialog(() => {
     deconDeltas = {};
@@ -2049,8 +2056,6 @@ document.querySelector('[data-enhancement-reset]')?.addEventListener('click', ()
     if (selectedItem) {
       activateDeconEditPanel(selectedItem);
     }
-    if (deconCalcPlaceholder instanceof HTMLElement) deconCalcPlaceholder.hidden = false;
-    if (deconCalcContent instanceof HTMLElement) deconCalcContent.hidden = true;
     if (deconResultPlaceholder instanceof HTMLElement) deconResultPlaceholder.hidden = false;
     if (deconResultContent instanceof HTMLElement) deconResultContent.hidden = true;
     deconHasActionableResults = false;
