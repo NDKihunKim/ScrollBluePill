@@ -1958,15 +1958,16 @@ deconLevelMaxBtn?.addEventListener('click', () => guardDeconMutation(() => {
 }));
 
 deconScrollRateInputs.forEach((chip) => {
-  chip.addEventListener('change', () => guardDeconMutation(() => {
-    if (!(chip instanceof HTMLInputElement)) return;
-    const rate = chip.dataset.deconScrollRate;
-    if (chip.checked) {
-      deconScrollRateFilter.add(rate);
-    } else {
-      deconScrollRateFilter.delete(rate);
-    }
-  }));
+  chip.addEventListener('change', () => {
+    guardCheckboxMutation(chip, guardDeconMutation, () => {
+      const rate = chip.dataset.deconScrollRate;
+      if (chip.checked) {
+        deconScrollRateFilter.add(rate);
+      } else {
+        deconScrollRateFilter.delete(rate);
+      }
+    });
+  });
 });
 
 // ---- Add-stat accordion toggle ----
