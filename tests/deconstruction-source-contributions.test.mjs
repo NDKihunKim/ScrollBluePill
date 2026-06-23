@@ -48,6 +48,37 @@ test('item-level totals use each item definition maximum and stat ranges', () =>
   assert.deepEqual(timeless.map(({ stats }) => stats.dex), [0, 1, 2, 3, 4, 5]);
 });
 
+test('item-level exact count limits totals to the inputted item level count', () => {
+  const results = enumerateItemLevelContributions({
+    levelUpDefinition: { maxLevelUps: 5, statRanges: { str: { min: 0, max: 2 } } },
+    targetKeys: ['str'],
+    bounds: { str: { min: -Infinity, max: Infinity } },
+    exactLevelCount: 1,
+  });
+
+  assert.deepEqual(results, [
+    { levelCount: 1, stats: { str: 0 } },
+    { levelCount: 1, stats: { str: 1 } },
+    { levelCount: 1, stats: { str: 2 } },
+  ]);
+});
+
+test('item-level total ranges constrain exact-count totals', () => {
+  const results = enumerateItemLevelContributions({
+    levelUpDefinition: { maxLevelUps: 5, statRanges: { str: { min: 0, max: 2 } } },
+    targetKeys: ['str'],
+    bounds: { str: { min: -Infinity, max: Infinity } },
+    exactLevelCount: 3,
+    totalRanges: { str: { min: 2, max: 4 } },
+  });
+
+  assert.deepEqual(results, [
+    { levelCount: 3, stats: { str: 2 } },
+    { levelCount: 3, stats: { str: 3 } },
+    { levelCount: 3, stats: { str: 4 } },
+  ]);
+});
+
 test('missing level-up definitions produce no contributions', () => {
   assert.deepEqual(enumerateItemLevelContributions({
     levelUpDefinition: null,

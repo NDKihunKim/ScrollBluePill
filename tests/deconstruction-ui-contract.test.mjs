@@ -189,7 +189,7 @@ test('item level stepper respects level-up definition visibility and engine pass
   );
   assert.match(
     runAnalysisSource,
-    /appliedLevelStats:\s*appliedCount > 0/,
+    /levelUpExactLevelCount:\s*appliedCount/,
   );
 });
 
@@ -217,7 +217,7 @@ test('item level max boundary fills all slots for card and engine', () => {
   );
   assert.match(
     runAnalysisSource,
-    /appliedLevelStats:\s*appliedCount > 0/,
+    /levelUpExactLevelCount:\s*appliedCount/,
   );
 
   assert.match(
@@ -250,9 +250,21 @@ test('stimulant stat bounds sub-options exist', () => {
   assert.match(pageSource, /setAttribute\(['"]data-decon-stimulant-bound-/);
 });
 
-test('level-up slot range editors exist', () => {
+test('level-up total range editor exists for the inputted item level count', () => {
+  const toggleStart = pageSource.indexOf('const toggleSourceSub = (sourceCheckbox, subContainer, onFirstEnable) => {');
+  const defaultRangeStart = pageSource.indexOf('\nconst buildDefaultSlotRanges', toggleStart);
+  assert.ok(toggleStart >= 0 && defaultRangeStart > toggleStart);
+  const toggleSource = pageSource.slice(toggleStart, defaultRangeStart);
+  assert.match(toggleSource, /if \(enabled\) subContainer\.hidden = false;/);
+
+  const buildStart = pageSource.indexOf('const buildLevelUpSlotEditors = () => {');
+  const clearStart = pageSource.indexOf('\nconst renderDeconItemLevel', buildStart);
+  assert.ok(buildStart >= 0 && clearStart > buildStart);
+  const buildSource = pageSource.slice(buildStart, clearStart);
   assert.match(pageSource, /data-decon-level-slot-ranges/);
-  assert.match(pageSource, /data-decon-level-slot['"]/);
+  assert.match(buildSource, /data-decon-level-total-range/);
+  assert.match(buildSource, /레벨업 총합/);
+  assert.doesNotMatch(buildSource, /남은 슬롯/);
 });
 
 test('getDefaultSourceSelection returns all false', () => {
@@ -269,7 +281,9 @@ test('runAnalysis passes pre-filter params to engine', () => {
   const runAnalysisSource = pageSource.slice(runAnalysisStart, displayResultsStart);
   assert.match(runAnalysisSource, /scrollRateFilter:\s*deconScrollRateFilter\.size > 0 \? deconScrollRateFilter : null/);
   assert.match(runAnalysisSource, /stimulantStatBounds:\s*Object\.keys\(deconStimulantBoundsMap\)/);
-  assert.match(runAnalysisSource, /levelUpSlotStatRanges:\s*deconLevelUpSlotRanges\.length > 0/);
+  assert.match(runAnalysisSource, /levelUpExactLevelCount:\s*appliedCount/);
+  assert.match(runAnalysisSource, /levelUpTotalStatRanges:\s*appliedCount > 0/);
+  assert.doesNotMatch(runAnalysisSource, /levelUpSlotStatRanges/);
 });
 
 test('analysis passes the exact successful-scroll count and source permissions to the engine', () => {
@@ -514,10 +528,10 @@ test('source validation policy controls the message and analyze-button disabled 
 });
 
 test('source choices reset only for selected-item and confirmed calculator resets', () => {
-  const selectStart = pageSource.indexOf('const selectSuggestedItem =');
-  const suggestionsStart = pageSource.indexOf('const renderItemSuggestions =', selectStart);
-  const selectSource = pageSource.slice(selectStart, suggestionsStart);
-  assert.match(selectSource, /resetAllowedSources\(\)/);
+  const commitStart = pageSource.indexOf('const commitSuggestedItem =');
+  const selectStart = pageSource.indexOf('const selectSuggestedItem =', commitStart);
+  const commitSource = pageSource.slice(commitStart, selectStart);
+  assert.match(commitSource, /resetAllowedSources\(\)/);
 
   const resetStart = pageSource.indexOf("document.querySelector('[data-enhancement-reset]')?.addEventListener");
   const initStart = pageSource.indexOf('// ---- Init ----', resetStart);
@@ -534,10 +548,81 @@ test('source choices reset only for selected-item and confirmed calculator reset
   }
 });
 
-test('level-up eligibility refreshes after either item or async level data without resetting choices', () => {
+test('search suggestions do not clear the committed target item before selection', () => {
+  const suggestionsStart = pageSource.indexOf('const renderItemSuggestions =');
+  const equipmentStart = pageSource.indexOf('const setEquipmentOption =', suggestionsStart);
+  const suggestionsSource = pageSource.slice(suggestionsStart, equipmentStart);
+
+  assert.doesNotMatch(suggestionsSource, /selectedItemIdInput\.value = ''/);
+  assert.doesNotMatch(suggestionsSource, /form\?\.removeAttribute\('data-selected-item-id'\)/);
+  assert.doesNotMatch(suggestionsSource, /clearSelectedItemCard\(\)/);
+  assert.doesNotMatch(
+    suggestionsSource,
+    /deconCalcPlaceholder\.hidden = false|deconCalcContent\.hidden = true/,
+  );
+});
+
+test('changing away from a drafted deconstruction item requires confirmation', () => {
+  assert.match(
+    pageSource,
+    /const hasDeconDraftState = \(\) => \([\s\S]*deconHasActionableResults[\s\S]*deconResultContent instanceof HTMLElement && !deconResultContent\.hidden[\s\S]*Object\.values\(deconDeltas\)\.some\([\s\S]*\);/,
+  );
+
   const selectStart = pageSource.indexOf('const selectSuggestedItem =');
   const suggestionsStart = pageSource.indexOf('const renderItemSuggestions =', selectStart);
-  assert.match(pageSource.slice(selectStart, suggestionsStart), /updateLevelUpSourceEligibility\(\)/);
+  const selectSource = pageSource.slice(selectStart, suggestionsStart);
+
+  assert.match(
+    selectSource,
+    /if \(itemChanged && hasDeconDraftState\(\)\) \{\s*showDeconItemChangeDialog\(\(\) => \{\s*commitSuggestedItem\(item, \{ syncFilters \}\);/,
+  );
+  assert.match(selectSource, /return;\s*\}\s*commitSuggestedItem\(item, \{ syncFilters \}\);/);
+  assert.match(
+    pageSource,
+    /아이템을 변경하면 현재 스탯 편집과 분석 결과가 초기화됩니다\. 계속하시겠습니까\?/,
+  );
+  assert.match(pageSource, /confirmBtn\.textContent = '변경';/);
+});
+
+test('confirmed item changes clear prior deconstruction edits before activation', () => {
+  const commitStart = pageSource.indexOf('const commitSuggestedItem =');
+  const selectStart = pageSource.indexOf('const selectSuggestedItem =', commitStart);
+  const commitSource = pageSource.slice(commitStart, selectStart);
+
+  const clearIndex = commitSource.indexOf('clearDeconCalculationState(item)');
+  const selectedItemIndex = commitSource.indexOf('selectedItem = item');
+  const activateIndex = commitSource.indexOf('activateDeconEditPanel(item)');
+
+  assert.ok(clearIndex >= 0, 'missing item-change state clear');
+  assert.ok(selectedItemIndex > clearIndex, 'state must clear before selectedItem changes');
+  assert.ok(activateIndex > selectedItemIndex, 'new item should activate after selectedItem changes');
+
+  const clearStart = pageSource.indexOf('const clearDeconCalculationState =');
+  const clearEnd = pageSource.indexOf('const commitSuggestedItem =', clearStart);
+  const clearSource = pageSource.slice(clearStart, clearEnd);
+  assert.match(clearSource, /deconDeltas = \{\};/);
+  assert.match(clearSource, /deconHasActionableResults = false;/);
+  assert.match(clearSource, /deconSlotState = createDeconstructionSlotState\(item\?\.stats\?\.upgradeSlots \?\? 0\);/);
+});
+
+test('confirmed calculator reset keeps calculation controls visible for the selected item', () => {
+  const resetStart = pageSource.indexOf("document.querySelector('[data-enhancement-reset]')?.addEventListener");
+  const initStart = pageSource.indexOf('// ---- Init ----', resetStart);
+  const resetSource = pageSource.slice(resetStart, initStart);
+  const activationIndex = resetSource.indexOf('activateDeconEditPanel(selectedItem)');
+
+  assert.ok(activationIndex >= 0, 'reset must rebuild the selected item edit panel');
+  assert.doesNotMatch(
+    resetSource.slice(activationIndex),
+    /deconCalcPlaceholder\.hidden = false|deconCalcContent\.hidden = true/,
+    'reset must not hide the calculation controls after rebuilding the selected item panel',
+  );
+});
+
+test('level-up eligibility refreshes after either item or async level data without resetting choices', () => {
+  const commitStart = pageSource.indexOf('const commitSuggestedItem =');
+  const selectStart = pageSource.indexOf('const selectSuggestedItem =', commitStart);
+  assert.match(pageSource.slice(commitStart, selectStart), /updateLevelUpSourceEligibility\(\)/);
 
   const levelMapIndex = pageSource.indexOf('itemLevelUpByItemId = new Map(');
   const loadEnd = pageSource.indexOf('\n  })\n  .catch', levelMapIndex);

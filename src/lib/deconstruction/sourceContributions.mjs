@@ -62,9 +62,43 @@ function withinBounds(stats, bounds, targetKeys) {
   });
 }
 
-export function enumerateItemLevelContributions({ levelUpDefinition, targetKeys, bounds, appliedLevelCount = 0, perSlotRanges = null }) {
+export function enumerateItemLevelContributions({
+  levelUpDefinition,
+  targetKeys,
+  bounds,
+  appliedLevelCount = 0,
+  perSlotRanges = null,
+  exactLevelCount = null,
+  totalRanges = null,
+}) {
   const maxLevelUps = levelUpDefinition?.maxLevelUps;
   if (!Number.isInteger(maxLevelUps) || maxLevelUps <= 0) return [];
+
+  if (Number.isFinite(exactLevelCount)) {
+    const levelCount = Math.max(0, Math.min(maxLevelUps, Math.trunc(exactLevelCount)));
+    if (levelCount <= 0) return [];
+    const ranges = {};
+    for (const key of targetKeys) {
+      const defRange = levelUpDefinition.statRanges?.[key] ?? { min: 0, max: 0 };
+      const totalMin = defRange.min * levelCount;
+      const totalMax = defRange.max * levelCount;
+      const requested = totalRanges?.[key];
+      ranges[key] = {
+        min: requested && Number.isFinite(requested.min)
+          ? Math.max(totalMin, Math.min(totalMax, requested.min))
+          : totalMin,
+        max: requested && Number.isFinite(requested.max)
+          ? Math.max(totalMin, Math.min(totalMax, requested.max))
+          : totalMax,
+      };
+      if (ranges[key].min > ranges[key].max) {
+        ranges[key] = { min: ranges[key].max, max: ranges[key].min };
+      }
+    }
+    return enumerateRangeVectors(ranges, targetKeys)
+      .filter((stats) => withinBounds(stats, bounds, targetKeys))
+      .map((stats) => ({ levelCount, stats }));
+  }
 
   const remainingLevels = maxLevelUps - (Number.isFinite(appliedLevelCount) ? Math.max(0, Math.trunc(appliedLevelCount)) : 0);
   if (remainingLevels <= 0) return [];
