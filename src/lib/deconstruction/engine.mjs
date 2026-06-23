@@ -599,7 +599,7 @@ export function enumerateStrategies({
           for (const gc of gemContributions) {
             if (tooManyResults) break;
             const afterGems = subtractVectors(residual, gc.stats, targetKeys);
-            const stimStats = solveStimulantResidual(afterGems, targetKeys, stimulantOpts);
+            const stimStats = solveStimulantResidual(afterGems, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
             if (stimStats) {
               addResult({
                 scrolls: ss.scrolls,
@@ -684,7 +684,7 @@ export function enumerateStrategies({
         for (const gc of gemContributions) {
           if (tooManyResults) break;
           const afterGems = subtractVectors(residual, gc.stats, targetKeys);
-          const stimStats = solveStimulantResidual(afterGems, targetKeys, stimulantOpts);
+          const stimStats = solveStimulantResidual(afterGems, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
           if (stimStats) {
             addResult({
               scrolls: ss.scrolls,
@@ -703,7 +703,7 @@ export function enumerateStrategies({
         for (const ilc of itemLevelContributions) {
           if (tooManyResults) break;
           const afterLevel = subtractVectors(residual, ilc.stats, targetKeys);
-          const stimStats = solveStimulantResidual(afterLevel, targetKeys, stimulantOpts);
+          const stimStats = solveStimulantResidual(afterLevel, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
           if (stimStats) {
             addResult({
               scrolls: ss.scrolls,
@@ -745,7 +745,7 @@ export function enumerateStrategies({
           for (const ilc of itemLevelContributions) {
             if (tooManyResults) break;
             const afterBoth = subtractVectors(residual, addVectors(gc.stats, ilc.stats, targetKeys), targetKeys);
-            const stimStats = solveStimulantResidual(afterBoth, targetKeys, stimulantOpts);
+            const stimStats = solveStimulantResidual(afterBoth, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
             if (stimStats) {
               addResult({
                 scrolls: ss.scrolls,
