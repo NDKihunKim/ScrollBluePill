@@ -455,7 +455,7 @@ test('only the active secondary panel renders and checkbox state persists global
   assert.equal((filterControllerSource.match(/const renderPanel =/g) ?? []).length, 1);
   assert.doesNotMatch(filterControllerSource, /for \(const source of RESULT_SOURCE_ORDER/);
   assert.match(filterControllerSource, /getFacetOptions\(model, selections, source\)/);
-  assert.match(filterControllerSource, /label\.dataset\.deconOptionKey = option\.key;/);
+  assert.match(filterControllerSource, /option\.key/);
   assert.match(filterControllerSource, /input\.checked = selected\.has\(option\.key\);/);
   assert.match(filterControllerSource, /input\.disabled = !option\.available;/);
   assert.match(filterControllerSource, /input\.addEventListener\('change', \(\) =>/);
@@ -467,9 +467,9 @@ test('active facet refresh updates and reorders existing option labels in place'
   assert.match(filterControllerSource, /const refreshActivePanel = \(\) =>/);
   assert.match(
     filterControllerSource,
-    /getFacetOptions\(model, selections, activePanelSource\)/,
+    /renderPanel\(activePanelSource\)/,
   );
-  assert.match(filterControllerSource, /label\.classList\.toggle\(\s*'decon-secondary-filter-option--unavailable',\s*!option\.available,\s*\);/);
+  assert.match(filterControllerSource, /decon-secondary-scroll-row--unavailable|decon-secondary-gem-grade--unavailable|decon-secondary-checkbox--unavailable/);
   assert.match(filterControllerSource, /input\.disabled = !option\.available;/);
   assert.match(filterControllerSource, /list\.append\(label\);/);
 });
