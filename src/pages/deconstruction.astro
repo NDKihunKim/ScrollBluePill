@@ -1114,10 +1114,49 @@ const buildGemPreFilter = () => {
   const renderCategories = () => {
     deconGemSub.replaceChildren();
 
+    const topRow = document.createElement('div');
+    topRow.className = 'decon-gem-top-row';
+
     const label = document.createElement('p');
     label.className = 'decon-gem-picker-label';
     label.textContent = '보석 종류 선택';
-    deconGemSub.append(label);
+    topRow.append(label);
+
+    const actions = document.createElement('div');
+    actions.className = 'decon-gem-actions';
+
+    const selectAllBtn = document.createElement('button');
+    selectAllBtn.type = 'button';
+    selectAllBtn.className = 'decon-gem-action-btn';
+    selectAllBtn.textContent = '전체 선택';
+    selectAllBtn.addEventListener('click', () => {
+      for (const g of GEM_TYPES) {
+        if (g.weaponOnly && !isWeaponKind(equipmentKind)) continue;
+        for (let gi = 0; gi < GEM_GRADES.length; gi++) {
+          deconGemFilter.add(`${g.key}:${gi}`);
+        }
+      }
+      renderCategories();
+    });
+    actions.append(selectAllBtn);
+
+    const deselectAllBtn = document.createElement('button');
+    deselectAllBtn.type = 'button';
+    deselectAllBtn.className = 'decon-gem-action-btn';
+    deselectAllBtn.textContent = '전체 해제';
+    deselectAllBtn.addEventListener('click', () => {
+      for (const g of GEM_TYPES) {
+        if (g.weaponOnly && !isWeaponKind(equipmentKind)) continue;
+        for (let gi = 0; gi < GEM_GRADES.length; gi++) {
+          deconGemFilter.delete(`${g.key}:${gi}`);
+        }
+      }
+      renderCategories();
+    });
+    actions.append(deselectAllBtn);
+
+    topRow.append(actions);
+    deconGemSub.append(topRow);
 
     const grid = document.createElement('div');
     grid.className = 'decon-gem-grid';
@@ -1128,6 +1167,16 @@ const buildGemPreFilter = () => {
       const card = document.createElement('button');
       card.type = 'button';
       card.className = 'decon-gem-category';
+
+      // Highlight if at least one grade is selected
+      let hasSelectedGrade = false;
+      for (let gi = 0; gi < GEM_GRADES.length; gi++) {
+        if (deconGemFilter.has(`${gem.key}:${gi}`)) {
+          hasSelectedGrade = true;
+          break;
+        }
+      }
+      if (hasSelectedGrade) card.classList.add('decon-gem-category--selected');
 
       const baseId = GEM_ITEM_IDS[gem.key]?.base;
       if (baseId) {
@@ -3526,12 +3575,45 @@ aside.panel {
 
 /* Gem pre-filter picker — matches expected-value .maker-picker-item design */
 /* All rules use :global() because elements are created dynamically via JS */
-:global(.decon-gem-picker-label) {
+:global(.decon-gem-top-row) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin-bottom: 6px;
+  width: 100%;
+}
+
+:global(.decon-gem-picker-label) {
+  margin: 0;
   color: var(--muted);
   font-size: 0.88rem;
   font-weight: 700;
-  width: 100%;
+}
+
+:global(.decon-gem-actions) {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+:global(.decon-gem-action-btn) {
+  padding: 2px 7px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface-soft);
+  color: var(--ink);
+  font-size: 0.68rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+:global(.decon-gem-action-btn:hover) {
+  border-color: var(--green);
+  background: var(--surface);
 }
 
 :global(.decon-gem-grid) {
@@ -3559,6 +3641,10 @@ aside.panel {
 }
 
 :global(.decon-gem-category:hover) {
+  border-color: var(--green);
+}
+
+:global(.decon-gem-category--selected) {
   border-color: var(--green);
 }
 
