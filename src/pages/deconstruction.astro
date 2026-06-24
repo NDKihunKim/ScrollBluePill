@@ -1142,6 +1142,18 @@ const buildGemPreFilter = () => {
       name.textContent = gem.nameKo;
       card.append(name);
 
+      if (gem.key !== 'darkCrystal') {
+        const statSub = document.createElement('span');
+        statSub.className = 'decon-gem-category-stat';
+        if (gem.behavior === 'variable') {
+          const keyLabels = (gem.variableKeys ?? []).map((k) => statLabelByKey[k] ?? k);
+          statSub.textContent = `(${keyLabels.join('/')})`;
+        } else {
+          statSub.textContent = `(${statLabelByKey[gem.stat] ?? gem.stat})`;
+        }
+        card.append(statSub);
+      }
+
       card.addEventListener('click', () => renderGrades(gem));
       grid.append(card);
     }
@@ -3538,6 +3550,11 @@ aside.panel {
   height: 28px;
   object-fit: contain;
   image-rendering: pixelated;
+}
+
+.decon-gem-category-stat {
+  font-size: 0.7rem;
+  color: var(--muted);
 }
 
 .decon-gem-picker-header {
