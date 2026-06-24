@@ -1846,6 +1846,7 @@ const buildDeconPageState = () => {
     itemId: selectedItem.id,
     deconDeltas: { ...deconDeltas },
     successfulScrollCount: deconSlotState.successfulScrollCount,
+    deconStatKeys: [...deconStatKeys],
     remainingSlots: deconSlotState.remainingSlots,
     appliedLevelCount: deconAppliedLevelCount,
     gemFilter: deconGemFilter ? [...deconGemFilter] : null,
@@ -2117,6 +2118,7 @@ const loadDeconSlot = (slotIndex) => {
   const ps = s.pageState;
   deconDeltas = { ...(ps.deconDeltas ?? {}) };
   deconSlotState = setSuccessfulScrollCount(deconSlotState, ps.successfulScrollCount ?? 0);
+  deconStatKeys = ps.deconStatKeys ? [...ps.deconStatKeys] : deconStatKeys;
   deconSlotState = setRemainingSlotCount(deconSlotState, ps.remainingSlots ?? deconSlotState.maxSlots);
   deconAppliedLevelCount = ps.appliedLevelCount ?? 0;
   deconGemFilter = ps.gemFilter ? new Set(ps.gemFilter) : null;
