@@ -1093,16 +1093,19 @@ const buildLevelUpSlotEditors = () => {
     minInput.min = totalMin;
     minInput.max = totalMax;
     minInput.value = deconLevelUpTotalRanges[key].min;
+    const prevMin = deconLevelUpTotalRanges[key]?.min ?? totalMin;
     minInput.addEventListener('change', () => {
-      const val = Number(minInput.value);
-      if (Number.isFinite(val)) {
-        const nextMin = Math.max(totalMin, Math.min(totalMax, val));
+      const nextVal = Number(minInput.value);
+      minInput.value = prevMin;
+      guardDeconMutation(() => {
+        const val = Number.isFinite(nextVal) ? nextVal : prevMin;
+        const clampedMin = Math.max(totalMin, Math.min(totalMax, val));
         deconLevelUpTotalRanges[key] = {
           ...deconLevelUpTotalRanges[key],
-          min: Math.min(nextMin, deconLevelUpTotalRanges[key].max),
+          min: Math.min(clampedMin, deconLevelUpTotalRanges[key]?.max ?? totalMax),
         };
         minInput.value = deconLevelUpTotalRanges[key].min;
-      }
+      });
     });
 
     const maxInput = document.createElement('input');
@@ -1110,16 +1113,19 @@ const buildLevelUpSlotEditors = () => {
     maxInput.min = totalMin;
     maxInput.max = totalMax;
     maxInput.value = deconLevelUpTotalRanges[key].max;
+    const prevMax = deconLevelUpTotalRanges[key]?.max ?? totalMax;
     maxInput.addEventListener('change', () => {
-      const val = Number(maxInput.value);
-      if (Number.isFinite(val)) {
-        const nextMax = Math.max(totalMin, Math.min(totalMax, val));
+      const nextVal = Number(maxInput.value);
+      maxInput.value = prevMax;
+      guardDeconMutation(() => {
+        const val = Number.isFinite(nextVal) ? nextVal : prevMax;
+        const clampedMax = Math.max(totalMin, Math.min(totalMax, val));
         deconLevelUpTotalRanges[key] = {
           ...deconLevelUpTotalRanges[key],
-          max: Math.max(nextMax, deconLevelUpTotalRanges[key].min),
+          max: Math.max(clampedMax, deconLevelUpTotalRanges[key]?.min ?? totalMin),
         };
         maxInput.value = deconLevelUpTotalRanges[key].max;
-      }
+      });
     });
 
     statEl.append(minInput, document.createTextNode(' ~ '), maxInput, ' ');
