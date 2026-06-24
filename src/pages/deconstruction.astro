@@ -960,7 +960,7 @@ const rebuildStatEditor = () => {
     valueInput.type = 'number';
     valueInput.className = 'chaos-stepper-value';
     valueInput.dataset.deconStatValue = k;
-    valueInput.value = '0';
+    valueInput.value = String(deconDeltas[k] ?? 0);
     valueInput.addEventListener('input', () => {
       const raw = parseInt(valueInput.value, 10);
       if (Number.isFinite(raw)) {
