@@ -158,11 +158,13 @@ function enumerateIndependentStats(keys, values) {
   return results;
 }
 
-function buildGemOutcomeOptions({ equipmentKind, cleanStats, targetKeys }) {
+function buildGemOutcomeOptions({ equipmentKind, cleanStats, targetKeys, gemFilter = null }) {
   const options = [];
   for (const gem of GEM_TYPES) {
     if (gem.weaponOnly && !isWeaponKind(equipmentKind)) continue;
     for (let gradeIndex = 0; gradeIndex < GEM_GRADES.length; gradeIndex++) {
+      // Pre-filter: skip this gem+grade if not in the whitelist
+      if (gemFilter && !gemFilter.has(`${gem.key}:${gradeIndex}`)) continue;
       if (isFixedGem(gem.key)) {
         const stats = projectVector(getFixedGemStats(gem.key, gradeIndex), targetKeys);
         // Skip gems that contribute nothing to any checked target key
@@ -209,9 +211,10 @@ export function enumerateGemContributions({
   cleanStats,
   targetKeys,
   bounds,
+  gemFilter = null,
 }) {
   if (!Number.isInteger(gemSlotCount) || gemSlotCount <= 0) return [];
-  const options = buildGemOutcomeOptions({ equipmentKind, cleanStats, targetKeys });
+  const options = buildGemOutcomeOptions({ equipmentKind, cleanStats, targetKeys, gemFilter });
   const results = [];
   const seen = new Set();
 
