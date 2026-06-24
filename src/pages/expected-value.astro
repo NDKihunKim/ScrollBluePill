@@ -275,7 +275,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 			<aside class="panel" aria-label="계산 결과">
 				<h2>아이템 미리보기</h2>
-				<div class="item-slot-bar" data-ev-slot-bar hidden></div>
+				<div class="item-slot-bar" data-ev-slot-bar></div>
 				<p class="enhancement-placeholder" data-item-placeholder>아이템을 선택해주세요</p>
 				<div data-selected-item-card-wrapper style="position:relative;" hidden>
           <button type="button" class="item-card-star" data-ev-star hidden title="슬롯에 저장">☆</button>
@@ -648,7 +648,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		if (itemPlaceholder instanceof HTMLElement) {
 			itemPlaceholder.hidden = false;
 		}
-		if (evSlotBar instanceof HTMLElement) evSlotBar.hidden = true;
 		if (evStar instanceof HTMLElement) evStar.hidden = true;
 		if (evCardWrapper instanceof HTMLElement) evCardWrapper.hidden = true;
 	};
@@ -803,7 +802,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		});
 
 		selectedItemCard.hidden = false;
-		if (evSlotBar instanceof HTMLElement) evSlotBar.hidden = false;
 		if (evStar instanceof HTMLElement) evStar.hidden = false;
 		if (evCardWrapper instanceof HTMLElement) evCardWrapper.hidden = false;
 	};
@@ -1160,6 +1158,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	setManualSearchOpen(false);
 	syncJobButtons();
 	syncItemSearchUrl();
+	renderEvSlotBar();
 
 	fetch('/data/items-gms83-ko.json')
 		.then((response) => {
