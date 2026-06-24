@@ -313,8 +313,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
       <aside class="panel" aria-label="아이템 미리보기">
         <h2>아이템 미리보기</h2>
+        <div class="item-slot-bar" data-decon-slot-bar hidden></div>
         <p class="enhancement-placeholder" data-item-placeholder>아이템을 선택해주세요</p>
-        <div class="selected-item-card" data-selected-item-card hidden>
+        <div data-selected-item-card-wrapper style="position:relative;">
+          <button type="button" class="item-card-star" data-decon-star hidden title="슬롯에 저장">☆</button>
+          <div class="selected-item-card" data-selected-item-card hidden>
           <h3 data-selected-item-name></h3>
           <div class="selected-item-top">
             <div class="selected-item-icon-frame">
@@ -325,6 +328,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
           <div class="selected-item-jobs" data-selected-item-jobs></div>
           <div class="selected-item-divider"></div>
           <div class="selected-item-stats" data-selected-item-stats></div>
+        </div>
         </div>
         <button type="button" class="small-button secondary selected-item-reset" data-enhancement-reset hidden>
           초기화
@@ -354,6 +358,7 @@ import {
 import {
   createResultFilterController,
 } from '../lib/deconstruction/resultFilterController.mjs';
+import { readSlots, saveToSlot, clearSlot, findMatchingSlot, MAX_SLOTS } from '../lib/itemSlotStore.mjs';
 
 // ---- DOM refs ----
 const form = document.querySelector('[data-calculator-input]');
@@ -437,6 +442,9 @@ const deconLevelSlotList = document.querySelector('[data-decon-level-slot-list]'
 const deconLevelSlotLabel = document.querySelector('[data-decon-level-slot-label]');
 const deconSourceMessage = document.querySelector('[data-decon-source-message]');
 const deconSecondaryFilters = document.querySelector('[data-decon-secondary-filters]');
+const deconSlotBar = document.querySelector('[data-decon-slot-bar]');
+const deconStar = document.querySelector('[data-decon-star]');
+const deconCardWrapper = document.querySelector('[data-selected-item-card-wrapper]');
 const resultFilterController = createResultFilterController({
   root: document,
   secondaryContainer: deconSecondaryFilters,
@@ -819,6 +827,9 @@ const renderTargetItemCard = (item) => {
     itemPlaceholder.hidden = true;
   }
   selectedItemCard.hidden = false;
+  if (deconSlotBar instanceof HTMLElement) deconSlotBar.hidden = false;
+  if (deconStar instanceof HTMLElement) deconStar.hidden = false;
+  if (deconCardWrapper instanceof HTMLElement) deconCardWrapper.hidden = false;
 
   const resetBtn = document.querySelector('[data-enhancement-reset]');
   if (resetBtn instanceof HTMLElement) resetBtn.hidden = false;
@@ -841,6 +852,9 @@ const clearSelectedItemCard = () => {
   if (itemPlaceholder instanceof HTMLElement) {
     itemPlaceholder.hidden = false;
   }
+  if (deconSlotBar instanceof HTMLElement) deconSlotBar.hidden = true;
+  if (deconStar instanceof HTMLElement) deconStar.hidden = true;
+  if (deconCardWrapper instanceof HTMLElement) deconCardWrapper.hidden = true;
   const resetBtn = document.querySelector('[data-enhancement-reset]');
   if (resetBtn instanceof HTMLElement) resetBtn.hidden = true;
 };
@@ -983,6 +997,7 @@ const rebuildStatEditor = () => {
   populateAddStatList();
   renderTargetChips();
   updateTargetCard();
+  checkDeconStarState();
 };
 
 const populateAddStatList = () => {
@@ -1439,6 +1454,7 @@ const renderDeconSlotState = () => {
   equalizeGroupLabels(deconEditContent, '.decon-success-row > .chaos-stat-label, .decon-slot-row > .chaos-stat-label, .decon-level-row:not([hidden]) > .chaos-stat-label');
   if (deconItemInfoTitle instanceof HTMLElement) deconItemInfoTitle.hidden = false;
   if (deconItemInfoSep instanceof HTMLElement) deconItemInfoSep.hidden = false;
+  checkDeconStarState();
 };
 
 const renderDeconItemLevel = () => {
@@ -1458,6 +1474,7 @@ const renderDeconItemLevel = () => {
     buildLevelUpSlotEditors();
   }
   equalizeGroupLabels(deconEditContent, '.decon-success-row > .chaos-stat-label, .decon-slot-row > .chaos-stat-label, .decon-level-row:not([hidden]) > .chaos-stat-label');
+  checkDeconStarState();
 };
 
 // ---- Item search handling (adapted from expected-value.astro) ----
@@ -1811,7 +1828,270 @@ const activateDeconEditPanel = (item) => {
   });
   rebuildStatEditor();
   updateAnalyzeButton();
+  renderDeconSlotBar();
+  checkDeconStarState();
 };
+
+// ---- Save slot helpers ----
+const buildDeconPageState = () => {
+  if (!selectedItem) return null;
+  return {
+    itemId: selectedItem.id,
+    deconDeltas: { ...deconDeltas },
+    successfulScrollCount: deconSlotState.successfulScrollCount,
+    remainingSlots: deconSlotState.remainingSlots,
+    appliedLevelCount: deconAppliedLevelCount,
+    gemFilter: deconGemFilter ? [...deconGemFilter] : null,
+    scrollRateFilter: deconScrollRateFilter ? [...deconScrollRateFilter] : null,
+    stimulantBoundsMap: deconStimulantBoundsMap ? { ...deconStimulantBoundsMap } : null,
+    scrollSource: deconScrollSource?.checked ?? true,
+    stimulantSource: deconStimulantSource?.checked ?? true,
+    gemsSource: deconGemsSource?.checked ?? true,
+    itemLevelUpSource: deconItemLevelUpSource?.checked ?? true,
+  };
+};
+
+const checkDeconStarState = () => {
+  if (!selectedItem || !(deconStar instanceof HTMLElement)) return;
+  const state = buildDeconPageState();
+  if (!state) {
+    deconStar.textContent = '☆';
+    deconStar.classList.remove('item-card-star--saved');
+    return;
+  }
+  const match = findMatchingSlot('deconstruction', state);
+  if (match >= 0) {
+    deconStar.textContent = '★';
+    deconStar.classList.add('item-card-star--saved');
+  } else {
+    deconStar.textContent = '☆';
+    deconStar.classList.remove('item-card-star--saved');
+  }
+};
+
+const renderDeconSlotBar = () => {
+  if (!(deconSlotBar instanceof HTMLElement)) return;
+  const slots = readSlots('deconstruction');
+  deconSlotBar.replaceChildren();
+  for (let i = 0; i < MAX_SLOTS; i++) {
+    const s = slots[i];
+    const box = document.createElement('div');
+    box.className = s ? 'item-slot item-slot--filled' : 'item-slot item-slot--empty';
+    if (s) {
+      const icon = document.createElement('img');
+      icon.src = buildItemIconUrl(s.item.iconId);
+      icon.alt = s.item.nameKo;
+      box.append(icon);
+      box.title = s.item.nameKo;
+      box.addEventListener('click', () => loadDeconSlot(i));
+
+      const xBtn = document.createElement('button');
+      xBtn.type = 'button';
+      xBtn.className = 'item-slot-x';
+      xBtn.textContent = '×';
+      xBtn.addEventListener('click', (e) => { e.stopPropagation(); confirmDeleteDeconSlot(i); });
+      box.append(xBtn);
+    }
+    deconSlotBar.append(box);
+  }
+};
+
+const showDeconSavePicker = () => {
+  if (!selectedItem) return;
+  const state = buildDeconPageState();
+  if (!state) return;
+
+  const slots = readSlots('deconstruction');
+  const overlay = document.createElement('div');
+  overlay.className = 'slot-picker-overlay';
+
+  const dialog = document.createElement('div');
+  dialog.className = 'slot-picker-dialog';
+
+  const title = document.createElement('h3');
+  title.textContent = '저장할 슬롯 선택';
+  dialog.append(title);
+
+  const grid = document.createElement('div');
+  grid.className = 'slot-picker-grid';
+
+  for (let i = 0; i < MAX_SLOTS; i++) {
+    const s = slots[i];
+    const cell = document.createElement('div');
+    cell.className = s ? 'slot-picker-slot slot-picker-slot--filled' : 'slot-picker-slot slot-picker-slot--empty';
+    if (s) {
+      const icon = document.createElement('img');
+      icon.src = buildItemIconUrl(s.item.iconId);
+      icon.alt = s.item.nameKo;
+      cell.append(icon);
+      const name = document.createElement('span');
+      name.className = 'slot-picker-slot-name';
+      name.textContent = s.item.nameKo;
+      cell.append(name);
+      cell.addEventListener('click', () => {
+        overlay.remove();
+        confirmReplaceDeconSlot(i, state);
+      });
+    } else {
+      cell.textContent = '빈 슬롯';
+      cell.addEventListener('click', () => {
+        saveToSlot('deconstruction', i, selectedItem, state);
+        overlay.remove();
+        renderDeconSlotBar();
+        checkDeconStarState();
+      });
+    }
+    grid.append(cell);
+  }
+  dialog.append(grid);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'slot-picker-close';
+  closeBtn.textContent = '취소';
+  closeBtn.addEventListener('click', () => overlay.remove());
+  dialog.append(closeBtn);
+
+  overlay.append(dialog);
+  document.body.append(overlay);
+};
+
+const confirmReplaceDeconSlot = (slotIndex, newState) => {
+  const slots = readSlots('deconstruction');
+  const existing = slots[slotIndex];
+  if (!existing) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'decon-confirm-overlay';
+  const dialog = document.createElement('div');
+  dialog.className = 'decon-confirm-dialog';
+  dialog.style.maxWidth = '500px';
+
+  const msg = document.createElement('p');
+  msg.textContent = '기존 저장된 아이템을 덮어쓰시겠습니까?';
+  dialog.append(msg);
+
+  const cards = document.createElement('div');
+  cards.className = 'replace-confirm-cards';
+
+  const existingCard = document.createElement('div');
+  existingCard.className = 'replace-confirm-card';
+  existingCard.innerHTML = '<h4>기존 저장</h4><img src="' + buildItemIconUrl(existing.item.iconId) + '" alt=""><div class="item-name">' + existing.item.nameKo + '</div>';
+  cards.append(existingCard);
+
+  const newCard = document.createElement('div');
+  newCard.className = 'replace-confirm-card';
+  newCard.innerHTML = '<h4>새로 저장</h4><img src="' + buildItemIconUrl(selectedItem.id) + '" alt=""><div class="item-name">' + selectedItem.nameKo + '</div>';
+  cards.append(newCard);
+  dialog.append(cards);
+
+  const buttons = document.createElement('div');
+  buttons.className = 'replace-confirm-buttons';
+  const confirmBtn = document.createElement('button');
+  confirmBtn.textContent = '덮어쓰기';
+  confirmBtn.addEventListener('click', () => {
+    saveToSlot('deconstruction', slotIndex, selectedItem, newState);
+    overlay.remove();
+    renderDeconSlotBar();
+    checkDeconStarState();
+  });
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = '취소';
+  cancelBtn.addEventListener('click', () => overlay.remove());
+  buttons.append(confirmBtn, cancelBtn);
+  dialog.append(buttons);
+  overlay.append(dialog);
+  document.body.append(overlay);
+};
+
+const confirmDeleteDeconSlot = (slotIndex) => {
+  const slots = readSlots('deconstruction');
+  const s = slots[slotIndex];
+  if (!s) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'decon-confirm-overlay';
+  const dialog = document.createElement('div');
+  dialog.className = 'decon-confirm-dialog';
+
+  const msg = document.createElement('p');
+  msg.textContent = '저장된 아이템을 삭제하시겠습니까?';
+  dialog.append(msg);
+
+  const card = document.createElement('div');
+  card.className = 'replace-confirm-card';
+  card.innerHTML = '<img src="' + buildItemIconUrl(s.item.iconId) + '" alt=""><div class="item-name">' + s.item.nameKo + '</div>';
+  dialog.append(card);
+
+  const buttons = document.createElement('div');
+  buttons.className = 'replace-confirm-buttons';
+  const confirmBtn = document.createElement('button');
+  confirmBtn.textContent = '삭제';
+  confirmBtn.style.background = '#e74c3c';
+  confirmBtn.style.borderColor = '#e74c3c';
+  confirmBtn.style.color = '#fff';
+  confirmBtn.addEventListener('click', () => {
+    clearSlot('deconstruction', slotIndex);
+    overlay.remove();
+    renderDeconSlotBar();
+    checkDeconStarState();
+  });
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = '취소';
+  cancelBtn.addEventListener('click', () => overlay.remove());
+  buttons.append(confirmBtn, cancelBtn);
+  dialog.append(buttons);
+  overlay.append(dialog);
+  document.body.append(overlay);
+};
+
+const loadDeconSlot = (slotIndex) => {
+  const slots = readSlots('deconstruction');
+  const s = slots[slotIndex];
+  if (!s) return;
+
+  const item = itemById.get(s.pageState.itemId);
+  if (!item) {
+    alert('저장된 아이템을 더 이상 찾을 수 없습니다.');
+    return;
+  }
+
+  // Restore item
+  clearDeconCalculationState(item);
+  selectedItem = item;
+  commitSuggestedItem(item, { syncFilters: false });
+
+  // Restore state from saved pageState
+  const ps = s.pageState;
+  deconDeltas = { ...(ps.deconDeltas ?? {}) };
+  deconSlotState = setSuccessfulScrollCount(deconSlotState, ps.successfulScrollCount ?? 0);
+  deconSlotState = setRemainingSlotCount(deconSlotState, ps.remainingSlots ?? deconSlotState.maxSlots);
+  deconAppliedLevelCount = ps.appliedLevelCount ?? 0;
+  deconGemFilter = ps.gemFilter ? new Set(ps.gemFilter) : null;
+  deconScrollRateFilter = ps.scrollRateFilter ? new Set(ps.scrollRateFilter) : new Set(['100','60','10','chaos']);
+  deconStimulantBoundsMap = ps.stimulantBoundsMap ?? {};
+
+  if (deconScrollSource instanceof HTMLInputElement) deconScrollSource.checked = ps.scrollSource ?? true;
+  if (deconStimulantSource instanceof HTMLInputElement) deconStimulantSource.checked = ps.stimulantSource ?? true;
+  if (deconGemsSource instanceof HTMLInputElement) deconGemsSource.checked = ps.gemsSource ?? true;
+  if (deconItemLevelUpSource instanceof HTMLInputElement) deconItemLevelUpSource.checked = ps.itemLevelUpSource ?? true;
+
+  deconHasActionableResults = false;
+  renderDeconSlotState();
+  renderDeconItemLevel();
+  rebuildStatEditor();
+  updateTargetCard();
+  renderDeconSlotBar();
+  checkDeconStarState();
+  updateAnalyzeButton();
+};
+
+// ---- Star button click ----
+if (deconStar instanceof HTMLElement) {
+  deconStar.addEventListener('click', () => {
+    showDeconSavePicker();
+  });
+}
 
 // ---- Analyze click handler ----
 const getCheckedTargetKeys = () => {
@@ -2392,6 +2672,7 @@ fetch('/data/items-gms83-ko.json')
       selectSuggestedItem(itemById.get(initialSelectedItemId));
     }
     renderItemSuggestions();
+    renderDeconSlotBar();
   })
   .catch((error) => {
     console.error(error);
