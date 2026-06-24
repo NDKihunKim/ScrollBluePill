@@ -313,7 +313,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
       <aside class="panel" aria-label="아이템 미리보기">
         <h2>아이템 미리보기</h2>
-        <div class="item-slot-bar" data-decon-slot-bar hidden></div>
+        <div class="item-slot-bar" data-decon-slot-bar></div>
         <p class="enhancement-placeholder" data-item-placeholder>아이템을 선택해주세요</p>
         <div data-selected-item-card-wrapper style="position:relative;">
           <button type="button" class="item-card-star" data-decon-star hidden title="슬롯에 저장">☆</button>
@@ -830,7 +830,6 @@ const renderTargetItemCard = (item) => {
     itemPlaceholder.hidden = true;
   }
   selectedItemCard.hidden = false;
-  if (deconSlotBar instanceof HTMLElement) deconSlotBar.hidden = false;
   if (deconStar instanceof HTMLElement) deconStar.hidden = false;
   if (deconCardWrapper instanceof HTMLElement) deconCardWrapper.hidden = false;
 
@@ -855,7 +854,6 @@ const clearSelectedItemCard = () => {
   if (itemPlaceholder instanceof HTMLElement) {
     itemPlaceholder.hidden = false;
   }
-  if (deconSlotBar instanceof HTMLElement) deconSlotBar.hidden = true;
   if (deconStar instanceof HTMLElement) deconStar.hidden = true;
   if (deconCardWrapper instanceof HTMLElement) deconCardWrapper.hidden = true;
   const resetBtn = document.querySelector('[data-enhancement-reset]');
@@ -2714,6 +2712,7 @@ document.querySelector('[data-enhancement-reset]')?.addEventListener('click', ()
 setManualSearchOpen(false);
 syncJobButtons();
 syncItemSearchUrl();
+renderDeconSlotBar();
 
 // Load item index
 fetch('/data/items-gms83-ko.json')
