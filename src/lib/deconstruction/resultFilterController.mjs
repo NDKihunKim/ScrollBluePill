@@ -113,6 +113,8 @@ export function createResultFilterController({ root, secondaryContainer }) {
     secondaryContainer.hidden = false;
   };
 
+  let currentGemKey = null; // track which gem's grades are being viewed
+
   const renderGemPanel = (options, selected) => {
     const categories = new Map();
     for (const option of options) {
@@ -129,6 +131,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
     }
 
     const showCategories = () => {
+      currentGemKey = null;
       secondaryContainer.replaceChildren();
       const label = document.createElement('div');
       label.className = 'decon-secondary-gem-label';
@@ -161,6 +164,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
     };
 
     const showGrades = (cat) => {
+      currentGemKey = cat.gemKey;
       secondaryContainer.replaceChildren();
 
       const header = document.createElement('div');
@@ -222,6 +226,12 @@ export function createResultFilterController({ root, secondaryContainer }) {
     };
 
     showCategories();
+
+    // If user was viewing a specific gem's grades, restore that view
+    if (currentGemKey && categories.has(currentGemKey)) {
+      const cat = categories.get(currentGemKey);
+      showGrades(cat);
+    }
   };
 
   const renderStimulantPanel = (options) => {
