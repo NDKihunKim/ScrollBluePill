@@ -1209,15 +1209,28 @@ const buildGemPreFilter = () => {
         row.append(gradeIcon);
       }
 
-      const text = document.createElement('span');
+      // Grade name span (matching maker-picker-item: normal weight, card font)
+      const gradeName = document.createElement('span');
+      gradeName.textContent = gradeLabel;
+      row.append(gradeName);
+
+      // Stat value or range span (matching .maker-picker-item-stat)
+      const statSpan = document.createElement('span');
+      statSpan.className = 'decon-gem-category-stat';
       if (gem.stat && gem.values) {
+        // Fixed-stat gem: e.g. "STR +1"
         const val = gem.values[gradeIndex];
         const dispLabel = statLabelByKey[gem.stat] || gem.stat;
-        text.textContent = `${gradeLabel} ${dispLabel} +${val}`;
-      } else {
-        text.textContent = gradeLabel;
+        statSpan.textContent = `${dispLabel} +${val}`;
+      } else if (gem.behavior === 'variable') {
+        // Variable gem: show delta range per grade
+        const isDark = gem.key === 'darkCrystal';
+        const ranges = isDark
+          ? ['-2 ~ +2', '-3 ~ +3', '-5 ~ +5']
+          : ['-1 ~ +1', '-2 ~ +2', '-3 ~ +3'];
+        statSpan.textContent = ranges[gradeIndex];
       }
-      row.append(text);
+      row.append(statSpan);
 
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
