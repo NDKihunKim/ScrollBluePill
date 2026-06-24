@@ -966,6 +966,10 @@ const rebuildStatEditor = () => {
     deconStatEditor.append(row);
   }
 
+  // Equalize label widths in the 기본 스탯 group
+  equalizeGroupLabels(deconStatEditor, '.chaos-stat-label');
+  if (deconBasicStatsSep instanceof HTMLElement) deconBasicStatsSep.hidden = false;
+
   // Populate add-stat menu
   populateAddStatList();
   renderTargetChips();
@@ -1179,6 +1183,9 @@ const renderDeconSlotState = () => {
   }
   updateTargetCard();
   updateAnalyzeButton();
+  equalizeGroupLabels(deconEditContent, '.decon-success-row > .chaos-stat-label, .decon-slot-row > .chaos-stat-label, .decon-level-row:not([hidden]) > .chaos-stat-label');
+  if (deconItemInfoTitle instanceof HTMLElement) deconItemInfoTitle.hidden = false;
+  if (deconItemInfoSep instanceof HTMLElement) deconItemInfoSep.hidden = false;
 };
 
 const renderDeconItemLevel = () => {
@@ -1197,6 +1204,7 @@ const renderDeconItemLevel = () => {
   if (deconItemLevelUpSource instanceof HTMLInputElement && deconItemLevelUpSource.checked) {
     buildLevelUpSlotEditors();
   }
+  equalizeGroupLabels(deconEditContent, '.decon-success-row > .chaos-stat-label, .decon-slot-row > .chaos-stat-label, .decon-level-row:not([hidden]) > .chaos-stat-label');
 };
 
 // ---- Item search handling (adapted from expected-value.astro) ----
@@ -1521,6 +1529,8 @@ const activateDeconEditPanel = (item) => {
 
   deconEditPlaceholder.hidden = true;
   deconEditContent.hidden = false;
+  if (deconItemInfoTitle instanceof HTMLElement) deconItemInfoTitle.hidden = false;
+  if (deconItemInfoSep instanceof HTMLElement) deconItemInfoSep.hidden = false;
   if (deconCalcPlaceholder instanceof HTMLElement) deconCalcPlaceholder.hidden = true;
   if (deconCalcContent instanceof HTMLElement) deconCalcContent.hidden = false;
   deconHasActionableResults = false;
