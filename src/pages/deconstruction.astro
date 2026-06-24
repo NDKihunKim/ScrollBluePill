@@ -405,6 +405,9 @@ const deconSlotMax = document.querySelector('[data-decon-slot-max]');
 const deconAnalyzeBtn = document.querySelector('[data-decon-analyze-btn]');
 const deconAddStatToggle = document.querySelector('[data-decon-add-stat-toggle]');
 const deconAddStatList = document.querySelector('[data-decon-add-stat-list]');
+const deconBasicStatsSep = document.querySelector('[data-decon-basic-stats-sep]');
+const deconItemInfoTitle = document.querySelector('[data-decon-item-info-title]');
+const deconItemInfoSep = document.querySelector('[data-decon-item-info-sep]');
 const deconResultPanel = document.querySelector('[data-decon-result-panel]');
 const deconResultPlaceholder = document.querySelector('[data-decon-result-placeholder]');
 const deconResultContent = document.querySelector('[data-decon-result-content]');
@@ -852,6 +855,34 @@ const computeDeconGrade = () => {
 
 // ---- Stat editor ----
 const STAT_ORDER = ['str','dex','int','luk','weaponAttack','magicAttack','maxHp','maxMp','weaponDefense','magicDefense','accuracy','avoidability','speed','jump','attackSpeed','upgradeSlots'];
+
+const equalizeGroupLabels = (container, labelSelector) => {
+  if (!(container instanceof HTMLElement)) return;
+  const labels = container.querySelectorAll(labelSelector);
+  if (labels.length === 0) return;
+
+  // Reset all labels to auto so we measure natural widths
+  for (const label of labels) {
+    if (label instanceof HTMLElement) {
+      label.style.minWidth = '';
+    }
+  }
+
+  // Measure
+  let maxWidth = 0;
+  for (const label of labels) {
+    const w = label.getBoundingClientRect().width;
+    if (w > maxWidth) maxWidth = w;
+  }
+
+  // Apply
+  const px = Math.ceil(maxWidth) + 'px';
+  for (const label of labels) {
+    if (label instanceof HTMLElement) {
+      label.style.minWidth = px;
+    }
+  }
+};
 
 const rebuildStatEditor = () => {
   if (!(deconStatEditor instanceof HTMLElement)) return;
