@@ -1111,52 +1111,60 @@ const buildGemPreFilter = () => {
     }
   }
 
+  // ---- persistent header (stays when navigating to grade view) ----
+  deconGemSub.replaceChildren();
+
+  const topRow = document.createElement('div');
+  topRow.className = 'decon-gem-top-row';
+
+  const label = document.createElement('p');
+  label.className = 'decon-gem-picker-label';
+  label.textContent = '보석 종류 선택';
+  topRow.append(label);
+
+  const actions = document.createElement('div');
+  actions.className = 'decon-gem-actions';
+
+  const selectAllBtn = document.createElement('button');
+  selectAllBtn.type = 'button';
+  selectAllBtn.className = 'decon-gem-action-btn';
+  selectAllBtn.textContent = '전체 선택';
+  selectAllBtn.addEventListener('click', () => {
+    for (const g of GEM_TYPES) {
+      if (g.weaponOnly && !isWeaponKind(equipmentKind)) continue;
+      for (let gi = 0; gi < GEM_GRADES.length; gi++) {
+        deconGemFilter.add(`${g.key}:${gi}`);
+      }
+    }
+    renderCategories();
+  });
+  actions.append(selectAllBtn);
+
+  const deselectAllBtn = document.createElement('button');
+  deselectAllBtn.type = 'button';
+  deselectAllBtn.className = 'decon-gem-action-btn';
+  deselectAllBtn.textContent = '전체 해제';
+  deselectAllBtn.addEventListener('click', () => {
+    for (const g of GEM_TYPES) {
+      if (g.weaponOnly && !isWeaponKind(equipmentKind)) continue;
+      for (let gi = 0; gi < GEM_GRADES.length; gi++) {
+        deconGemFilter.delete(`${g.key}:${gi}`);
+      }
+    }
+    renderCategories();
+  });
+  actions.append(deselectAllBtn);
+
+  topRow.append(actions);
+  deconGemSub.append(topRow);
+
+  // ---- replaceable content area ----
+  const contentArea = document.createElement('div');
+  contentArea.className = 'decon-gem-content';
+  deconGemSub.append(contentArea);
+
   const renderCategories = () => {
-    deconGemSub.replaceChildren();
-
-    const topRow = document.createElement('div');
-    topRow.className = 'decon-gem-top-row';
-
-    const label = document.createElement('p');
-    label.className = 'decon-gem-picker-label';
-    label.textContent = '보석 종류 선택';
-    topRow.append(label);
-
-    const actions = document.createElement('div');
-    actions.className = 'decon-gem-actions';
-
-    const selectAllBtn = document.createElement('button');
-    selectAllBtn.type = 'button';
-    selectAllBtn.className = 'decon-gem-action-btn';
-    selectAllBtn.textContent = '전체 선택';
-    selectAllBtn.addEventListener('click', () => {
-      for (const g of GEM_TYPES) {
-        if (g.weaponOnly && !isWeaponKind(equipmentKind)) continue;
-        for (let gi = 0; gi < GEM_GRADES.length; gi++) {
-          deconGemFilter.add(`${g.key}:${gi}`);
-        }
-      }
-      renderCategories();
-    });
-    actions.append(selectAllBtn);
-
-    const deselectAllBtn = document.createElement('button');
-    deselectAllBtn.type = 'button';
-    deselectAllBtn.className = 'decon-gem-action-btn';
-    deselectAllBtn.textContent = '전체 해제';
-    deselectAllBtn.addEventListener('click', () => {
-      for (const g of GEM_TYPES) {
-        if (g.weaponOnly && !isWeaponKind(equipmentKind)) continue;
-        for (let gi = 0; gi < GEM_GRADES.length; gi++) {
-          deconGemFilter.delete(`${g.key}:${gi}`);
-        }
-      }
-      renderCategories();
-    });
-    actions.append(deselectAllBtn);
-
-    topRow.append(actions);
-    deconGemSub.append(topRow);
+    contentArea.replaceChildren();
 
     const grid = document.createElement('div');
     grid.className = 'decon-gem-grid';
@@ -1207,11 +1215,11 @@ const buildGemPreFilter = () => {
       grid.append(card);
     }
 
-    deconGemSub.append(grid);
+    contentArea.append(grid);
   };
 
   const renderGrades = (gem) => {
-    deconGemSub.replaceChildren();
+    contentArea.replaceChildren();
 
     const header = document.createElement('div');
     header.className = 'decon-gem-picker-header';
@@ -1237,7 +1245,7 @@ const buildGemPreFilter = () => {
     nameEl.textContent = gem.nameKo;
     header.append(nameEl);
 
-    deconGemSub.append(header);
+    contentArea.append(header);
 
     const gradesList = document.createElement('div');
     gradesList.className = 'decon-gem-grades';
@@ -1302,7 +1310,7 @@ const buildGemPreFilter = () => {
       gradesList.append(row);
     }
 
-    deconGemSub.append(gradesList);
+    contentArea.append(gradesList);
   };
 
   renderCategories();
@@ -3616,11 +3624,15 @@ aside.panel {
   background: var(--surface);
 }
 
+:global(.decon-gem-content) {
+  min-height: 0;
+}
+
 :global(.decon-gem-grid) {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 0;
   width: 100%;
 }
 
