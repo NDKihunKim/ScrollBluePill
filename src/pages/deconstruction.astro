@@ -1192,11 +1192,13 @@ const buildGemPreFilter = () => {
       const filterKey = `${gem.key}:${gradeIndex}`;
       checkbox.checked = deconGemFilter?.has(filterKey) ?? true;
       checkbox.addEventListener('change', () => {
-        if (checkbox.checked) {
-          deconGemFilter.add(filterKey);
-        } else {
-          deconGemFilter.delete(filterKey);
-        }
+        guardCheckboxMutation(checkbox, guardDeconMutation, () => {
+          if (checkbox.checked) {
+            deconGemFilter.add(filterKey);
+          } else {
+            deconGemFilter.delete(filterKey);
+          }
+        });
       });
       row.append(checkbox);
 
@@ -1431,6 +1433,7 @@ const clearDeconCalculationState = (item) => {
   deconAppliedLevelCount = 0;
   deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
   deconStimulantBoundsMap = {};
+  deconGemFilter = null;
   deconLevelUpTotalRanges = {};
   deconScrollRateInputs.forEach(inp => { if (inp instanceof HTMLInputElement) inp.checked = true; });
 };
@@ -1687,6 +1690,7 @@ const activateDeconEditPanel = (item) => {
   deconAppliedLevelCount = 0;
   deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
   deconStimulantBoundsMap = {};
+  deconGemFilter = null;
   deconLevelUpTotalRanges = {};
   deconScrollRateInputs.forEach(inp => { if (inp instanceof HTMLInputElement) inp.checked = true; });
   renderDeconSlotState();
@@ -1735,6 +1739,7 @@ const runAnalysis = () => {
     levelUpDefinition: levelUpDef ?? null,
     scrollRateFilter: deconScrollRateFilter.size > 0 ? deconScrollRateFilter : null,
     stimulantStatBounds: Object.keys(deconStimulantBoundsMap).length > 0 ? deconStimulantBoundsMap : null,
+    gemFilter: deconGemFilter,
     levelUpExactLevelCount: appliedCount,
     levelUpTotalStatRanges: appliedCount > 0 && Object.keys(deconLevelUpTotalRanges).length > 0
       ? deconLevelUpTotalRanges
