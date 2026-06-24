@@ -1125,18 +1125,29 @@ const buildGemPreFilter = () => {
   const actions = document.createElement('div');
   actions.className = 'decon-gem-actions';
 
+  let currentGradeGem = null; // set when viewing a specific gem's grades
+
   const selectAllBtn = document.createElement('button');
   selectAllBtn.type = 'button';
   selectAllBtn.className = 'decon-gem-action-btn';
   selectAllBtn.textContent = '전체 선택';
   selectAllBtn.addEventListener('click', () => {
-    for (const g of GEM_TYPES) {
-      if (g.weaponOnly && !isWeaponKind(equipmentKind)) continue;
+    if (currentGradeGem) {
+      // In grade view: select all grades of current gem only
       for (let gi = 0; gi < GEM_GRADES.length; gi++) {
-        deconGemFilter.add(`${g.key}:${gi}`);
+        deconGemFilter.add(`${currentGradeGem.key}:${gi}`);
       }
+      renderGrades(currentGradeGem);
+    } else {
+      // In category view: select all gems and grades
+      for (const g of GEM_TYPES) {
+        if (g.weaponOnly && !isWeaponKind(equipmentKind)) continue;
+        for (let gi = 0; gi < GEM_GRADES.length; gi++) {
+          deconGemFilter.add(`${g.key}:${gi}`);
+        }
+      }
+      renderCategories();
     }
-    renderCategories();
   });
   actions.append(selectAllBtn);
 
@@ -1145,13 +1156,22 @@ const buildGemPreFilter = () => {
   deselectAllBtn.className = 'decon-gem-action-btn';
   deselectAllBtn.textContent = '전체 해제';
   deselectAllBtn.addEventListener('click', () => {
-    for (const g of GEM_TYPES) {
-      if (g.weaponOnly && !isWeaponKind(equipmentKind)) continue;
+    if (currentGradeGem) {
+      // In grade view: deselect all grades of current gem only
       for (let gi = 0; gi < GEM_GRADES.length; gi++) {
-        deconGemFilter.delete(`${g.key}:${gi}`);
+        deconGemFilter.delete(`${currentGradeGem.key}:${gi}`);
       }
+      renderGrades(currentGradeGem);
+    } else {
+      // In category view: deselect all gems and grades
+      for (const g of GEM_TYPES) {
+        if (g.weaponOnly && !isWeaponKind(equipmentKind)) continue;
+        for (let gi = 0; gi < GEM_GRADES.length; gi++) {
+          deconGemFilter.delete(`${g.key}:${gi}`);
+        }
+      }
+      renderCategories();
     }
-    renderCategories();
   });
   actions.append(deselectAllBtn);
 
@@ -1164,6 +1184,7 @@ const buildGemPreFilter = () => {
   deconGemSub.append(contentArea);
 
   const renderCategories = () => {
+    currentGradeGem = null;
     contentArea.replaceChildren();
 
     const grid = document.createElement('div');
@@ -1219,6 +1240,7 @@ const buildGemPreFilter = () => {
   };
 
   const renderGrades = (gem) => {
+    currentGradeGem = gem;
     contentArea.replaceChildren();
 
     const header = document.createElement('div');
