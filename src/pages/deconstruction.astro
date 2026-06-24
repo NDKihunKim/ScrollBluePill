@@ -340,7 +340,7 @@ import { buildItemIconUrl, buildItemSearchUrl } from '../lib/maplestoryIo.mjs';
 import { HP_MP_KEYS, computeItemLevelUpCardMeta } from '../lib/enhancementState.mjs';
 import { enumerateStrategies } from '../lib/deconstruction/engine.mjs';
 import { guardCheckboxMutation } from '../lib/deconstruction/guardedCheckboxMutation.mjs';
-import { GEM_GRADES, GEM_ITEM_IDS, GEM_TYPES } from '../lib/makerData.mjs';
+import { GEM_GRADES, GEM_ITEM_IDS, GEM_TYPES, isWeaponKind } from '../lib/makerData.mjs';
 import {
   createDeconstructionSlotState,
   setSuccessfulScrollCount,
@@ -1104,7 +1104,7 @@ const buildGemPreFilter = () => {
   if (deconGemFilter === null) {
     deconGemFilter = new Set();
     for (const gem of GEM_TYPES) {
-      if (gem.weaponOnly && equipmentKind !== 'weapon') continue;
+      if (gem.weaponOnly && !isWeaponKind(equipmentKind)) continue;
       for (let gi = 0; gi < GEM_GRADES.length; gi++) {
         deconGemFilter.add(`${gem.key}:${gi}`);
       }
@@ -1123,7 +1123,7 @@ const buildGemPreFilter = () => {
     grid.className = 'decon-gem-grid';
 
     for (const gem of GEM_TYPES) {
-      if (gem.weaponOnly && equipmentKind !== 'weapon') continue;
+      if (gem.weaponOnly && !isWeaponKind(equipmentKind)) continue;
 
       const card = document.createElement('button');
       card.type = 'button';
