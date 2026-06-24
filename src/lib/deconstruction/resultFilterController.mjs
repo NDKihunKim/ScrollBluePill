@@ -225,11 +225,12 @@ export function createResultFilterController({ root, secondaryContainer }) {
       secondaryContainer.hidden = false;
     };
 
+    const previousGemKey = currentGemKey;
     showCategories();
 
     // If user was viewing a specific gem's grades, restore that view
-    if (currentGemKey && categories.has(currentGemKey)) {
-      const cat = categories.get(currentGemKey);
+    if (previousGemKey && categories.has(previousGemKey)) {
+      const cat = categories.get(previousGemKey);
       showGrades(cat);
     }
   };
