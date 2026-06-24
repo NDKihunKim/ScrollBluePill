@@ -3509,15 +3509,8 @@ aside.panel {
 }
 
 /* Gem pre-filter picker — matches expected-value .maker-picker-item design */
-.decon-gem-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  gap: 8px;
-  margin-bottom: 10px;
-  width: 100%;
-}
-
-.decon-gem-picker-label {
+/* All rules use :global() because elements are created dynamically via JS */
+:global(.decon-gem-picker-label) {
   margin-bottom: 6px;
   color: var(--muted);
   font-size: 0.88rem;
@@ -3525,7 +3518,15 @@ aside.panel {
   width: 100%;
 }
 
-.decon-gem-category {
+:global(.decon-gem-grid) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+:global(.decon-gem-category) {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3541,23 +3542,23 @@ aside.panel {
   transition: border-color 0.15s;
 }
 
-.decon-gem-category:hover {
+:global(.decon-gem-category:hover) {
   border-color: var(--green);
 }
 
-.decon-gem-category img {
+:global(.decon-gem-category img) {
   width: 28px;
   height: 28px;
   object-fit: contain;
   image-rendering: pixelated;
 }
 
-.decon-gem-category-stat {
+:global(.decon-gem-category-stat) {
   font-size: 0.7rem;
   color: var(--muted);
 }
 
-.decon-gem-picker-header {
+:global(.decon-gem-picker-header) {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -3565,20 +3566,20 @@ aside.panel {
   width: 100%;
 }
 
-.decon-gem-picker-header img {
+:global(.decon-gem-picker-header img) {
   width: 28px;
   height: 28px;
   object-fit: contain;
   image-rendering: pixelated;
 }
 
-.decon-gem-name {
+:global(.decon-gem-name) {
   font-size: 0.88rem;
   font-weight: 700;
   color: var(--ink);
 }
 
-.decon-gem-back {
+:global(.decon-gem-back) {
   background: none;
   border: 1px solid var(--line);
   border-radius: 4px;
@@ -3589,19 +3590,18 @@ aside.panel {
   font-family: inherit;
 }
 
-.decon-gem-back:hover {
+:global(.decon-gem-back:hover) {
   background: var(--line);
 }
 
-.decon-gem-grades {
+:global(.decon-gem-grades) {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   gap: 8px;
   width: 100%;
 }
-}
 
-.decon-gem-grade {
+:global(.decon-gem-grade) {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3617,14 +3617,21 @@ aside.panel {
   transition: border-color 0.15s;
 }
 
-.decon-gem-grade:hover {
+:global(.decon-gem-grade:hover) {
   border-color: var(--green);
 }
 
-.decon-gem-grade input[type="checkbox"] {
+:global(.decon-gem-grade input[type="checkbox"]) {
   width: 14px;
   height: 14px;
   flex-shrink: 0;
+}
+
+:global(.decon-gem-grade img) {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  image-rendering: pixelated;
 }
 
 .decon-gem-grade img {
