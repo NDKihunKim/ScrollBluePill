@@ -1678,6 +1678,51 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	};
 
 	const loadEvSlot = (slotIndex) => {
+		const confirmUnsaveEvSlot = () => {
+		  const state = buildEvPageState();
+		  if (!state) return;
+		  const slotIndex = findMatchingSlot('expectedValue', state);
+		  if (slotIndex < 0) return;
+		  const slots = readSlots('expectedValue');
+		  const s = slots[slotIndex];
+		  if (!s) return;
+
+		  const overlay = document.createElement('div');
+		  overlay.className = 'decon-confirm-overlay';
+		  const dialog = document.createElement('div');
+		  dialog.className = 'decon-confirm-dialog';
+
+		  const msg = document.createElement('p');
+		  msg.textContent = '이 설정은 슬롯에 저장되어 있습니다. 저장을 해제하시겠습니까?';
+		  dialog.append(msg);
+
+		  const card = document.createElement('div');
+		  card.className = 'replace-confirm-card';
+		  card.innerHTML = '<img src="' + buildItemIconUrl(s.item.iconId) + '" alt=""><div class="item-name">' + s.item.nameKo + '</div>';
+		  dialog.append(card);
+
+		  const buttons = document.createElement('div');
+		  buttons.className = 'replace-confirm-buttons';
+		  const confirmBtn = document.createElement('button');
+		  confirmBtn.textContent = '해제';
+		  confirmBtn.style.background = '#e74c3c';
+		  confirmBtn.style.borderColor = '#e74c3c';
+		  confirmBtn.style.color = '#fff';
+		  confirmBtn.addEventListener('click', () => {
+		    clearSlot('expectedValue', slotIndex);
+		    overlay.remove();
+		    renderEvSlotBar();
+		    checkEvStarState();
+		  });
+		  const cancelBtn = document.createElement('button');
+		  cancelBtn.textContent = '취소';
+		  cancelBtn.addEventListener('click', () => overlay.remove());
+		  buttons.append(confirmBtn, cancelBtn);
+		  dialog.append(buttons);
+		  overlay.append(dialog);
+		  document.body.append(overlay);
+		};
+
 	  const slots = readSlots('expectedValue');
 	  const s = slots[slotIndex];
 	  if (!s?.pageState?.enhancementState) return;
@@ -1717,7 +1762,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	// ---- Wire star button click ----
 	if (evStar instanceof HTMLElement) {
 	  evStar.addEventListener('click', () => {
-	    showEvSavePicker();
+	    if (evStar.classList.contains('item-card-star--saved')) {
+	      confirmUnsaveEvSlot();
+	    } else {
+	      showEvSavePicker();
+	    }
 	  });
 	}
 </script>
