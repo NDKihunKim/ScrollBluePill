@@ -789,9 +789,8 @@ const renderTargetItemCard = (item) => {
           selectedItemStats.append(createItemLine(label, formatStatValue(key, delta)));
         } else {
           // Show breakdown: total (base + delta)
-          const baseFormatted = formatStatValue(key, base);
           const deltaFormatted = delta > 0 ? `+${delta}` : String(delta);
-          const displayValue = `${formatStatValue(key, total)} (${baseFormatted} ${deltaFormatted})`;
+          const displayValue = `${formatStatValue(key, total)} (${base}${deltaFormatted})`;
           selectedItemStats.append(createItemLine(label, displayValue));
         }
       } else if (Number.isFinite(base)) {
@@ -1727,7 +1726,7 @@ const displayResults = (result, targetDeltas) => {
       cardEl.append(row);
     };
 
-    if (strategy.stimulant) appendSourceRow(card, '촉진제', strategy.stimulant.stats);
+    if (strategy.stimulant) appendSourceRow(card, '촉진제/추옵', strategy.stimulant.stats);
     if (strategy.gems.length > 0) {
       for (const gem of strategy.gems) {
         appendSourceRow(card, `${gem.nameKo ?? gem.gemKey} ${GEM_GRADES[gem.gradeIndex] ?? ''}`, gem.stats);

@@ -74,6 +74,20 @@ test('item card shows a success-count suffix only above zero and renders remaini
   assert.match(pageSource, /selectedItemName\.style\.color = computeDeconGrade\(\);/);
 });
 
+test('item card formats stat breakdown parentheses without leading base plus or spaces', () => {
+  const renderTargetItemCardStart = pageSource.indexOf('const renderTargetItemCard = (item) => {');
+  const updateTargetCardStart = pageSource.indexOf('\nconst updateTargetCard = () => {', renderTargetItemCardStart);
+  assert.ok(renderTargetItemCardStart >= 0 && updateTargetCardStart > renderTargetItemCardStart);
+  const renderTargetItemCardSource = pageSource.slice(renderTargetItemCardStart, updateTargetCardStart);
+
+  assert.match(renderTargetItemCardSource, /const deltaFormatted = delta > 0 \? `\+\$\{delta\}` : String\(delta\);/);
+  assert.match(
+    renderTargetItemCardSource,
+    /const displayValue = `\$\{formatStatValue\(key, total\)\} \(\$\{base\}\$\{deltaFormatted\}\)`;/,
+  );
+  assert.doesNotMatch(renderTargetItemCardSource, /\(\$\{baseFormatted\} \$\{deltaFormatted\}\)/);
+});
+
 test('item card mirrors expected-value level-up metadata and attack-speed placement', () => {
   assert.match(
     pageSource,
@@ -248,6 +262,13 @@ test('stimulant stat bounds sub-options exist', () => {
   assert.match(pageSource, /data-decon-stimulant-bounds/);
   assert.match(pageSource, /data-decon-stimulant-bound-/);
   assert.match(pageSource, /setAttribute\(['"]data-decon-stimulant-bound-/);
+});
+
+test('stimulant result source row is labeled as stimulant/additional option', () => {
+  assert.match(
+    pageSource,
+    /appendSourceRow\(card, '촉진제\/추옵', strategy\.stimulant\.stats\)/,
+  );
 });
 
 test('level-up total range editor exists for the inputted item level count', () => {
