@@ -4034,4 +4034,263 @@ aside.panel {
     width: 100%;
   }
 }
+/* Item save slots */
+:global(.item-slot-bar) {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+:global(.item-slot-bar[hidden]) {
+  display: none;
+}
+
+:global(.item-slot) {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+:global(.item-slot--filled) {
+  border: 2px solid var(--line);
+  background: var(--surface-soft);
+}
+
+:global(.item-slot--filled:hover) {
+  border-color: var(--green);
+}
+
+:global(.item-slot--empty) {
+  border: 2px dashed var(--line);
+}
+
+:global(.item-slot--empty:hover) {
+  border-color: var(--muted);
+}
+
+:global(.item-slot img) {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+:global(.item-slot-x) {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.6rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s;
+}
+
+:global(.item-slot-x:hover) {
+  background: #e74c3c;
+  border-color: #e74c3c;
+  color: #fff;
+}
+
+:global(.item-card-star) {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s, transform 0.15s;
+  z-index: 2;
+}
+
+:global(.item-card-star:hover) {
+  transform: scale(1.15);
+}
+
+:global(.item-card-star--saved) {
+  color: #f0c040;
+}
+
+:global(.item-card-star--saved:hover) {
+  color: #f5d560;
+}
+
+:global(.item-card-star[hidden]) {
+  display: none;
+}
+
+/* Slot picker overlay */
+:global(.slot-picker-overlay) {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+
+:global(.slot-picker-dialog) {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 24px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+}
+
+:global(.slot-picker-dialog h3) {
+  margin: 0 0 16px;
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+:global(.slot-picker-grid) {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+:global(.slot-picker-slot) {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 8px;
+  transition: border-color 0.15s, background 0.15s;
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-align: center;
+  position: relative;
+}
+
+:global(.slot-picker-slot--filled) {
+  border: 2px solid var(--line);
+  background: var(--surface-soft);
+}
+
+:global(.slot-picker-slot--filled:hover) {
+  border-color: var(--green);
+  background: var(--surface);
+}
+
+:global(.slot-picker-slot--empty) {
+  border: 2px dashed var(--line);
+}
+
+:global(.slot-picker-slot--empty:hover) {
+  border-color: var(--green);
+}
+
+:global(.slot-picker-slot img) {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+:global(.slot-picker-slot-name) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+:global(.slot-picker-close) {
+  display: block;
+  margin: 16px auto 0;
+  padding: 4px 16px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface-soft);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: inherit;
+}
+
+/* Replace confirmation */
+:global(.replace-confirm-cards) {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+:global(.replace-confirm-card) {
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-soft);
+  text-align: center;
+}
+
+:global(.replace-confirm-card h4) {
+  margin: 0 0 6px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+:global(.replace-confirm-card .item-name) {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+:global(.replace-confirm-card img) {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  margin-bottom: 4px;
+}
+
+:global(.replace-confirm-buttons) {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+:global(.replace-confirm-buttons button) {
+  padding: 5px 16px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface-soft);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: inherit;
+}
+
+:global(.replace-confirm-buttons button:first-child) {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
 </style>
