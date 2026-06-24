@@ -1,0 +1,163 @@
+<h2>Redesigned Secondary Filters — v2</h2>
+<p class="subtitle">Scrolls as icon rows · Gems as two-level drill-down · Stimulant as stat range sliders</p>
+
+<div class="section">
+  <h3>주문서 (Scrolls) Tab — Icon Rows</h3>
+  <div class="mockup">
+    <div class="mockup-header">Result panel — 주문서 active</div>
+    <div class="mockup-body" style="display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;gap:4px;padding:4px 8px;border:1px solid #ccc;border-radius:6px;font-size:0.75rem;background:#fff;">
+        <span style="padding:2px 8px;">전체 (147)</span>
+        <span style="background:#e8edff;padding:2px 8px;border-radius:3px;font-weight:600;">주문서</span>
+        <span style="padding:2px 8px;">촉진제</span>
+        <span style="padding:2px 8px;">보석</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;max-height:160px;overflow-y:auto;font-size:0.74rem;">
+        <label style="display:flex;align-items:center;gap:6px;padding:3px 4px;cursor:pointer;border-radius:4px;">
+          <input type="checkbox" checked style="width:13px;height:13px;">
+          <img src="https://maplestory.io/api/KMS/253/item/4000005/icon" style="width:20px;height:20px;border-radius:2px;" onerror="this.style.display='none'">
+          <span>공격력 주문서 100%</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;padding:3px 4px;cursor:pointer;border-radius:4px;">
+          <input type="checkbox" checked style="width:13px;height:13px;">
+          <img src="https://maplestory.io/api/KMS/253/item/4000006/icon" style="width:20px;height:20px;border-radius:2px;" onerror="this.style.display='none'">
+          <span>공격력 주문서 60%</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;padding:3px 4px;cursor:pointer;border-radius:4px;">
+          <input type="checkbox" checked style="width:13px;height:13px;">
+          <img src="https://maplestory.io/api/KMS/253/item/4000008/icon" style="width:20px;height:20px;border-radius:2px;" onerror="this.style.display='none'">
+          <span>마력 주문서 100%</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;padding:3px 4px;cursor:pointer;border-radius:4px;">
+          <input type="checkbox" checked style="width:13px;height:13px;">
+          <img src="https://maplestory.io/api/KMS/253/item/4000230/icon" style="width:20px;height:20px;border-radius:2px;" onerror="this.style.display='none'">
+          <span>카오스 주문서</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;padding:3px 4px;cursor:pointer;border-radius:4px;opacity:0.45;">
+          <input type="checkbox" style="width:13px;height:13px;">
+          <img src="https://maplestory.io/api/KMS/253/item/4000234/icon" style="width:20px;height:20px;border-radius:2px;opacity:0.5;" onerror="this.style.display='none'">
+          <span>덱스 주문서 100% (사용 불가)</span>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>보석 (Gems) Tab — Two-Level Drill-Down</h3>
+  <div class="mockup">
+    <div class="mockup-header">Level 1: Gem category grid</div>
+    <div class="mockup-body" style="display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;gap:4px;padding:4px 8px;border:1px solid #ccc;border-radius:6px;font-size:0.75rem;background:#fff;">
+        <span style="padding:2px 8px;">전체 (147)</span>
+        <span style="padding:2px 8px;">주문서</span>
+        <span style="padding:2px 8px;">촉진제</span>
+        <span style="background:#e8edff;padding:2px 8px;border-radius:3px;font-weight:600;">보석</span>
+      </div>
+      <div style="font-size:0.7rem;font-weight:600;color:#666;margin-bottom:2px;">보석 종류 선택</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:4px;">
+        <div style="display:flex;align-items:center;gap:5px;padding:5px 7px;border:1px solid #ddd;border-radius:6px;cursor:pointer;font-size:0.72rem;background:#fff;">
+          <div style="width:22px;height:22px;border-radius:3px;background:#ff4444;display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:#fff;">G</div>
+          <span>힘의 보석</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;padding:5px 7px;border:1px solid #ddd;border-radius:6px;cursor:pointer;font-size:0.72rem;background:#fff;">
+          <div style="width:22px;height:22px;border-radius:3px;background:#44aaff;display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:#fff;">G</div>
+          <span>덱스의 보석</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;padding:5px 7px;border:1px solid #ddd;border-radius:6px;cursor:pointer;font-size:0.72rem;background:#fff;">
+          <div style="width:22px;height:22px;border-radius:3px;background:#ffaa00;display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:#fff;">G</div>
+          <span>럭의 보석</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;padding:5px 7px;border:1px solid #ddd;border-radius:6px;cursor:pointer;font-size:0.72rem;opacity:0.4;background:#fff;">
+          <div style="width:22px;height:22px;border-radius:3px;background:#888;display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:#fff;">G</div>
+          <span>체력의 보석</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup" style="margin-top:12px;">
+    <div class="mockup-header">Level 2: Grade toggles for "힘의 보석" (after clicking)</div>
+    <div class="mockup-body" style="display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;align-items:center;gap:6px;font-size:0.72rem;">
+        <button style="background:none;border:1px solid #ccc;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:0.7rem;">← 뒤로</button>
+        <span style="font-weight:600;">힘의 보석</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">
+        <label style="display:flex;align-items:center;gap:4px;padding:5px 9px;border:1px solid #bcc4f0;border-radius:14px;cursor:pointer;font-size:0.72rem;background:#e8edff;">
+          <input type="checkbox" checked style="width:13px;height:13px;"> S 등급
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;padding:5px 9px;border:1px solid #bcc4f0;border-radius:14px;cursor:pointer;font-size:0.72rem;background:#e8edff;">
+          <input type="checkbox" checked style="width:13px;height:13px;"> A 등급
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;padding:5px 9px;border:1px solid #ddd;border-radius:14px;cursor:pointer;font-size:0.72rem;opacity:0.45;">
+          <input type="checkbox" style="width:13px;height:13px;"> B 등급
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>촉진제/추옵 (Stimulant) Tab — Stat Range Sliders</h3>
+  <div class="mockup">
+    <div class="mockup-header">Result panel — 촉진제/추옵 active</div>
+    <div class="mockup-body" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;gap:4px;padding:4px 8px;border:1px solid #ccc;border-radius:6px;font-size:0.75rem;background:#fff;">
+        <span style="padding:2px 8px;">전체 (147)</span>
+        <span style="padding:2px 8px;">주문서</span>
+        <span style="background:#e8edff;padding:2px 8px;border-radius:3px;font-weight:600;">촉진제</span>
+        <span style="padding:2px 8px;">보석</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:0.72rem;padding:2px 0;">
+        <div style="display:flex;align-items:center;gap:5px;background:#f8f8f8;padding:5px 8px;border-radius:6px;">
+          <span style="font-weight:600;min-width:28px;font-size:0.75rem;">STR</span>
+          <span style="color:#888;font-size:0.6rem;">-5</span>
+          <input type="range" min="-5" max="5" value="0" style="width:55px;height:3px;accent-color:#666;">
+          <span style="min-width:14px;text-align:center;font-weight:600;font-size:0.75rem;">-2</span>
+          <span style="color:#aaa;">–</span>
+          <span style="min-width:14px;text-align:center;font-weight:600;font-size:0.75rem;">+5</span>
+          <input type="range" min="-5" max="5" value="5" style="width:55px;height:3px;accent-color:#666;">
+          <span style="color:#888;font-size:0.6rem;">+5</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;background:#f8f8f8;padding:5px 8px;border-radius:6px;">
+          <span style="font-weight:600;min-width:28px;font-size:0.75rem;">DEX</span>
+          <span style="color:#888;font-size:0.6rem;">-5</span>
+          <input type="range" min="-5" max="5" value="0" style="width:55px;height:3px;accent-color:#666;">
+          <span style="min-width:14px;text-align:center;font-weight:600;font-size:0.75rem;">0</span>
+          <span style="color:#aaa;">–</span>
+          <span style="min-width:14px;text-align:center;font-weight:600;font-size:0.75rem;">+3</span>
+          <input type="range" min="-5" max="5" value="3" style="width:55px;height:3px;accent-color:#666;">
+          <span style="color:#888;font-size:0.6rem;">+5</span>
+        </div>
+      </div>
+      <div style="font-size:0.65rem;color:#888;">표시 전략: 89개</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Final Design Summary</h3>
+  <table style="width:100%;font-size:0.78rem;border-collapse:collapse;">
+    <tr style="border-bottom:1px solid #ddd;">
+      <th style="text-align:left;padding:4px;">Tab</th>
+      <th style="text-align:left;padding:4px;">Format</th>
+      <th style="text-align:left;padding:4px;">Key UX</th>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:4px;font-weight:600;">주문서</td>
+      <td style="padding:4px;">Vertical icon rows</td>
+      <td style="padding:4px;">20px icon + checkbox + scroll name per row, max-height scroll</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:4px;font-weight:600;">보석</td>
+      <td style="padding:4px;">Two-level drill-down</td>
+      <td style="padding:4px;">Category grid → grade toggle pills, back button, state persists</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:4px;font-weight:600;">촉진제/추옵</td>
+      <td style="padding:4px;">Dual range sliders per stat</td>
+      <td style="padding:4px;">Min–Max range handles, real-time count update</td>
+    </tr>
+  </table>
+</div>

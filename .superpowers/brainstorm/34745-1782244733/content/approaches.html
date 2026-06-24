@@ -1,0 +1,138 @@
+<h2>Two Ways to Slim the Secondary Filters</h2>
+<p class="subtitle">Same position (between chips and cards), but lighter. Each tab uses a format that fits its content.</p>
+
+<div class="options" data-multiselect>
+  <div class="option" data-choice="inline-chips" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Inline Chip Row</h3>
+      <p>A single row of compact toggle chips. Scrolls get scrollable chips, stimulants get stat badges, gems get gem-grade pills. No card frame, no heading — just the chips.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="compact-list" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Compact Inline List</h3>
+      <p>Retains checkbox labels but removes the card frame, background, and scroll container. Each tab is a lightweight inline row with small checkboxes and labels flowing horizontally.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Approach A — Inline Chip Row (per tab)</h3>
+  <div class="mockup">
+    <div class="mockup-header">주문서 tab active — scroll names as compact chips</div>
+    <div class="mockup-body" style="display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;gap:4px;padding:4px 8px;border:1px solid #ccc;border-radius:6px;font-size:0.75rem;">
+        <span style="padding:2px 8px;">전체</span>
+        <span style="background:#e8edff;padding:2px 8px;border-radius:3px;font-weight:600;">주문서</span>
+        <span style="padding:2px 8px;">촉진제</span>
+        <span style="padding:2px 8px;">보석</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;padding:4px 0;font-size:0.72rem;">
+        <span style="background:#e8edff;padding:2px 8px;border-radius:10px;cursor:pointer;border:1px solid #bcc4f0;">공격력 100%</span>
+        <span style="background:#e8edff;padding:2px 8px;border-radius:10px;cursor:pointer;border:1px solid #bcc4f0;">공격력 60%</span>
+        <span style="background:#e8edff;padding:2px 8px;border-radius:10px;cursor:pointer;border:1px solid #bcc4f0;">마력 100%</span>
+        <span style="background:#e8edff;padding:2px 8px;border-radius:10px;cursor:pointer;border:1px solid #bcc4f0;">카오스</span>
+        <span style="background:transparent;padding:2px 8px;border-radius:10px;cursor:pointer;border:1px solid #ddd;opacity:0.5;">힘 100%</span>
+        <span style="background:transparent;padding:2px 8px;border-radius:10px;cursor:pointer;border:1px solid #ddd;opacity:0.5;">방어력 100%</span>
+        <span style="background:transparent;padding:2px 8px;border-radius:10px;cursor:pointer;border:1px solid #ddd;opacity:0.35;">덱스 100%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup" style="margin-top:12px;">
+    <div class="mockup-header">촉진제/추옵 tab active — stat badges (only 3 entries)</div>
+    <div class="mockup-body" style="display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;gap:4px;padding:4px 8px;border:1px solid #ccc;border-radius:6px;font-size:0.75rem;">
+        <span style="padding:2px 8px;">전체</span>
+        <span style="padding:2px 8px;">주문서</span>
+        <span style="background:#e8edff;padding:2px 8px;border-radius:3px;font-weight:600;">촉진제/추옵</span>
+        <span style="padding:2px 8px;">보석</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;padding:4px 0;font-size:0.72rem;">
+        <span style="background:#e8edff;padding:2px 8px;border-radius:10px;cursor:pointer;">STR +3, DEX +1</span>
+        <span style="background:#e8edff;padding:2px 8px;border-radius:10px;cursor:pointer;">STR +1, DEX +3</span>
+        <span style="background:#e8edff;padding:2px 8px;border-radius:10px;cursor:pointer;">+0</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup" style="margin-top:12px;">
+    <div class="mockup-header">보석 tab active — gem-grade pills</div>
+    <div class="mockup-body" style="display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;gap:4px;padding:4px 8px;border:1px solid #ccc;border-radius:6px;font-size:0.75rem;">
+        <span style="padding:2px 8px;">전체</span>
+        <span style="padding:2px 8px;">주문서</span>
+        <span style="padding:2px 8px;">촉진제</span>
+        <span style="background:#e8edff;padding:2px 8px;border-radius:3px;font-weight:600;">보석</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;padding:4px 0;font-size:0.72rem;">
+        <span style="background:#e8edff;padding:2px 8px;border-radius:10px;cursor:pointer;">힘의 보석 S</span>
+        <span style="background:#e8edff;padding:2px 8px;border-radius:10px;cursor:pointer;">힘의 보석 A</span>
+        <span style="background:#e8edff;padding:2px 8px;border-radius:10px;cursor:pointer;">덱스의 보석 S</span>
+        <span style="background:transparent;padding:2px 8px;border-radius:10px;cursor:pointer;border:1px solid #ddd;opacity:0.5;">체력의 보석 A</span>
+        <span style="background:transparent;padding:2px 8px;border-radius:10px;cursor:pointer;border:1px solid #ddd;opacity:0.35;">마력의 보석 S</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Approach B — Compact Inline List (same per-tab variation)</h3>
+  <div class="mockup">
+    <div class="mockup-header">주문서 tab — tight horizontal checkbox labels, no card frame</div>
+    <div class="mockup-body" style="display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;gap:4px;padding:4px 8px;border:1px solid #ccc;border-radius:6px;font-size:0.75rem;">
+        <span style="background:#e8edff;padding:2px 8px;border-radius:3px;font-weight:600;">주문서</span>
+        <span style="padding:2px 8px;">촉진제</span>
+        <span style="padding:2px 8px;">보석</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:2px 10px;font-size:0.72rem;line-height:1.6;">
+        <label style="white-space:nowrap;"><input type="checkbox" checked style="width:12px;height:12px;"> 공격력 100%</label>
+        <label style="white-space:nowrap;"><input type="checkbox" checked style="width:12px;height:12px;"> 공격력 60%</label>
+        <label style="white-space:nowrap;"><input type="checkbox" checked style="width:12px;height:12px;"> 마력 100%</label>
+        <label style="white-space:nowrap;"><input type="checkbox" checked style="width:12px;height:12px;"> 카오스</label>
+        <label style="white-space:nowrap;"><input type="checkbox" style="width:12px;height:12px;"> 힘 100%</label>
+        <label style="white-space:nowrap;"><input type="checkbox" style="width:12px;height:12px;"> 방어력 100%</label>
+        <label style="white-space:nowrap;opacity:0.4;"><input type="checkbox" disabled style="width:12px;height:12px;"> 덱스 100%</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Key differences</h3>
+  <table style="width:100%;font-size:0.8rem;border-collapse:collapse;">
+    <tr style="border-bottom:1px solid #ddd;">
+      <th style="text-align:left;padding:4px;"></th>
+      <th style="text-align:left;padding:4px;">A: Chip Row</th>
+      <th style="text-align:left;padding:4px;">B: Compact List</th>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:4px;">Frame</td>
+      <td style="padding:4px;">None — chips float inline</td>
+      <td style="padding:4px;">None — labels float inline</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:4px;">Scroll height</td>
+      <td style="padding:4px;">Chips wrap naturally</td>
+      <td style="padding:4px;">Labels wrap naturally</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:4px;">Few entries (stim)</td>
+      <td style="padding:4px;">3 pill badges, no dead space</td>
+      <td style="padding:4px;">3 checkboxes, minimal height</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:4px;">Many entries (scrolls)</td>
+      <td style="padding:4px;">Wrapping chip cloud</td>
+      <td style="padding:4px;">Wrapping label row</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:4px;">Deselected state</td>
+      <td style="padding:4px;">Outline pill, muted</td>
+      <td style="padding:4px;">Unchecked checkbox, muted</td>
+    </tr>
+  </table>
+</div>

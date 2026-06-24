@@ -1,0 +1,74 @@
+<h2>Current Secondary Filter State</h2>
+<p class="subtitle">What users see when they click each primary filter tab below the results header</p>
+
+<div class="section">
+  <h3>Context: Where the secondary panel lives</h3>
+  <div class="mockup">
+    <div class="mockup-header">Result Panel Layout</div>
+    <div class="mockup-body" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;gap:4px;padding:4px 8px;border:1px solid #ccc;border-radius:6px;font-size:0.75rem;">
+        <span style="background:#e8edff;padding:2px 8px;border-radius:3px;">전체 (147)</span>
+        <span style="padding:2px 8px;">주문서</span>
+        <span style="padding:2px 8px;">촉진제/추옵</span>
+        <span style="padding:2px 8px;">보석</span>
+      </div>
+      <div style="border:1px solid #ccc;border-radius:6px;padding:8px;background:#fafafa;">
+        <div style="font-weight:600;font-size:0.75rem;margin-bottom:4px;">주문서</div>
+        <div style="display:flex;flex-direction:column;gap:3px;font-size:0.7rem;max-height:100px;overflow-y:auto;">
+          <label><input type="checkbox" checked> 공격력 주문서 100%</label>
+          <label><input type="checkbox" checked> 공격력 주문서 60%</label>
+          <label><input type="checkbox" checked> 마력 주문서 100%</label>
+          <label><input type="checkbox" checked> 카오스 주문서</label>
+          <label><input type="checkbox" checked> 힘 주문서 100%</label>
+          <label style="opacity:0.5"><input type="checkbox" disabled> 덱스 주문서 100%</label>
+        </div>
+      </div>
+      <div style="font-size:0.7rem;color:#666;">← Strategy cards start here, pushed down</div>
+      <div style="border:1px dashed #ccc;border-radius:4px;padding:6px;font-size:0.65rem;">분석 1번: +5 STR...</div>
+      <div style="border:1px dashed #ccc;border-radius:4px;padding:6px;font-size:0.65rem;">분석 2번: +5 STR...</div>
+      <div style="border:1px dashed #ccc;border-radius:4px;padding:6px;font-size:0.65rem;">분석 3번: +5 STR...</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Each tab in the same rigid format</h3>
+  <div class="split">
+    <div class="mockup">
+      <div class="mockup-header">주문서 (many entries)</div>
+      <div class="mockup-body" style="display:flex;flex-direction:column;gap:3px;font-size:0.7rem;max-height:120px;overflow-y:auto;">
+        <div style="font-weight:600;font-size:0.7rem;margin-bottom:4px;">주문서</div>
+        <label><input type="checkbox" checked> 공격력 주문서 100%</label>
+        <label><input type="checkbox" checked> 공격력 주문서 60%</label>
+        <label><input type="checkbox" checked> 마력 주문서 100%</label>
+        <label><input type="checkbox" checked> 카오스 주문서</label>
+        <label><input type="checkbox" checked> 힘 주문서 100%</label>
+        <label><input type="checkbox" checked> 방어력 주문서 100%</label>
+        <label><input type="checkbox" checked> 체력 주문서 100%</label>
+        <label><input type="checkbox" checked> 럭 주문서 60%</label>
+        <label style="opacity:0.5"><input type="checkbox" disabled> 덱스 주문서 100%</label>
+        <label style="opacity:0.5"><input type="checkbox" disabled> 인트 주문서 100%</label>
+      </div>
+    </div>
+    <div class="mockup">
+      <div class="mockup-header">촉진제/추옵 (few entries)</div>
+      <div class="mockup-body" style="display:flex;flex-direction:column;gap:3px;font-size:0.7rem;max-height:120px;overflow-y:auto;">
+        <div style="font-weight:600;font-size:0.7rem;margin-bottom:4px;">촉진제/추옵</div>
+        <label><input type="checkbox" checked> STR +3, DEX +1</label>
+        <label><input type="checkbox" checked> STR +1, DEX +3</label>
+        <label><input type="checkbox" checked> +0</label>
+        <div style="margin-top:60px;font-size:0.6rem;color:#999;text-align:center;">empty space</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Key problems visible here</h3>
+  <ul>
+    <li><strong>Heavy card frame</strong> — every tab gets the same bordered panel with heading, even with 3 items</li>
+    <li><strong>Fixed height scroll box</strong> — the 촉진제 tab has 3 entries sitting in a 180px-tall scroll container, lots of dead space</li>
+    <li><strong>Placement barrier</strong> — the panel pushes strategies down, separating filters from results</li>
+    <li><strong>One-size-fits-all</strong> — scroll names, stat combos, gem grades all get the same checkbox-list treatment</li>
+  </ul>
+</div>

@@ -194,7 +194,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
             먼저 위에서 아이템을 선택해주세요
           </p>
           <div data-decon-edit-content hidden>
+            <p class="decon-stat-group-title">기본 스탯</p>
             <div class="decon-stat-editor" data-decon-stat-editor></div>
+            <hr class="decon-stat-group-sep" data-decon-basic-stats-sep hidden />
+            <p class="decon-stat-group-title" data-decon-item-info-title hidden>아이템 정보</p>
             <div class="chaos-stat-row decon-success-row" data-decon-success-row>
               <span class="chaos-stat-label">주문서 성공 횟수</span>
               <button type="button" class="chaos-stepper-btn chaos-stepper-btn--max" data-decon-success-min>MIN</button>
@@ -219,6 +222,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
               <button type="button" class="chaos-stepper-btn" data-decon-level-inc>+</button>
               <button type="button" class="chaos-stepper-btn chaos-stepper-btn--max" data-decon-level-max>MAX</button>
             </div>
+            <hr class="decon-stat-group-sep" data-decon-item-info-sep hidden />
             <div class="decon-add-stat-area">
               <button type="button" class="decon-add-stat-toggle" data-decon-add-stat-toggle>
                 + 스탯 추가
