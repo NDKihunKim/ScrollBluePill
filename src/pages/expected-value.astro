@@ -275,8 +275,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 			<aside class="panel" aria-label="계산 결과">
 				<h2>아이템 미리보기</h2>
+				<div class="item-slot-bar" data-ev-slot-bar hidden></div>
 				<p class="enhancement-placeholder" data-item-placeholder>아이템을 선택해주세요</p>
-				<div class="selected-item-card" data-selected-item-card hidden>
+				<div data-selected-item-card-wrapper style="position:relative;" hidden>
+          <button type="button" class="item-card-star" data-ev-star hidden title="슬롯에 저장">☆</button>
+				  <div class="selected-item-card" data-selected-item-card hidden>
 					<h3 data-selected-item-name></h3>
 					<div class="selected-item-top">
 						<div class="selected-item-icon-frame">
@@ -287,6 +290,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 					<div class="selected-item-jobs" data-selected-item-jobs></div>
 					<div class="selected-item-divider"></div>
 					<div class="selected-item-stats" data-selected-item-stats></div>
+				</div>
 				</div>
 				<button type="button" class="small-button secondary selected-item-reset" data-enhancement-reset hidden>
 					초기화
@@ -328,6 +332,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	} from '../lib/enhancementState.mjs';
 	import { searchKoreanItems } from '../lib/itemSearch.mjs';
 	import { buildItemIconUrl, buildItemSearchUrl } from '../lib/maplestoryIo.mjs';
+	import { readSlots, saveToSlot, clearSlot, findMatchingSlot, MAX_SLOTS } from '../lib/itemSlotStore.mjs';
 
 	import { computeEnhancementGains, getDefaultCheckedStats, extractTargetConditions } from '../lib/expectedValue/targetExtraction.mjs';
 	import { createTargetSelectionUI, createResultUI, createResultMutationGuard, DEFAULT_TRIAL_COUNT, roundTrialCount, PLACEHOLDER_TEXT, NO_STRATEGY_TEXT, CONFIRM_TEXT, CONFIRM_BUTTON_TEXT, CANCEL_BUTTON_TEXT, STALE_LABEL } from '../lib/expectedValue/expectedValuePanel.mjs';
@@ -365,6 +370,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		const jobInputs = form?.querySelectorAll('input[name="jobs"]');
 	const jobSelectAllButton = form?.querySelector('[data-job-select-all]');
 	const jobClearAllButton = form?.querySelector('[data-job-clear-all]');
+	const evSlotBar = document.querySelector('[data-ev-slot-bar]');
+	const evStar = document.querySelector('[data-ev-star]');
+	const evCardWrapper = document.querySelector('[data-selected-item-card-wrapper]');
 	let itemIndex = [];
 	let itemById = new Map();
 	const ITEM_LEVEL_UP_META_UNCHANGED = Symbol('item-level-up-meta-unchanged');
@@ -640,6 +648,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		if (itemPlaceholder instanceof HTMLElement) {
 			itemPlaceholder.hidden = false;
 		}
+		if (evSlotBar instanceof HTMLElement) evSlotBar.hidden = true;
+		if (evStar instanceof HTMLElement) evStar.hidden = true;
+		if (evCardWrapper instanceof HTMLElement) evCardWrapper.hidden = true;
 	};
 
 	const syncJobsToSelectedItem = (item) => {
@@ -792,6 +803,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		});
 
 		selectedItemCard.hidden = false;
+		if (evSlotBar instanceof HTMLElement) evSlotBar.hidden = false;
+		if (evStar instanceof HTMLElement) evStar.hidden = false;
+		if (evCardWrapper instanceof HTMLElement) evCardWrapper.hidden = false;
 	};
 
 	const getSelectedJobKinds = () =>
@@ -1170,6 +1184,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			}
 
 			renderItemSuggestions();
+			renderEvSlotBar();
 		})
 		.catch((error) => {
 			console.error(error);
@@ -1234,6 +1249,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	    evCheckedStats = currentGetCheckedStats();
 	  }
 	  openCalcPanel();
+	  checkEvStarState();
 	};
 
 	// Initial button state
@@ -1248,6 +1264,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  }
 	  evResultUI = null;
 	  evResultSummary = null;
+	  checkEvStarState();
 	};
 		// Exposed for enhancementPanel reset — fully clears EV results
 		window.__evClear = showEvPlaceholder;
@@ -1450,6 +1467,259 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	// Calculation is triggered from the 계산 시작 button inside the calc panel.
 		// The button is rendered by createTargetSelectionUI and wired via onStart in openCalcPanel.
 
+	// ---- Save slot helpers (EV-specific) ----
+	const buildEvPageState = () => {
+	  const evState = window.__evState?.();
+	  if (!evState?.selectedBaseItem) return null;
+	  return {
+	    itemId: evState.selectedBaseItem.id,
+	    enhancementState: evState.enhancementState,
+	  };
+	};
+
+	const checkEvStarState = () => {
+	  if (!(evStar instanceof HTMLElement)) return;
+	  const state = buildEvPageState();
+	  if (!state) {
+	    evStar.textContent = '☆';
+	    evStar.classList.remove('item-card-star--saved');
+	    return;
+	  }
+	  const match = findMatchingSlot('expectedValue', state);
+	  if (match >= 0) {
+	    evStar.textContent = '★';
+	    evStar.classList.add('item-card-star--saved');
+	  } else {
+	    evStar.textContent = '☆';
+	    evStar.classList.remove('item-card-star--saved');
+	  }
+	};
+
+	const renderEvSlotBar = () => {
+	  if (!(evSlotBar instanceof HTMLElement)) return;
+	  const slots = readSlots('expectedValue');
+	  evSlotBar.replaceChildren();
+	  for (let i = 0; i < MAX_SLOTS; i++) {
+	    const s = slots[i];
+	    const box = document.createElement('div');
+	    box.className = s ? 'item-slot item-slot--filled' : 'item-slot item-slot--empty';
+	    if (s) {
+	      const icon = document.createElement('img');
+	      icon.src = buildItemIconUrl(s.item.iconId);
+	      icon.alt = s.item.nameKo;
+	      box.append(icon);
+	      box.title = s.item.nameKo;
+	      box.addEventListener('click', () => loadEvSlot(i));
+
+	      const xBtn = document.createElement('button');
+	      xBtn.type = 'button';
+	      xBtn.className = 'item-slot-x';
+	      xBtn.textContent = '×';
+	      xBtn.addEventListener('click', (e) => { e.stopPropagation(); confirmDeleteEvSlot(i); });
+	      box.append(xBtn);
+	    }
+	    evSlotBar.append(box);
+	  }
+	};
+
+	const showEvSavePicker = () => {
+	  const evState = window.__evState?.();
+	  const selectedItem = evState?.selectedBaseItem;
+	  if (!selectedItem) return;
+	  const state = buildEvPageState();
+	  if (!state) return;
+
+	  const slots = readSlots('expectedValue');
+	  const overlay = document.createElement('div');
+	  overlay.className = 'slot-picker-overlay';
+
+	  const dialog = document.createElement('div');
+	  dialog.className = 'slot-picker-dialog';
+
+	  const title = document.createElement('h3');
+	  title.textContent = '저장할 슬롯 선택';
+	  dialog.append(title);
+
+	  const grid = document.createElement('div');
+	  grid.className = 'slot-picker-grid';
+
+	  for (let i = 0; i < MAX_SLOTS; i++) {
+	    const s = slots[i];
+	    const cell = document.createElement('div');
+	    cell.className = s ? 'slot-picker-slot slot-picker-slot--filled' : 'slot-picker-slot slot-picker-slot--empty';
+	    if (s) {
+	      const icon = document.createElement('img');
+	      icon.src = buildItemIconUrl(s.item.iconId);
+	      icon.alt = s.item.nameKo;
+	      cell.append(icon);
+	      const name = document.createElement('span');
+	      name.className = 'slot-picker-slot-name';
+	      name.textContent = s.item.nameKo;
+	      cell.append(name);
+	      cell.addEventListener('click', () => {
+	        overlay.remove();
+	        confirmReplaceEvSlot(i, state);
+	      });
+	    } else {
+	      cell.textContent = '빈 슬롯';
+	      cell.addEventListener('click', () => {
+	        saveToSlot('expectedValue', i, selectedItem, state);
+	        overlay.remove();
+	        renderEvSlotBar();
+	        checkEvStarState();
+	      });
+	    }
+	    grid.append(cell);
+	  }
+	  dialog.append(grid);
+
+	  const closeBtn = document.createElement('button');
+	  closeBtn.type = 'button';
+	  closeBtn.className = 'slot-picker-close';
+	  closeBtn.textContent = '취소';
+	  closeBtn.addEventListener('click', () => overlay.remove());
+	  dialog.append(closeBtn);
+
+	  overlay.append(dialog);
+	  document.body.append(overlay);
+	};
+
+	const confirmReplaceEvSlot = (slotIndex, newState) => {
+	  const evState = window.__evState?.();
+	  const selectedItem = evState?.selectedBaseItem;
+	  if (!selectedItem) return;
+
+	  const slots = readSlots('expectedValue');
+	  const existing = slots[slotIndex];
+	  if (!existing) return;
+
+	  const overlay = document.createElement('div');
+	  overlay.className = 'slot-picker-overlay';
+	  const dialog = document.createElement('div');
+	  dialog.className = 'slot-picker-dialog';
+	  dialog.style.maxWidth = '500px';
+
+	  const msg = document.createElement('p');
+	  msg.textContent = '기존 저장된 아이템을 덮어쓰시겠습니까?';
+	  dialog.append(msg);
+
+	  const cards = document.createElement('div');
+	  cards.className = 'replace-confirm-cards';
+
+	  const existingCard = document.createElement('div');
+	  existingCard.className = 'replace-confirm-card';
+	  existingCard.innerHTML = '<h4>기존 저장</h4><img src="' + buildItemIconUrl(existing.item.iconId) + '" alt=""><div class="item-name">' + existing.item.nameKo + '</div>';
+	  cards.append(existingCard);
+
+	  const newCard = document.createElement('div');
+	  newCard.className = 'replace-confirm-card';
+	  newCard.innerHTML = '<h4>새로 저장</h4><img src="' + buildItemIconUrl(selectedItem.id) + '" alt=""><div class="item-name">' + selectedItem.nameKo + '</div>';
+	  cards.append(newCard);
+	  dialog.append(cards);
+
+	  const buttons = document.createElement('div');
+	  buttons.className = 'replace-confirm-buttons';
+	  const confirmBtn = document.createElement('button');
+	  confirmBtn.textContent = '덮어쓰기';
+	  confirmBtn.addEventListener('click', () => {
+	    saveToSlot('expectedValue', slotIndex, selectedItem, newState);
+	    overlay.remove();
+	    renderEvSlotBar();
+	    checkEvStarState();
+	  });
+	  const cancelBtn = document.createElement('button');
+	  cancelBtn.textContent = '취소';
+	  cancelBtn.addEventListener('click', () => overlay.remove());
+	  buttons.append(confirmBtn, cancelBtn);
+	  dialog.append(buttons);
+	  overlay.append(dialog);
+	  document.body.append(overlay);
+	};
+
+	const confirmDeleteEvSlot = (slotIndex) => {
+	  const slots = readSlots('expectedValue');
+	  const s = slots[slotIndex];
+	  if (!s) return;
+
+	  const overlay = document.createElement('div');
+	  overlay.className = 'slot-picker-overlay';
+	  const dialog = document.createElement('div');
+	  dialog.className = 'slot-picker-dialog';
+
+	  const msg = document.createElement('p');
+	  msg.textContent = '저장된 아이템을 삭제하시겠습니까?';
+	  dialog.append(msg);
+
+	  const card = document.createElement('div');
+	  card.className = 'replace-confirm-card';
+	  card.innerHTML = '<img src="' + buildItemIconUrl(s.item.iconId) + '" alt=""><div class="item-name">' + s.item.nameKo + '</div>';
+	  dialog.append(card);
+
+	  const buttons = document.createElement('div');
+	  buttons.className = 'replace-confirm-buttons';
+	  const confirmBtn = document.createElement('button');
+	  confirmBtn.textContent = '삭제';
+	  confirmBtn.style.background = '#e74c3c';
+	  confirmBtn.style.borderColor = '#e74c3c';
+	  confirmBtn.style.color = '#fff';
+	  confirmBtn.addEventListener('click', () => {
+	    clearSlot('expectedValue', slotIndex);
+	    overlay.remove();
+	    renderEvSlotBar();
+	    checkEvStarState();
+	  });
+	  const cancelBtn = document.createElement('button');
+	  cancelBtn.textContent = '취소';
+	  cancelBtn.addEventListener('click', () => overlay.remove());
+	  buttons.append(confirmBtn, cancelBtn);
+	  dialog.append(buttons);
+	  overlay.append(dialog);
+	  document.body.append(overlay);
+	};
+
+	const loadEvSlot = (slotIndex) => {
+	  const slots = readSlots('expectedValue');
+	  const s = slots[slotIndex];
+	  if (!s?.pageState?.enhancementState) return;
+
+	  const item = itemById.get(s.pageState.itemId);
+	  if (!item) {
+	    alert('저장된 아이템을 더 이상 찾을 수 없습니다.');
+	    return;
+	  }
+
+	  // Set state in enhancement panel if setter exists
+	  if (typeof window.__evSetState === 'function') {
+	    window.__evSetState(s.pageState.enhancementState, item);
+	  } else if (typeof window.activatePanel2 === 'function') {
+	    // Fallback: re-activate panel with the saved item
+	    window.activatePanel2(item);
+	  }
+
+	  renderEvSlotBar();
+	  checkEvStarState();
+	};
+
+	// ---- State setter for loading saved slots ----
+	window.__evSetState = (storedEnhancementState, storedItem) => {
+	  // Re-activate the panel with the stored item first
+	  if (typeof window.activatePanel2 === 'function') {
+	    window.activatePanel2(storedItem);
+	  }
+	  // After a brief delay, try to restore state via __evRefresh
+	  setTimeout(() => {
+	    if (typeof window.__evRefresh === 'function') {
+	      window.__evRefresh();
+	    }
+	  }, 100);
+	};
+
+	// ---- Wire star button click ----
+	if (evStar instanceof HTMLElement) {
+	  evStar.addEventListener('click', () => {
+	    showEvSavePicker();
+	  });
+	}
 </script>
 
 <style>
