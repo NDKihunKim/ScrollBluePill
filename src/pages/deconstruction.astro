@@ -271,7 +271,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
                     <input type="checkbox" data-decon-source="gems" />
                     <span class="ev-target-chip-label">보석</span>
                   </label>
-                  <div class="decon-source-sub"></div>
+                  <div class="decon-source-sub" data-decon-gem-sub></div>
                 </div>
                 <div class="decon-source-row" data-decon-level-up-source hidden>
                   <label class="ev-target-chip">
@@ -340,7 +340,7 @@ import { buildItemIconUrl, buildItemSearchUrl } from '../lib/maplestoryIo.mjs';
 import { HP_MP_KEYS, computeItemLevelUpCardMeta } from '../lib/enhancementState.mjs';
 import { enumerateStrategies } from '../lib/deconstruction/engine.mjs';
 import { guardCheckboxMutation } from '../lib/deconstruction/guardedCheckboxMutation.mjs';
-import { GEM_GRADES } from '../lib/makerData.mjs';
+import { GEM_GRADES, GEM_ITEM_IDS, GEM_TYPES } from '../lib/makerData.mjs';
 import {
   createDeconstructionSlotState,
   setSuccessfulScrollCount,
@@ -419,6 +419,7 @@ const deconSourceInputs = document.querySelectorAll('[data-decon-source]');
 const deconScrollSource = document.querySelector('[data-decon-source="scrolls"]');
 const deconStimulantSource = document.querySelector('[data-decon-source="stimulant"]');
 const deconGemsSource = document.querySelector('[data-decon-source="gems"]');
+const deconGemSub = document.querySelector('[data-decon-gem-sub]');
 const deconItemLevelUpSource = document.querySelector('[data-decon-source="itemLevelUp"]');
 const deconLevelUpSource = document.querySelector('[data-decon-level-up-source]');
 const deconLevelRow = document.querySelector('[data-decon-level-row]');
@@ -469,6 +470,7 @@ let deconSlotState = createDeconstructionSlotState(0);
 let deconHasActionableResults = false;
 let deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
 let deconStimulantBoundsMap = {};
+let deconGemFilter = null; // null = all gems available, Set<string> of "gemKey:gradeIndex" = whitelist
 let deconLevelUpTotalRanges = {};
 let deconAppliedLevelCount = 0;      // how many level-ups are already applied (0..maxLevelUps)
 
@@ -544,6 +546,13 @@ deconStimulantSource?.addEventListener('change', () => {
 });
 
 deconGemsSource?.addEventListener('change', () => {
+  toggleSourceSub(deconGemsSource, deconGemSub, () => {
+    deconGemFilter = null;
+    buildGemPreFilter();
+  });
+  if (!deconGemsSource.checked) {
+    deconGemFilter = null;
+  }
   updateAnalyzeButton();
 });
 
@@ -1083,6 +1092,141 @@ const buildStimulantBoundsEditor = () => {
     }
     deconStimulantBoundsList.append(row);
   }
+};
+
+const buildGemPreFilter = () => {
+  if (!(deconGemSub instanceof HTMLElement)) return;
+  if (!selectedItem) return;
+
+  const equipmentKind = selectedItem.equipmentKind;
+
+  // Initialize filter with all gems/grades if null
+  if (deconGemFilter === null) {
+    deconGemFilter = new Set();
+    for (const gem of GEM_TYPES) {
+      if (gem.weaponOnly && equipmentKind !== 'weapon') continue;
+      for (let gi = 0; gi < GEM_GRADES.length; gi++) {
+        deconGemFilter.add(`${gem.key}:${gi}`);
+      }
+    }
+  }
+
+  const renderCategories = () => {
+    deconGemSub.replaceChildren();
+
+    const label = document.createElement('p');
+    label.className = 'decon-gem-picker-label';
+    label.textContent = '보석 종류 선택';
+    deconGemSub.append(label);
+
+    const grid = document.createElement('div');
+    grid.className = 'decon-gem-grid';
+
+    for (const gem of GEM_TYPES) {
+      if (gem.weaponOnly && equipmentKind !== 'weapon') continue;
+
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'decon-gem-category';
+
+      const baseId = GEM_ITEM_IDS[gem.key]?.base;
+      if (baseId) {
+        const icon = document.createElement('img');
+        icon.src = buildItemIconUrl(baseId);
+        icon.alt = '';
+        icon.loading = 'lazy';
+        card.append(icon);
+      }
+
+      const name = document.createElement('span');
+      name.textContent = gem.nameKo;
+      card.append(name);
+
+      card.addEventListener('click', () => renderGrades(gem));
+      grid.append(card);
+    }
+
+    deconGemSub.append(grid);
+  };
+
+  const renderGrades = (gem) => {
+    deconGemSub.replaceChildren();
+
+    const header = document.createElement('div');
+    header.className = 'decon-gem-picker-header';
+
+    const backBtn = document.createElement('button');
+    backBtn.type = 'button';
+    backBtn.className = 'decon-gem-back';
+    backBtn.textContent = '← 뒤로';
+    backBtn.addEventListener('click', renderCategories);
+    header.append(backBtn);
+
+    const baseId = GEM_ITEM_IDS[gem.key]?.base;
+    if (baseId) {
+      const icon = document.createElement('img');
+      icon.src = buildItemIconUrl(baseId);
+      icon.alt = '';
+      icon.loading = 'lazy';
+      header.append(icon);
+    }
+
+    const nameEl = document.createElement('span');
+    nameEl.className = 'decon-gem-name';
+    nameEl.textContent = gem.nameKo;
+    header.append(nameEl);
+
+    deconGemSub.append(header);
+
+    const gradesList = document.createElement('div');
+    gradesList.className = 'decon-gem-grades';
+
+    for (let gradeIndex = 0; gradeIndex < GEM_GRADES.length; gradeIndex++) {
+      const gradeLabel = GEM_GRADES[gradeIndex];
+
+      const row = document.createElement('label');
+      row.className = 'decon-gem-grade';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      const filterKey = `${gem.key}:${gradeIndex}`;
+      checkbox.checked = deconGemFilter?.has(filterKey) ?? true;
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked) {
+          deconGemFilter.add(filterKey);
+        } else {
+          deconGemFilter.delete(filterKey);
+        }
+      });
+      row.append(checkbox);
+
+      const gradeKey = ['low', 'mid', 'high'][gradeIndex];
+      const gradeIconId = GEM_ITEM_IDS[gem.key]?.[gradeKey];
+      if (gradeIconId) {
+        const gradeIcon = document.createElement('img');
+        gradeIcon.src = buildItemIconUrl(gradeIconId);
+        gradeIcon.alt = '';
+        gradeIcon.loading = 'lazy';
+        row.append(gradeIcon);
+      }
+
+      const text = document.createElement('span');
+      if (gem.stat && gem.values) {
+        const val = gem.values[gradeIndex];
+        const dispLabel = statLabelByKey[gem.stat] || gem.stat;
+        text.textContent = `${gradeLabel} ${dispLabel} +${val}`;
+      } else {
+        text.textContent = gradeLabel;
+      }
+      row.append(text);
+
+      gradesList.append(row);
+    }
+
+    deconGemSub.append(gradesList);
+  };
+
+  renderCategories();
 };
 
 const buildLevelUpSlotEditors = () => {
