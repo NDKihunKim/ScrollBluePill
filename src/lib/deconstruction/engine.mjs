@@ -347,6 +347,7 @@ export function enumerateStrategies({
   levelUpExactLevelCount = null,
   levelUpTotalStatRanges = null,
   appliedLevelStats: appliedLevelStatsRaw = null,
+  gemFilter = null,
 }) {
   const strategies = [];
   let tooManyResults = false;
@@ -438,6 +439,7 @@ export function enumerateStrategies({
         cleanStats,
         targetKeys,
         bounds: gemBounds,
+        gemFilter,
       })
     : [];
 
