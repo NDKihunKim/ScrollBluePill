@@ -1196,8 +1196,13 @@ const buildGemPreFilter = () => {
     for (let gradeIndex = 0; gradeIndex < GEM_GRADES.length; gradeIndex++) {
       const gradeLabel = GEM_GRADES[gradeIndex];
 
-      const row = document.createElement('label');
+      const row = document.createElement('button');
+      row.type = 'button';
       row.className = 'decon-gem-grade';
+
+      const filterKey = `${gem.key}:${gradeIndex}`;
+      const isSelected = deconGemFilter?.has(filterKey) ?? true;
+      if (isSelected) row.classList.add('decon-gem-grade--selected');
 
       const gradeKey = ['low', 'mid', 'high'][gradeIndex];
       const gradeIconId = GEM_ITEM_IDS[gem.key]?.[gradeKey];
@@ -1232,20 +1237,18 @@ const buildGemPreFilter = () => {
       }
       row.append(statSpan);
 
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      const filterKey = `${gem.key}:${gradeIndex}`;
-      checkbox.checked = deconGemFilter?.has(filterKey) ?? true;
-      checkbox.addEventListener('change', () => {
-        guardCheckboxMutation(checkbox, guardDeconMutation, () => {
-          if (checkbox.checked) {
-            deconGemFilter.add(filterKey);
-          } else {
+      // Click to toggle selection
+      row.addEventListener('click', () => {
+        guardDeconMutation(() => {
+          if (deconGemFilter.has(filterKey)) {
             deconGemFilter.delete(filterKey);
+            row.classList.remove('decon-gem-grade--selected');
+          } else {
+            deconGemFilter.add(filterKey);
+            row.classList.add('decon-gem-grade--selected');
           }
         });
       });
-      row.append(checkbox);
 
       gradesList.append(row);
     }
@@ -3634,10 +3637,8 @@ aside.panel {
   border-color: var(--green);
 }
 
-:global(.decon-gem-grade input[type="checkbox"]) {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
+:global(.decon-gem-grade--selected) {
+  border-color: var(--green);
 }
 
 :global(.decon-gem-grade img) {
