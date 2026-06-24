@@ -4336,6 +4336,7 @@ aside.panel {
   justify-content: center;
   cursor: pointer;
   transition: border-color 0.15s;
+  overflow: hidden;
 }
 
 :global(.item-slot--filled) {
@@ -4364,28 +4365,25 @@ aside.panel {
 
 :global(.item-slot-x) {
   position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 16px;
-  height: 16px;
+  top: 1px;
+  right: 1px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--ink);
-  font-size: 9px;
-  line-height: 16px;
+  border: none;
+  background: rgba(0,0,0,0.45);
+  color: #fff;
+  font-size: 8px;
+  line-height: 14px;
   text-align: center;
   cursor: pointer;
   padding: 0;
   box-sizing: border-box;
-  overflow: hidden;
   transition: background 0.15s;
 }
 
 :global(.item-slot-x:hover) {
   background: #e74c3c;
-  border-color: #e74c3c;
-  color: #fff;
 }
 
 :global(.item-card-star) {
