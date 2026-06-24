@@ -1187,21 +1187,6 @@ const buildGemPreFilter = () => {
       const row = document.createElement('label');
       row.className = 'decon-gem-grade';
 
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      const filterKey = `${gem.key}:${gradeIndex}`;
-      checkbox.checked = deconGemFilter?.has(filterKey) ?? true;
-      checkbox.addEventListener('change', () => {
-        guardCheckboxMutation(checkbox, guardDeconMutation, () => {
-          if (checkbox.checked) {
-            deconGemFilter.add(filterKey);
-          } else {
-            deconGemFilter.delete(filterKey);
-          }
-        });
-      });
-      row.append(checkbox);
-
       const gradeKey = ['low', 'mid', 'high'][gradeIndex];
       const gradeIconId = GEM_ITEM_IDS[gem.key]?.[gradeKey];
       if (gradeIconId) {
@@ -1221,6 +1206,21 @@ const buildGemPreFilter = () => {
         text.textContent = gradeLabel;
       }
       row.append(text);
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      const filterKey = `${gem.key}:${gradeIndex}`;
+      checkbox.checked = deconGemFilter?.has(filterKey) ?? true;
+      checkbox.addEventListener('change', () => {
+        guardCheckboxMutation(checkbox, guardDeconMutation, () => {
+          if (checkbox.checked) {
+            deconGemFilter.add(filterKey);
+          } else {
+            deconGemFilter.delete(filterKey);
+          }
+        });
+      });
+      row.append(checkbox);
 
       gradesList.append(row);
     }
@@ -3496,65 +3496,65 @@ aside.panel {
   border-radius: 3px;
 }
 
-/* Gem pre-filter picker */
+/* Gem pre-filter picker — matches expected-value .maker-picker-item design */
 .decon-gem-picker-label {
+  margin-bottom: 6px;
   color: var(--muted);
-  font-size: 0.8rem;
-  font-weight: 600;
-  margin-bottom: 4px;
+  font-size: 0.88rem;
+  font-weight: 700;
 }
 
 .decon-gem-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
-  gap: 4px;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .decon-gem-category {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 5px;
-  padding: 5px 7px;
-  border: 1px solid transparent;
+  padding: 8px 4px;
+  border: 1px solid var(--line);
   border-radius: 6px;
-  font-size: 0.72rem;
+  background: var(--surface);
   cursor: pointer;
-  background: var(--panel);
+  gap: 4px;
+  font-size: 0.75rem;
   color: var(--ink);
-  transition: background 0.15s ease, border-color 0.15s ease;
+  text-align: center;
+  transition: border-color 0.15s;
 }
 
 .decon-gem-category:hover {
-  background: color-mix(in srgb, var(--line) 30%, var(--panel));
-  border-color: var(--line);
+  border-color: var(--green);
 }
 
 .decon-gem-category img {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
   image-rendering: pixelated;
-  border-radius: 3px;
 }
 
 .decon-gem-picker-header {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 
 .decon-gem-picker-header img {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
   image-rendering: pixelated;
-  border-radius: 2px;
 }
 
 .decon-gem-name {
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.88rem;
+  font-weight: 700;
   color: var(--ink);
 }
 
@@ -3574,42 +3574,42 @@ aside.panel {
 }
 
 .decon-gem-grades {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
 }
 
 .decon-gem-grade {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 5px;
-  padding: 4px 8px;
+  padding: 8px 4px;
   border: 1px solid var(--line);
   border-radius: 6px;
+  background: var(--surface);
   cursor: pointer;
-  font-size: 0.72rem;
-  line-height: 1;
-  background: var(--panel);
+  gap: 4px;
+  font-size: 0.75rem;
   color: var(--ink);
-  transition: background 0.15s ease;
+  text-align: center;
+  transition: border-color 0.15s;
 }
 
 .decon-gem-grade:hover {
-  background: color-mix(in srgb, var(--line) 30%, var(--panel));
+  border-color: var(--green);
 }
 
 .decon-gem-grade input[type="checkbox"] {
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
 }
 
 .decon-gem-grade img {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
   image-rendering: pixelated;
-  border-radius: 3px;
 }
 
 /* Stimulant range sliders */
