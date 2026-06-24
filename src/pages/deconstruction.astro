@@ -544,12 +544,14 @@ deconScrollSource?.addEventListener('change', () => {
     deconScrollRateInputs.forEach(inp => { if (inp instanceof HTMLInputElement) inp.checked = true; });
   });
   updateAnalyzeButton();
+	  checkDeconStarState();
 });
 
 deconStimulantSource?.addEventListener('change', () => {
   toggleSourceSub(deconStimulantSource, deconStimulantBounds, () => {
     buildStimulantBoundsEditor();
   });
+	  checkDeconStarState();
   updateAnalyzeButton();
 });
 
@@ -560,6 +562,7 @@ deconGemsSource?.addEventListener('change', () => {
   });
   if (!deconGemsSource.checked) {
     deconGemFilter = null;
+	  checkDeconStarState();
   }
   updateAnalyzeButton();
 });
@@ -1047,6 +1050,7 @@ const setStatDelta = (key, value, { skipGuard = false } = {}) => {
     updateAnalyzeButton();
     updateTargetCard();
     renderTargetChips();
+	    checkDeconStarState();
   };
   if (skipGuard) { apply(); } else { guardDeconMutation(apply); }
 };
@@ -1096,12 +1100,14 @@ const buildStimulantBoundsEditor = () => {
         const newVal = Math.max(-defaultLimit, Math.min(defaultLimit, current - stepSize));
         deconStimulantBoundsMap[key] = { ...deconStimulantBoundsMap[key], [side]: newVal };
         valSpan.textContent = String(newVal);
+        checkDeconStarState();
       }));
       btnInc.addEventListener('click', () => guardDeconMutation(() => {
         const current = deconStimulantBoundsMap[key]?.[side] ?? (side === 'min' ? -defaultLimit : defaultLimit);
         const newVal = Math.max(-defaultLimit, Math.min(defaultLimit, current + stepSize));
         deconStimulantBoundsMap[key] = { ...deconStimulantBoundsMap[key], [side]: newVal };
         valSpan.textContent = String(newVal);
+        checkDeconStarState();
       }));
       row.append(btnDec, valSpan, btnInc);
     }
@@ -1252,6 +1258,7 @@ const buildGemPreFilter = () => {
     }
 
     contentArea.append(grid);
+    checkDeconStarState();
   };
 
   const renderGrades = (gem) => {
@@ -1341,6 +1348,7 @@ const buildGemPreFilter = () => {
             deconGemFilter.add(filterKey);
             row.classList.add('decon-gem-grade--selected');
           }
+          checkDeconStarState();
         });
       });
 
@@ -1348,6 +1356,7 @@ const buildGemPreFilter = () => {
     }
 
     contentArea.append(gradesList);
+    checkDeconStarState();
   };
 
   renderCategories();
@@ -2552,6 +2561,7 @@ deconScrollRateInputs.forEach((chip) => {
       } else {
         deconScrollRateFilter.delete(rate);
       }
+      checkDeconStarState();
     });
   });
 });
