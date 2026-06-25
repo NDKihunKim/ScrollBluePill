@@ -2701,6 +2701,14 @@ document.querySelector('[data-enhancement-reset]')?.addEventListener('click', ()
     if (deconStatEditor instanceof HTMLElement) {
       deconStatEditor.replaceChildren();
     }
+    // Collapse all source accordions in Section 3
+    const allSubs = [deconScrollRateSub, deconStimulantBounds, deconGemSub, deconLevelSlotRanges];
+    for (const sub of allSubs) {
+      if (sub instanceof HTMLElement) {
+        sub.classList.remove('decon-source-sub--open');
+        sub.hidden = true;
+      }
+    }
     if (selectedItem) {
       activateDeconEditPanel(selectedItem);
     }
