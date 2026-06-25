@@ -1853,7 +1853,16 @@ const buildDeconPageState = () => {
     deconStatKeys: [...deconStatKeys],
     remainingSlots: deconSlotState.remainingSlots,
     appliedLevelCount: deconAppliedLevelCount,
-    gemFilter: deconGemFilter ? [...deconGemFilter] : null,
+    gemFilter: (() => {
+      if (!deconGemFilter) return null;
+      // If all applicable gems are selected, treat as null (no filter)
+      let total = 0;
+      for (const g of GEM_TYPES) {
+        if (g.weaponOnly && !isWeaponKind(selectedItem.equipmentKind)) continue;
+        total += GEM_GRADES.length;
+      }
+      return deconGemFilter.size >= total ? null : [...deconGemFilter];
+    })(),
     scrollRateFilter: deconScrollRateFilter ? [...deconScrollRateFilter] : null,
     stimulantBoundsMap: deconStimulantBoundsMap ? { ...deconStimulantBoundsMap } : null,
     scrollSource: deconScrollSource?.checked ?? true,
