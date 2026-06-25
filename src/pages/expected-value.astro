@@ -564,13 +564,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			return `+${value}`;
 		};
 
-		const formatBreakdownPart = (value, index) => {
-			if (index === 0) {
-				return String(value);
-			}
-			return value > 0 ? `+${value}` : String(value);
-		};
-
 		const formatStatBreakdownValue = (key, breakdown) => {
 			if (!breakdown || !Number.isFinite(breakdown.total)) {
 				return '';
@@ -581,10 +574,19 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 				return formatStatValue(key, breakdown.total);
 			}
 
-			const parts = [breakdown.original, breakdown.maker, breakdown.scroll]
-				.filter((value, index) => index === 0 || value !== 0);
+			// If the clean item has no base value for this stat, the
+			// breakdown (0+maker+scroll) adds no information — just
+			// show the total.
+			if (!breakdown.original) {
+				return formatStatValue(key, breakdown.total);
+			}
 
-			return `${formatStatValue(key, breakdown.total)} (${parts.map(formatBreakdownPart).join('')})`;
+			// Clean base > 0: combine maker + scroll into a single
+			// enhancement delta so the card reads e.g.
+			// "공격력 : +134 (108+26)" instead of "(108+9+17)".
+			const totalEnhancement = (breakdown.maker ?? 0) + (breakdown.scroll ?? 0);
+			const sign = totalEnhancement > 0 ? '+' : '';
+			return `${formatStatValue(key, breakdown.total)} (${breakdown.original}${sign}${totalEnhancement})`;
 		};
 
 	const renderSelectedItemCard = (item) => {
@@ -801,6 +803,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			}
 		});
 
+		if (itemPlaceholder instanceof HTMLElement) {
+			itemPlaceholder.hidden = true;
+		}
 		selectedItemCard.hidden = false;
 		if (evStar instanceof HTMLElement) evStar.hidden = false;
 		if (evCardWrapper instanceof HTMLElement) evCardWrapper.hidden = false;
@@ -1158,7 +1163,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	setManualSearchOpen(false);
 	syncJobButtons();
 	syncItemSearchUrl();
-	renderEvSlotBar();
 
 	fetch('/data/items-gms83-ko.json')
 		.then((response) => {
@@ -1521,6 +1525,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  }
 	};
 
+	renderEvSlotBar();
+
 	const showEvSavePicker = () => {
 	  const evState = window.__evState?.();
 	  const selectedItem = evState?.selectedBaseItem;
@@ -1677,51 +1683,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	};
 
 	const loadEvSlot = (slotIndex) => {
-		const confirmUnsaveEvSlot = () => {
-		  const state = buildEvPageState();
-		  if (!state) return;
-		  const slotIndex = findMatchingSlot('expectedValue', state);
-		  if (slotIndex < 0) return;
-		  const slots = readSlots('expectedValue');
-		  const s = slots[slotIndex];
-		  if (!s) return;
-
-		  const overlay = document.createElement('div');
-		  overlay.className = 'decon-confirm-overlay';
-		  const dialog = document.createElement('div');
-		  dialog.className = 'decon-confirm-dialog';
-
-		  const msg = document.createElement('p');
-		  msg.textContent = '이 설정은 슬롯에 저장되어 있습니다. 저장을 해제하시겠습니까?';
-		  dialog.append(msg);
-
-		  const card = document.createElement('div');
-		  card.className = 'replace-confirm-card';
-		  card.innerHTML = '<img src="' + buildItemIconUrl(s.item.iconId) + '" alt=""><div class="item-name">' + s.item.nameKo + '</div>';
-		  dialog.append(card);
-
-		  const buttons = document.createElement('div');
-		  buttons.className = 'replace-confirm-buttons';
-		  const confirmBtn = document.createElement('button');
-		  confirmBtn.textContent = '해제';
-		  confirmBtn.style.background = '#e74c3c';
-		  confirmBtn.style.borderColor = '#e74c3c';
-		  confirmBtn.style.color = '#fff';
-		  confirmBtn.addEventListener('click', () => {
-		    clearSlot('expectedValue', slotIndex);
-		    overlay.remove();
-		    renderEvSlotBar();
-		    checkEvStarState();
-		  });
-		  const cancelBtn = document.createElement('button');
-		  cancelBtn.textContent = '취소';
-		  cancelBtn.addEventListener('click', () => overlay.remove());
-		  buttons.append(confirmBtn, cancelBtn);
-		  dialog.append(buttons);
-		  overlay.append(dialog);
-		  document.body.append(overlay);
-		};
-
 	  const slots = readSlots('expectedValue');
 	  const s = slots[slotIndex];
 	  if (!s?.pageState?.enhancementState) return;
@@ -1746,16 +1707,65 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 	// ---- State setter for loading saved slots ----
 	window.__evSetState = (storedEnhancementState, storedItem) => {
-	  // Re-activate the panel with the stored item first
-	  if (typeof window.activatePanel2 === 'function') {
+	  // Restore the saved enhancement state (scrolls, gems, stimulant, level-ups)
+	  if (typeof window.__restoreEvState === 'function') {
+	    window.__restoreEvState(storedEnhancementState, storedItem);
+	  } else if (typeof window.activatePanel2 === 'function') {
+	    // Fallback: re-activate panel with a fresh state
 	    window.activatePanel2(storedItem);
 	  }
-	  // After a brief delay, try to restore state via __evRefresh
+	  // After a brief delay, refresh the EV calc panel
 	  setTimeout(() => {
 	    if (typeof window.__evRefresh === 'function') {
 	      window.__evRefresh();
 	    }
 	  }, 100);
+	};
+
+	// ---- Unsave confirmation (mirrors deconstruction page) ----
+	const confirmUnsaveEvSlot = () => {
+	  const state = buildEvPageState();
+	  if (!state) return;
+	  const slotIndex = findMatchingSlot('expectedValue', state);
+	  if (slotIndex < 0) return;
+	  const slots = readSlots('expectedValue');
+	  const s = slots[slotIndex];
+	  if (!s) return;
+
+	  const overlay = document.createElement('div');
+	  overlay.className = 'decon-confirm-overlay';
+	  const dialog = document.createElement('div');
+	  dialog.className = 'decon-confirm-dialog';
+
+	  const msg = document.createElement('p');
+	  msg.textContent = '이 설정은 슬롯에 저장되어 있습니다. 저장을 해제하시겠습니까?';
+	  dialog.append(msg);
+
+	  const card = document.createElement('div');
+	  card.className = 'replace-confirm-card';
+	  card.innerHTML = '<img src="' + buildItemIconUrl(s.item.iconId) + '" alt=""><div class="item-name">' + s.item.nameKo + '</div>';
+	  dialog.append(card);
+
+	  const buttons = document.createElement('div');
+	  buttons.className = 'replace-confirm-buttons';
+	  const confirmBtn = document.createElement('button');
+	  confirmBtn.textContent = '해제';
+	  confirmBtn.style.background = '#e74c3c';
+	  confirmBtn.style.borderColor = '#e74c3c';
+	  confirmBtn.style.color = '#fff';
+	  confirmBtn.addEventListener('click', () => {
+	    clearSlot('expectedValue', slotIndex);
+	    overlay.remove();
+	    renderEvSlotBar();
+	    checkEvStarState();
+	  });
+	  const cancelBtn = document.createElement('button');
+	  cancelBtn.textContent = '취소';
+	  cancelBtn.addEventListener('click', () => overlay.remove());
+	  buttons.append(confirmBtn, cancelBtn);
+	  dialog.append(buttons);
+	  overlay.append(dialog);
+	  document.body.append(overlay);
 	};
 
 	// ---- Wire star button click ----
@@ -2494,7 +2504,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 	aside.panel {
 		position: sticky;
-		top: 1rem;
+		top: calc(var(--header-offset) + 1rem);
 		align-self: start;
 	}
 
@@ -3359,6 +3369,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   align-items: center;
   justify-content: center;
   z-index: 1001;
+  isolation: isolate;
 }
 
 :global(.slot-picker-dialog) {
@@ -3384,6 +3395,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 :global(.slot-picker-slot) {
   aspect-ratio: 1;
+  min-width: 0;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -3442,6 +3454,55 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   cursor: pointer;
   font-size: 0.8rem;
   font-family: inherit;
+}
+
+/* Deconstruct-style confirmation dialogs (unsave etc.) */
+:global(.decon-confirm-overlay) {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  isolation: isolate;
+}
+
+:global(.decon-confirm-dialog) {
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 20px 24px;
+  max-width: 360px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+}
+
+:global(.decon-confirm-dialog p) {
+  margin: 0 0 16px;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+:global(.decon-confirm-buttons) {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+:global(.decon-confirm-buttons button) {
+  padding: 6px 16px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface-soft);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+:global(.decon-confirm-buttons button:first-child) {
+  background: #e74c3c;
+  border-color: #e74c3c;
+  color: #fff;
 }
 
 /* Replace confirmation */
