@@ -1081,38 +1081,64 @@ const buildStimulantBoundsEditor = () => {
     const defaultLimit = isHpMp ? 50 : 5;
     const stepSize = isHpMp ? 10 : 1;
     deconStimulantBoundsMap[key] = { min: -defaultLimit, max: defaultLimit };
-    const row = document.createElement('span');
-    row.className = 'decon-stimulant-bound';
+
+    const row = document.createElement('div');
+    row.className = 'decon-secondary-stimulant-row';
+
     const label = document.createElement('span');
-    label.textContent = (statLabelByKey[key] || key) + ': ';
+    label.className = 'decon-secondary-stimulant-stat';
+    label.textContent = statLabelByKey[key] || key;
     row.append(label);
-    for (const side of ['min', 'max']) {
-      const btnDec = document.createElement('button');
-      btnDec.type = 'button';
-      btnDec.textContent = '−';
-      const valSpan = document.createElement('span');
-      valSpan.className = 'decon-stimulant-bound-val';
-      valSpan.setAttribute('data-decon-stimulant-bound-' + side, key);
-      valSpan.textContent = side === 'min' ? String(-defaultLimit) : String(defaultLimit);
-      const btnInc = document.createElement('button');
-      btnInc.type = 'button';
-      btnInc.textContent = '+';
-      btnDec.addEventListener('click', () => guardDeconMutation(() => {
-        const current = deconStimulantBoundsMap[key]?.[side] ?? (side === 'min' ? -defaultLimit : defaultLimit);
-        const newVal = Math.max(-defaultLimit, Math.min(defaultLimit, current - stepSize));
-        deconStimulantBoundsMap[key] = { ...deconStimulantBoundsMap[key], [side]: newVal };
-        valSpan.textContent = String(newVal);
-        checkDeconStarState();
-      }));
-      btnInc.addEventListener('click', () => guardDeconMutation(() => {
-        const current = deconStimulantBoundsMap[key]?.[side] ?? (side === 'min' ? -defaultLimit : defaultLimit);
-        const newVal = Math.max(-defaultLimit, Math.min(defaultLimit, current + stepSize));
-        deconStimulantBoundsMap[key] = { ...deconStimulantBoundsMap[key], [side]: newVal };
-        valSpan.textContent = String(newVal);
-        checkDeconStarState();
-      }));
-      row.append(btnDec, valSpan, btnInc);
-    }
+
+    // Min slider (from -defaultLimit to 0-ish, but max is current max bound)
+    const minSlider = document.createElement('input');
+    minSlider.type = 'range';
+    minSlider.className = 'decon-secondary-stimulant-slider';
+    minSlider.min = -defaultLimit;
+    minSlider.max = 0;
+    minSlider.step = stepSize;
+    minSlider.value = -defaultLimit;
+
+    const minVal = document.createElement('span');
+    minVal.className = 'decon-secondary-stimulant-value';
+    minVal.textContent = String(-defaultLimit);
+
+    const sep = document.createElement('span');
+    sep.className = 'decon-secondary-stimulant-sep';
+    sep.textContent = '~';
+
+    const maxVal = document.createElement('span');
+    maxVal.className = 'decon-secondary-stimulant-value';
+    maxVal.textContent = String(defaultLimit);
+
+    // Max slider
+    const maxSlider = document.createElement('input');
+    maxSlider.type = 'range';
+    maxSlider.className = 'decon-secondary-stimulant-slider';
+    maxSlider.min = 0;
+    maxSlider.max = defaultLimit;
+    maxSlider.step = stepSize;
+    maxSlider.value = defaultLimit;
+
+    minSlider.addEventListener('input', () => {
+      const val = Number(minSlider.value);
+      minVal.textContent = String(val);
+      deconStimulantBoundsMap[key] = { ...deconStimulantBoundsMap[key], min: val };
+    });
+    minSlider.addEventListener('change', () => {
+      checkDeconStarState();
+    });
+
+    maxSlider.addEventListener('input', () => {
+      const val = Number(maxSlider.value);
+      maxVal.textContent = String(val);
+      deconStimulantBoundsMap[key] = { ...deconStimulantBoundsMap[key], max: val };
+    });
+    maxSlider.addEventListener('change', () => {
+      checkDeconStarState();
+    });
+
+    row.append(minSlider, minVal, sep, maxVal, maxSlider);
     deconStimulantBoundsList.append(row);
   }
 };
