@@ -37,7 +37,7 @@ const uniqueOptions = (options) => [...new Map(options.map((option) => [option.k
 const SCROLL_RATE_ORDER = { '100': 0, '60': 1, '10': 2 };
 const getScrollRateOrder = (name) => {
   for (const [rate, order] of Object.entries(SCROLL_RATE_ORDER)) {
-    if (name.startsWith(rate + '%')) return order;
+    if (name.includes(rate + '%')) return order;
   }
   return 3; // Chaos or unknown
 };
