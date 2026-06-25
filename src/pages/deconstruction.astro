@@ -2127,35 +2127,41 @@ const loadDeconSlot = (slotIndex) => {
     return;
   }
 
-  // Restore item
-  clearDeconCalculationState(item);
-  selectedItem = item;
-  commitSuggestedItem(item, { syncFilters: false });
+  const doLoad = () => {
+    clearDeconCalculationState(item);
+    selectedItem = item;
+    commitSuggestedItem(item, { syncFilters: false });
 
-  // Restore state from saved pageState
-  const ps = s.pageState;
-  deconDeltas = { ...(ps.deconDeltas ?? {}) };
-  deconSlotState = setSuccessfulScrollCount(deconSlotState, ps.successfulScrollCount ?? 0);
-  deconStatKeys = ps.deconStatKeys ? [...ps.deconStatKeys] : deconStatKeys;
-  deconSlotState = setRemainingSlotCount(deconSlotState, ps.remainingSlots ?? deconSlotState.maxSlots);
-  deconAppliedLevelCount = ps.appliedLevelCount ?? 0;
-  deconGemFilter = ps.gemFilter ? new Set(ps.gemFilter) : null;
-  deconScrollRateFilter = ps.scrollRateFilter ? new Set(ps.scrollRateFilter) : new Set(['100','60','10','chaos']);
-  deconStimulantBoundsMap = ps.stimulantBoundsMap ?? {};
+    const ps = s.pageState;
+    deconDeltas = { ...(ps.deconDeltas ?? {}) };
+    deconSlotState = setSuccessfulScrollCount(deconSlotState, ps.successfulScrollCount ?? 0);
+    deconStatKeys = ps.deconStatKeys ? [...ps.deconStatKeys] : deconStatKeys;
+    deconSlotState = setRemainingSlotCount(deconSlotState, ps.remainingSlots ?? deconSlotState.maxSlots);
+    deconAppliedLevelCount = ps.appliedLevelCount ?? 0;
+    deconGemFilter = ps.gemFilter ? new Set(ps.gemFilter) : null;
+    deconScrollRateFilter = ps.scrollRateFilter ? new Set(ps.scrollRateFilter) : new Set(['100','60','10','chaos']);
+    deconStimulantBoundsMap = ps.stimulantBoundsMap ?? {};
 
-  if (deconScrollSource instanceof HTMLInputElement) deconScrollSource.checked = ps.scrollSource ?? true;
-  if (deconStimulantSource instanceof HTMLInputElement) deconStimulantSource.checked = ps.stimulantSource ?? true;
-  if (deconGemsSource instanceof HTMLInputElement) deconGemsSource.checked = ps.gemsSource ?? true;
-  if (deconItemLevelUpSource instanceof HTMLInputElement) deconItemLevelUpSource.checked = ps.itemLevelUpSource ?? true;
+    if (deconScrollSource instanceof HTMLInputElement) deconScrollSource.checked = ps.scrollSource ?? true;
+    if (deconStimulantSource instanceof HTMLInputElement) deconStimulantSource.checked = ps.stimulantSource ?? true;
+    if (deconGemsSource instanceof HTMLInputElement) deconGemsSource.checked = ps.gemsSource ?? true;
+    if (deconItemLevelUpSource instanceof HTMLInputElement) deconItemLevelUpSource.checked = ps.itemLevelUpSource ?? true;
 
-  deconHasActionableResults = false;
-  renderDeconSlotState();
-  renderDeconItemLevel();
-  rebuildStatEditor();
-  updateTargetCard();
-  renderDeconSlotBar();
-  checkDeconStarState();
-  updateAnalyzeButton();
+    deconHasActionableResults = false;
+    renderDeconSlotState();
+    renderDeconItemLevel();
+    rebuildStatEditor();
+    updateTargetCard();
+    renderDeconSlotBar();
+    checkDeconStarState();
+    updateAnalyzeButton();
+  };
+
+  if (hasDeconDraftState()) {
+    showDeconConfirmDialog(doLoad);
+  } else {
+    doLoad();
+  }
 };
 
 // ---- Star button click ----
