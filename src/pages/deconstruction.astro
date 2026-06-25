@@ -535,6 +535,10 @@ const getDeconItemLevelSourceEligibility = () => {
 const updateLevelUpSourceEligibility = () => {
   if (!(deconLevelUpSource instanceof HTMLElement)) return;
   deconLevelUpSource.hidden = !selectedItem || !itemLevelUpByItemId.has(selectedItem.id);
+  // Disable 레벨업 checkbox until user changes 아이템 레벨 from default
+  if (deconItemLevelUpSource instanceof HTMLInputElement) {
+    deconItemLevelUpSource.disabled = deconAppliedLevelCount === 0;
+  }
   updateAnalyzeButton();
 };
 
