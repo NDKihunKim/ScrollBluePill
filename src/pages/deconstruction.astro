@@ -544,14 +544,14 @@ deconScrollSource?.addEventListener('change', () => {
     deconScrollRateInputs.forEach(inp => { if (inp instanceof HTMLInputElement) inp.checked = true; });
   });
   updateAnalyzeButton();
-	  checkDeconStarState();
+
 });
 
 deconStimulantSource?.addEventListener('change', () => {
   toggleSourceSub(deconStimulantSource, deconStimulantBounds, () => {
     buildStimulantBoundsEditor();
   });
-	  checkDeconStarState();
+
   updateAnalyzeButton();
 });
 
