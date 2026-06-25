@@ -1161,6 +1161,7 @@ const buildGemPreFilter = () => {
         deconGemFilter.add(`${currentGradeGem.key}:${gi}`);
       }
       renderGrades(currentGradeGem);
+	      checkDeconStarState();
     } else {
       // In category view: select all gems and grades
       for (const g of GEM_TYPES) {
@@ -1170,6 +1171,7 @@ const buildGemPreFilter = () => {
         }
       }
       renderCategories();
+	      checkDeconStarState();
     }
   });
   actions.append(selectAllBtn);
@@ -1184,6 +1186,7 @@ const buildGemPreFilter = () => {
       for (let gi = 0; gi < GEM_GRADES.length; gi++) {
         deconGemFilter.delete(`${currentGradeGem.key}:${gi}`);
       }
+	      checkDeconStarState();
       renderGrades(currentGradeGem);
     } else {
       // In category view: deselect all gems and grades
@@ -1192,6 +1195,7 @@ const buildGemPreFilter = () => {
         for (let gi = 0; gi < GEM_GRADES.length; gi++) {
           deconGemFilter.delete(`${g.key}:${gi}`);
         }
+	      checkDeconStarState();
       }
       renderCategories();
     }
@@ -1260,7 +1264,7 @@ const buildGemPreFilter = () => {
     }
 
     contentArea.append(grid);
-    checkDeconStarState();
+
   };
 
   const renderGrades = (gem) => {
@@ -1358,7 +1362,8 @@ const buildGemPreFilter = () => {
     }
 
     contentArea.append(gradesList);
-    checkDeconStarState();
+
+	  checkDeconStarState();
   };
 
   renderCategories();
