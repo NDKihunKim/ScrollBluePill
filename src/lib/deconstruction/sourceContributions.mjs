@@ -10,7 +10,7 @@ import { addVectors, projectVector, vectorKey } from './statVectors.mjs';
 
 const WEAPON_ONLY_STIM_KEYS = new Set(['weaponAttack', 'magicAttack']);
 
-export function solveStimulantResidual(residual, targetKeys, { isWeapon = true, bounds = null } = {}) {
+export function solveStimulantResidual(residual, targetKeys, { isWeapon = true, bounds = null, cleanStats = null } = {}) {
   const stats = {};
   let hasNonZero = false;
   for (const key of targetKeys) {
@@ -18,9 +18,14 @@ export function solveStimulantResidual(residual, targetKeys, { isWeapon = true, 
     const baseLimit = HP_MP_KEYS.has(key) ? 50 : 5;
     const step = HP_MP_KEYS.has(key) ? 10 : 1;
     const boundRange = bounds?.[key];
-    const effectiveMin = boundRange && Number.isFinite(boundRange.min)
+    const boundMin = boundRange && Number.isFinite(boundRange.min)
       ? Math.max(-baseLimit, Math.min(baseLimit, boundRange.min))
       : -baseLimit;
+    // Stimulant can only affect stats that exist on the clean item with a
+    // positive base value — same rule as the stimulant bounds UI.
+    const statExistsOnBase = cleanStats && Number.isFinite(cleanStats[key]) && cleanStats[key] > 0;
+    if (!statExistsOnBase && value !== 0) return null;
+    const effectiveMin = statExistsOnBase ? boundMin : 0;
     const effectiveMax = boundRange && Number.isFinite(boundRange.max)
       ? Math.max(-baseLimit, Math.min(baseLimit, boundRange.max))
       : baseLimit;

@@ -80,17 +80,75 @@ export function clearSlot(page, slotIndex) {
  * @param {object} pageState
  * @returns {number} slot index or -1
  */
+/**
+ * Pick only the canonical fields used for slot matching.
+ * This keeps comparison backward-compatible when the saved state
+ * format evolves (e.g. Panel 3 fields removed from the save).
+ */
+function canonicalizePageState(pageState) {
+  if (!pageState) return null;
+  // Normalize deconDeltas: strip zero entries and enforce key order from
+  // deconStatKeys so JSON.stringify produces the same string regardless of
+  // the raw delta object's key insertion order.  Without this, old saves
+  // (which stored zeros) or saves with different key orders never match
+  // and the star stays unfilled.
+  const deltas = {};
+  const rawDeltas = pageState.deconDeltas ?? {};
+  const statKeys = pageState.deconStatKeys ?? [];
+  // Iterate statKeys first so key order matches buildDeconPageState
+  for (const key of statKeys) {
+    const value = rawDeltas[key];
+    if (value !== 0 && Number.isFinite(value)) deltas[key] = value;
+  }
+  // Defensive: include any non-zero delta keys not listed in statKeys
+  for (const key of Object.keys(rawDeltas)) {
+    if (!(key in deltas)) {
+      const value = rawDeltas[key];
+      if (value !== 0 && Number.isFinite(value)) deltas[key] = value;
+    }
+  }
+  return {
+    itemId: pageState.itemId,
+    deconDeltas: deltas,
+    successfulScrollCount: pageState.successfulScrollCount ?? 0,
+    deconStatKeys: [...statKeys],
+    remainingSlots: pageState.remainingSlots ?? 0,
+    appliedLevelCount: pageState.appliedLevelCount ?? 0,
+    // Include enhancementState so different scroll/gem/stimulant configs
+    // for the same item are treated as distinct saves (expected-value page).
+    enhancementState: pageState.enhancementState ?? null,
+  };
+}
+
 export function findMatchingSlot(page, pageState) {
   const slots = readSlots(page);
+  const currentCanon = canonicalizePageState(pageState);
+  const currentJson = JSON.stringify(currentCanon);
+  console.group('findMatchingSlot');
+  console.log('page:', page);
+  console.log('pageState.itemId:', pageState.itemId);
+  console.log('pageState.deconDeltas:', pageState.deconDeltas);
+  console.log('pageState.deconStatKeys:', pageState.deconStatKeys);
+  console.log('current canonicalized:', currentCanon);
+  console.log('current JSON:', currentJson);
   for (let i = 0; i < slots.length; i++) {
     const s = slots[i];
     if (!s) continue;
+    console.log('slot', i, 's.item.id:', s.item.id, 's.item.nameKo:', s.item.nameKo);
     if (s.item.id === pageState.itemId) {
-      // Deep compare pageState via JSON serialization
-      if (JSON.stringify(s.pageState) === JSON.stringify(pageState)) {
+      const savedCanon = canonicalizePageState(s.pageState);
+      const savedJson = JSON.stringify(savedCanon);
+      console.log('slot', i, 'saved canonicalized:', savedCanon);
+      console.log('slot', i, 'saved JSON:', savedJson);
+      console.log('slot', i, 'match?', savedJson === currentJson);
+      if (savedJson === currentJson) {
+        console.log('=> MATCH slot', i);
+        console.groupEnd();
         return i;
       }
     }
   }
+  console.log('=> NO MATCH');
+  console.groupEnd();
   return -1;
 }

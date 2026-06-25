@@ -793,6 +793,61 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     notifyEv();
   };
 
+	  const restoreEnhancementState = (storedState, item) => {
+	    if (!(enhancementPanel instanceof HTMLElement) ||
+	        !(enhancementDormant instanceof HTMLElement) ||
+	        !(enhancementActive instanceof HTMLElement) ||
+	        !(enhancementEquipmentKind instanceof HTMLElement)) {
+	      return;
+	    }
+
+	    const upgradeSlots = item.stats?.upgradeSlots ?? 0;
+
+	    if (upgradeSlots <= 0 || !Number.isFinite(upgradeSlots)) {
+	      enhancementPanel.hidden = false;
+	      enhancementDormant.hidden = true;
+	      enhancementActive.hidden = true;
+
+	      if (enhancementMessage instanceof HTMLElement) {
+	        enhancementMessage.textContent = '강화 불가능한 아이템입니다';
+	        enhancementMessage.hidden = false;
+	      }
+	      makerPanel.deactivate();
+	      itemLevelUpPanel.deactivate();
+	      if (resetButton instanceof HTMLElement) {
+	        resetButton.hidden = true;
+	      }
+	      return;
+	    }
+
+	    const levelUpDefinition = itemLevelUpByItemId.get(item.id) ?? null;
+	    const itemLevelUpDefinition = supportsItemLevelUp(levelUpDefinition) ? levelUpDefinition : null;
+	    selectedBaseItem = item;
+	    selectedItemLevelUpDefinition = itemLevelUpDefinition;
+
+	    // Use the saved enhancement state instead of creating a fresh one
+	    enhancementState = storedState;
+	    collapseChaosPanel();
+	    chaosStepperValues = new Map();
+	    activeScrollStatFilter = 'all';
+
+	    enhancementPanel.hidden = false;
+	    enhancementDormant.hidden = true;
+	    enhancementActive.hidden = false;
+	    enhancementEquipmentKind.textContent = item.equipmentKind;
+	    if (resetButton instanceof HTMLElement) {
+	      resetButton.hidden = false;
+	    }
+
+	    hideScrollDetail();
+	    renderSlotRow();
+	    renderScrollList(item);
+	    makerPanel.activate(enhancementState, item);
+	    itemLevelUpPanel.activate(enhancementState, item, itemLevelUpDefinition);
+	    refreshEnhancedCard();
+	    notifyEv();
+	  };
+
   resetButton?.addEventListener('click', () => {
     if (!enhancementState || !selectedBaseItem) {
       return;
@@ -980,6 +1035,9 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     scrollsByEquipmentKind,
     selectedItemLevelUpDefinition,
   });
+
+  // Expose restore function so saved slots can reload enhancement state
+  window.__restoreEvState = restoreEnhancementState;
 
   /**
    * Notifies the EV calculator (if available) that the enhancement state changed.

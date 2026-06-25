@@ -253,7 +253,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
                     <label class="decon-rate-chip"><input type="checkbox" data-decon-scroll-rate="100" checked />100%</label>
                     <label class="decon-rate-chip"><input type="checkbox" data-decon-scroll-rate="60" checked />60%</label>
                     <label class="decon-rate-chip"><input type="checkbox" data-decon-scroll-rate="10" checked />10%</label>
-                    <label class="decon-rate-chip"><input type="checkbox" data-decon-scroll-rate="chaos" checked />Chaos</label>
+                    <label class="decon-rate-chip"><input type="checkbox" data-decon-scroll-rate="chaos" checked />혼돈의 주문서<span class="decon-chaos-help"><span class="decon-chaos-help-icon">?</span><span class="decon-chaos-help-tooltip">일반 주문서와의 조합이 불가능 할경우 사용됩니다.</span></span></label>
                   </div>
                 </div>
                 <div class="decon-source-row">
@@ -269,7 +269,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
                 <div class="decon-source-row">
                   <label class="ev-target-chip">
                     <input type="checkbox" data-decon-source="gems" />
-                    <span class="ev-target-chip-label">보석</span>
+                    <span class="ev-target-chip-label">메이커 보석</span>
                   </label>
                   <div class="decon-source-sub" data-decon-gem-sub></div>
                 </div>
@@ -522,6 +522,15 @@ const resetAllowedSources = () => {
   if (deconGemsSource instanceof HTMLInputElement) deconGemsSource.checked = defaults.gems;
   if (deconItemLevelUpSource instanceof HTMLInputElement) {
     deconItemLevelUpSource.checked = defaults.itemLevelUp;
+  }
+  // Collapse all source sub-sections since programmatic .checked
+  // changes don't fire the change event that toggleSourceSub needs.
+  const allSubs = [deconScrollRateSub, deconStimulantBounds, deconGemSub, deconLevelSlotRanges];
+  for (const sub of allSubs) {
+    if (sub instanceof HTMLElement) {
+      sub.classList.remove('decon-source-sub--open');
+      sub.hidden = true;
+    }
   }
 };
 
@@ -839,6 +848,8 @@ const renderTargetItemCard = (item) => {
 
   const resetBtn = document.querySelector('[data-enhancement-reset]');
   if (resetBtn instanceof HTMLElement) resetBtn.hidden = false;
+
+  checkDeconStarState();
 };
 
 const updateTargetCard = () => {
@@ -1077,6 +1088,12 @@ const buildStimulantBoundsEditor = () => {
   if (!selectedItem) return;
   deconStimulantBoundsMap = {};
   for (const key of deconStatKeys) {
+    // Only show stats present on the clean base item with a value > 0.
+    // User-added stats (via "+ 스탯 추가") are skipped — stimulant bounds
+    // should not apply to stats the item doesn't naturally have.
+    const baseVal = selectedItem?.stats?.[key];
+    if (!Number.isFinite(baseVal) || baseVal <= 0) continue;
+
     const isHpMp = HP_MP_KEYS.has(key);
     const defaultLimit = isHpMp ? 50 : 5;
     const stepSize = isHpMp ? 10 : 1;
@@ -1090,7 +1107,7 @@ const buildStimulantBoundsEditor = () => {
     label.textContent = statLabelByKey[key] || key;
     row.append(label);
 
-    // Min slider (from -defaultLimit to 0-ish, but max is current max bound)
+    // Min slider (from -defaultLimit to 0)
     const minSlider = document.createElement('input');
     minSlider.type = 'range';
     minSlider.className = 'decon-secondary-stimulant-slider';
@@ -1417,10 +1434,6 @@ const buildLevelUpSlotEditors = () => {
   const slot = document.createElement('div');
   slot.className = 'decon-level-slot';
   slot.setAttribute('data-decon-level-total-range', String(applied));
-  const header = document.createElement('div');
-  header.className = 'decon-level-slot-label';
-  header.textContent = `레벨업 총합 (+${applied})`;
-  slot.append(header);
 
   const statsRow = document.createElement('div');
   statsRow.className = 'decon-level-slot-stats';
@@ -1433,51 +1446,82 @@ const buildLevelUpSlotEditors = () => {
       deconLevelUpTotalRanges[key] = { min: totalMin, max: totalMax };
     }
 
-    const statEl = document.createElement('span');
-    statEl.textContent = (statLabelByKey[key] || key) + ' ';
+    const range = deconLevelUpTotalRanges[key];
 
-    const minInput = document.createElement('input');
-    minInput.type = 'number';
-    minInput.min = totalMin;
-    minInput.max = totalMax;
-    minInput.value = deconLevelUpTotalRanges[key].min;
-    const prevMin = deconLevelUpTotalRanges[key]?.min ?? totalMin;
-    minInput.addEventListener('change', () => {
-      const nextVal = Number(minInput.value);
-      minInput.value = prevMin;
-      guardDeconMutation(() => {
-        const val = Number.isFinite(nextVal) ? nextVal : prevMin;
-        const clampedMin = Math.max(totalMin, Math.min(totalMax, val));
-        deconLevelUpTotalRanges[key] = {
-          ...deconLevelUpTotalRanges[key],
-          min: Math.min(clampedMin, deconLevelUpTotalRanges[key]?.max ?? totalMax),
-        };
-        minInput.value = deconLevelUpTotalRanges[key].min;
-      });
+    // Row — reuses stimulant CSS for visual consistency
+    const row = document.createElement('div');
+    row.className = 'decon-secondary-stimulant-row';
+
+    const label = document.createElement('span');
+    label.className = 'decon-secondary-stimulant-stat';
+    label.textContent = statLabelByKey[key] || key;
+    row.append(label);
+
+    // Min slider
+    const minSlider = document.createElement('input');
+    minSlider.type = 'range';
+    minSlider.className = 'decon-secondary-stimulant-slider';
+    minSlider.min = totalMin;
+    minSlider.max = totalMax;
+    minSlider.step = 1;
+    minSlider.value = range.min;
+
+    const minVal = document.createElement('span');
+    minVal.className = 'decon-secondary-stimulant-value';
+    minVal.textContent = String(range.min);
+
+    const sep = document.createElement('span');
+    sep.className = 'decon-secondary-stimulant-sep';
+    sep.textContent = '~';
+
+    const maxVal = document.createElement('span');
+    maxVal.className = 'decon-secondary-stimulant-value';
+    maxVal.textContent = String(range.max);
+
+    // Max slider
+    const maxSlider = document.createElement('input');
+    maxSlider.type = 'range';
+    maxSlider.className = 'decon-secondary-stimulant-slider';
+    maxSlider.min = totalMin;
+    maxSlider.max = totalMax;
+    maxSlider.step = 1;
+    maxSlider.value = range.max;
+
+    // ---- event handlers (mirror stimulant editor pattern) ----
+    minSlider.addEventListener('input', () => {
+      const val = Number(minSlider.value);
+      minVal.textContent = String(val);
+      // Enforce min ≤ max
+      const clamped = Math.min(val, deconLevelUpTotalRanges[key].max);
+      deconLevelUpTotalRanges[key] = { ...deconLevelUpTotalRanges[key], min: clamped };
+    });
+    minSlider.addEventListener('change', () => {
+      const val = Number(minSlider.value);
+      const clamped = Math.min(val, deconLevelUpTotalRanges[key].max);
+      deconLevelUpTotalRanges[key] = { ...deconLevelUpTotalRanges[key], min: clamped };
+      minSlider.value = clamped;
+      minVal.textContent = String(clamped);
+      checkDeconStarState();
     });
 
-    const maxInput = document.createElement('input');
-    maxInput.type = 'number';
-    maxInput.min = totalMin;
-    maxInput.max = totalMax;
-    maxInput.value = deconLevelUpTotalRanges[key].max;
-    const prevMax = deconLevelUpTotalRanges[key]?.max ?? totalMax;
-    maxInput.addEventListener('change', () => {
-      const nextVal = Number(maxInput.value);
-      maxInput.value = prevMax;
-      guardDeconMutation(() => {
-        const val = Number.isFinite(nextVal) ? nextVal : prevMax;
-        const clampedMax = Math.max(totalMin, Math.min(totalMax, val));
-        deconLevelUpTotalRanges[key] = {
-          ...deconLevelUpTotalRanges[key],
-          max: Math.max(clampedMax, deconLevelUpTotalRanges[key]?.min ?? totalMin),
-        };
-        maxInput.value = deconLevelUpTotalRanges[key].max;
-      });
+    maxSlider.addEventListener('input', () => {
+      const val = Number(maxSlider.value);
+      maxVal.textContent = String(val);
+      // Enforce max ≥ min
+      const clamped = Math.max(val, deconLevelUpTotalRanges[key].min);
+      deconLevelUpTotalRanges[key] = { ...deconLevelUpTotalRanges[key], max: clamped };
+    });
+    maxSlider.addEventListener('change', () => {
+      const val = Number(maxSlider.value);
+      const clamped = Math.max(val, deconLevelUpTotalRanges[key].min);
+      deconLevelUpTotalRanges[key] = { ...deconLevelUpTotalRanges[key], max: clamped };
+      maxSlider.value = clamped;
+      maxVal.textContent = String(clamped);
+      checkDeconStarState();
     });
 
-    statEl.append(minInput, document.createTextNode(' ~ '), maxInput, ' ');
-    statsRow.append(statEl);
+    row.append(minSlider, minVal, sep, maxVal, maxSlider);
+    statsRow.append(row);
   }
 
   slot.append(statsRow);
@@ -1516,6 +1560,7 @@ const renderDeconItemLevel = () => {
     buildLevelUpSlotEditors();
   }
   equalizeGroupLabels(deconEditContent, '.decon-success-row > .chaos-stat-label, .decon-slot-row > .chaos-stat-label, .decon-level-row:not([hidden]) > .chaos-stat-label');
+  updateLevelUpSourceEligibility();
   checkDeconStarState();
 };
 
@@ -1877,29 +1922,20 @@ const activateDeconEditPanel = (item) => {
 // ---- Save slot helpers ----
 const buildDeconPageState = () => {
   if (!selectedItem) return null;
+  // Strip zero entries — rebuildStatEditor seeds missing keys as 0,
+  // which would otherwise break slot match after load
+  const deltas = {};
+  for (const key of deconStatKeys) {
+    const value = deconDeltas[key];
+    if (value !== 0 && Number.isFinite(value)) deltas[key] = value;
+  }
   return {
     itemId: selectedItem.id,
-    deconDeltas: { ...deconDeltas },
+    deconDeltas: deltas,
     successfulScrollCount: deconSlotState.successfulScrollCount,
     deconStatKeys: [...deconStatKeys],
     remainingSlots: deconSlotState.remainingSlots,
     appliedLevelCount: deconAppliedLevelCount,
-    gemFilter: (() => {
-      if (!deconGemFilter) return null;
-      // If all applicable gems are selected, treat as null (no filter)
-      let total = 0;
-      for (const g of GEM_TYPES) {
-        if (g.weaponOnly && !isWeaponKind(selectedItem.equipmentKind)) continue;
-        total += GEM_GRADES.length;
-      }
-      return deconGemFilter.size >= total ? null : [...deconGemFilter];
-    })(),
-    scrollRateFilter: deconScrollRateFilter ? [...deconScrollRateFilter] : null,
-    stimulantBoundsMap: deconStimulantBoundsMap ? { ...deconStimulantBoundsMap } : null,
-    scrollSource: deconScrollSource?.checked ?? true,
-    stimulantSource: deconStimulantSource?.checked ?? true,
-    gemsSource: deconGemsSource?.checked ?? true,
-    itemLevelUpSource: deconItemLevelUpSource?.checked ?? true,
   };
 };
 
@@ -1909,15 +1945,18 @@ const checkDeconStarState = () => {
   if (!state) {
     deconStar.textContent = '☆';
     deconStar.classList.remove('item-card-star--saved');
+    console.log('checkDeconStarState: no state → ☆');
     return;
   }
   const match = findMatchingSlot('deconstruction', state);
   if (match >= 0) {
     deconStar.textContent = '★';
     deconStar.classList.add('item-card-star--saved');
+    console.log('checkDeconStarState: match slot', match, '→ ★');
   } else {
     deconStar.textContent = '☆';
     deconStar.classList.remove('item-card-star--saved');
+    console.log('checkDeconStarState: no match → ☆', 'state:', state);
   }
 };
 
@@ -2154,9 +2193,14 @@ const loadDeconSlot = (slotIndex) => {
   }
 
   const doLoad = () => {
+    const itemChanged = selectedItem?.id !== item.id;
     clearDeconCalculationState(item);
     selectedItem = item;
     commitSuggestedItem(item, { syncFilters: false });
+
+    // commitSuggestedItem skips resetAllowedSources because we set
+    // selectedItem above — reset manually when switching items.
+    if (itemChanged) resetAllowedSources();
 
     const ps = s.pageState;
     deconDeltas = { ...(ps.deconDeltas ?? {}) };
@@ -2164,14 +2208,6 @@ const loadDeconSlot = (slotIndex) => {
     deconStatKeys = ps.deconStatKeys ? [...ps.deconStatKeys] : deconStatKeys;
     deconSlotState = setRemainingSlotCount(deconSlotState, ps.remainingSlots ?? deconSlotState.maxSlots);
     deconAppliedLevelCount = ps.appliedLevelCount ?? 0;
-    deconGemFilter = ps.gemFilter ? new Set(ps.gemFilter) : null;
-    deconScrollRateFilter = ps.scrollRateFilter ? new Set(ps.scrollRateFilter) : new Set(['100','60','10','chaos']);
-    deconStimulantBoundsMap = ps.stimulantBoundsMap ?? {};
-
-    if (deconScrollSource instanceof HTMLInputElement) deconScrollSource.checked = ps.scrollSource ?? true;
-    if (deconStimulantSource instanceof HTMLInputElement) deconStimulantSource.checked = ps.stimulantSource ?? true;
-    if (deconGemsSource instanceof HTMLInputElement) deconGemsSource.checked = ps.gemsSource ?? true;
-    if (deconItemLevelUpSource instanceof HTMLInputElement) deconItemLevelUpSource.checked = ps.itemLevelUpSource ?? true;
 
     deconHasActionableResults = false;
     renderDeconSlotState();
@@ -2333,7 +2369,12 @@ const displayResults = (result, targetDeltas) => {
     // 2. Total stats — summary subtitle
     const statRow = document.createElement('div');
     statRow.className = 'decon-strategy-stats';
-    const statParts = Object.entries(strategy.totalStats)
+    const sortStatEntries = (entries) => [...entries].sort(([a], [b]) => {
+      const ai = STAT_ORDER.indexOf(a);
+      const bi = STAT_ORDER.indexOf(b);
+      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+    });
+    const statParts = sortStatEntries(Object.entries(strategy.totalStats))
       .filter(([, v]) => v !== 0)
       .map(([k, v]) => `${statLabelByKey[k] ?? k} ${v > 0 ? '+' : ''}${v}`);
     statRow.textContent = statParts.join(', ');
@@ -2383,7 +2424,7 @@ const displayResults = (result, targetDeltas) => {
         nameCell.append(topLine);
 
         // Effect sub-line
-        const effects = Object.entries(group.scroll.stats)
+        const effects = sortStatEntries(Object.entries(group.scroll.stats))
           .filter(([, v]) => v !== 0)
           .map(([k, v]) => `${statLabelByKey[k] ?? k} ${v > 0 ? '+' : ''}${v}`);
         if (effects.length > 0) {
@@ -2401,7 +2442,7 @@ const displayResults = (result, targetDeltas) => {
     }
 
     // 3. Source details (stimulant, gems, itemLevelUp)
-    const formatSourceStats = (stats) => Object.entries(stats)
+    const formatSourceStats = (stats) => sortStatEntries(Object.entries(stats))
       .filter(([, value]) => value !== 0)
       .map(([key, value]) => `${statLabelByKey[key] ?? key}: ${value > 0 ? '+' : ''}${value}`)
       .join(', ');
@@ -3373,7 +3414,7 @@ Promise.all([
 
 aside.panel {
   position: sticky;
-  top: 1rem;
+  top: calc(var(--header-offset) + 1rem);
   align-self: start;
 }
 
@@ -3650,10 +3691,14 @@ aside.panel {
   padding-bottom: 6px;
   margin-top: 6px;
   border-left-width: 3px;
+  overflow: visible;
 }
 .decon-source-sub-label {
-  color: #aaa;
-  font-size: 0.8rem;
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 2px;
 }
 :global(.decon-rate-chip) {
   display: inline-flex;
@@ -3665,16 +3710,91 @@ aside.panel {
   cursor: pointer;
   font-size: 0.82rem;
   font-family: inherit;
+  transition: border-color 0.15s, background 0.15s, opacity 0.15s;
 }
 :global(.decon-rate-chip) input {
-  width: 14px;
-  height: 14px;
-  accent-color: #3366ff;
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+:global(.decon-rate-chip):has(input:checked) {
+  border-color: rgb(1 143 199 / 40%);
+  background: rgb(1 143 199 / 10%);
+  opacity: 1;
+}
+:global(.decon-rate-chip):has(input:checked):hover {
+  background: rgb(1 143 199 / 16%);
+}
+:root[data-theme="dark"] :global(.decon-rate-chip):has(input:checked) {
+  border-color: rgb(255 255 255 / 25%);
+  background: rgb(255 255 255 / 8%);
+}
+:root[data-theme="dark"] :global(.decon-rate-chip):has(input:checked):hover {
+  background: rgb(255 255 255 / 14%);
 }
 :global(.decon-rate-chip):has(input:not(:checked)) {
   border-color: #444;
   opacity: 0.6;
 }
+.decon-chaos-help {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.decon-chaos-help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid #777;
+  color: #aaa;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-left: 2px;
+  cursor: help;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.decon-chaos-help-icon:hover {
+  border-color: var(--green);
+  color: white;
+  background: var(--green);
+}
+.decon-chaos-help-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #333;
+  color: #f0f0f0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 20;
+}
+.decon-chaos-help-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #333;
+}
+.decon-chaos-help:hover .decon-chaos-help-tooltip {
+  opacity: 1;
+}
+
 .decon-level-slot {
   background: #1e1e24;
   border-radius: 6px;
@@ -3691,19 +3811,9 @@ aside.panel {
 .decon-level-slot-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 12px;
+  gap: 4px 8px;
   font-size: 0.78rem;
   color: #bbb;
-}
-.decon-level-slot-stats input {
-  width: 28px;
-  padding: 1px 3px;
-  font-size: 0.78rem;
-  background: #333;
-  border: 1px solid #555;
-  border-radius: 3px;
-  color: #ddd;
-  text-align: center;
 }
 :global(.decon-stimulant-bound) {
   display: inline-flex;
@@ -3845,6 +3955,10 @@ aside.panel {
 
 :global(.decon-secondary-filters) {
   margin-bottom: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
 }
 
 :global(.decon-secondary-filters[hidden]) {
@@ -4063,7 +4177,7 @@ aside.panel {
   flex-direction: column;
   align-items: center;
   padding: 8px 4px;
-  border: 1px solid var(--line);
+  border: 1px solid rgb(128 128 128 / 12%);
   border-radius: 6px;
   background: var(--surface);
   cursor: pointer;
@@ -4071,15 +4185,35 @@ aside.panel {
   font-size: 0.75rem;
   color: var(--ink);
   text-align: center;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
 
 :global(.decon-gem-category:hover) {
   border-color: var(--green);
+  background: var(--nav-hover);
 }
 
 :global(.decon-gem-category--selected) {
-  border-color: var(--green);
+  border-color: rgb(1 143 199 / 35%);
+  background: rgb(1 143 199 / 8%);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+:global(.decon-gem-category--selected):hover {
+  background: rgb(1 143 199 / 14%);
+  color: var(--ink);
+}
+
+:root[data-theme="dark"] :global(.decon-gem-category--selected) {
+  border-color: rgb(255 255 255 / 18%);
+  background: rgb(255 255 255 / 8%);
+  color: #fff;
+}
+
+:root[data-theme="dark"] :global(.decon-gem-category--selected):hover {
+  background: rgb(255 255 255 / 14%);
+  color: #fff;
 }
 
 :global(.decon-gem-category img) {
@@ -4091,6 +4225,11 @@ aside.panel {
 
 :global(.decon-gem-category-stat) {
   font-size: 0.7rem;
+  color: var(--muted);
+}
+
+:global(.decon-gem-category--selected .decon-gem-category-stat),
+:global(.decon-gem-grade--selected .decon-gem-category-stat) {
   color: var(--muted);
 }
 
@@ -4142,7 +4281,7 @@ aside.panel {
   flex-direction: column;
   align-items: center;
   padding: 8px 4px;
-  border: 1px solid var(--line);
+  border: 1px solid rgb(128 128 128 / 12%);
   border-radius: 6px;
   background: var(--surface);
   cursor: pointer;
@@ -4150,15 +4289,35 @@ aside.panel {
   font-size: 0.75rem;
   color: var(--ink);
   text-align: center;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
 
 :global(.decon-gem-grade:hover) {
   border-color: var(--green);
+  background: var(--nav-hover);
 }
 
 :global(.decon-gem-grade--selected) {
-  border-color: var(--green);
+  border-color: rgb(1 143 199 / 35%);
+  background: rgb(1 143 199 / 8%);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+:global(.decon-gem-grade--selected):hover {
+  background: rgb(1 143 199 / 14%);
+  color: var(--ink);
+}
+
+:root[data-theme="dark"] :global(.decon-gem-grade--selected) {
+  border-color: rgb(255 255 255 / 18%);
+  background: rgb(255 255 255 / 8%);
+  color: #fff;
+}
+
+:root[data-theme="dark"] :global(.decon-gem-grade--selected):hover {
+  background: rgb(255 255 255 / 14%);
+  color: #fff;
 }
 
 :global(.decon-gem-grade img) {
@@ -4294,6 +4453,7 @@ aside.panel {
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  isolation: isolate;
 }
 
 :global(.decon-confirm-dialog) {
@@ -4562,6 +4722,7 @@ aside.panel {
   align-items: center;
   justify-content: center;
   z-index: 1001;
+  isolation: isolate;
 }
 
 :global(.slot-picker-dialog) {
@@ -4587,6 +4748,7 @@ aside.panel {
 
 :global(.slot-picker-slot) {
   aspect-ratio: 1;
+  min-width: 0;
   border-radius: 8px;
   display: flex;
   flex-direction: column;

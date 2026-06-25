@@ -50,7 +50,7 @@ const { title, description, eyebrow } = Astro.props;
 
   aside.panel {
     position: sticky;
-    top: 1rem;
+    top: calc(var(--header-offset) + 1rem);
     align-self: start;
   }
 

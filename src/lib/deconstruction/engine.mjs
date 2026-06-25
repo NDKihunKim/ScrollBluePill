@@ -419,7 +419,10 @@ export function enumerateStrategies({
   const gemBounds = {};
   for (const k of targetKeys) {
     const limit = HP_MP_KEYS.has(k) ? 50 : 5;
-    stimulantBounds[k] = { min: -limit, max: limit };
+    // Stimulant can only affect stats that exist on the clean item with a
+    // positive base value — same rule as the stimulant bounds UI.
+    const statExistsOnBase = cleanStats && Number.isFinite(cleanStats[k]) && cleanStats[k] > 0;
+    stimulantBounds[k] = statExistsOnBase ? { min: -limit, max: limit } : { min: 0, max: 0 };
     gemBounds[k] = { min: -Infinity, max: Infinity };
   }
   const itemBounds = {};
@@ -497,7 +500,7 @@ export function enumerateStrategies({
   const scrolls = scrollRateFilter ? filterScrollsByRate(rawScrolls, scrollRateFilter) : rawScrolls;
 
   const equipmentIsWeapon = isWeaponKind(equipmentKind);
-  const stimulantOpts = { isWeapon: equipmentIsWeapon };
+  const stimulantOpts = { isWeapon: equipmentIsWeapon, cleanStats };
 
   // Generate exact-count scroll states against the effective (post-applied-stats) target
   const effectiveScrollStates = normalizedAllowedSources.scrolls && normCount > 0
