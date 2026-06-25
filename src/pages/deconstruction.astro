@@ -613,7 +613,7 @@ const renderTargetChips = () => {
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.dataset.deconTargetKey = key;
-    checkbox.checked = isCore; // core always pre-checked
+    checkbox.checked = delta !== 0; // checked only if stat has a delta
     if (checkbox.checked) anyChecked = true;
 
     checkbox.addEventListener('change', () => {
