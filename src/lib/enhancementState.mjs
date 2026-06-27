@@ -23,9 +23,9 @@ export function createItemLevelUpSlots(levelUpDefinition = null) {
   return new Array(slotCount).fill(null);
 }
 
-export function createEnhancementState(upgradeSlots, requiredLevel, levelUpDefinition = null) {
+export function createEnhancementState(upgradeSlots, requiredLevel, levelUpDefinition = null, requiredJobs = []) {
   const scrollState = _createScrollState(upgradeSlots);
-  const gemSlotCount = computeGemSlotCount(requiredLevel);
+  const gemSlotCount = computeGemSlotCount(requiredLevel, requiredJobs);
   const gemSlots = new Array(gemSlotCount).fill(null);
   const makerActive = false;
   const stimulantSlot = null;

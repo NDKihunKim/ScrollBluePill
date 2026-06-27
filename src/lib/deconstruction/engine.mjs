@@ -348,6 +348,7 @@ export function enumerateStrategies({
   levelUpTotalStatRanges = null,
   appliedLevelStats: appliedLevelStatsRaw = null,
   gemFilter = null,
+  requiredJobs = [],
 }) {
   const strategies = [];
   let tooManyResults = false;
@@ -432,7 +433,7 @@ export function enumerateStrategies({
 
   // Compute gem slot count using Maker system level thresholds
   //  0 for <48, 1 for 48-77, 2 for 78-105, 3 for 106+
-  const gemSlotCount = computeGemSlotCount(requiredLevel);
+  const gemSlotCount = computeGemSlotCount(requiredLevel, requiredJobs);
 
   // Generate fallback contributions
   const gemContributions = normalizedAllowedSources.gems

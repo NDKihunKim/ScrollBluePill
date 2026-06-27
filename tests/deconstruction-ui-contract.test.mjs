@@ -267,7 +267,7 @@ test('stimulant stat bounds sub-options exist', () => {
 test('stimulant result source row is labeled as stimulant/additional option', () => {
   assert.match(
     pageSource,
-    /appendSourceRow\(card, '촉진제\/추옵', strategy\.stimulant\.stats\)/,
+    /appendSourceRow\(card, deconGemEligible \? '촉진제\/추옵' : '추가 옵션', strategy\.stimulant\.stats\)/,
   );
 });
 
@@ -380,8 +380,8 @@ test('result source filters expose the approved labels and count only all strate
 
   assert.match(displaySource, /\{ source: null, label: '전체' \}/);
   assert.match(displaySource, /\{ source: 'scrolls', label: '주문서' \}/);
-  assert.match(displaySource, /\{ source: 'stimulant', label: '촉진제\/추옵' \}/);
-  assert.match(displaySource, /\{ source: 'gems', label: '보석 \(메이커\)' \}/);
+  assert.match(displaySource, /stimulantFilterLabel/);
+  assert.match(displaySource, /deconGemEligible \? \[\{ source: 'gems', label: '보석 \(메이커\)' \}\] : \[\]/);
   assert.match(displaySource, /\{ source: 'itemLevelUp', label: '레벨업' \}/);
   assert.match(
     displaySource,

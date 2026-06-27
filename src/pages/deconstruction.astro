@@ -259,14 +259,14 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
                 <div class="decon-source-row">
                   <label class="ev-target-chip">
                     <input type="checkbox" data-decon-source="stimulant" />
-                    <span class="ev-target-chip-label">촉진제/추옵</span>
+                    <span class="ev-target-chip-label" data-decon-stimulant-label>촉진제/추옵</span>
                   </label>
                   <div class="decon-source-sub" data-decon-stimulant-bounds>
                     <span class="decon-source-sub-label">스탯 범위:</span>
                     <div data-decon-stimulant-bounds-list></div>
                   </div>
                 </div>
-                <div class="decon-source-row">
+                <div class="decon-source-row" data-decon-gems-row>
                   <label class="ev-target-chip">
                     <input type="checkbox" data-decon-source="gems" />
                     <span class="ev-target-chip-label">메이커 보석</span>
@@ -344,7 +344,7 @@ import { buildItemIconUrl, buildItemSearchUrl } from '../lib/maplestoryIo.mjs';
 import { HP_MP_KEYS, computeItemLevelUpCardMeta } from '../lib/enhancementState.mjs';
 import { enumerateStrategies } from '../lib/deconstruction/engine.mjs';
 import { guardCheckboxMutation } from '../lib/deconstruction/guardedCheckboxMutation.mjs';
-import { GEM_GRADES, GEM_ITEM_IDS, GEM_TYPES, isWeaponKind } from '../lib/makerData.mjs';
+import { GEM_GRADES, GEM_ITEM_IDS, GEM_TYPES, isWeaponKind, computeGemSlotCount } from '../lib/makerData.mjs';
 import {
   createDeconstructionSlotState,
   setSuccessfulScrollCount,
@@ -423,7 +423,9 @@ const deconTargetChips = document.querySelector('[data-decon-target-chips]');
 const deconSourceInputs = document.querySelectorAll('[data-decon-source]');
 const deconScrollSource = document.querySelector('[data-decon-source="scrolls"]');
 const deconStimulantSource = document.querySelector('[data-decon-source="stimulant"]');
+const deconStimulantLabel = document.querySelector('[data-decon-stimulant-label]');
 const deconGemsSource = document.querySelector('[data-decon-source="gems"]');
+const deconGemsRow = document.querySelector('[data-decon-gems-row]');
 const deconGemSub = document.querySelector('[data-decon-gem-sub]');
 const deconItemLevelUpSource = document.querySelector('[data-decon-source="itemLevelUp"]');
 const deconLevelUpSource = document.querySelector('[data-decon-level-up-source]');
@@ -479,6 +481,7 @@ let deconHasActionableResults = false;
 let deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
 let deconStimulantBoundsMap = {};
 let deconGemFilter = null; // null = all gems available, Set<string> of "gemKey:gradeIndex" = whitelist
+let deconGemEligible = true; // whether selected item meets maker gem REQLEV threshold for its class
 let deconLevelUpTotalRanges = {};
 let deconAppliedLevelCount = 0;      // how many level-ups are already applied (0..maxLevelUps)
 
@@ -532,6 +535,8 @@ const resetAllowedSources = () => {
       sub.hidden = true;
     }
   }
+  // Refresh source panel visibility based on current item's gem eligibility
+  updateSourcePanelForItem(selectedItem);
 };
 
 const getDeconItemLevelSourceEligibility = () => {
@@ -548,6 +553,39 @@ const updateLevelUpSourceEligibility = () => {
   if (deconItemLevelUpSource instanceof HTMLInputElement) {
     deconItemLevelUpSource.disabled = deconAppliedLevelCount === 0;
   }
+  updateAnalyzeButton();
+};
+
+const updateSourcePanelForItem = (item) => {
+  if (!item) {
+    deconGemEligible = true;
+    if (deconGemsRow instanceof HTMLElement) deconGemsRow.hidden = false;
+    if (deconStimulantLabel instanceof HTMLElement) deconStimulantLabel.textContent = '촉진제/추옵';
+    return;
+  }
+  const eligible = computeGemSlotCount(item.requiredLevel ?? 0, item.requiredJobs ?? []) > 0;
+  deconGemEligible = eligible;
+
+  // Hide gems source row when item is not maker-gem-eligible
+  if (deconGemsRow instanceof HTMLElement) {
+    deconGemsRow.hidden = !eligible;
+  }
+
+  // Update stimulant label: non-maker items use "추가 옵션" instead of "촉진제/추옵"
+  if (deconStimulantLabel instanceof HTMLElement) {
+    deconStimulantLabel.textContent = eligible ? '촉진제/추옵' : '추가 옵션';
+  }
+
+  // If gems are not eligible and the checkbox was checked, uncheck it and collapse sub-panel
+  if (!eligible && deconGemsSource instanceof HTMLInputElement && deconGemsSource.checked) {
+    deconGemsSource.checked = false;
+    deconGemFilter = null;
+    if (deconGemSub instanceof HTMLElement) {
+      deconGemSub.classList.remove('decon-source-sub--open');
+      deconGemSub.hidden = true;
+    }
+  }
+
   updateAnalyzeButton();
 };
 
@@ -1645,6 +1683,7 @@ const clearDeconCalculationState = (item) => {
   deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
   deconStimulantBoundsMap = {};
   deconGemFilter = null;
+  deconGemEligible = true;
   deconLevelUpTotalRanges = {};
   deconScrollRateInputs.forEach(inp => { if (inp instanceof HTMLInputElement) inp.checked = true; });
 };
@@ -1668,6 +1707,7 @@ const commitSuggestedItem = (item, { syncFilters = true } = {}) => {
   selectedItem = item;
   if (itemChanged) resetAllowedSources();
   updateLevelUpSourceEligibility();
+  updateSourcePanelForItem(item);
   renderDeconItemLevel();
   renderTargetItemCard(item);
   activateDeconEditPanel(item);
@@ -2265,6 +2305,7 @@ const runAnalysis = () => {
     equipmentKind,
     allowedSources: getAllowedSources(),
     requiredLevel: selectedItem.requiredLevel ?? 0,
+    requiredJobs: selectedItem.requiredJobs ?? [],
     cleanStats: selectedItem.stats ?? {},
     scrollsByEquipmentKind,
     levelUpDefinition: levelUpDef ?? null,
@@ -2323,12 +2364,13 @@ const displayResults = (result, targetDeltas) => {
   deconHasActionableResults = true;
   summary.textContent = `총 ${result.total}개의 전략을 찾았습니다.`;
 
-  // Filter chips
+  // Filter chips — exclude gems when item is not maker-gem-eligible
+  const stimulantFilterLabel = deconGemEligible ? '촉진제/추옵' : '추가 옵션';
   const FILTER_DEFS = [
     { source: null, label: '전체' },
     { source: 'scrolls', label: '주문서' },
-    { source: 'stimulant', label: '촉진제/추옵' },
-    { source: 'gems', label: '보석 (메이커)' },
+    { source: 'stimulant', label: stimulantFilterLabel },
+    ...(deconGemEligible ? [{ source: 'gems', label: '보석 (메이커)' }] : []),
     { source: 'itemLevelUp', label: '레벨업' },
   ];
 
@@ -2456,7 +2498,7 @@ const displayResults = (result, targetDeltas) => {
       cardEl.append(row);
     };
 
-    if (strategy.stimulant) appendSourceRow(card, '촉진제/추옵', strategy.stimulant.stats);
+    if (strategy.stimulant) appendSourceRow(card, deconGemEligible ? '촉진제/추옵' : '추가 옵션', strategy.stimulant.stats);
     if (strategy.gems.length > 0) {
       for (const gem of strategy.gems) {
         appendSourceRow(card, `${gem.nameKo ?? gem.gemKey} ${GEM_GRADES[gem.gradeIndex] ?? ''}`, gem.stats);
@@ -3309,9 +3351,14 @@ Promise.all([
 
 .segment.active,
 .choice-button.active {
-  border-color: var(--green);
-  background: var(--green);
-  color: white;
+  border-color: rgb(1 143 199 / 70%);
+  background: rgb(1 143 199 / 45%);
+  color: var(--ink);
+}
+.segment:not(.active):hover,
+.choice-button:not(.active):hover {
+  border-color: rgb(1 143 199 / 35%);
+  background: rgb(1 143 199 / 22%);
 }
 
 .choice-row {
@@ -3380,9 +3427,13 @@ Promise.all([
 }
 
 .equipment-option.active {
-  border-color: var(--green);
-  background: var(--green);
-  color: white;
+  border-color: rgb(1 143 199 / 70%);
+  background: rgb(1 143 199 / 45%);
+  color: var(--ink);
+}
+.equipment-option:not(.active):hover {
+  border-color: rgb(1 143 199 / 35%);
+  background: rgb(1 143 199 / 22%);
 }
 
 .choice-button:has(input:focus-visible) {
@@ -3637,9 +3688,13 @@ aside.panel {
   text-align: center;
 }
 :global(.ev-target-chip input:checked + .ev-target-chip-label) {
-  border-color: var(--green);
-  background: var(--green);
-  color: #fff;
+  border-color: rgb(1 143 199 / 70%);
+  background: rgb(1 143 199 / 45%);
+  color: var(--ink);
+}
+:global(.ev-target-chip:hover .ev-target-chip-label) {
+  border-color: rgb(1 143 199 / 35%);
+  background: rgb(1 143 199 / 22%);
 }
 :global(.ev-target-chip input:focus-visible + .ev-target-chip-label) {
   outline: 2px solid var(--ink);

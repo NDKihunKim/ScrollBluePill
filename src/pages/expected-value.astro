@@ -226,30 +226,36 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 									아이템 레벨업
 								</button>
 							</div>
-							<div class="item-level-up-area" data-item-level-up-area hidden>
-								<p class="enhancement-section-label">아이템 레벨업</p>
-								<div class="item-level-up-slots" data-item-level-up-slots></div>
-								<div class="item-level-up-editor" data-item-level-up-editor hidden></div>
-							</div>
-							<div class="maker-stimulant-area" data-maker-stimulant-area hidden>
-								<p class="enhancement-section-label">촉진제 (추옵)</p>
-								<div class="maker-stimulant-slot-container" data-maker-stimulant-slot></div>
-								<div class="maker-stimulant-editor" data-maker-stimulant-editor hidden>
-									<p class="enhancement-section-label" data-maker-stimulant-editor-label>추가 옵션 스탯 입력</p>
-									<div class="maker-stimulant-editor-grid" data-maker-stimulant-editor-grid></div>
+							<div class="item-level-up-area maker-toggle-area" data-item-level-up-area hidden>
+								<div class="maker-accordion-inner">
+									<p class="enhancement-section-label">아이템 레벨업</p>
+									<div class="item-level-up-slots" data-item-level-up-slots></div>
+									<div class="item-level-up-editor" data-item-level-up-editor hidden></div>
 								</div>
 							</div>
-							<div class="maker-gem-area" data-maker-gem-area hidden>
-								<p class="enhancement-section-label">추가 재료</p>
-								<div class="maker-gem-slots" data-maker-gem-slots>
-								</div>
-								<div class="maker-picker" data-maker-picker hidden>
-									<p class="enhancement-section-label" data-maker-picker-label>보석 종류 선택</p>
-									<div class="maker-picker-grid" data-maker-picker-grid>
+							<div class="maker-stimulant-area maker-toggle-area" data-maker-stimulant-area hidden>
+								<div class="maker-accordion-inner">
+									<p class="enhancement-section-label">촉진제/추옵</p>
+									<div class="maker-stimulant-slot-container" data-maker-stimulant-slot></div>
+									<div class="maker-stimulant-editor" data-maker-stimulant-editor hidden>
+										<p class="enhancement-section-label" data-maker-stimulant-editor-label>추가 옵션 스탯 입력</p>
+										<div class="maker-stimulant-editor-grid" data-maker-stimulant-editor-grid></div>
 									</div>
-									<button type="button" class="small-button secondary maker-picker-back" data-maker-picker-back>
-										뒤로
-									</button>
+								</div>
+							</div>
+							<div class="maker-gem-area maker-toggle-area" data-maker-gem-area hidden>
+								<div class="maker-accordion-inner">
+									<p class="enhancement-section-label">추가 재료</p>
+									<div class="maker-gem-slots" data-maker-gem-slots>
+									</div>
+									<div class="maker-picker" data-maker-picker hidden>
+										<p class="enhancement-section-label" data-maker-picker-label>보석 종류 선택</p>
+										<div class="maker-picker-grid" data-maker-picker-grid>
+										</div>
+										<button type="button" class="small-button secondary maker-picker-back" data-maker-picker-back>
+											뒤로
+										</button>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -2756,7 +2762,24 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		}
 		:global(.maker-stimulant-area) {
 		margin-top: 12px;
-		margin-bottom: 14px;
+		}
+		:global(.maker-toggle-area) {
+		display: grid;
+		grid-template-rows: 0fr;
+		overflow: hidden;
+		transition: grid-template-rows 0.25s ease;
+		}
+		:global(.maker-toggle-area:not([hidden])) {
+		grid-template-rows: 1fr;
+		}
+		:global(.maker-toggle-area[hidden]) {
+		display: grid;
+		margin-top: 0;
+		margin-bottom: 0;
+		}
+		:global(.maker-accordion-inner) {
+		min-height: 0;
+		overflow: hidden;
 		}
 		:global(.maker-stimulant-slot-container) {
 		display: flex;
@@ -2808,7 +2831,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		background: var(--green) !important;
 		color: white !important;
 	}
-	:global(.maker-gem-slots) {
+		:global(.maker-gem-area) {
+		margin-top: 12px;
+		}
+		:global(.maker-gem-slots) {
 		display: flex;
 		gap: 10px;
 		margin-bottom: 14px;

@@ -8,6 +8,21 @@ import {
   computeAttemptsForPercentile,
   computeCumulativeProbability,
 } from './monteCarloEngine.mjs';
+
+function gradeColorToKoreanName(hex) {
+  if (!hex) return null;
+  const normalized = hex.toLowerCase();
+  if (normalized === '#ff3333') return '빨간색';
+  if (normalized === '#33cc33') return '초록색';
+  if (normalized === '#ffd700') return '노란색';
+  if (normalized === '#9933ff') return '보라색';
+  if (normalized === '#3366ff') return '파란색';
+  if (normalized === '#ff8c00') return '주황색';
+  if (normalized === '#ffffff') return '흰색';
+  if (normalized === '#9e9e9e') return '회색';
+  return null;
+}
+
 export { DEFAULT_TRIAL_COUNT };
 import {
   formatProbability,
@@ -93,7 +108,7 @@ export function computeCountForTopPercent(successProbability, topPercent, prefer
  * @param {Record<string, number>} gains - Enhancement gains from computeEnhancementGains
  * @returns {{ container: HTMLElement, getCheckedStats: () => { [statKey: string]: boolean, grade: boolean }, getTrialCount: () => number, onStart: (fn: Function) => void, onCancel: (fn: Function) => void }}
  */
-export function createTargetSelectionUI(cleanStats, previewStats, previewGradeClass, gains, { showCancel = false, preselected = null } = {}) {
+export function createTargetSelectionUI(cleanStats, previewStats, previewGradeClass, gains, { showCancel = false, preselected = null, gradeColor = null } = {}) {
   const container = document.createElement('div');
   container.className = 'ev-target-selection';
 
@@ -145,7 +160,8 @@ export function createTargetSelectionUI(cleanStats, previewStats, previewGradeCl
   gradeCheckbox.dataset.statKey = 'grade';
   const gradeChipLabel = document.createElement('span');
   gradeChipLabel.className = 'ev-target-chip-label';
-  gradeChipLabel.textContent = '등급 현재 이상';
+  const gradeColorName = gradeColorToKoreanName(gradeColor);
+  gradeChipLabel.textContent = gradeColorName ? `등급 유지 (${gradeColorName})` : '등급 현재 이상';
   gradeLabel.append(gradeCheckbox, gradeChipLabel);
   chipGrid.appendChild(gradeLabel);
 
@@ -247,7 +263,7 @@ export function createResultUI() {
   // Title
   const titleEl = document.createElement('div');
   titleEl.className = 'ev-result-title';
-  titleEl.textContent = '장비 기대값';
+  titleEl.textContent = '제작 시도 횟수 기대값';
   container.appendChild(titleEl);
 
   // Stale label (hidden by default)
@@ -300,7 +316,7 @@ export function createResultUI() {
   countInput.step = '1';
   countInput.className = 'ev-count-input';
   const countSuffix = document.createElement('span');
-  countSuffix.textContent = '번';
+  countSuffix.textContent = '회';
   countField.append(countPrefix, countInput, countSuffix);
 
   converterRow.append(percentField, converterArrow, countField);
@@ -349,7 +365,7 @@ export function createResultUI() {
    * @param {object} resultSummary - Result summary from createResultSummary
    */
   function update(resultSummary) {
-    equipmentCount.textContent = `평균 장비 갯수: ${resultSummary.expectedAttempts.toLocaleString('en-US')}개`;
+    equipmentCount.textContent = `평균 시도 횟수: ${resultSummary.expectedAttempts.toLocaleString('en-US')}회`;
 
     percentInput.dataset.successProbability = resultSummary.successProbability;
     countInput.dataset.successProbability = resultSummary.successProbability;
