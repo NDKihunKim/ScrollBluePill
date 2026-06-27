@@ -1,5 +1,5 @@
 import { GEM_GRADES, GEM_ITEM_IDS, GEM_STAT_COLORS, getVisibleGemTypes, getGemTypeByKey, statLabelByKey } from './makerData.mjs';
-import { activateMaker, deactivateMaker, applyGem, applyVariableGem, revertGemSlot, applyStimulant, clearStimulant, computeAccumulatedStats, computeStatBreakdown, computeGradeColor, computeAppliedScrollCount, computeRemainingSlots, HP_MP_KEYS } from './enhancementState.mjs';
+import { activateMaker, applyGem, applyVariableGem, revertGemSlot, applyStimulant, clearStimulant, computeAccumulatedStats, computeStatBreakdown, computeGradeColor, computeAppliedScrollCount, computeRemainingSlots, HP_MP_KEYS } from './enhancementState.mjs';
 import { buildItemIconUrl } from './maplestoryIo.mjs';
 
 function createGemIconElement(gemKey, stat, iconId) {
@@ -854,52 +854,40 @@ export function initMakerPanel({
       return;
     }
 
-    const disableMaker = () => {
-      if (enhancementState) {
-        deactivateMaker(enhancementState);
-      }
-      stimulantValues = new Map();
-      makerToggle.classList.remove('maker-toggle-button--active');
+    const showMakerAreas = () => {
+      if (makerGemArea instanceof HTMLElement) makerGemArea.hidden = false;
+      const stimArea = makerStimulantSlot?.closest('.maker-stimulant-area');
+      if (stimArea instanceof HTMLElement) stimArea.hidden = false;
+    };
+
+    const hideMakerAreas = () => {
       if (makerGemArea instanceof HTMLElement) makerGemArea.hidden = true;
       const stimArea = makerStimulantSlot?.closest('.maker-stimulant-area');
       if (stimArea instanceof HTMLElement) stimArea.hidden = true;
       hidePicker();
       hideStimulantEditor();
-      renderGemSlots();
-      refreshEnhancedCard();
-      onStateChange?.();
-      updateMakerToggleLabel();
-    };
-
-    const enableMaker = () => {
-      if (enhancementState) {
-        activateMaker(enhancementState);
-      }
-      onMakerOpen?.();
-      makerToggle.classList.add('maker-toggle-button--active');
-      if (makerGemArea instanceof HTMLElement) makerGemArea.hidden = false;
-      const stimArea = makerStimulantSlot?.closest('.maker-stimulant-area');
-      if (stimArea instanceof HTMLElement) stimArea.hidden = false;
-      hidePicker();
-      hideStimulantEditor();
-      editingSlotIndex = -1;
-      renderStimulantSlot();
-      renderGemSlots();
-      makerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      updateMakerToggleLabel();
     };
 
     makerToggle.addEventListener('click', () => {
       if (!enhancementState || makerToggle.disabled) return;
 
       if (enhancementState.makerActive) {
-        if (hasMakerContributions()) {
-          requestMutation(disableMaker);
-        } else {
-          disableMaker();
-        }
+        // Collapse: just hide areas, preserve all state
+        enhancementState.makerActive = false;
+        makerToggle.classList.remove('maker-toggle-button--active');
+        hideMakerAreas();
+        updateMakerToggleLabel();
       } else {
-        enableMaker();
+        // Expand: activate and show areas, state is already preserved
+        activateMaker(enhancementState);
+        onMakerOpen?.();
+        makerToggle.classList.add('maker-toggle-button--active');
+        showMakerAreas();
+        editingSlotIndex = -1;
+        renderStimulantSlot();
+        renderGemSlots();
+        makerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        updateMakerToggleLabel();
       }
     });
   };
@@ -991,7 +979,6 @@ export function initMakerPanel({
     closeMakerPanel() {
       if (!enhancementState || !enhancementState.makerActive) return;
       enhancementState.makerActive = false;
-      stimulantValues = new Map();
       if (makerToggle instanceof HTMLElement) {
         makerToggle.classList.remove('maker-toggle-button--active');
         updateMakerToggleLabel();
@@ -1001,8 +988,6 @@ export function initMakerPanel({
       if (stimArea instanceof HTMLElement) stimArea.hidden = true;
       hidePicker();
       hideStimulantEditor();
-      if (makerGemSlots instanceof HTMLElement) makerGemSlots.replaceChildren();
-      refreshEnhancedCard();
     },
   };
 }

@@ -771,7 +771,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     const itemLevelUpDefinition = supportsItemLevelUp(levelUpDefinition) ? levelUpDefinition : null;
     selectedBaseItem = item;
     selectedItemLevelUpDefinition = itemLevelUpDefinition;
-    enhancementState = createEnhancementState(upgradeSlots, item.requiredLevel ?? 0, itemLevelUpDefinition);
+    enhancementState = createEnhancementState(upgradeSlots, item.requiredLevel ?? 0, itemLevelUpDefinition, item.requiredJobs ?? []);
     collapseChaosPanel();
     chaosStepperValues = new Map();
     activeScrollStatFilter = 'all';

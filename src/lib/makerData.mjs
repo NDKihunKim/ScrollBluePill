@@ -51,9 +51,17 @@ export const GEM_TYPES = [
   { key: 'emerald',     nameKo: '에메랄드',         stat: 'maxMp',        weaponOnly: false, values: [10, 20, 30] },
 ];
 
-export function computeGemSlotCount(requiredLevel) {
+export function computeGemSlotCount(requiredLevel, requiredJobs = []) {
   const level = Number.isFinite(requiredLevel) ? requiredLevel : 0;
-  if (level < 48) return 0;
+
+  // Maker gem eligibility thresholds by class:
+  //   Magician-only → 48, everything else → 50
+  //   Multi-class items use the strictest (highest) threshold.
+  const jobs = requiredJobs ?? [];
+  const isMagicianOnly = jobs.length === 1 && jobs[0] === 'Magician';
+  const threshold = isMagicianOnly ? 48 : 50;
+
+  if (level < threshold) return 0;
   if (level <= 77) return 1;
   if (level <= 105) return 2;
   return 3;
