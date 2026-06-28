@@ -80,6 +80,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   let selectedBaseItem = null;
   let selectedItemLevelUpDefinition = null;
   let activeScrollStatFilter = 'all';
+  let currentGradeColor = null;
 
   // Internal keys that are item metadata, not stats chaos can modify
   const NON_STAT_KEYS = new Set(['upgradeSlots', 'attackSpeed']);
@@ -734,10 +735,10 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     const statBreakdown = computeStatBreakdown(selectedBaseItem.stats, enhancementState);
     const remaining = computeRemainingSlots(enhancementState);
     const appliedCount = computeAppliedScrollCount(enhancementState);
-    const gradeColor = computeGradeColor(enhancementState);
+    currentGradeColor = computeGradeColor(enhancementState);
     const itemLevelUpMeta = computeItemLevelUpCardMeta(enhancementState, selectedItemLevelUpDefinition);
 
-    renderEnhancedItemCard(selectedBaseItem, accumulatedStats, remaining, appliedCount, gradeColor, statBreakdown, itemLevelUpMeta);
+    renderEnhancedItemCard(selectedBaseItem, accumulatedStats, remaining, appliedCount, currentGradeColor, statBreakdown, itemLevelUpMeta);
   };
 
   const activatePanel2 = (item) => {
@@ -1034,6 +1035,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     selectedBaseItem,
     scrollsByEquipmentKind,
     selectedItemLevelUpDefinition,
+    currentGradeColor,
   });
 
   // Expose restore function so saved slots can reload enhancement state
