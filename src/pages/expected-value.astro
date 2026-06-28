@@ -1325,13 +1325,13 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  const evState = window.__evState?.();
 	  if (!evState || !evState.enhancementState || !evState.selectedBaseItem) return;
 
-	  const { selectedBaseItem, enhancementState } = evState;
+	  const { selectedBaseItem, enhancementState, currentGradeColor } = evState;
 	  const cleanStats = selectedBaseItem.stats ?? {};
 	  const previewStats = computeAccumulatedStats(cleanStats, enhancementState);
 	  const gains = computeEnhancementGains(cleanStats, previewStats);
 
 	  // Create target selection UI
-	  const targetUI = createTargetSelectionUI(cleanStats, previewStats, 0, gains, { preselected: evCheckedStats });
+	  const targetUI = createTargetSelectionUI(cleanStats, previewStats, 0, gains, { preselected: evCheckedStats, gradeColor: currentGradeColor });
 
 	  // Render into calc panel
 		  if (calcContent instanceof HTMLElement && calcPlaceholder instanceof HTMLElement) {
