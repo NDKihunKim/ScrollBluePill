@@ -116,7 +116,10 @@ function* enumerateExactCountScrollStates({
   const relevantScrolls = allScrolls.filter((s) =>
     targetKeys.some((k) => (s.stats?.[k] || 0) !== 0),
   );
-  if (relevantScrolls.length === 0) return [];
+  if (relevantScrolls.length === 0) {
+    console.log('[chaos-debug] enumerateExactCountScrollStates: no relevant scrolls touch targetKeys', targetKeys);
+    return [];
+  }
 
   const fixedScrolls = relevantScrolls
     .filter((s) => !isChaosScroll(s))
@@ -125,6 +128,17 @@ function* enumerateExactCountScrollStates({
   const chaosScrolls = relevantScrolls
     .filter((s) => isChaosScroll(s))
     .sort((a, b) => a.id - b.id);
+
+  console.log('[chaos-debug] enumerateExactCountScrollStates:', {
+    requiredScrollCount,
+    targetKeys,
+    targetDeltas,
+    totalScrolls: allScrolls.length,
+    relevantScrolls: relevantScrolls.length,
+    fixedScrolls: fixedScrolls.length,
+    chaosScrollsRaw: chaosScrolls.length,
+    chaosStatBounds,
+  });
 
   // Build deduplicated chaos entries with min/max per key for pruning.
   // Each unique delta vector gets used count-based (like fixed scrolls)
@@ -148,6 +162,15 @@ function* enumerateExactCountScrollStates({
     }
   }
 
+  console.log('[chaos-debug] chaos pool:', {
+    rawCount: chaosPoolRaw.length,
+    uniqueCount: chaosPool.length,
+    sampleEntries: chaosPool.slice(0, 3).map(e => ({
+      baseId: e.baseScroll.id,
+      deltas: e.deltas,
+    })),
+  });
+
   // Pre-compute min/max per key across chaos pool for pruning
   const chaosMins = Object.fromEntries(targetKeys.map((k) => [k, Infinity]));
   const chaosMaxs = Object.fromEntries(targetKeys.map((k) => [k, -Infinity]));
@@ -158,6 +181,11 @@ function* enumerateExactCountScrollStates({
       if (v > chaosMaxs[k]) chaosMaxs[k] = v;
     }
   }
+
+  console.log('[chaos-debug] chaos per-key ranges:', {
+    mins: chaosMins,
+    maxs: chaosMaxs,
+  });
 
   function canReachTarget(fixedIdx, remainingApps, currentStats) {
     for (const key of targetKeys) {
@@ -186,9 +214,26 @@ function* enumerateExactCountScrollStates({
     return true;
   }
 
+  let dfsNodeCount = 0;
   function* dfs(fixedIdx, remainingApps, currentStats, chosen) {
+    dfsNodeCount++;
+    if (dfsNodeCount % 5000 === 0) {
+      console.log('[chaos-debug] DFS progress:', {
+        nodes: dfsNodeCount,
+        remainingApps,
+        chosenLen: chosen.length,
+        currentStats,
+        fixedIdx,
+      });
+    }
     if (!canReachTarget(fixedIdx, remainingApps, currentStats)) return;
     if (remainingApps === 0 && chosen.length === requiredScrollCount) {
+      console.log('[chaos-debug] DFS found scroll state:', {
+        nodes: dfsNodeCount,
+        scrollCount: chosen.length,
+        stats: currentStats,
+        scrollBreakdown: chosen.map(s => ({ id: s.id, chaos: s.behavior_type === 'chaos', stats: s.stats })),
+      });
       yield {
         scrolls: [...chosen],
         stats: { ...currentStats },
@@ -448,6 +493,17 @@ export function enumerateStrategies({
     return { strategies: [], total: 0, tooManyResults: false };
   }
 
+  console.log('[chaos-debug] enumerateStrategies called:', {
+    targetKeys,
+    targetDeltas,
+    successfulScrollCount,
+    equipmentKind,
+    scrollRateFilter: scrollRateFilter ? [...scrollRateFilter] : null,
+    stimulantStatBounds,
+    chaosStatBounds,
+    allowedSources,
+  });
+
   const normCount = (() => {
     try {
       const n = Number(successfulScrollCount);
@@ -595,17 +651,19 @@ export function enumerateStrategies({
 
   // Generate exact-count scroll states against the effective (post-applied-stats) target
   const effectiveScrollStates = normalizedAllowedSources.scrolls && normCount > 0
-    ? enumerateExactCountScrollStates({
+    ? [...enumerateExactCountScrollStates({
         scrolls,
         targetKeys,
         targetDeltas: effectiveTargetDeltas,
         successfulScrollCount: normCount,
         correctionBounds,
         chaosStatBounds,
-      })
+      })]
     : (normCount === 0
       ? [{ scrolls: [], stats: Object.fromEntries(targetKeys.map((k) => [k, 0])) }]
       : []);
+
+  console.log('[chaos-debug] effectiveScrollStates count:', effectiveScrollStates.length);
 
   // Full target vector (original, for exact-match verification)
   const targetVector = targetKeys.reduce((acc, k) => {
@@ -860,6 +918,8 @@ export function enumerateStrategies({
       if (tooManyResults) break;
     }
   }
+
+  console.log('[chaos-debug] total strategies found:', strategies.length);
 
   // Sort strategies within each priority tier:
   //   1. priorityRank ascending (existing tier system)
