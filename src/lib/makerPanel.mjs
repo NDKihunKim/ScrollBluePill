@@ -515,7 +515,7 @@ export function initMakerPanel({
 
   const updateMakerToggleLabel = () => {
     if (!(makerToggle instanceof HTMLElement)) return;
-    makerToggle.textContent = hasMakerContributions() ? '메이커 ✓' : '메이커';
+    makerToggle.textContent = hasMakerContributions() ? '추옵 & 메이커 ✓' : '추옵 & 메이커';
   };
 
   const renderGemSlots = () => {
@@ -905,10 +905,10 @@ export function initMakerPanel({
         makerSection.hidden = false;
       }
 
-      const canUseMaker = enhancementState.gemSlotCount > 0;
-
+      // Maker toggle is always enabled — stimulant slot is available for all items.
+      // Gem slot count only affects which individual gem slots are usable (rendered disabled per-slot).
       if (makerToggle instanceof HTMLElement) {
-        makerToggle.disabled = !canUseMaker;
+        makerToggle.disabled = false;
       }
 
       if (enhancementState.makerActive) {
@@ -955,7 +955,7 @@ export function initMakerPanel({
       if (makerToggle instanceof HTMLElement) {
         makerToggle.classList.remove('maker-toggle-button--active');
         updateMakerToggleLabel();
-        makerToggle.disabled = !enhancementState || enhancementState.gemSlotCount <= 0;
+        makerToggle.disabled = !enhancementState;
         if (makerSection instanceof HTMLElement) {
           makerSection.hidden = false;
         }

@@ -5,8 +5,9 @@ import {
   getVisibleStrategyIndexes,
 } from './resultFilters.mjs';
 import { buildItemIconUrl } from '../maplestoryIo.mjs';
-import { GEM_GRADES, GEM_ITEM_IDS, statLabelByKey } from '../makerData.mjs';
+import { GEM_GRADES, GEM_ITEM_IDS, statLabelByKey, STAT_KEY_RANK } from '../makerData.mjs';
 import { HP_MP_KEYS } from '../enhancementState.mjs';
+import { formatScrollStatLine } from '../scrollState.mjs';
 
 const SOURCE_LABELS = {
   scrolls: '주문서',
@@ -21,6 +22,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
   let selections = new Map();
   let stimulantRanges = new Map();
   let itemLevelUpRanges = new Map();
+  let activeScrollStatFilter = 'all';
 
   const hidePanel = () => {
     secondaryContainer.replaceChildren();
@@ -77,22 +79,79 @@ export function createResultFilterController({ root, secondaryContainer }) {
     refreshActivePanel();
   };
 
+  const renderScrollStatFilters = (options) => {
+    // Collect unique stat keys from all scroll options, sorted by STAT_KEY_RANK priority
+    const statKeys = [...new Set(options.flatMap((o) => o.statKeys ?? []))]
+      .sort((a, b) => (STAT_KEY_RANK[a] ?? 999) - (STAT_KEY_RANK[b] ?? 999));
+
+    if (statKeys.length === 0) return;
+
+    const filtersRow = document.createElement('div');
+    filtersRow.className = 'decon-secondary-scroll-filters';
+
+    const allBtn = document.createElement('button');
+    allBtn.type = 'button';
+    allBtn.className = 'decon-secondary-scroll-filter';
+    allBtn.textContent = '전체';
+    allBtn.setAttribute('aria-pressed', String(activeScrollStatFilter === 'all'));
+    if (activeScrollStatFilter === 'all') {
+      allBtn.classList.add('decon-secondary-scroll-filter--active');
+    }
+    allBtn.addEventListener('click', () => {
+      activeScrollStatFilter = 'all';
+      renderPanel('scrolls');
+    });
+    filtersRow.append(allBtn);
+
+    for (const key of statKeys) {
+      const label = statLabelByKey[key] ?? key;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'decon-secondary-scroll-filter';
+      btn.textContent = label;
+      btn.setAttribute('aria-pressed', String(activeScrollStatFilter === key));
+      if (activeScrollStatFilter === key) {
+        btn.classList.add('decon-secondary-scroll-filter--active');
+      }
+      btn.addEventListener('click', () => {
+        activeScrollStatFilter = key;
+        renderPanel('scrolls');
+      });
+      filtersRow.append(btn);
+    }
+
+    secondaryContainer.append(filtersRow);
+  };
+
   const renderScrollPanel = (options, selected) => {
     secondaryContainer.replaceChildren();
+
+    // Stat filter tabs (visual filter only)
+    renderScrollStatFilters(options);
+
+    // Filter scrolls by active stat filter
+    const visibleOptions = activeScrollStatFilter === 'all'
+      ? options
+      : options.filter((o) => (o.statKeys ?? []).includes(activeScrollStatFilter));
+
     const list = document.createElement('div');
     list.className = 'decon-secondary-scroll-list';
 
-    for (const option of options) {
-      const label = document.createElement('label');
-      label.className = 'decon-secondary-scroll-row';
-      label.classList.toggle('decon-secondary-scroll-row--unavailable', !option.available);
+    for (const option of visibleOptions) {
+      const isSelected = selected.has(option.key);
+      const isAvailable = option.available;
 
-      const input = document.createElement('input');
-      input.type = 'checkbox';
-      input.checked = selected.has(option.key);
-      input.disabled = !option.available;
-      input.addEventListener('change', () => {
-        setSecondaryOption('scrolls', option.key, input.checked);
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'decon-secondary-scroll-row';
+      if (isSelected) row.classList.add('decon-secondary-scroll-row--selected');
+      if (!isAvailable) row.classList.add('decon-secondary-scroll-row--unavailable');
+      row.setAttribute('aria-pressed', String(isSelected));
+      row.disabled = !isAvailable;
+
+      row.addEventListener('click', () => {
+        if (!isAvailable) return;
+        setSecondaryOption('scrolls', option.key, !selected.has(option.key));
       });
 
       const icon = document.createElement('img');
@@ -102,11 +161,20 @@ export function createResultFilterController({ root, secondaryContainer }) {
       icon.loading = 'lazy';
       icon.addEventListener('error', () => { icon.hidden = true; });
 
-      const text = document.createElement('span');
-      text.textContent = option.label;
+      const textBlock = document.createElement('span');
+      textBlock.className = 'decon-secondary-scroll-text';
 
-      label.append(input, icon, text);
-      list.append(label);
+      const name = document.createElement('span');
+      name.className = 'decon-secondary-scroll-name';
+      name.textContent = option.label;
+
+      const statLine = document.createElement('span');
+      statLine.className = 'decon-secondary-scroll-stat';
+      statLine.textContent = option.stats ? formatScrollStatLine({ stats: option.stats }) : '';
+
+      textBlock.append(name, statLine);
+      row.append(icon, textBlock);
+      list.append(row);
     }
 
     secondaryContainer.append(list);
@@ -477,6 +545,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
     selections = new Map();
     stimulantRanges = new Map();
     itemLevelUpRanges = new Map();
+    activeScrollStatFilter = 'all';
     hidePanel();
   };
 

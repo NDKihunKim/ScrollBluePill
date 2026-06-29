@@ -322,17 +322,6 @@ export function createResultUI() {
   converterRow.append(percentField, converterArrow, countField);
   container.appendChild(converterRow);
 
-  // Best found method (details, collapsed by default)
-  const details = document.createElement('details');
-  details.className = 'ev-best-method';
-  const summary = document.createElement('summary');
-  summary.textContent = 'Best found method';
-  details.appendChild(summary);
-  const bestMethodContent = document.createElement('div');
-  bestMethodContent.className = 'ev-best-method-content';
-  details.appendChild(bestMethodContent);
-  container.appendChild(details);
-
   /**
    * Updates the percentile input from the current count input value.
    */
@@ -374,13 +363,6 @@ export function createResultUI() {
 
     renderAttemptChart(canvas, resultSummary.chartData);
 
-    if (resultSummary.bestStrategy) {
-      bestMethodContent.textContent = JSON.stringify(resultSummary.bestStrategy, null, 2);
-      details.hidden = false;
-    } else {
-      details.hidden = true;
-    }
-
     staleLabel.hidden = true;
   }
 
@@ -399,7 +381,6 @@ export function createResultUI() {
     equipmentCount.textContent = NO_STRATEGY_TEXT;
     percentInput.value = '';
     countInput.value = '';
-    details.hidden = true;
     staleLabel.hidden = true;
   }
 

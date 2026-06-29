@@ -41,6 +41,7 @@ const getScrollRateOrder = (name) => {
   }
   return 3; // Chaos or unknown
 };
+const stemName = (n) => String(n ?? '').replace(/(\d+)%$/, '').trimEnd();
 const getScrollPrimaryStatRank = (scroll) => {
   const stats = scroll.stats ?? {};
   const sorted = Object.keys(STAT_KEY_RANK).sort((a, b) => (STAT_KEY_RANK[a] ?? 999) - (STAT_KEY_RANK[b] ?? 999));
@@ -49,6 +50,17 @@ const getScrollPrimaryStatRank = (scroll) => {
   }
   return 999;
 };
+const getScrollStatKeys = (stats) => Object.entries(stats ?? {})
+  .filter(([, v]) => Number.isFinite(v) && v > 0)
+  .map(([k]) => k);
+const buildScrollSortKey = (scroll) => {
+  const isChaos = scroll.behavior_type === 'chaos';
+  const stem = stemName(scroll.nameKo ?? '');
+  return String(getScrollPrimaryStatRank(scroll)).padStart(3, '0')
+    + ':' + stem
+    + ':' + String(getScrollRateOrder(scroll.nameKo ?? '')).padStart(2, '0')
+    + ':' + (isChaos ? '1' : '0');
+};
 
 export function getStrategySecondaryOptions(strategy) {
   const scrolls = uniqueOptions((strategy.scrolls ?? []).map((scroll) => ({
@@ -56,9 +68,10 @@ export function getStrategySecondaryOptions(strategy) {
     key: `scroll:${scroll.id}`,
     label: scroll.nameKo ?? String(scroll.id),
     iconId: scroll.id,
-    sortKey: String(getScrollPrimaryStatRank(scroll)).padStart(3, '0')
-      + ':' + String(getScrollRateOrder(scroll.nameKo ?? '')).padStart(2, '0')
-      + ':' + (scroll.nameKo ?? ''),
+    stats: { ...scroll.stats },
+    statKeys: getScrollStatKeys(scroll.stats),
+    behaviorType: scroll.behavior_type ?? 'normal',
+    sortKey: buildScrollSortKey(scroll),
   })));
   let stimulant = [];
   if (strategy.stimulant === null) {

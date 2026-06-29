@@ -44,14 +44,29 @@ function getChaosRange(statKey) {
   return { min: -5, max: 5 };
 }
 
-function* generateChaosDeltas(stats, limit = 500) {
-  const statKeys = Object.keys(stats);
+function* generateChaosDeltas(stats, targetKeys, chaosBounds = null, limit = 100000) {
+  // Only enumerate deltas for keys the user actually targets.
+  // A chaos scroll may have 6-10 stat keys; without filtering we'd hit
+  // the limit before reaching the relevant keys.
+  const statKeys = Object.keys(stats).filter((k) => targetKeys.includes(k));
   if (statKeys.length === 0) return;
 
   const ranges = statKeys.map((key) => {
     const { min, max } = getChaosRange(key);
+    // Clamp to user-defined chaos stat bounds when provided
+    const effectiveMin = chaosBounds?.[key] && Number.isFinite(chaosBounds[key].min)
+      ? Math.max(min, chaosBounds[key].min)
+      : min;
+    const effectiveMax = chaosBounds?.[key] && Number.isFinite(chaosBounds[key].max)
+      ? Math.min(max, chaosBounds[key].max)
+      : max;
     const values = [];
-    for (let v = min; v <= max; v++) values.push(v);
+    // Prioritise useful deltas: 0 first (neutral), then +1..+max (gains),
+    // then -1..min (losses).  This puts the most likely match within the
+    // limit window.
+    values.push(0);
+    for (let v = 1; v <= effectiveMax; v++) values.push(v);
+    for (let v = -1; v >= effectiveMin; v--) values.push(v);
     return { key, values };
   });
 
@@ -85,6 +100,7 @@ function* enumerateExactCountScrollStates({
   targetDeltas,
   successfulScrollCount,
   correctionBounds,
+  chaosStatBounds = null,
 }) {
   const requiredScrollCount = (() => {
     try {
@@ -112,7 +128,7 @@ function* enumerateExactCountScrollStates({
 
   const chaosPool = [];
   for (const cs of chaosScrolls) {
-    for (const deltas of generateChaosDeltas(cs.stats)) {
+    for (const deltas of generateChaosDeltas(cs.stats, targetKeys, chaosStatBounds)) {
       chaosPool.push({ baseScroll: cs, deltas });
     }
   }
@@ -241,6 +257,33 @@ function strategyCanonicalKey({ scrolls, stimulant, gems, itemLevelUp }, targetK
 }
 
 /**
+ * Compute a spread score for chaos scroll contributions across target keys.
+ * Lower score = more evenly distributed chaos delta across stats.
+ * Returns -1 when no chaos scrolls are present (ranks above chaos strategies).
+ */
+function chaosSpreadScore(strategy, targetKeys) {
+  let chaosCount = 0;
+  const chaosTotals = Object.fromEntries(targetKeys.map((k) => [k, 0]));
+
+  for (const scroll of strategy.scrolls) {
+    if (scroll.behavior_type === 'chaos') {
+      chaosCount++;
+      for (const key of targetKeys) {
+        chaosTotals[key] += scroll.stats[key] || 0;
+      }
+    }
+  }
+
+  if (chaosCount === 0) return -1;
+
+  const values = targetKeys.map((k) => chaosTotals[k]);
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
+
+  return variance;
+}
+
+/**
  * Build a strategy result object.
  */
 function buildResult({ scrolls, stimulant, gems, itemLevelUp, priorityRank, targetKeys, appliedLevelStats: applyApplied }) {
@@ -251,6 +294,7 @@ function buildResult({ scrolls, stimulant, gems, itemLevelUp, priorityRank, targ
     id: s.id,
     nameKo: s.nameKo,
     stats: { ...s.stats },
+    behavior_type: s.behavior_type,
   }));
 
   const hasStimulant = stimulant !== null;
@@ -343,6 +387,7 @@ export function enumerateStrategies({
   allowedSources,
   scrollRateFilter = null,
   stimulantStatBounds = null,
+  chaosStatBounds = null,
   levelUpSlotStatRanges = null,
   levelUpExactLevelCount = null,
   levelUpTotalStatRanges = null,
@@ -511,6 +556,7 @@ export function enumerateStrategies({
         targetDeltas: effectiveTargetDeltas,
         successfulScrollCount: normCount,
         correctionBounds,
+        chaosStatBounds,
       })
     : (normCount === 0
       ? [{ scrolls: [], stats: Object.fromEntries(targetKeys.map((k) => [k, 0])) }]
@@ -549,6 +595,7 @@ export function enumerateStrategies({
             targetDeltas: remainingTarget,
             successfulScrollCount: normCount,
             correctionBounds: scrollCorrectionBounds,
+            chaosStatBounds,
           })
         : (normCount === 0
           ? [{ scrolls: [], stats: Object.fromEntries(targetKeys.map((k) => [k, 0])) }]
@@ -768,6 +815,18 @@ export function enumerateStrategies({
       if (tooManyResults) break;
     }
   }
+
+  // Sort strategies within each priority tier:
+  //   1. priorityRank ascending (existing tier system)
+  //   2. Non-chaos strategies first (chaosSpreadScore === -1)
+  //   3. Chaos strategies by spread evenness (lower variance = more even)
+  strategies.sort((a, b) => {
+    if (a.priorityRank !== b.priorityRank) return a.priorityRank - b.priorityRank;
+    const aScore = chaosSpreadScore(a, targetKeys);
+    const bScore = chaosSpreadScore(b, targetKeys);
+    if (aScore !== bScore) return aScore - bScore;
+    return 0;
+  });
 
   return tooManyResults
     ? { strategies: [], total: OVERFLOW_TOTAL, tooManyResults: true }

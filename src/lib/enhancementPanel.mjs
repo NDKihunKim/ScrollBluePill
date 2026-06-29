@@ -1046,6 +1046,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
    * Called from refreshEnhancedCard (every state change) and the reset handler.
    */
   const notifyEv = () => {
+    currentGradeColor = computeGradeColor(enhancementState);
     if (typeof window.__evRefresh === 'function') {
       window.__evRefresh();
     }
