@@ -126,10 +126,36 @@ function* enumerateExactCountScrollStates({
     .filter((s) => isChaosScroll(s))
     .sort((a, b) => a.id - b.id);
 
-  const chaosPool = [];
+  // Build deduplicated chaos entries with min/max per key for pruning.
+  // Each unique delta vector gets used count-based (like fixed scrolls)
+  // instead of one-at-a-time — otherwise a 378-entry pool × 6–9 slots
+  // creates a combinatorially impossible search space.
+  const chaosPoolRaw = [];
   for (const cs of chaosScrolls) {
     for (const deltas of generateChaosDeltas(cs.stats, targetKeys, chaosStatBounds)) {
-      chaosPool.push({ baseScroll: cs, deltas });
+      chaosPoolRaw.push({ baseScroll: cs, deltas });
+    }
+  }
+
+  // Deduplicate by delta vector key
+  const chaosSeen = new Map();
+  const chaosPool = [];
+  for (const entry of chaosPoolRaw) {
+    const key = targetKeys.map((k) => `${k}:${entry.deltas[k] || 0}`).join(',');
+    if (!chaosSeen.has(key)) {
+      chaosSeen.set(key, true);
+      chaosPool.push(entry);
+    }
+  }
+
+  // Pre-compute min/max per key across chaos pool for pruning
+  const chaosMins = Object.fromEntries(targetKeys.map((k) => [k, Infinity]));
+  const chaosMaxs = Object.fromEntries(targetKeys.map((k) => [k, -Infinity]));
+  for (const { deltas } of chaosPool) {
+    for (const k of targetKeys) {
+      const v = deltas[k] || 0;
+      if (v < chaosMins[k]) chaosMins[k] = v;
+      if (v > chaosMaxs[k]) chaosMaxs[k] = v;
     }
   }
 
@@ -143,10 +169,9 @@ function* enumerateExactCountScrollStates({
         minPerApp = Math.min(minPerApp, value);
         maxPerApp = Math.max(maxPerApp, value);
       }
-      for (const { deltas } of chaosPool) {
-        const value = deltas[key] || 0;
-        minPerApp = Math.min(minPerApp, value);
-        maxPerApp = Math.max(maxPerApp, value);
+      if (Number.isFinite(chaosMins[key])) {
+        minPerApp = Math.min(minPerApp, chaosMins[key]);
+        maxPerApp = Math.max(maxPerApp, chaosMaxs[key]);
       }
 
       if (!Number.isFinite(minPerApp)) return false;
@@ -207,21 +232,41 @@ function* enumerateExactCountScrollStates({
       }
     }
 
-    // Try chaos scrolls
+    // Try chaos scrolls — count-based (like fixed scrolls) to avoid
+    // combinatorial explosion from per-entry branching.
     if (chaosPool.length > 0) {
       for (const entry of chaosPool) {
         const { baseScroll: cs, deltas } = entry;
-        const newStats = { ...currentStats };
-        for (const [k, v] of Object.entries(deltas)) {
-          if (targetKeys.includes(k)) {
-            newStats[k] = (newStats[k] || 0) + v;
+
+        // Compute max uses of this delta vector — bounded by positive deltas
+        // that would overshoot their target keys.
+        let maxUses = remainingApps;
+        for (const k of targetKeys) {
+          const delta = deltas[k] || 0;
+          const remaining = targetDeltas[k] - (currentStats[k] || 0);
+          if (delta > 0 && remaining > 0) {
+            maxUses = Math.min(maxUses, Math.floor(remaining / delta));
           }
         }
-        const chaosApp = {
-          ...cs,
-          stats: { ...deltas },
-        };
-        yield* dfs(fixedIdx, remainingApps - 1, newStats, [...chosen, chaosApp]);
+
+        if (maxUses <= 0) continue;
+
+        for (let count = maxUses; count >= 1; count--) {
+          const newStats = { ...currentStats };
+          for (const [k, v] of Object.entries(deltas)) {
+            if (targetKeys.includes(k)) {
+              newStats[k] = (newStats[k] || 0) + v * count;
+            }
+          }
+          const newChosen = [...chosen];
+          for (let c = 0; c < count; c++) {
+            newChosen.push({
+              ...cs,
+              stats: { ...deltas },
+            });
+          }
+          yield* dfs(fixedIdx, remainingApps - count, newStats, newChosen);
+        }
       }
     }
   }
