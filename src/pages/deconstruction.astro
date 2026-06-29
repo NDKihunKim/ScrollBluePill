@@ -253,7 +253,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
                     <label class="decon-rate-chip"><input type="checkbox" data-decon-scroll-rate="100" checked />100%</label>
                     <label class="decon-rate-chip"><input type="checkbox" data-decon-scroll-rate="60" checked />60%</label>
                     <label class="decon-rate-chip"><input type="checkbox" data-decon-scroll-rate="10" checked />10%</label>
-                    <label class="decon-rate-chip"><input type="checkbox" data-decon-scroll-rate="chaos" checked />혼돈의 주문서<span class="decon-chaos-help"><span class="decon-chaos-help-icon">?</span><span class="decon-chaos-help-tooltip">일반 주문서와의 조합이 불가능 할경우 사용됩니다.</span></span></label>
+                    <label class="decon-rate-chip"><input type="checkbox" data-decon-scroll-rate="chaos" />혼돈의 주문서<span class="decon-chaos-help"><span class="decon-chaos-help-icon">?</span><span class="decon-chaos-help-tooltip">일반 주문서와의 조합이 불가능 할경우 사용됩니다.</span></span></label>
+                  </div>
+                  <div class="decon-source-sub" data-decon-chaos-bounds hidden>
+                    <span class="decon-source-sub-label">혼돈 스탯 범위:</span>
+                    <div data-decon-chaos-bounds-list></div>
                   </div>
                 </div>
                 <div class="decon-source-row">
@@ -420,7 +424,6 @@ const deconCalcPanel = document.querySelector('[data-decon-calc-panel]');
 const deconCalcPlaceholder = document.querySelector('[data-decon-calc-placeholder]');
 const deconCalcContent = document.querySelector('[data-decon-calc-content]');
 const deconTargetChips = document.querySelector('[data-decon-target-chips]');
-const deconSourceInputs = document.querySelectorAll('[data-decon-source]');
 const deconScrollSource = document.querySelector('[data-decon-source="scrolls"]');
 const deconStimulantSource = document.querySelector('[data-decon-source="stimulant"]');
 const deconStimulantLabel = document.querySelector('[data-decon-stimulant-label]');
@@ -439,6 +442,8 @@ const deconScrollRateSub = document.querySelector('[data-decon-scroll-rate-sub]'
 const deconScrollRateInputs = document.querySelectorAll('[data-decon-scroll-rate]');
 const deconStimulantBounds = document.querySelector('[data-decon-stimulant-bounds]');
 const deconStimulantBoundsList = document.querySelector('[data-decon-stimulant-bounds-list]');
+const deconChaosBounds = document.querySelector('[data-decon-chaos-bounds]');
+const deconChaosBoundsList = document.querySelector('[data-decon-chaos-bounds-list]');
 const deconLevelSlotRanges = document.querySelector('[data-decon-level-slot-ranges]');
 const deconLevelSlotList = document.querySelector('[data-decon-level-slot-list]');
 const deconLevelSlotLabel = document.querySelector('[data-decon-level-slot-label]');
@@ -478,8 +483,9 @@ let deconDeltas = {};
 let deconStatKeys = [];
 let deconSlotState = createDeconstructionSlotState(0);
 let deconHasActionableResults = false;
-let deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
+let deconScrollRateFilter = new Set(['100', '60', '10']);
 let deconStimulantBoundsMap = {};
+let deconChaosBoundsMap = {};
 let deconGemFilter = null; // null = all gems available, Set<string> of "gemKey:gradeIndex" = whitelist
 let deconGemEligible = true; // whether selected item meets maker gem REQLEV threshold for its class
 let deconLevelUpTotalRanges = {};
@@ -528,7 +534,7 @@ const resetAllowedSources = () => {
   }
   // Collapse all source sub-sections since programmatic .checked
   // changes don't fire the change event that toggleSourceSub needs.
-  const allSubs = [deconScrollRateSub, deconStimulantBounds, deconGemSub, deconLevelSlotRanges];
+  const allSubs = [deconScrollRateSub, deconStimulantBounds, deconGemSub, deconLevelSlotRanges, deconChaosBounds];
   for (const sub of allSubs) {
     if (sub instanceof HTMLElement) {
       sub.classList.remove('decon-source-sub--open');
@@ -589,41 +595,8 @@ const updateSourcePanelForItem = (item) => {
   updateAnalyzeButton();
 };
 
-deconScrollSource?.addEventListener('change', () => {
-  toggleSourceSub(deconScrollSource, deconScrollRateSub, () => {
-    deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
-    deconScrollRateInputs.forEach(inp => { if (inp instanceof HTMLInputElement) inp.checked = true; });
-  });
-  updateAnalyzeButton();
-
-});
-
-deconStimulantSource?.addEventListener('change', () => {
-  toggleSourceSub(deconStimulantSource, deconStimulantBounds, () => {
-    buildStimulantBoundsEditor();
-  });
-
-  updateAnalyzeButton();
-});
-
-deconGemsSource?.addEventListener('change', () => {
-  toggleSourceSub(deconGemsSource, deconGemSub, () => {
-    deconGemFilter = null;
-    buildGemPreFilter();
-  });
-  if (!deconGemsSource.checked) {
-    deconGemFilter = null;
-
-  }
-  updateAnalyzeButton();
-});
-
-deconItemLevelUpSource?.addEventListener('change', () => {
-  toggleSourceSub(deconItemLevelUpSource, deconLevelSlotRanges, () => {
-    buildLevelUpSlotEditors();
-  });
-  updateAnalyzeButton();
-});
+// Source checkbox change handlers are consolidated below with guardCheckboxMutation
+// to ensure accordion panels only toggle after user confirmation when results exist.
 
 const renderTargetChips = () => {
   if (!(deconTargetChips instanceof HTMLElement)) return;
@@ -1198,6 +1171,79 @@ const buildStimulantBoundsEditor = () => {
   }
 };
 
+const buildChaosBoundsEditor = () => {
+  if (!(deconChaosBoundsList instanceof HTMLElement)) return;
+  deconChaosBoundsList.replaceChildren();
+  deconChaosBoundsMap = {};
+  // Only show stats that have a target delta set (non-zero)
+  const targetedKeys = deconStatKeys.filter((k) => deconDeltas[k] !== 0);
+  for (const key of targetedKeys) {
+    const isHpMp = HP_MP_KEYS.has(key);
+    const defaultLimit = isHpMp ? 50 : 5;
+    const stepSize = isHpMp ? 10 : 1;
+    deconChaosBoundsMap[key] = { min: -defaultLimit, max: defaultLimit };
+
+    const row = document.createElement('div');
+    row.className = 'decon-secondary-stimulant-row';
+
+    const label = document.createElement('span');
+    label.className = 'decon-secondary-stimulant-stat';
+    label.textContent = statLabelByKey[key] || key;
+    row.append(label);
+
+    // Min slider (from -defaultLimit to 0)
+    const minSlider = document.createElement('input');
+    minSlider.type = 'range';
+    minSlider.className = 'decon-secondary-stimulant-slider';
+    minSlider.min = -defaultLimit;
+    minSlider.max = 0;
+    minSlider.step = stepSize;
+    minSlider.value = -defaultLimit;
+
+    const minVal = document.createElement('span');
+    minVal.className = 'decon-secondary-stimulant-value';
+    minVal.textContent = String(-defaultLimit);
+
+    const sep = document.createElement('span');
+    sep.className = 'decon-secondary-stimulant-sep';
+    sep.textContent = '~';
+
+    const maxVal = document.createElement('span');
+    maxVal.className = 'decon-secondary-stimulant-value';
+    maxVal.textContent = String(defaultLimit);
+
+    // Max slider
+    const maxSlider = document.createElement('input');
+    maxSlider.type = 'range';
+    maxSlider.className = 'decon-secondary-stimulant-slider';
+    maxSlider.min = 0;
+    maxSlider.max = defaultLimit;
+    maxSlider.step = stepSize;
+    maxSlider.value = defaultLimit;
+
+    minSlider.addEventListener('input', () => {
+      const val = Number(minSlider.value);
+      minVal.textContent = String(val);
+      deconChaosBoundsMap[key] = { ...deconChaosBoundsMap[key], min: val };
+    });
+    minSlider.addEventListener('change', () => {
+      checkDeconStarState();
+    });
+
+    maxSlider.addEventListener('input', () => {
+      const val = Number(maxSlider.value);
+      maxVal.textContent = String(val);
+      deconChaosBoundsMap[key] = { ...deconChaosBoundsMap[key], max: val };
+    });
+    maxSlider.addEventListener('change', () => {
+      checkDeconStarState();
+    });
+
+    row.append(minSlider, minVal, sep, maxVal, maxSlider);
+    deconChaosBoundsList.append(row);
+  }
+};
+
 const buildGemPreFilter = () => {
   if (!(deconGemSub instanceof HTMLElement)) return;
   if (!selectedItem) return;
@@ -1680,12 +1726,15 @@ const clearDeconCalculationState = (item) => {
   deconHasActionableResults = false;
   deconSlotState = createDeconstructionSlotState(item?.stats?.upgradeSlots ?? 0);
   deconAppliedLevelCount = 0;
-  deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
+  deconScrollRateFilter = new Set(['100', '60', '10']);
   deconStimulantBoundsMap = {};
+  deconChaosBoundsMap = {};
   deconGemFilter = null;
   deconGemEligible = true;
   deconLevelUpTotalRanges = {};
-  deconScrollRateInputs.forEach(inp => { if (inp instanceof HTMLInputElement) inp.checked = true; });
+  deconScrollRateInputs.forEach(inp => {
+    if (inp instanceof HTMLInputElement && inp.dataset.deconScrollRate !== 'chaos') inp.checked = true;
+  });
 };
 
 const commitSuggestedItem = (item, { syncFilters = true } = {}) => {
@@ -1939,11 +1988,18 @@ const activateDeconEditPanel = (item) => {
   // Reset slot history from the selected clean item
   deconSlotState = createDeconstructionSlotState(item.stats?.upgradeSlots ?? 0);
   deconAppliedLevelCount = 0;
-  deconScrollRateFilter = new Set(['100', '60', '10', 'chaos']);
+  deconScrollRateFilter = new Set(['100', '60', '10']);
   deconStimulantBoundsMap = {};
+  deconChaosBoundsMap = {};
+  if (deconChaosBounds instanceof HTMLElement) {
+    deconChaosBounds.classList.remove('decon-source-sub--open');
+    deconChaosBounds.hidden = true;
+  }
   deconGemFilter = null;
   deconLevelUpTotalRanges = {};
-  deconScrollRateInputs.forEach(inp => { if (inp instanceof HTMLInputElement) inp.checked = true; });
+  deconScrollRateInputs.forEach(inp => {
+    if (inp instanceof HTMLInputElement && inp.dataset.deconScrollRate !== 'chaos') inp.checked = true;
+  });
   renderDeconSlotState();
   renderDeconItemLevel();
 
@@ -2311,6 +2367,7 @@ const runAnalysis = () => {
     levelUpDefinition: levelUpDef ?? null,
     scrollRateFilter: deconScrollRateFilter.size > 0 ? deconScrollRateFilter : null,
     stimulantStatBounds: Object.keys(deconStimulantBoundsMap).length > 0 ? deconStimulantBoundsMap : null,
+    chaosStatBounds: Object.keys(deconChaosBoundsMap).length > 0 ? deconChaosBoundsMap : null,
     gemFilter: deconGemFilter,
     levelUpExactLevelCount: appliedCount,
     levelUpTotalStatRanges: appliedCount > 0 && Object.keys(deconLevelUpTotalRanges).length > 0
@@ -2743,6 +2800,18 @@ deconScrollRateInputs.forEach((chip) => {
       } else {
         deconScrollRateFilter.delete(rate);
       }
+      // Toggle chaos stat bounds editor
+      if (rate === 'chaos' && deconChaosBounds instanceof HTMLElement) {
+        if (chip.checked) {
+          deconChaosBounds.hidden = false;
+          deconChaosBounds.classList.add('decon-source-sub--open');
+          buildChaosBoundsEditor();
+        } else {
+          deconChaosBounds.classList.remove('decon-source-sub--open');
+          deconChaosBounds.hidden = true;
+          deconChaosBoundsMap = {};
+        }
+      }
       checkDeconStarState();
     });
   });
@@ -2758,9 +2827,46 @@ deconAddStatToggle?.addEventListener('click', () => {
 
 // ---- Analyze button ----
 deconAnalyzeBtn?.addEventListener('click', runAnalysis);
-deconSourceInputs.forEach((input) => {
-  input.addEventListener('change', () => {
-    guardCheckboxMutation(input, guardDeconMutation, updateAnalyzeButton);
+deconScrollSource?.addEventListener('change', () => {
+  guardCheckboxMutation(deconScrollSource, guardDeconMutation, () => {
+    toggleSourceSub(deconScrollSource, deconScrollRateSub, () => {
+      deconScrollRateFilter = new Set(['100', '60', '10']);
+      deconScrollRateInputs.forEach(inp => {
+        if (inp instanceof HTMLInputElement && inp.dataset.deconScrollRate !== 'chaos') inp.checked = true;
+      });
+    });
+    updateAnalyzeButton();
+  });
+});
+
+deconStimulantSource?.addEventListener('change', () => {
+  guardCheckboxMutation(deconStimulantSource, guardDeconMutation, () => {
+    toggleSourceSub(deconStimulantSource, deconStimulantBounds, () => {
+      buildStimulantBoundsEditor();
+    });
+    updateAnalyzeButton();
+  });
+});
+
+deconGemsSource?.addEventListener('change', () => {
+  guardCheckboxMutation(deconGemsSource, guardDeconMutation, () => {
+    toggleSourceSub(deconGemsSource, deconGemSub, () => {
+      deconGemFilter = null;
+      buildGemPreFilter();
+    });
+    if (!deconGemsSource.checked) {
+      deconGemFilter = null;
+    }
+    updateAnalyzeButton();
+  });
+});
+
+deconItemLevelUpSource?.addEventListener('change', () => {
+  guardCheckboxMutation(deconItemLevelUpSource, guardDeconMutation, () => {
+    toggleSourceSub(deconItemLevelUpSource, deconLevelSlotRanges, () => {
+      buildLevelUpSlotEditors();
+    });
+    updateAnalyzeButton();
   });
 });
 
@@ -2835,7 +2941,7 @@ document.querySelector('[data-enhancement-reset]')?.addEventListener('click', ()
       deconStatEditor.replaceChildren();
     }
     // Collapse all source accordions in Section 3
-    const allSubs = [deconScrollRateSub, deconStimulantBounds, deconGemSub, deconLevelSlotRanges];
+    const allSubs = [deconScrollRateSub, deconStimulantBounds, deconGemSub, deconLevelSlotRanges, deconChaosBounds];
     for (const sub of allSubs) {
       if (sub instanceof HTMLElement) {
         sub.classList.remove('decon-source-sub--open');
@@ -4020,12 +4126,43 @@ aside.panel {
   display: none;
 }
 
-/* Scroll icon rows */
+/* Scroll stat filter tabs */
+:global(.decon-secondary-scroll-filters) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+:global(.decon-secondary-scroll-filter) {
+  min-height: 24px;
+  padding: 2px 7px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+:global(.decon-secondary-scroll-filter:hover) {
+  border-color: var(--muted);
+}
+
+:global(.decon-secondary-scroll-filter--active) {
+  border-color: var(--green);
+  background: var(--green);
+  color: white;
+}
+
+/* Scroll toggle rows */
 :global(.decon-secondary-scroll-list) {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  max-height: 160px;
+  max-height: 240px;
   overflow-y: auto;
   scrollbar-gutter: stable;
 }
@@ -4033,16 +4170,32 @@ aside.panel {
 :global(.decon-secondary-scroll-row) {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 4px;
+  gap: 6px;
+  width: 100%;
+  min-height: 44px;
+  padding: 4px 6px;
   font-size: 0.74rem;
+  font-family: inherit;
+  text-align: left;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
   cursor: pointer;
-  border-radius: 4px;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 :global(.decon-secondary-scroll-row:hover) {
   background: color-mix(in srgb, var(--line) 30%, transparent);
+}
+
+:global(.decon-secondary-scroll-row--selected) {
+  background: color-mix(in srgb, var(--green) 12%, transparent);
+  border-color: color-mix(in srgb, var(--green) 35%, transparent);
+}
+
+:global(.decon-secondary-scroll-row--selected:hover) {
+  background: color-mix(in srgb, var(--green) 20%, transparent);
 }
 
 :global(.decon-secondary-scroll-row--unavailable) {
@@ -4050,17 +4203,40 @@ aside.panel {
   cursor: not-allowed;
 }
 
-:global(.decon-secondary-scroll-row input[type="checkbox"]) {
-  width: 13px;
-  height: 13px;
-  flex-shrink: 0;
+:global(.decon-secondary-scroll-row--unavailable.decon-secondary-scroll-row--selected) {
+  opacity: 0.5;
 }
 
 :global(.decon-secondary-scroll-icon) {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border-radius: 2px;
   flex-shrink: 0;
+  image-rendering: pixelated;
+}
+
+:global(.decon-secondary-scroll-text) {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+
+:global(.decon-secondary-scroll-name) {
+  font-weight: 650;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:global(.decon-secondary-scroll-stat) {
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Gem drill-down */
