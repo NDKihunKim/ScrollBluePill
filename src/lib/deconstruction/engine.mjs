@@ -153,7 +153,8 @@ function* enumerateExactCountScrollStates({
     }
   }
 
-  // Deduplicate by delta vector key
+  // Deduplicate by delta vector key, then sort by useful contribution
+  // (sum of positive deltas descending) so the DFS finds valid combos faster.
   const chaosSeen = new Map();
   const chaosPool = [];
   for (const entry of chaosPoolRaw) {
@@ -163,6 +164,11 @@ function* enumerateExactCountScrollStates({
       chaosPool.push(entry);
     }
   }
+  chaosPool.sort((a, b) => {
+    const aScore = targetKeys.reduce((s, k) => s + Math.max(0, a.deltas[k] || 0), 0);
+    const bScore = targetKeys.reduce((s, k) => s + Math.max(0, b.deltas[k] || 0), 0);
+    return bScore - aScore;
+  });
 
   console.log('[chaos-debug] chaos pool:', {
     rawCount: chaosPoolRaw.length,
@@ -653,19 +659,19 @@ export function enumerateStrategies({
 
   // Generate exact-count scroll states against the effective (post-applied-stats) target
   const effectiveScrollStates = normalizedAllowedSources.scrolls && normCount > 0
-    ? [...enumerateExactCountScrollStates({
+    ? enumerateExactCountScrollStates({
         scrolls,
         targetKeys,
         targetDeltas: effectiveTargetDeltas,
         successfulScrollCount: normCount,
         correctionBounds,
         chaosStatBounds,
-      })]
+      })
     : (normCount === 0
       ? [{ scrolls: [], stats: Object.fromEntries(targetKeys.map((k) => [k, 0])) }]
       : []);
 
-  console.log('[chaos-debug] effectiveScrollStates count:', effectiveScrollStates.length);
+  let effectiveScrollStatesSeen = 0;
 
   // Full target vector (original, for exact-match verification)
   const targetVector = targetKeys.reduce((acc, k) => {
@@ -776,6 +782,12 @@ export function enumerateStrategies({
   } else {
     // EXISTING loop verbatim — copy of the current for loop, do not modify
     for (const ss of effectiveScrollStates) {
+      effectiveScrollStatesSeen++;
+      if (effectiveScrollStatesSeen > 50000) {
+        tooManyResults = true;
+        break;
+      }
+      if (tooManyResults) break;
       const residual = subtractVectors(effectiveTargetDeltas, ss.stats, targetKeys);
 
       // Tier 0: scroll-only (scrolls cover the entire effective target)
