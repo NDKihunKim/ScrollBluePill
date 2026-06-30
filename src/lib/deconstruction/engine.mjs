@@ -112,9 +112,11 @@ function* enumerateExactCountScrollStates({
   })();
   if (requiredScrollCount === 0) return [];
 
-  // Filter scrolls to those touching at least one checked key
+  // Filter scrolls to those touching at least one checked key.
+  // Chaos scrolls always pass — they can affect any stat and carry
+  // zero-valued stats in the data (engine uses getChaosRange for deltas).
   const relevantScrolls = allScrolls.filter((s) =>
-    targetKeys.some((k) => (s.stats?.[k] || 0) !== 0),
+    isChaosScroll(s) || targetKeys.some((k) => (s.stats?.[k] || 0) !== 0),
   );
   if (relevantScrolls.length === 0) {
     console.log('[chaos-debug] enumerateExactCountScrollStates: no relevant scrolls touch targetKeys', targetKeys);
