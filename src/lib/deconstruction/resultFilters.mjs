@@ -21,6 +21,16 @@ const formatStats = (stats) => {
   return parts.join(', ') || '변화 없음';
 };
 
+/**
+ * Strip the equipment prefix from chaos scroll names.
+ * "장갑 혼돈의 주문서" → "혼돈의 주문서"
+ * "장갑 민첩의 주문서" → unchanged (not a chaos scroll)
+ */
+export function simplifyScrollDisplayName(nameKo) {
+  const match = String(nameKo ?? '').match(/(혼돈의 주문서.*)$/);
+  return match ? match[1] : nameKo;
+}
+
 const stimulantSortGroup = (stats) => {
   const values = Object.values(stats ?? {}).filter((value) => Number.isFinite(value) && value !== 0);
   if (values.length === 0) return 1;
@@ -66,8 +76,8 @@ export function getStrategySecondaryOptions(strategy) {
   const scrolls = uniqueOptions((strategy.scrolls ?? []).map((scroll) => ({
     source: 'scrolls',
     key: `scroll:${scroll.id}`,
-    label: scroll.nameKo ?? String(scroll.id),
-    iconId: scroll.id,
+    label: simplifyScrollDisplayName(scroll.nameKo) ?? String(scroll.id),
+    iconId: scroll.behavior_type === 'chaos' ? 2049100 : scroll.id,
     stats: { ...scroll.stats },
     statKeys: getScrollStatKeys(scroll.stats),
     behaviorType: scroll.behavior_type ?? 'normal',
@@ -113,11 +123,16 @@ export function getStrategySecondaryOptions(strategy) {
 }
 
 export function buildSecondaryFilterModel(strategies) {
-  const entries = strategies.map((strategy, strategyIndex) => ({
-    strategyIndex,
-    strategy,
-    optionsBySource: getStrategySecondaryOptions(strategy),
-  }));
+  const entries = strategies.map((strategy, strategyIndex) => {
+    const optionsBySource = getStrategySecondaryOptions(strategy);
+    // Count how many times each scroll appears in this strategy
+    const scrollCounts = new Map();
+    for (const scroll of (strategy.scrolls ?? [])) {
+      const key = `scroll:${scroll.id}`;
+      scrollCounts.set(key, (scrollCounts.get(key) || 0) + 1);
+    }
+    return { strategyIndex, strategy, optionsBySource, scrollCounts };
+  });
 
   const optionsBySource = new Map();
   for (const source of RESULT_SOURCE_ORDER) {
@@ -187,11 +202,39 @@ function itemLevelUpInRange(entry, ranges) {
   return true;
 }
 
-export function getVisibleStrategyIndexes(model, selections, stimulantRanges = null, itemLevelUpRanges = null) {
+function scrollCountInRange(entry, ranges) {
+  if (!ranges || ranges.size === 0) return true;
+  for (const [scrollKey, { min, max }] of ranges) {
+    const count = entry.scrollCounts?.get(scrollKey) ?? 0;
+    if (count < min || count > max) return false;
+  }
+  return true;
+}
+
+function chaosDeltaInRange(entry, chaosRanges) {
+  if (!chaosRanges || chaosRanges.size === 0) return true;
+  for (const scroll of (entry.strategy.scrolls ?? [])) {
+    if (scroll.behavior_type !== 'chaos') continue;
+    const scrollRanges = chaosRanges.get(`scroll:${scroll.id}`);
+    if (!scrollRanges) continue;
+    for (const [statKey, { min, max }] of scrollRanges) {
+      const value = scroll.stats?.[statKey] ?? 0;
+      if (value < min || value > max) return false;
+    }
+  }
+  return true;
+}
+
+export function getVisibleStrategyIndexes(
+  model, selections,
+  stimulantRanges = null, itemLevelUpRanges = null, scrollCountRanges = null, chaosDeltaRanges = null,
+) {
   return model.entries
     .filter((entry) =>
       entryMatches(entry, selections)
       && stimulantInRange(entry, stimulantRanges)
-      && itemLevelUpInRange(entry, itemLevelUpRanges))
+      && itemLevelUpInRange(entry, itemLevelUpRanges)
+      && scrollCountInRange(entry, scrollCountRanges)
+      && chaosDeltaInRange(entry, chaosDeltaRanges))
     .map(({ strategyIndex }) => strategyIndex);
 }
