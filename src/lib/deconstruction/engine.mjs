@@ -44,29 +44,56 @@ function getChaosRange(statKey) {
   return { min: -5, max: 5 };
 }
 
-function* generateChaosDeltas(stats, targetKeys, chaosBounds = null, limit = 100000) {
+function* generateChaosDeltas(stats, targetKeys, chaosBounds = null, limit = 100000, targetDeltas = null, cleanStats = null) {
   // Only enumerate deltas for keys the user actually targets.
   // A chaos scroll may have 6-10 stat keys; without filtering we'd hit
   // the limit before reaching the relevant keys.
-  const statKeys = Object.keys(stats).filter((k) => targetKeys.includes(k));
+
+  // Build the stat key pool: scroll's native stats + chaosBounds-introduced keys.
+  const scrollPoolKeys = Object.keys(stats).filter((k) => targetKeys.includes(k));
+  const boundsIntroducedKeys = chaosBounds
+    ? Object.keys(chaosBounds).filter((k) =>
+        targetKeys.includes(k) &&
+        !scrollPoolKeys.includes(k) &&
+        Number.isFinite(chaosBounds[k]?.min) &&
+        Number.isFinite(chaosBounds[k]?.max),
+      )
+    : [];
+  const allCandidateKeys = [...scrollPoolKeys, ...boundsIntroducedKeys];
+
+  // Prune: skip keys where target delta is 0 AND the item has no base stat to protect.
+  // Chaos moving a stat from 0→±5 that the user doesn't want changed wastes slots.
+  const statKeys = allCandidateKeys.filter((k) => {
+    const delta = targetDeltas?.[k] ?? 0;
+    if (delta !== 0) return true;                       // user wants this changed — keep
+    const base = cleanStats?.[k];
+    if (Number.isFinite(base) && base > 0) return true;  // item has a stat to protect — keep
+    return false;                                        // delta=0 AND base≤0 — skip
+  });
+
   if (statKeys.length === 0) return;
 
   const ranges = statKeys.map((key) => {
-    const { min, max } = getChaosRange(key);
-    // Clamp to user-defined chaos stat bounds when provided
-    const effectiveMin = chaosBounds?.[key] && Number.isFinite(chaosBounds[key].min)
-      ? Math.max(min, chaosBounds[key].min)
-      : min;
-    const effectiveMax = chaosBounds?.[key] && Number.isFinite(chaosBounds[key].max)
-      ? Math.min(max, chaosBounds[key].max)
-      : max;
+    // For bounds-introduced keys, use the bounds as the authoritative range
+    // (clamped to the standard chaos range as a safety floor/ceiling).
+    const defaultRange = getChaosRange(key);
+    const min = chaosBounds?.[key] && Number.isFinite(chaosBounds[key].min)
+      ? Math.max(defaultRange.min, chaosBounds[key].min)
+      : defaultRange.min;
+    const max = chaosBounds?.[key] && Number.isFinite(chaosBounds[key].max)
+      ? Math.min(defaultRange.max, chaosBounds[key].max)
+      : defaultRange.max;
     const values = [];
     // Prioritise useful deltas: 0 first (neutral), then +1..+max (gains),
     // then -1..min (losses).  This puts the most likely match within the
     // limit window.
     values.push(0);
-    for (let v = 1; v <= effectiveMax; v++) values.push(v);
-    for (let v = -1; v >= effectiveMin; v--) values.push(v);
+    for (let v = 1; v <= max; v++) {
+      if (v >= min) values.push(v);
+    }
+    for (let v = -1; v >= min; v--) {
+      if (v <= max) values.push(v);
+    }
     return { key, values };
   });
 
@@ -101,6 +128,7 @@ function* enumerateExactCountScrollStates({
   successfulScrollCount,
   correctionBounds,
   chaosStatBounds = null,
+  cleanStats = null,
 }) {
   const requiredScrollCount = (() => {
     try {
@@ -148,7 +176,7 @@ function* enumerateExactCountScrollStates({
   // creates a combinatorially impossible search space.
   const chaosPoolRaw = [];
   for (const cs of chaosScrolls) {
-    for (const deltas of generateChaosDeltas(cs.stats, targetKeys, chaosStatBounds)) {
+    for (const deltas of generateChaosDeltas(cs.stats, targetKeys, chaosStatBounds, 100000, targetDeltas, cleanStats)) {
       chaosPoolRaw.push({ baseScroll: cs, deltas });
     }
   }
@@ -290,6 +318,16 @@ function* enumerateExactCountScrollStates({
     if (chaosPool.length > 0) {
       for (const entry of chaosPool) {
         const { baseScroll: cs, deltas } = entry;
+
+        // Guard: bounds-introduced keys (not in the scroll's native stat pool)
+        // can only modify stats that already exist on the item.  They cannot
+        // create a stat from zero — a fixed scroll must establish it first.
+        const nativeStats = cs.stats;
+        if (Object.keys(deltas).some(
+          (k) => !(k in (nativeStats ?? {})) && (currentStats[k] || 0) <= 0,
+        )) {
+          continue;
+        }
 
         // Compute max uses of this delta vector — bounded by positive deltas
         // that would overshoot their target keys.
@@ -666,6 +704,7 @@ export function enumerateStrategies({
         successfulScrollCount: normCount,
         correctionBounds,
         chaosStatBounds,
+        cleanStats,
       })
     : (normCount === 0
       ? [{ scrolls: [], stats: Object.fromEntries(targetKeys.map((k) => [k, 0])) }]
@@ -707,6 +746,7 @@ export function enumerateStrategies({
             successfulScrollCount: normCount,
             correctionBounds: scrollCorrectionBounds,
             chaosStatBounds,
+            cleanStats,
           })
         : (normCount === 0
           ? [{ scrolls: [], stats: Object.fromEntries(targetKeys.map((k) => [k, 0])) }]

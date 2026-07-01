@@ -22,6 +22,8 @@ export function createResultFilterController({ root, secondaryContainer }) {
   let selections = new Map();
   let stimulantRanges = new Map();
   let itemLevelUpRanges = new Map();
+  let scrollCountRanges = new Map();
+  let chaosDeltaRanges = new Map();
   let activeScrollStatFilter = 'all';
 
   const hidePanel = () => {
@@ -42,10 +44,14 @@ export function createResultFilterController({ root, secondaryContainer }) {
     if (!model) return 0;
     const hasStimRanges = stimulantRanges.size > 0;
     const hasLevelRanges = itemLevelUpRanges.size > 0;
+    const hasCountRanges = scrollCountRanges.size > 0;
+    const hasChaosRanges = chaosDeltaRanges.size > 0;
     const visibleIndexes = new Set(getVisibleStrategyIndexes(
       model, selections,
       hasStimRanges ? stimulantRanges : null,
       hasLevelRanges ? itemLevelUpRanges : null,
+      hasCountRanges ? scrollCountRanges : null,
+      hasChaosRanges ? chaosDeltaRanges : null,
     ));
     let visibleCount = 0;
     root.querySelectorAll('.decon-strategy-card').forEach((card) => {
@@ -73,8 +79,14 @@ export function createResultFilterController({ root, secondaryContainer }) {
   const setSecondaryOption = (source, key, checked) => {
     const selected = selections.get(source);
     if (!selected) return;
-    if (checked) selected.add(key);
-    else selected.delete(key);
+    if (checked) {
+      selected.add(key);
+    } else {
+      selected.delete(key);
+      // Clear any count range when toggled off so it doesn't
+      // silently filter strategies that don't use this scroll.
+      if (source === 'scrolls') scrollCountRanges.delete(key);
+    }
     applyFilters();
     refreshActivePanel();
   };
@@ -137,21 +149,67 @@ export function createResultFilterController({ root, secondaryContainer }) {
     const list = document.createElement('div');
     list.className = 'decon-secondary-scroll-list';
 
+    // Compute max count per scroll across all model entries
+    const maxCounts = new Map();
+    if (model) {
+      for (const entry of model.entries) {
+        for (const [scrollKey, count] of (entry.scrollCounts ?? [])) {
+          const prev = maxCounts.get(scrollKey) ?? 0;
+          if (count > prev) maxCounts.set(scrollKey, count);
+        }
+      }
+    }
+
+    // Compute per-stat delta ranges for chaos scrolls across all entries
+    const chaosStatRanges = new Map(); // scroll:{id} → Map<statKey, {min,max}>
+    if (model) {
+      for (const entry of model.entries) {
+        for (const s of (entry.strategy.scrolls ?? [])) {
+          if (s.behavior_type !== 'chaos') continue;
+          const key = `scroll:${s.id}`;
+          if (!chaosStatRanges.has(key)) chaosStatRanges.set(key, new Map());
+          const statMap = chaosStatRanges.get(key);
+          for (const [k, v] of Object.entries(s.stats ?? {})) {
+            if (!Number.isFinite(v)) continue;
+            const existing = statMap.get(k);
+            statMap.set(k, {
+              min: Math.min(existing?.min ?? Infinity, v),
+              max: Math.max(existing?.max ?? -Infinity, v),
+            });
+          }
+        }
+      }
+    }
+
     for (const option of visibleOptions) {
       const isSelected = selected.has(option.key);
       const isAvailable = option.available;
+      const isChaos = option.behaviorType === 'chaos';
 
-      const row = document.createElement('button');
-      row.type = 'button';
+      // Build the toggle row as a <div> (not <button>) because it contains
+      // interactive <input type="range"> sliders — nesting interactive content
+      // inside a <button> is invalid HTML and causes browsers to strip or hide
+      // the slider elements.
+      const row = document.createElement('div');
       row.className = 'decon-secondary-scroll-row';
       if (isSelected) row.classList.add('decon-secondary-scroll-row--selected');
       if (!isAvailable) row.classList.add('decon-secondary-scroll-row--unavailable');
+      row.setAttribute('role', 'button');
       row.setAttribute('aria-pressed', String(isSelected));
-      row.disabled = !isAvailable;
+      row.setAttribute('tabindex', isAvailable ? '0' : '-1');
+      if (!isAvailable) row.setAttribute('aria-disabled', 'true');
 
-      row.addEventListener('click', () => {
+      const toggleScroll = () => {
         if (!isAvailable) return;
         setSecondaryOption('scrolls', option.key, !selected.has(option.key));
+      };
+
+      row.addEventListener('click', toggleScroll);
+      row.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          toggleScroll();
+        }
       });
 
       const icon = document.createElement('img');
@@ -173,7 +231,169 @@ export function createResultFilterController({ root, secondaryContainer }) {
       statLine.textContent = option.stats ? formatScrollStatLine({ stats: option.stats }) : '';
 
       textBlock.append(name, statLine);
-      row.append(icon, textBlock);
+      const info = document.createElement('span');
+      info.className = 'decon-secondary-scroll-info';
+      info.append(icon, textBlock);
+      row.append(info);
+
+      // Add sliders: count range for regular, stat delta range for chaos
+      if (!isChaos) {
+        // ── Regular scroll: count range slider ──
+        const maxCount = maxCounts.get(option.key) ?? 0;
+        if (maxCount > 0) {
+          const sliderWrap = document.createElement('span');
+          sliderWrap.className = 'decon-secondary-scroll-slider-wrap';
+          if (!isSelected) sliderWrap.classList.add('decon-secondary-scroll-slider-wrap--disabled');
+
+          const countLabel = document.createElement('span');
+          countLabel.className = 'decon-secondary-scroll-count-label';
+          countLabel.textContent = '주문서 사용 횟수:';
+
+          const existing = scrollCountRanges.get(option.key);
+          const currentMin = existing ? existing.min : 0;
+          const currentMax = existing ? existing.max : maxCount;
+
+          const minSlider = document.createElement('input');
+          minSlider.type = 'range';
+          minSlider.className = 'decon-secondary-stimulant-slider';
+          minSlider.min = 0;
+          minSlider.max = maxCount;
+          minSlider.value = currentMin;
+          minSlider.disabled = !isSelected;
+
+          const minVal = document.createElement('span');
+          minVal.className = 'decon-secondary-stimulant-value';
+          minVal.textContent = String(currentMin);
+
+          const sep = document.createElement('span');
+          sep.className = 'decon-secondary-stimulant-sep';
+          sep.textContent = '~';
+
+          const maxVal = document.createElement('span');
+          maxVal.className = 'decon-secondary-stimulant-value';
+          maxVal.textContent = String(currentMax);
+
+          const maxSlider = document.createElement('input');
+          maxSlider.type = 'range';
+          maxSlider.className = 'decon-secondary-stimulant-slider';
+          maxSlider.min = 0;
+          maxSlider.max = maxCount;
+          maxSlider.value = currentMax;
+          maxSlider.disabled = !isSelected;
+
+          const updateCountRange = () => {
+            let mn = Number(minSlider.value);
+            let mx = Number(maxSlider.value);
+            if (mn > mx) [mn, mx] = [mx, mn];
+            scrollCountRanges.set(option.key, { min: mn, max: mx });
+            minSlider.value = mn;
+            maxSlider.value = mx;
+            minVal.textContent = String(mn);
+            maxVal.textContent = String(mx);
+            applyFilters();
+          };
+
+          minSlider.addEventListener('input', updateCountRange);
+          maxSlider.addEventListener('input', updateCountRange);
+
+          sliderWrap.addEventListener('click', (e) => { e.stopPropagation(); });
+          sliderWrap.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
+
+          const dualRange = document.createElement('span');
+          dualRange.className = 'dual-range';
+          dualRange.append(minSlider, maxSlider);
+          const header = document.createElement('span');
+          header.className = 'decon-secondary-scroll-slider-header';
+          header.append(countLabel, minVal, sep, maxVal);
+          sliderWrap.append(header, dualRange);
+          row.append(sliderWrap);
+        }
+      } else {
+        // ── Chaos scroll: per-stat delta range sliders ──
+        const statRanges = chaosStatRanges.get(option.key);
+        if (statRanges && statRanges.size > 0) {
+          const chaosWrap = document.createElement('span');
+          chaosWrap.className = 'decon-secondary-scroll-chaos-stats';
+          if (!isSelected) chaosWrap.classList.add('decon-secondary-scroll-slider-wrap--disabled');
+
+          // Get or init persisted ranges for this scroll key
+          let persisted = chaosDeltaRanges.get(option.key);
+          if (!persisted) {
+            persisted = new Map();
+            chaosDeltaRanges.set(option.key, persisted);
+          }
+
+          for (const [statKey, fullRange] of statRanges) {
+            const rowS = document.createElement('span');
+            rowS.className = 'decon-secondary-scroll-chaos-stat-row';
+
+            const label = document.createElement('span');
+            label.className = 'decon-secondary-stimulant-stat';
+            label.textContent = statLabelByKey[statKey] ?? statKey;
+
+            const existing = persisted.get(statKey);
+            const curMin = existing ? existing.min : fullRange.min;
+            const curMax = existing ? existing.max : fullRange.max;
+
+            const minSlider = document.createElement('input');
+            minSlider.type = 'range';
+            minSlider.className = 'decon-secondary-stimulant-slider';
+            minSlider.min = fullRange.min;
+            minSlider.max = fullRange.max;
+            minSlider.value = curMin;
+            minSlider.disabled = !isSelected;
+
+            const minVal = document.createElement('span');
+            minVal.className = 'decon-secondary-stimulant-value';
+            minVal.textContent = String(curMin);
+
+            const sep = document.createElement('span');
+            sep.className = 'decon-secondary-stimulant-sep';
+            sep.textContent = '~';
+
+            const maxVal = document.createElement('span');
+            maxVal.className = 'decon-secondary-stimulant-value';
+            maxVal.textContent = String(curMax);
+
+            const maxSlider = document.createElement('input');
+            maxSlider.type = 'range';
+            maxSlider.className = 'decon-secondary-stimulant-slider';
+            maxSlider.min = fullRange.min;
+            maxSlider.max = fullRange.max;
+            maxSlider.value = curMax;
+            maxSlider.disabled = !isSelected;
+
+            const updateDeltaRange = () => {
+              let mn = Number(minSlider.value);
+              let mx = Number(maxSlider.value);
+              if (mn > mx) [mn, mx] = [mx, mn];
+              persisted.set(statKey, { min: mn, max: mx });
+              minSlider.value = mn;
+              maxSlider.value = mx;
+              minVal.textContent = String(mn);
+              maxVal.textContent = String(mx);
+              applyFilters();
+            };
+
+            minSlider.addEventListener('input', updateDeltaRange);
+            maxSlider.addEventListener('input', updateDeltaRange);
+
+            const dualRange = document.createElement('span');
+            dualRange.className = 'dual-range';
+            dualRange.append(minSlider, maxSlider);
+            const header = document.createElement('span');
+            header.className = 'decon-secondary-scroll-slider-header';
+            header.append(label, minVal, sep, maxVal);
+            rowS.append(header, dualRange);
+            chaosWrap.append(rowS);
+          }
+
+          chaosWrap.addEventListener('click', (e) => { e.stopPropagation(); });
+          chaosWrap.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
+          row.append(chaosWrap);
+        }
+      }
+
       list.append(row);
     }
 
@@ -389,7 +609,10 @@ export function createResultFilterController({ root, secondaryContainer }) {
       minSlider.addEventListener('input', updateRange);
       maxSlider.addEventListener('input', updateRange);
 
-      row.append(label, minSlider, minVal, sep, maxVal, maxSlider);
+      const dualRange = document.createElement('span');
+      dualRange.className = 'dual-range';
+      dualRange.append(minSlider, maxSlider);
+      row.append(label, dualRange, minVal, sep, maxVal);
       wrapper.append(row);
     }
 
@@ -482,7 +705,10 @@ export function createResultFilterController({ root, secondaryContainer }) {
       minSlider.addEventListener('input', updateRange);
       maxSlider.addEventListener('input', updateRange);
 
-      row.append(label, minSlider, minVal, sep, maxVal, maxSlider);
+      const dualRange = document.createElement('span');
+      dualRange.className = 'dual-range';
+      dualRange.append(minSlider, maxSlider);
+      row.append(label, dualRange, minVal, sep, maxVal);
       wrapper.append(row);
     }
 
@@ -545,6 +771,8 @@ export function createResultFilterController({ root, secondaryContainer }) {
     selections = new Map();
     stimulantRanges = new Map();
     itemLevelUpRanges = new Map();
+    scrollCountRanges = new Map();
+    chaosDeltaRanges = new Map();
     activeScrollStatFilter = 'all';
     hidePanel();
   };

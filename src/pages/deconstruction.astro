@@ -256,7 +256,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
                     <label class="decon-rate-chip"><input type="checkbox" data-decon-scroll-rate="chaos" />혼돈의 주문서<span class="decon-chaos-help"><span class="decon-chaos-help-icon">?</span><span class="decon-chaos-help-tooltip">일반 주문서와의 조합이 불가능 할경우 사용됩니다.</span></span></label>
                   </div>
                   <div class="decon-source-sub" data-decon-chaos-bounds hidden>
-                    <span class="decon-source-sub-label">혼돈 스탯 범위:</span>
+                    <span class="decon-source-sub-label">혼줌 스텟 범위:</span>
                     <div data-decon-chaos-bounds-list></div>
                   </div>
                 </div>
@@ -363,6 +363,18 @@ import {
   createResultFilterController,
 } from '../lib/deconstruction/resultFilterController.mjs';
 import { readSlots, saveToSlot, clearSlot, findMatchingSlot, MAX_SLOTS } from '../lib/itemSlotStore.mjs';
+
+// ---- Helpers ----
+
+/**
+ * Strip the equipment prefix from chaos scroll names.
+ * "장갑 혼돈의 주문서" → "혼돈의 주문서"
+ * "장갑 민첩의 주문서" → unchanged (not a chaos scroll)
+ */
+function simplifyScrollDisplayName(nameKo) {
+  const match = String(nameKo ?? '').match(/(혼돈의 주문서.*)$/);
+  return match ? match[1] : nameKo;
+}
 
 // ---- DOM refs ----
 const form = document.querySelector('[data-calculator-input]');
@@ -1118,12 +1130,12 @@ const buildStimulantBoundsEditor = () => {
     label.textContent = statLabelByKey[key] || key;
     row.append(label);
 
-    // Min slider (from -defaultLimit to 0)
+    // Min slider (full range, auto-swapped if crossed)
     const minSlider = document.createElement('input');
     minSlider.type = 'range';
     minSlider.className = 'decon-secondary-stimulant-slider';
     minSlider.min = -defaultLimit;
-    minSlider.max = 0;
+    minSlider.max = defaultLimit;
     minSlider.step = stepSize;
     minSlider.value = -defaultLimit;
 
@@ -1139,32 +1151,29 @@ const buildStimulantBoundsEditor = () => {
     maxVal.className = 'decon-secondary-stimulant-value';
     maxVal.textContent = String(defaultLimit);
 
-    // Max slider
+    // Max slider (full range, auto-swapped if crossed)
     const maxSlider = document.createElement('input');
     maxSlider.type = 'range';
     maxSlider.className = 'decon-secondary-stimulant-slider';
-    maxSlider.min = 0;
+    maxSlider.min = -defaultLimit;
     maxSlider.max = defaultLimit;
     maxSlider.step = stepSize;
     maxSlider.value = defaultLimit;
 
-    minSlider.addEventListener('input', () => {
-      const val = Number(minSlider.value);
-      minVal.textContent = String(val);
-      deconStimulantBoundsMap[key] = { ...deconStimulantBoundsMap[key], min: val };
-    });
-    minSlider.addEventListener('change', () => {
-      checkDeconStarState();
-    });
-
-    maxSlider.addEventListener('input', () => {
-      const val = Number(maxSlider.value);
-      maxVal.textContent = String(val);
-      deconStimulantBoundsMap[key] = { ...deconStimulantBoundsMap[key], max: val };
-    });
-    maxSlider.addEventListener('change', () => {
-      checkDeconStarState();
-    });
+    const updateBounds = () => {
+      let mn = Number(minSlider.value);
+      let mx = Number(maxSlider.value);
+      if (mn > mx) [mn, mx] = [mx, mn];
+      deconStimulantBoundsMap[key] = { min: mn, max: mx };
+      minSlider.value = mn;
+      maxSlider.value = mx;
+      minVal.textContent = String(mn);
+      maxVal.textContent = String(mx);
+    };
+    minSlider.addEventListener('input', updateBounds);
+    maxSlider.addEventListener('input', updateBounds);
+    minSlider.addEventListener('change', () => { checkDeconStarState(); });
+    maxSlider.addEventListener('change', () => { checkDeconStarState(); });
 
     row.append(minSlider, minVal, sep, maxVal, maxSlider);
     deconStimulantBoundsList.append(row);
@@ -1191,12 +1200,12 @@ const buildChaosBoundsEditor = () => {
     label.textContent = statLabelByKey[key] || key;
     row.append(label);
 
-    // Min slider (from -defaultLimit to 0)
+    // Min slider (full range, auto-swapped if crossed)
     const minSlider = document.createElement('input');
     minSlider.type = 'range';
     minSlider.className = 'decon-secondary-stimulant-slider';
     minSlider.min = -defaultLimit;
-    minSlider.max = 0;
+    minSlider.max = defaultLimit;
     minSlider.step = stepSize;
     minSlider.value = -defaultLimit;
 
@@ -1212,32 +1221,29 @@ const buildChaosBoundsEditor = () => {
     maxVal.className = 'decon-secondary-stimulant-value';
     maxVal.textContent = String(defaultLimit);
 
-    // Max slider
+    // Max slider (full range, auto-swapped if crossed)
     const maxSlider = document.createElement('input');
     maxSlider.type = 'range';
     maxSlider.className = 'decon-secondary-stimulant-slider';
-    maxSlider.min = 0;
+    maxSlider.min = -defaultLimit;
     maxSlider.max = defaultLimit;
     maxSlider.step = stepSize;
     maxSlider.value = defaultLimit;
 
-    minSlider.addEventListener('input', () => {
-      const val = Number(minSlider.value);
-      minVal.textContent = String(val);
-      deconChaosBoundsMap[key] = { ...deconChaosBoundsMap[key], min: val };
-    });
-    minSlider.addEventListener('change', () => {
-      checkDeconStarState();
-    });
-
-    maxSlider.addEventListener('input', () => {
-      const val = Number(maxSlider.value);
-      maxVal.textContent = String(val);
-      deconChaosBoundsMap[key] = { ...deconChaosBoundsMap[key], max: val };
-    });
-    maxSlider.addEventListener('change', () => {
-      checkDeconStarState();
-    });
+    const updateBounds = () => {
+      let mn = Number(minSlider.value);
+      let mx = Number(maxSlider.value);
+      if (mn > mx) [mn, mx] = [mx, mn];
+      deconChaosBoundsMap[key] = { min: mn, max: mx };
+      minSlider.value = mn;
+      maxSlider.value = mx;
+      minVal.textContent = String(mn);
+      maxVal.textContent = String(mx);
+    };
+    minSlider.addEventListener('input', updateBounds);
+    maxSlider.addEventListener('input', updateBounds);
+    minSlider.addEventListener('change', () => { checkDeconStarState(); });
+    maxSlider.addEventListener('change', () => { checkDeconStarState(); });
 
     row.append(minSlider, minVal, sep, maxVal, maxSlider);
     deconChaosBoundsList.append(row);
@@ -1723,6 +1729,7 @@ const hasDeconDraftState = () => (
 
 const clearDeconCalculationState = (item) => {
   deconDeltas = {};
+  deconStatKeys = [];
   deconHasActionableResults = false;
   deconSlotState = createDeconstructionSlotState(item?.stats?.upgradeSlots ?? 0);
   deconAppliedLevelCount = 0;
@@ -1733,7 +1740,9 @@ const clearDeconCalculationState = (item) => {
   deconGemEligible = true;
   deconLevelUpTotalRanges = {};
   deconScrollRateInputs.forEach(inp => {
-    if (inp instanceof HTMLInputElement && inp.dataset.deconScrollRate !== 'chaos') inp.checked = true;
+    if (inp instanceof HTMLInputElement) {
+      inp.checked = deconScrollRateFilter.has(inp.dataset.deconScrollRate);
+    }
   });
 };
 
@@ -1998,7 +2007,9 @@ const activateDeconEditPanel = (item) => {
   deconGemFilter = null;
   deconLevelUpTotalRanges = {};
   deconScrollRateInputs.forEach(inp => {
-    if (inp instanceof HTMLInputElement && inp.dataset.deconScrollRate !== 'chaos') inp.checked = true;
+    if (inp instanceof HTMLInputElement) {
+      inp.checked = deconScrollRateFilter.has(inp.dataset.deconScrollRate);
+    }
   });
   renderDeconSlotState();
   renderDeconItemLevel();
@@ -2482,10 +2493,16 @@ const displayResults = (result, targetDeltas) => {
     // 2. Scrolls — grouped by ID, rendered as a compact table
     const scrollGroups = new Map();
     for (const s of strategy.scrolls) {
-      if (!scrollGroups.has(s.id)) {
-        scrollGroups.set(s.id, { scroll: s, count: 0 });
+      const isChaos = s.behavior_type === 'chaos';
+      // Chaos: key includes stat deltas so each unique outcome gets its own row.
+      // Fixed: key is just the id (all applications have identical stats).
+      const groupKey = isChaos
+        ? `${s.id}|${JSON.stringify(s.stats)}`
+        : String(s.id);
+      if (!scrollGroups.has(groupKey)) {
+        scrollGroups.set(groupKey, { scroll: s, count: 0 });
       }
-      scrollGroups.get(s.id).count++;
+      scrollGroups.get(groupKey).count++;
     }
 
     if (scrollGroups.size > 0) {
@@ -2511,13 +2528,14 @@ const displayResults = (result, targetDeltas) => {
 
         const icon = document.createElement('img');
         icon.className = 'decon-scroll-icon';
-        icon.src = buildItemIconUrl(group.scroll.id);
+        const iconId = group.scroll.behavior_type === 'chaos' ? 2049100 : group.scroll.id;
+        icon.src = buildItemIconUrl(iconId);
         icon.alt = '';
         icon.loading = 'lazy';
         topLine.append(icon);
 
         const label = document.createElement('span');
-        label.textContent = group.scroll.nameKo;
+        label.textContent = simplifyScrollDisplayName(group.scroll.nameKo);
         topLine.append(label);
 
         nameCell.append(topLine);
@@ -2526,12 +2544,12 @@ const displayResults = (result, targetDeltas) => {
         const effects = sortStatEntries(Object.entries(group.scroll.stats))
           .filter(([, v]) => v !== 0)
           .map(([k, v]) => `${statLabelByKey[k] ?? k} ${v > 0 ? '+' : ''}${v}`);
-        if (effects.length > 0) {
-          const subLine = document.createElement('span');
-          subLine.className = 'decon-scroll-name-sub';
-          subLine.textContent = `└ ${effects.join(', ')}`;
-          nameCell.append(subLine);
-        }
+        const subLine = document.createElement('span');
+        subLine.className = 'decon-scroll-name-sub';
+        subLine.textContent = effects.length > 0
+          ? `└ ${effects.join(', ')}`
+          : '└ 변동없음';
+        nameCell.append(subLine);
 
         row.append(nameCell);
         table.append(row);
@@ -2832,7 +2850,9 @@ deconScrollSource?.addEventListener('change', () => {
     toggleSourceSub(deconScrollSource, deconScrollRateSub, () => {
       deconScrollRateFilter = new Set(['100', '60', '10']);
       deconScrollRateInputs.forEach(inp => {
-        if (inp instanceof HTMLInputElement && inp.dataset.deconScrollRate !== 'chaos') inp.checked = true;
+        if (inp instanceof HTMLInputElement) {
+          inp.checked = deconScrollRateFilter.has(inp.dataset.deconScrollRate);
+        }
       });
     });
     updateAnalyzeButton();
@@ -4161,19 +4181,18 @@ aside.panel {
 :global(.decon-secondary-scroll-list) {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  max-height: 240px;
+  gap: 4px;
+  max-height: 320px;
   overflow-y: auto;
   scrollbar-gutter: stable;
 }
 
 :global(.decon-secondary-scroll-row) {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  align-items: flex-start;
+  gap: 6px 10px;
   width: 100%;
-  min-height: 44px;
-  padding: 4px 6px;
+  padding: 5px 8px;
   font-size: 0.74rem;
   font-family: inherit;
   text-align: left;
@@ -4205,6 +4224,54 @@ aside.panel {
 
 :global(.decon-secondary-scroll-row--unavailable.decon-secondary-scroll-row--selected) {
   opacity: 0.5;
+}
+
+:global(.decon-secondary-scroll-info) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+:global(.decon-secondary-scroll-slider-wrap) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+:global(.decon-secondary-scroll-slider-header) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+:global(.decon-secondary-scroll-slider-wrap--disabled) {
+  opacity: 0.35;
+}
+
+:global(.decon-secondary-scroll-count-label) {
+  white-space: nowrap;
+}
+
+:global(.decon-secondary-scroll-chaos-stats) {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+:global(.decon-secondary-scroll-chaos-stat-row) {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
 }
 
 :global(.decon-secondary-scroll-icon) {
@@ -4592,6 +4659,79 @@ aside.panel {
   width: 55px;
   height: 3px;
   accent-color: var(--muted);
+  cursor: pointer;
+}
+
+/* ── Dual-thumb range slider (CSS overlay technique) ── */
+:global(.dual-range) {
+  position: relative;
+  width: 100%;
+  height: 30px;
+  overflow: hidden;
+}
+:global(.dual-range input[type="range"]) {
+  position: absolute;
+  top: 0;
+  /* 9px inset on each side keeps the 14px thumbs (+ 2px border)
+     inside the container when at 0% / 100%.  overflow:hidden on
+     the parent would otherwise slice them in half at the extremes. */
+  left: 9px;
+  width: calc(100% - 18px);
+  height: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+  margin: 0;
+}
+/* Shared track */
+:global(.dual-range input[type="range"])::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--muted);
+  margin-top: 8px;
+}
+:global(.dual-range input[type="range"])::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--muted);
+}
+/* Upper slider: hide its track so only the lower one shows */
+:global(.dual-range input[type="range"]:first-of-type)::-webkit-slider-runnable-track {
+  background: transparent;
+}
+:global(.dual-range input[type="range"]:first-of-type)::-moz-range-track {
+  background: transparent;
+}
+:global(.dual-range input[type="range"]:first-of-type) {
+  z-index: 2;
+}
+/* Shared thumb */
+:global(.dual-range input[type="range"])::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--green, #4caf50);
+  border: 2px solid color-mix(in srgb, var(--green) 80%, #fff);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  /* Center the thumb on the 4px track.
+     Track top = 8px (its margin-top), track center = 10px.
+     Thumb is 14px tall → its top must sit at 10 - 7 = 3px.
+     3px from input top = 8px (track top) + margin-top
+     ∴ margin-top = -5px  */
+  margin-top: -5px;
+  pointer-events: auto;
+  cursor: pointer;
+}
+:global(.dual-range input[type="range"])::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--green, #4caf50);
+  border: 2px solid color-mix(in srgb, var(--green) 80%, #fff);
+  pointer-events: auto;
   cursor: pointer;
 }
 
