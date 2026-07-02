@@ -371,7 +371,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
             maxSlider.addEventListener('input', updateDeltaRange);
 
             const dualRange = document.createElement('span');
-            dualRange.className = 'dual-range';
+            dualRange.className = 'decon-chaos-dual-range';
             dualRange.append(minSlider, maxSlider);
             rowS.append(label, dualRange);
             chaosWrap.append(rowS);
