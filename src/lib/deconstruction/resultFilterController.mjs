@@ -327,16 +327,18 @@ export function createResultFilterController({ root, secondaryContainer }) {
           }
 
           for (const [statKey, fullRange] of statRanges) {
+            const existing = persisted.get(statKey);
+            const curMin = existing ? existing.min : fullRange.min;
+            const curMax = existing ? existing.max : fullRange.max;
+
             const rowS = document.createElement('span');
             rowS.className = 'decon-secondary-scroll-chaos-stat-row';
 
             const label = document.createElement('span');
             label.className = 'decon-secondary-stimulant-stat';
-            label.textContent = statLabelByKey[statKey] ?? statKey;
-
-            const existing = persisted.get(statKey);
-            const curMin = existing ? existing.min : fullRange.min;
-            const curMax = existing ? existing.max : fullRange.max;
+            const formatLabel = (mn, mx) =>
+              `${statLabelByKey[statKey] ?? statKey} ${mn}~${mx}`;
+            label.textContent = formatLabel(curMin, curMax);
 
             const minSlider = document.createElement('input');
             minSlider.type = 'range';
@@ -345,18 +347,6 @@ export function createResultFilterController({ root, secondaryContainer }) {
             minSlider.max = fullRange.max;
             minSlider.value = curMin;
             minSlider.disabled = !isSelected;
-
-            const minVal = document.createElement('span');
-            minVal.className = 'decon-secondary-stimulant-value';
-            minVal.textContent = String(curMin);
-
-            const sep = document.createElement('span');
-            sep.className = 'decon-secondary-stimulant-sep';
-            sep.textContent = '~';
-
-            const maxVal = document.createElement('span');
-            maxVal.className = 'decon-secondary-stimulant-value';
-            maxVal.textContent = String(curMax);
 
             const maxSlider = document.createElement('input');
             maxSlider.type = 'range';
@@ -373,8 +363,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
               persisted.set(statKey, { min: mn, max: mx });
               minSlider.value = mn;
               maxSlider.value = mx;
-              minVal.textContent = String(mn);
-              maxVal.textContent = String(mx);
+              label.textContent = formatLabel(mn, mx);
               applyFilters();
             };
 
@@ -384,10 +373,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
             const dualRange = document.createElement('span');
             dualRange.className = 'dual-range';
             dualRange.append(minSlider, maxSlider);
-            const header = document.createElement('span');
-            header.className = 'decon-secondary-scroll-slider-header';
-            header.append(label, minVal, sep, maxVal);
-            rowS.append(header, dualRange);
+            rowS.append(label, dualRange);
             chaosWrap.append(rowS);
           }
 
