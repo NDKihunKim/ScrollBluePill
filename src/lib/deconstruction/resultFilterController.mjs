@@ -226,11 +226,14 @@ export function createResultFilterController({ root, secondaryContainer }) {
       name.className = 'decon-secondary-scroll-name';
       name.textContent = option.label;
 
-      const statLine = document.createElement('span');
-      statLine.className = 'decon-secondary-scroll-stat';
-      statLine.textContent = option.stats ? formatScrollStatLine({ stats: option.stats }) : '';
-
-      textBlock.append(name, statLine);
+      if (!isChaos) {
+        const statLine = document.createElement('span');
+        statLine.className = 'decon-secondary-scroll-stat';
+        statLine.textContent = option.stats ? formatScrollStatLine({ stats: option.stats }) : '';
+        textBlock.append(name, statLine);
+      } else {
+        textBlock.append(name);
+      }
       const info = document.createElement('span');
       info.className = 'decon-secondary-scroll-info';
       info.append(icon, textBlock);
