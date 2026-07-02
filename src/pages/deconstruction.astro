@@ -4282,7 +4282,13 @@ aside.panel {
   display: flex;
   align-items: center;
   gap: 4px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
+
+:global(.decon-secondary-scroll-chaos-stat-row .dual-range) {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
 }
 
 :global(.decon-secondary-scroll-icon) {
