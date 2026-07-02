@@ -4281,15 +4281,75 @@ aside.panel {
 :global(.decon-secondary-scroll-chaos-stat-row) {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   flex-wrap: nowrap;
 }
 
-:global(.decon-secondary-scroll-chaos-stat-row .dual-range) {
-  --dh: 14px;
+/* Dedicated dual-range for chaos stat rows — inline beside label text.
+   Decoupled from .dual-range which is sized for stimulant panel layout. */
+:global(.decon-chaos-dual-range) {
+  --cdh: 12px;   /* container height — matches label line-height */
+  --cth: 3px;    /* track height */
+  position: relative;
   flex: 1 1 0;
   min-width: 0;
-  width: auto;
+  height: var(--cdh);
+}
+:global(.decon-chaos-dual-range input[type="range"]) {
+  position: absolute;
+  inset: 0;
+  left: 7px;
+  width: calc(100% - 14px);
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  pointer-events: none;
+  margin: 0;
+}
+:global(.decon-chaos-dual-range input[type="range"])::-webkit-slider-runnable-track {
+  height: var(--cth);
+  border-radius: 2px;
+  background: var(--muted);
+  margin-top: calc((var(--cdh) - var(--cth)) / 2);
+}
+:global(.decon-chaos-dual-range input[type="range"])::-moz-range-track {
+  height: var(--cth);
+  border-radius: 2px;
+  background: var(--muted);
+}
+:global(.decon-chaos-dual-range input[type="range"]:first-of-type)::-webkit-slider-runnable-track {
+  background: transparent;
+}
+:global(.decon-chaos-dual-range input[type="range"]:first-of-type)::-moz-range-track {
+  background: transparent;
+}
+:global(.decon-chaos-dual-range input[type="range"]:first-of-type) {
+  z-index: 2;
+}
+:global(.decon-chaos-dual-range input[type="range"])::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--green, #4caf50);
+  border: 1.5px solid color-mix(in srgb, var(--green) 80%, #fff);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  margin-top: -4.5px;
+  pointer-events: auto;
+  cursor: pointer;
+}
+:global(.decon-chaos-dual-range input[type="range"])::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--green, #4caf50);
+  border: 1.5px solid color-mix(in srgb, var(--green) 80%, #fff);
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 :global(.decon-secondary-scroll-icon) {
