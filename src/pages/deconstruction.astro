@@ -4248,9 +4248,11 @@ aside.panel {
 :global(.decon-secondary-scroll-slider-header) {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 6px;
-  width: calc(100% - 18px);
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
   font-size: 0.7rem;
   color: var(--muted);
   line-height: 1.15;
