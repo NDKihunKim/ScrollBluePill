@@ -363,35 +363,6 @@ import {
   createResultFilterController,
 } from '../lib/deconstruction/resultFilterController.mjs';
 import { readSlots, saveToSlot, clearSlot, findMatchingSlot, MAX_SLOTS } from '../lib/itemSlotStore.mjs';
-import { dom } from '../lib/deconstruction/domRefs.mjs';
-
-const {
-  form, itemNameSearch, itemNameInput, selectedItemIdInput, itemSuggestions,
-  selectedItemCard, itemPlaceholder, selectedItemName, selectedItemIcon,
-  selectedItemRequirements, selectedItemStats, selectedItemJobs,
-  levelInputs, levelMinInput, levelMaxInput, stepButtons,
-  equipmentInput, equipmentDropdown, equipmentTrigger, equipmentTriggerLabel,
-  equipmentMenu, equipmentModeButtons, equipmentOptionGroups, equipmentOptionButtons,
-  manualSearchToggle, manualSearchFields, manualSearchAccordionInner, manualItemResults,
-  jobInputs, jobSelectAllButton, jobClearAllButton,
-  deconEditPanel, deconEditPlaceholder, deconEditContent,
-  deconStatEditor,
-  deconSuccessValue, deconSuccessMin, deconSuccessDec, deconSuccessInc, deconSuccessMax,
-  deconSlotValue, deconSlotMin, deconSlotDec, deconSlotInc, deconSlotMax,
-  deconAnalyzeBtn, deconAddStatToggle, deconAddStatList,
-  deconBasicStatsSep, deconItemInfoTitle, deconItemInfoSep,
-  deconResultPanel, deconResultPlaceholder, deconResultContent,
-  deconCalcPanel, deconCalcPlaceholder, deconCalcContent, deconTargetChips,
-  deconScrollSource, deconStimulantSource, deconStimulantLabel,
-  deconGemsSource, deconGemsRow, deconGemSub,
-  deconItemLevelUpSource, deconLevelUpSource, deconLevelRow,
-  deconLevelMinBtn, deconLevelDecBtn, deconLevelIncBtn, deconLevelMaxBtn, deconLevelValue,
-  deconScrollRateSub, deconScrollRateInputs,
-  deconStimulantBounds, deconStimulantBoundsList,
-  deconChaosBounds, deconChaosBoundsList,
-  deconLevelSlotRanges, deconLevelSlotList, deconLevelSlotLabel,
-  deconSourceMessage, deconSecondaryFilters, deconSlotBar, deconStar, deconCardWrapper,
-} = dom;
 
 // ---- Helpers ----
 
@@ -405,6 +376,94 @@ function simplifyScrollDisplayName(nameKo) {
   return match ? match[1] : nameKo;
 }
 
+// ---- DOM refs ----
+const form = document.querySelector('[data-calculator-input]');
+const itemNameSearch = form?.querySelector('[data-item-name-search]');
+const itemNameInput = form?.querySelector('[data-item-name-input]');
+const selectedItemIdInput = form?.querySelector('[data-selected-item-id]');
+const itemSuggestions = form?.querySelector('[data-item-suggestions]');
+const selectedItemCard = document.querySelector('[data-selected-item-card]');
+const itemPlaceholder = document.querySelector('[data-item-placeholder]');
+const selectedItemName = document.querySelector('[data-selected-item-name]');
+const selectedItemIcon = document.querySelector('[data-selected-item-icon]');
+const selectedItemRequirements = document.querySelector('[data-selected-item-requirements]');
+const selectedItemStats = document.querySelector('[data-selected-item-stats]');
+const selectedItemJobs = document.querySelector('[data-selected-item-jobs]');
+const levelInputs = form?.querySelectorAll('[data-level-input]');
+const levelMinInput = form?.querySelector('[data-level-min-input]');
+const levelMaxInput = form?.querySelector('[data-level-max-input]');
+const stepButtons = form?.querySelectorAll('[data-level-step]');
+const equipmentInput = form?.querySelector('[data-equipment-kind]');
+const equipmentDropdown = form?.querySelector('[data-equipment-dropdown]');
+const equipmentTrigger = form?.querySelector('[data-equipment-trigger]');
+const equipmentTriggerLabel = form?.querySelector('[data-equipment-trigger-label]');
+const equipmentMenu = form?.querySelector('[data-equipment-menu]');
+const equipmentModeButtons = form?.querySelectorAll('[data-equipment-mode]');
+const equipmentOptionGroups = form?.querySelectorAll('[data-equipment-options]');
+const equipmentOptionButtons = form?.querySelectorAll('[data-equipment-option]');
+const manualSearchToggle = form?.querySelector('[data-manual-search-toggle]');
+const manualSearchFields = form?.querySelector('[data-manual-search-fields]');
+const manualSearchAccordionInner = manualSearchFields?.querySelector('.manual-search-accordion-inner');
+const manualItemResults = form?.querySelector('[data-manual-item-results]');
+const jobInputs = form?.querySelectorAll('input[name="jobs"]');
+const jobSelectAllButton = form?.querySelector('[data-job-select-all]');
+const jobClearAllButton = form?.querySelector('[data-job-clear-all]');
+
+const deconEditPanel = document.querySelector('[data-decon-edit-panel]');
+const deconEditPlaceholder = document.querySelector('[data-decon-edit-placeholder]');
+const deconEditContent = document.querySelector('[data-decon-edit-content]');
+const deconStatEditor = document.querySelector('[data-decon-stat-editor]');
+const deconSuccessValue = document.querySelector('[data-decon-success-value]');
+const deconSuccessMin = document.querySelector('[data-decon-success-min]');
+const deconSuccessDec = document.querySelector('[data-decon-success-dec]');
+const deconSuccessInc = document.querySelector('[data-decon-success-inc]');
+const deconSuccessMax = document.querySelector('[data-decon-success-max]');
+const deconSlotValue = document.querySelector('[data-decon-slot-value]');
+const deconSlotMin = document.querySelector('[data-decon-slot-min]');
+const deconSlotDec = document.querySelector('[data-decon-slot-dec]');
+const deconSlotInc = document.querySelector('[data-decon-slot-inc]');
+const deconSlotMax = document.querySelector('[data-decon-slot-max]');
+const deconAnalyzeBtn = document.querySelector('[data-decon-analyze-btn]');
+const deconAddStatToggle = document.querySelector('[data-decon-add-stat-toggle]');
+const deconAddStatList = document.querySelector('[data-decon-add-stat-list]');
+const deconBasicStatsSep = document.querySelector('[data-decon-basic-stats-sep]');
+const deconItemInfoTitle = document.querySelector('[data-decon-item-info-title]');
+const deconItemInfoSep = document.querySelector('[data-decon-item-info-sep]');
+const deconResultPanel = document.querySelector('[data-decon-result-panel]');
+const deconResultPlaceholder = document.querySelector('[data-decon-result-placeholder]');
+const deconResultContent = document.querySelector('[data-decon-result-content]');
+const deconCalcPanel = document.querySelector('[data-decon-calc-panel]');
+const deconCalcPlaceholder = document.querySelector('[data-decon-calc-placeholder]');
+const deconCalcContent = document.querySelector('[data-decon-calc-content]');
+const deconTargetChips = document.querySelector('[data-decon-target-chips]');
+const deconScrollSource = document.querySelector('[data-decon-source="scrolls"]');
+const deconStimulantSource = document.querySelector('[data-decon-source="stimulant"]');
+const deconStimulantLabel = document.querySelector('[data-decon-stimulant-label]');
+const deconGemsSource = document.querySelector('[data-decon-source="gems"]');
+const deconGemsRow = document.querySelector('[data-decon-gems-row]');
+const deconGemSub = document.querySelector('[data-decon-gem-sub]');
+const deconItemLevelUpSource = document.querySelector('[data-decon-source="itemLevelUp"]');
+const deconLevelUpSource = document.querySelector('[data-decon-level-up-source]');
+const deconLevelRow = document.querySelector('[data-decon-level-row]');
+const deconLevelMinBtn = document.querySelector('[data-decon-level-min]');
+const deconLevelDecBtn = document.querySelector('[data-decon-level-dec]');
+const deconLevelIncBtn = document.querySelector('[data-decon-level-inc]');
+const deconLevelMaxBtn = document.querySelector('[data-decon-level-max]');
+const deconLevelValue = document.querySelector('[data-decon-level-value]');
+const deconScrollRateSub = document.querySelector('[data-decon-scroll-rate-sub]');
+const deconScrollRateInputs = document.querySelectorAll('[data-decon-scroll-rate]');
+const deconStimulantBounds = document.querySelector('[data-decon-stimulant-bounds]');
+const deconStimulantBoundsList = document.querySelector('[data-decon-stimulant-bounds-list]');
+const deconChaosBounds = document.querySelector('[data-decon-chaos-bounds]');
+const deconChaosBoundsList = document.querySelector('[data-decon-chaos-bounds-list]');
+const deconLevelSlotRanges = document.querySelector('[data-decon-level-slot-ranges]');
+const deconLevelSlotList = document.querySelector('[data-decon-level-slot-list]');
+const deconLevelSlotLabel = document.querySelector('[data-decon-level-slot-label]');
+const deconSourceMessage = document.querySelector('[data-decon-source-message]');
+const deconSecondaryFilters = document.querySelector('[data-decon-secondary-filters]');
+const deconSlotBar = document.querySelector('[data-decon-slot-bar]');
+const deconStar = document.querySelector('[data-decon-star]');
+const deconCardWrapper = document.querySelector('[data-selected-item-card-wrapper]');
 const resultFilterController = createResultFilterController({
   root: document,
   secondaryContainer: deconSecondaryFilters,
@@ -416,6 +475,14 @@ const toggleSourceSub = (sourceCheckbox, subContainer, onFirstEnable) => {
   if (enabled) subContainer.hidden = false;
   subContainer.classList.toggle('decon-source-sub--open', enabled);
   if (enabled && typeof onFirstEnable === 'function') onFirstEnable();
+};
+
+const buildDefaultSlotRanges = (statRanges) => {
+  const defaults = {};
+  for (const [key, range] of Object.entries(statRanges)) {
+    defaults[key] = { min: range.min, max: range.max };
+  }
+  return defaults;
 };
 
 // ---- State ----
