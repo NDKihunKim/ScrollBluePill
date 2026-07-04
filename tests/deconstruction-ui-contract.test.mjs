@@ -260,8 +260,8 @@ test('scroll rate sub-options exist with correct data attributes', () => {
 
 test('stimulant stat bounds sub-options exist', () => {
   assert.match(pageSource, /data-decon-stimulant-bounds/);
-  assert.match(pageSource, /data-decon-stimulant-bound-/);
-  assert.match(pageSource, /setAttribute\(['"]data-decon-stimulant-bound-/);
+  assert.match(pageSource, /dual-range/);
+  assert.match(pageSource, /deconStimulantBoundsMap/);
 });
 
 test('stimulant result source row is labeled as stimulant/additional option', () => {
