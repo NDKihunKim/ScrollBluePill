@@ -1120,7 +1120,8 @@ const buildStimulantBoundsEditor = () => {
     const isHpMp = HP_MP_KEYS.has(key);
     const defaultLimit = isHpMp ? 50 : 5;
     const stepSize = isHpMp ? 10 : 1;
-    deconStimulantBoundsMap[key] = { min: -defaultLimit, max: defaultLimit };
+    // Default: 0 to +limit, with room to drag into negative
+    deconStimulantBoundsMap[key] = { min: 0, max: defaultLimit };
 
     const row = document.createElement('div');
     row.className = 'decon-secondary-stimulant-row';
@@ -1130,18 +1131,9 @@ const buildStimulantBoundsEditor = () => {
     label.textContent = statLabelByKey[key] || key;
     row.append(label);
 
-    // Min slider (full range, auto-swapped if crossed)
-    const minSlider = document.createElement('input');
-    minSlider.type = 'range';
-    minSlider.className = 'decon-secondary-stimulant-slider';
-    minSlider.min = -defaultLimit;
-    minSlider.max = defaultLimit;
-    minSlider.step = stepSize;
-    minSlider.value = -defaultLimit;
-
     const minVal = document.createElement('span');
     minVal.className = 'decon-secondary-stimulant-value';
-    minVal.textContent = String(-defaultLimit);
+    minVal.textContent = '0';
 
     const sep = document.createElement('span');
     sep.className = 'decon-secondary-stimulant-sep';
@@ -1151,14 +1143,25 @@ const buildStimulantBoundsEditor = () => {
     maxVal.className = 'decon-secondary-stimulant-value';
     maxVal.textContent = String(defaultLimit);
 
-    // Max slider (full range, auto-swapped if crossed)
+    // Dual-range slider (two thumbs overlaid on one track)
+    const dualWrap = document.createElement('span');
+    dualWrap.className = 'dual-range';
+
+    const minSlider = document.createElement('input');
+    minSlider.type = 'range';
+    minSlider.min = -defaultLimit;
+    minSlider.max = defaultLimit;
+    minSlider.step = stepSize;
+    minSlider.value = 0;
+
     const maxSlider = document.createElement('input');
     maxSlider.type = 'range';
-    maxSlider.className = 'decon-secondary-stimulant-slider';
     maxSlider.min = -defaultLimit;
     maxSlider.max = defaultLimit;
     maxSlider.step = stepSize;
     maxSlider.value = defaultLimit;
+
+    dualWrap.append(minSlider, maxSlider);
 
     const updateBounds = () => {
       let mn = Number(minSlider.value);
@@ -1175,7 +1178,7 @@ const buildStimulantBoundsEditor = () => {
     minSlider.addEventListener('change', () => { checkDeconStarState(); });
     maxSlider.addEventListener('change', () => { checkDeconStarState(); });
 
-    row.append(minSlider, minVal, sep, maxVal, maxSlider);
+    row.append(minVal, sep, maxVal, dualWrap);
     deconStimulantBoundsList.append(row);
   }
 };
@@ -4740,11 +4743,10 @@ aside.panel {
   min-width: 28px;
 }
 
-:global(.decon-secondary-stimulant-slider) {
-  width: 55px;
-  height: 3px;
-  accent-color: var(--muted);
-  cursor: pointer;
+:global(.decon-secondary-stimulant-row .dual-range) {
+  --dh: 18px;
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 /* ── Dual-thumb range slider (CSS overlay technique) ── */
