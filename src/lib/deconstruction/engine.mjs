@@ -84,15 +84,19 @@ function* generateChaosDeltas(stats, targetKeys, chaosBounds = null, limit = 100
       ? Math.min(defaultRange.max, chaosBounds[key].max)
       : defaultRange.max;
     const values = [];
-    // Prioritise useful deltas: 0 first (neutral), then +1..+max (gains),
-    // then -1..min (losses).  This puts the most likely match within the
-    // limit window.
+    // Prioritise useful deltas: 0 first (neutral), then +1..+max (gains).
     values.push(0);
     for (let v = 1; v <= max; v++) {
       if (v >= min) values.push(v);
     }
-    for (let v = -1; v >= min; v--) {
-      if (v <= max) values.push(v);
+    // Only include negative deltas when the user wants to reduce this stat.
+    // For positive targets, negative chaos values are pure waste — they force
+    // extra positive applications to compensate, creating strictly worse strategies.
+    const targetDelta = targetDeltas?.[key] ?? 0;
+    if (targetDelta < 0) {
+      for (let v = -1; v >= min; v--) {
+        if (v <= max) values.push(v);
+      }
     }
     return { key, values };
   });
