@@ -258,7 +258,6 @@ export function createResultFilterController({ root, secondaryContainer }) {
 
           const minSlider = document.createElement('input');
           minSlider.type = 'range';
-          minSlider.className = 'decon-secondary-stimulant-slider';
           minSlider.min = 0;
           minSlider.max = maxCount;
           minSlider.value = currentMin;
@@ -278,7 +277,6 @@ export function createResultFilterController({ root, secondaryContainer }) {
 
           const maxSlider = document.createElement('input');
           maxSlider.type = 'range';
-          maxSlider.className = 'decon-secondary-stimulant-slider';
           maxSlider.min = 0;
           maxSlider.max = maxCount;
           maxSlider.value = currentMax;
@@ -342,7 +340,6 @@ export function createResultFilterController({ root, secondaryContainer }) {
 
             const minSlider = document.createElement('input');
             minSlider.type = 'range';
-            minSlider.className = 'decon-secondary-stimulant-slider';
             minSlider.min = fullRange.min;
             minSlider.max = fullRange.max;
             minSlider.value = curMin;
@@ -350,7 +347,6 @@ export function createResultFilterController({ root, secondaryContainer }) {
 
             const maxSlider = document.createElement('input');
             maxSlider.type = 'range';
-            maxSlider.className = 'decon-secondary-stimulant-slider';
             maxSlider.min = fullRange.min;
             maxSlider.max = fullRange.max;
             maxSlider.value = curMax;
@@ -562,7 +558,6 @@ export function createResultFilterController({ root, secondaryContainer }) {
       minSlider.min = absMin;
       minSlider.max = absMax;
       minSlider.value = currentRange.min;
-      minSlider.className = 'decon-secondary-stimulant-slider';
 
       const minVal = document.createElement('span');
       minVal.className = 'decon-secondary-stimulant-value';
@@ -581,7 +576,6 @@ export function createResultFilterController({ root, secondaryContainer }) {
       maxSlider.min = absMin;
       maxSlider.max = absMax;
       maxSlider.value = currentRange.max;
-      maxSlider.className = 'decon-secondary-stimulant-slider';
 
       const updateRange = () => {
         let mn = Number(minSlider.value);
@@ -658,7 +652,6 @@ export function createResultFilterController({ root, secondaryContainer }) {
       minSlider.min = absMin;
       minSlider.max = absMax;
       minSlider.value = currentRange.min;
-      minSlider.className = 'decon-secondary-stimulant-slider';
 
       const minVal = document.createElement('span');
       minVal.className = 'decon-secondary-stimulant-value';
@@ -677,7 +670,6 @@ export function createResultFilterController({ root, secondaryContainer }) {
       maxSlider.min = absMin;
       maxSlider.max = absMax;
       maxSlider.value = currentRange.max;
-      maxSlider.className = 'decon-secondary-stimulant-slider';
 
       const updateRange = () => {
         let mn = Number(minSlider.value);

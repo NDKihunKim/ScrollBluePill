@@ -1206,7 +1206,6 @@ const buildChaosBoundsEditor = () => {
     // Min slider (full range, auto-swapped if crossed)
     const minSlider = document.createElement('input');
     minSlider.type = 'range';
-    minSlider.className = 'decon-secondary-stimulant-slider';
     minSlider.min = -defaultLimit;
     minSlider.max = defaultLimit;
     minSlider.step = stepSize;
@@ -1227,7 +1226,6 @@ const buildChaosBoundsEditor = () => {
     // Max slider (full range, auto-swapped if crossed)
     const maxSlider = document.createElement('input');
     maxSlider.type = 'range';
-    maxSlider.className = 'decon-secondary-stimulant-slider';
     maxSlider.min = -defaultLimit;
     maxSlider.max = defaultLimit;
     maxSlider.step = stepSize;
@@ -1553,7 +1551,6 @@ const buildLevelUpSlotEditors = () => {
     // Min slider
     const minSlider = document.createElement('input');
     minSlider.type = 'range';
-    minSlider.className = 'decon-secondary-stimulant-slider';
     minSlider.min = totalMin;
     minSlider.max = totalMax;
     minSlider.step = 1;
@@ -1574,7 +1571,6 @@ const buildLevelUpSlotEditors = () => {
     // Max slider
     const maxSlider = document.createElement('input');
     maxSlider.type = 'range';
-    maxSlider.className = 'decon-secondary-stimulant-slider';
     maxSlider.min = totalMin;
     maxSlider.max = totalMax;
     maxSlider.step = 1;
