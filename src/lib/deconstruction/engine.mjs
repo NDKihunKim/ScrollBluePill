@@ -824,6 +824,7 @@ export function enumerateStrategies({
     for (const ss of effectiveScrollStates) {
       effectiveScrollStatesSeen++;
       if (effectiveScrollStatesSeen > 50000) {
+        console.log('[chaos-debug] HIT 50k scroll state limit — tooManyResults set to true. strategies so far:', strategies.length);
         tooManyResults = true;
         break;
       }
@@ -973,7 +974,7 @@ export function enumerateStrategies({
     }
   }
 
-  console.log('[chaos-debug] total strategies found:', strategies.length);
+  console.log('[chaos-debug] total strategies found:', strategies.length, 'tooManyResults:', tooManyResults, 'scrollStatesSeen:', effectiveScrollStatesSeen);
 
   // Sort strategies within each priority tier:
   //   1. priorityRank ascending (existing tier system)
