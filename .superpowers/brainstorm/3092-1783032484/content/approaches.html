@@ -1,0 +1,32 @@
+<h2>Approaches for Inline Chaos Slider Rows</h2>
+<p class="subtitle">All achieve the same result: label + range values + slider on one row. Difference is in how we get there.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Flatten the JS row structure (recommended)</h3>
+      <p>In <code>resultFilterController.mjs</code>, remove the <code>header</code> wrapper span. Instead of appending <code>header</code> + <code>dualRange</code> as two children, append the label + value spans + dualRange slider directly as siblings in one flex row.</p>
+      <p><strong>JS change:</strong> Drop the <code>header</code> span creation. Append <code>label, minVal, sep, maxVal, dualRange</code> directly to <code>rowS</code>. The label text combines stat name + range: <code>"공격력 -5~5"</code>.</p>
+      <p><strong>CSS change:</strong> None needed — the existing <code>display:flex; align-items:center; gap:4px</code> on <code>.decon-secondary-scroll-chaos-stat-row</code> does the inline layout automatically.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Cleanest — removes the problematic header wrapper entirely</li><li>No CSS override needed</li><li>The <code>header</code> class (<code>.decon-secondary-scroll-slider-header</code>) is no longer shared between regular and chaos cards, reducing coupling</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Slightly more JS change (5-6 lines)</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Override CSS width for chaos rows</h3>
+      <p>Keep the existing JS structure (header + dualRange). Add a CSS override so <code>.decon-secondary-scroll-slider-header</code> inside chaos stat rows doesn't take full width.</p>
+      <p><strong>CSS change:</strong> Add <code>:global(.decon-secondary-scroll-chaos-stat-row .decon-secondary-scroll-slider-header) { width: auto; flex: 0 0 auto; }</code></p>
+      <p><strong>JS change:</strong> Only update the label text to include range values.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Minimal JS change — only the label text</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>CSS override is fragile — the header class serves two masters (regular scroll cards want full width, chaos cards want auto width)</li><li>Shared class coupling persists — future changes to one card type might break the other</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
