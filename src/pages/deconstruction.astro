@@ -1178,7 +1178,7 @@ const buildStimulantBoundsEditor = () => {
     minSlider.addEventListener('change', () => { checkDeconStarState(); });
     maxSlider.addEventListener('change', () => { checkDeconStarState(); });
 
-    row.append(minVal, sep, maxVal, dualWrap);
+    row.append(dualWrap, minVal, sep, maxVal);
     deconStimulantBoundsList.append(row);
   }
 };
@@ -1203,13 +1203,25 @@ const buildChaosBoundsEditor = () => {
     label.textContent = statLabelByKey[key] || key;
     row.append(label);
 
-    // Min slider (full range, auto-swapped if crossed)
+    // Dual-range slider (two thumbs overlaid on one track)
+    const chaosDualWrap = document.createElement('span');
+    chaosDualWrap.className = 'decon-chaos-dual-range';
+
     const minSlider = document.createElement('input');
     minSlider.type = 'range';
     minSlider.min = -defaultLimit;
     minSlider.max = defaultLimit;
     minSlider.step = stepSize;
     minSlider.value = -defaultLimit;
+
+    const maxSlider = document.createElement('input');
+    maxSlider.type = 'range';
+    maxSlider.min = -defaultLimit;
+    maxSlider.max = defaultLimit;
+    maxSlider.step = stepSize;
+    maxSlider.value = defaultLimit;
+
+    chaosDualWrap.append(minSlider, maxSlider);
 
     const minVal = document.createElement('span');
     minVal.className = 'decon-secondary-stimulant-value';
@@ -1222,14 +1234,6 @@ const buildChaosBoundsEditor = () => {
     const maxVal = document.createElement('span');
     maxVal.className = 'decon-secondary-stimulant-value';
     maxVal.textContent = String(defaultLimit);
-
-    // Max slider (full range, auto-swapped if crossed)
-    const maxSlider = document.createElement('input');
-    maxSlider.type = 'range';
-    maxSlider.min = -defaultLimit;
-    maxSlider.max = defaultLimit;
-    maxSlider.step = stepSize;
-    maxSlider.value = defaultLimit;
 
     const updateBounds = () => {
       let mn = Number(minSlider.value);
@@ -1246,7 +1250,7 @@ const buildChaosBoundsEditor = () => {
     minSlider.addEventListener('change', () => { checkDeconStarState(); });
     maxSlider.addEventListener('change', () => { checkDeconStarState(); });
 
-    row.append(minSlider, minVal, sep, maxVal, maxSlider);
+    row.append(chaosDualWrap, minVal, sep, maxVal);
     deconChaosBoundsList.append(row);
   }
 };
@@ -1548,6 +1552,10 @@ const buildLevelUpSlotEditors = () => {
     label.textContent = statLabelByKey[key] || key;
     row.append(label);
 
+    // Dual-range wrapper
+    const dualWrap = document.createElement('span');
+    dualWrap.className = 'dual-range';
+
     // Min slider
     const minSlider = document.createElement('input');
     minSlider.type = 'range';
@@ -1555,6 +1563,16 @@ const buildLevelUpSlotEditors = () => {
     minSlider.max = totalMax;
     minSlider.step = 1;
     minSlider.value = range.min;
+
+    // Max slider
+    const maxSlider = document.createElement('input');
+    maxSlider.type = 'range';
+    maxSlider.min = totalMin;
+    maxSlider.max = totalMax;
+    maxSlider.step = 1;
+    maxSlider.value = range.max;
+
+    dualWrap.append(minSlider, maxSlider);
 
     const minVal = document.createElement('span');
     minVal.className = 'decon-secondary-stimulant-value';
@@ -1567,14 +1585,6 @@ const buildLevelUpSlotEditors = () => {
     const maxVal = document.createElement('span');
     maxVal.className = 'decon-secondary-stimulant-value';
     maxVal.textContent = String(range.max);
-
-    // Max slider
-    const maxSlider = document.createElement('input');
-    maxSlider.type = 'range';
-    maxSlider.min = totalMin;
-    maxSlider.max = totalMax;
-    maxSlider.step = 1;
-    maxSlider.value = range.max;
 
     // ---- event handlers (mirror stimulant editor pattern) ----
     minSlider.addEventListener('input', () => {
@@ -1609,7 +1619,7 @@ const buildLevelUpSlotEditors = () => {
       checkDeconStarState();
     });
 
-    row.append(minSlider, minVal, sep, maxVal, maxSlider);
+    row.append(dualWrap, minVal, sep, maxVal);
     statsRow.append(row);
   }
 
@@ -4238,30 +4248,46 @@ aside.panel {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   flex: 1 1 0;
   min-width: 0;
-  padding: 0;
+  padding: 2px 0;
 }
 
 :global(.decon-secondary-scroll-slider-header) {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-shrink: 1;
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  font-size: 0.7rem;
+  gap: 5px;
+  flex-shrink: 0;
+  font-size: 0.84rem;
   color: var(--muted);
-  line-height: 1.15;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+:global(.decon-secondary-scroll-count-label) {
+  font-weight: 600;
 }
 
 :global(.decon-secondary-scroll-slider-wrap .dual-range) {
-  --dh: 24px;
+  --dh: 32px;
   flex: 1 1 0;
-  min-width: 0;
-  transform: translateY(-3px);
+  min-width: 80px;
+}
+
+/* Bigger thumbs for scroll-count dual-range so they are visible and tappable */
+:global(.decon-secondary-scroll-slider-wrap .dual-range input[type="range"]) {
+  left: 11px;
+  width: calc(100% - 22px);
+}
+:global(.decon-secondary-scroll-slider-wrap .dual-range input[type="range"])::-webkit-slider-thumb {
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+}
+:global(.decon-secondary-scroll-slider-wrap .dual-range input[type="range"])::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
 }
 
 :global(.decon-secondary-scroll-slider-wrap--disabled) {
@@ -4830,6 +4856,25 @@ aside.panel {
 
 :global(.decon-secondary-stimulant-sep) {
   color: var(--muted);
+}
+
+/* ── Result-filter panel: bigger sliders & text ── */
+:global(.decon-secondary-filters .decon-secondary-stimulant-row) {
+  font-size: 0.82rem;
+  padding: 6px 10px;
+  gap: 8px;
+}
+:global(.decon-secondary-filters .decon-secondary-stimulant-stat) {
+  font-size: 0.78rem;
+  min-width: 32px;
+}
+:global(.decon-secondary-filters .decon-secondary-stimulant-row .dual-range) {
+  --dh: 26px;
+  min-width: 70px;
+}
+:global(.decon-secondary-filters .decon-secondary-stimulant-value) {
+  font-size: 0.82rem;
+  min-width: 16px;
 }
 
 /* Generic checkbox fallback */
