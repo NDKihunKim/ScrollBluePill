@@ -3890,6 +3890,14 @@ aside.panel {
   font-weight: 700;
   margin-bottom: 2px;
 }
+/* Ensure dual-range slider containers span full width inside the accordion sub-panel.
+   Without this, the plain wrapper divs collapse to their content width (as flex children
+   of .decon-source-sub), starving .dual-range (flex:1 1 0) of a container to grow into. */
+:global(.decon-source-sub > [data-decon-stimulant-bounds-list]),
+:global(.decon-source-sub > [data-decon-chaos-bounds-list]),
+:global(.decon-source-sub > [data-decon-level-slot-list]) {
+  width: 100%;
+}
 :global(.decon-rate-chip) {
   display: inline-flex;
   align-items: center;
