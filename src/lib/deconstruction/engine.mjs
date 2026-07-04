@@ -823,8 +823,8 @@ export function enumerateStrategies({
     // EXISTING loop verbatim — copy of the current for loop, do not modify
     for (const ss of effectiveScrollStates) {
       effectiveScrollStatesSeen++;
-      if (effectiveScrollStatesSeen > 50000) {
-        console.log('[chaos-debug] HIT 50k scroll state limit — tooManyResults set to true. strategies so far:', strategies.length);
+      if (effectiveScrollStatesSeen > 150000) {
+        console.log('[chaos-debug] HIT 150k scroll state limit — tooManyResults set to true. strategies so far:', strategies.length);
         tooManyResults = true;
         break;
       }
