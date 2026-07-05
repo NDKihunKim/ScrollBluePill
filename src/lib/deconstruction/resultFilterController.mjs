@@ -315,15 +315,11 @@ export function createResultFilterController({ root, secondaryContainer }) {
           if (!isSelected) chaosWrap.classList.add('decon-secondary-scroll-slider-wrap--disabled');
 
           // Get or init persisted ranges for aggregate chaos
-          const aggKey = 'chaos:aggregate';
-          let persisted = chaosDeltaRanges.get(aggKey);
-          if (!persisted) {
-            persisted = new Map();
-            chaosDeltaRanges.set(aggKey, persisted);
-          }
+          // chaosDeltaRanges is a flat Map<statKey, {min,max}> matching
+          // what chaosDeltaInRange() iterates.
 
           for (const [statKey, fullRange] of chaosStatRanges) {
-            const existing = persisted.get(statKey);
+            const existing = chaosDeltaRanges.get(statKey);
             const curMin = existing ? existing.min : fullRange.min;
             const curMax = existing ? existing.max : fullRange.max;
 
@@ -354,7 +350,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
               let mn = Number(minSlider.value);
               let mx = Number(maxSlider.value);
               if (mn > mx) [mn, mx] = [mx, mn];
-              persisted.set(statKey, { min: mn, max: mx });
+              chaosDeltaRanges.set(statKey, { min: mn, max: mx });
               minSlider.value = mn;
               maxSlider.value = mx;
               label.textContent = formatLabel(mn, mx);

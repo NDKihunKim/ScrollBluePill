@@ -11,6 +11,7 @@ import {
 import {
   enumerateGemContributions,
   enumerateItemLevelContributions,
+  enumerateStimulantContributions,
   solveStimulantResidual,
 } from './sourceContributions.mjs';
 
@@ -51,19 +52,36 @@ function getChaosRange(statKey) {
  * Uses the "trust the range" approach — each chaos scroll independently
  * contributes within [perScrollMin, perScrollMax] per key.
  *
+ * Chaos scrolls can only modify stats that already exist on the item at the
+ * point chaos is applied.  A stat "exists" if it was present on the clean item
+ * (cleanStats[key] > 0) or was added by fixed scrolls applied before chaos
+ * (currentStats[key] !== 0).  Without this guard, chaos would be able to
+ * create stats from nothing (e.g. weaponAttack on a Work Glove).
+ *
  * @param {Record<string,number>} residual - Stats still needed after fixed scrolls
  * @param {number} chaosCount - Number of chaos scroll slots available
  * @param {string[]} targetKeys - Stat keys being targeted
  * @param {object|null} chaosStatBounds - User-specified per-key min/max, or null for defaults
+ * @param {Set<string>|null} existingStatKeys - Set of stat keys that exist on the
+ *   item before chaos is applied (clean item stats + fixed-scroll additions).
+ *   When provided, chaos is blocked from producing a non-zero contribution for
+ *   any key not in this set.  Pass null to skip this check.
  * @returns {boolean}
  */
-function canChaosFillResidual(residual, chaosCount, targetKeys, chaosStatBounds) {
+function canChaosFillResidual(residual, chaosCount, targetKeys, chaosStatBounds, existingStatKeys = null) {
   if (chaosCount <= 0) {
     return targetKeys.every((k) => (residual[k] || 0) === 0);
   }
 
   for (const key of targetKeys) {
     const needed = residual[key] || 0;
+
+    // Chaos cannot create a stat from nothing — it can only modify stats
+    // that already exist on the item before chaos is applied.
+    if (needed !== 0 && existingStatKeys && !existingStatKeys.has(key)) {
+      return false;
+    }
+
     const defaultRange = getChaosRange(key);
     const bounds = chaosStatBounds?.[key];
     const min = bounds && Number.isFinite(bounds.min)
@@ -169,8 +187,20 @@ function* enumerateExactCountScrollStates({
         maxPerApp = Math.max(maxPerApp, value);
       }
       if (hasChaosAvailable && chaosMins[key] != null) {
-        minPerApp = Math.min(minPerApp, chaosMins[key]);
-        maxPerApp = Math.max(maxPerApp, chaosMaxs[key]);
+        // Chaos can only modify stats that exist (or can exist) on the item.
+        // A stat "can exist" if: present on the clean item, already added by
+        // a previously-applied fixed scroll, or addable by a remaining fixed
+        // scroll that will be applied before chaos.
+        const statExistsOnClean =
+          cleanStats && Number.isFinite(cleanStats[key]) && cleanStats[key] > 0;
+        const statAlreadyAdded = (currentStats[key] || 0) !== 0;
+        const canBeAddedByFixed = fixedScrolls.slice(fixedIdx).some(
+          (s) => (s.stats?.[key] || 0) !== 0,
+        );
+        if (statExistsOnClean || statAlreadyAdded || canBeAddedByFixed) {
+          minPerApp = Math.min(minPerApp, chaosMins[key]);
+          maxPerApp = Math.max(maxPerApp, chaosMaxs[key]);
+        }
       }
 
       if (!Number.isFinite(minPerApp)) return false;
@@ -206,7 +236,10 @@ function* enumerateExactCountScrollStates({
         residual[k] = (targetDeltas[k] ?? 0) - (currentStats[k] || 0);
       }
 
-      if (canChaosFillResidual(residual, remainingSlots, targetKeys, chaosStatBounds)) {
+      if (canChaosFillResidual(residual, remainingSlots, targetKeys, chaosStatBounds,
+          new Set(targetKeys.filter((k) =>
+            (cleanStats && Number.isFinite(cleanStats[k]) && cleanStats[k] > 0)
+            || (currentStats[k] || 0) !== 0)))) {
         // Yield a strategy with fixed scrolls + aggregate chaos
         const chaosEntry = buildAggregateChaosEntry({
           representativeScroll: chaosScrolls[0],
@@ -609,6 +642,51 @@ export function enumerateStrategies({
     for (const ilc of itemLevelContributions) {
       if (tooManyResults) break;
       const remainingTarget = subtractVectors(effectiveTargetDeltas, ilc.stats, targetKeys);
+
+      // ── Stimulant-first (level-up path): try stimulant before scrolls ──
+      if (normalizedAllowedSources.stimulant && normalizedAllowedSources.scrolls
+          && normCount > 0 && stimulantStatBounds != null
+          && Object.keys(stimulantStatBounds).length > 0) {
+        const stimContributions = enumerateStimulantContributions({
+          targetKeys,
+          bounds: stimulantStatBounds,
+          cleanStats,
+          isWeapon: equipmentIsWeapon,
+        });
+        // Correction without stimulant (already applied here)
+        const stimFirstCorrectionBoundsIL = computeCorrectionBounds(targetKeys, {
+          includeStimulant: false,
+          includeGems: normalizedAllowedSources.gems,
+          includeItemLevelUp: false,
+        });
+        for (const stimC of stimContributions) {
+          if (tooManyResults) break;
+          const afterStim = subtractVectors(remainingTarget, stimC.stats, targetKeys);
+          if (targetKeys.every((k) => (afterStim[k] || 0) === 0)) continue;
+          const stimScrollStates = enumerateExactCountScrollStates({
+            scrolls,
+            targetKeys,
+            targetDeltas: afterStim,
+            successfulScrollCount: normCount,
+            correctionBounds: stimFirstCorrectionBoundsIL,
+            chaosStatBounds,
+            cleanStats,
+          });
+          for (const ss of stimScrollStates) {
+            if (tooManyResults) break;
+            if (isExactVector(ss.stats, afterStim, targetKeys)) {
+              addResult({
+                scrolls: ss.scrolls,
+                stimulant: { stats: stimC.stats },
+                gems: [],
+                itemLevelUp: ilc,
+                priorityRank: 1,
+              });
+            }
+          }
+        }
+      }
+
       const scrollStates = normalizedAllowedSources.scrolls && normCount > 0
         ? enumerateExactCountScrollStates({
             scrolls,
@@ -691,6 +769,58 @@ export function enumerateStrategies({
       }
     }
   } else {
+    // ── Stimulant-first strategies (stimulant contributes, scrolls fill remainder) ──
+    // When stimulant is enabled with explicit bounds, try it as a primary
+    // contributor before scrolls.  This is necessary when chaos scrolls are the
+    // only scroll type available: without this loop chaos always covers the
+    // entire target by itself and solveStimulantResidual() on the zero residual
+    // rejects the strategy.
+    // Only activates when the user has configured explicit stimulant bounds —
+    // without them the solver falls back to the existing residual-fill path.
+    if (normalizedAllowedSources.stimulant && normalizedAllowedSources.scrolls
+        && normCount > 0 && stimulantStatBounds != null
+        && Object.keys(stimulantStatBounds).length > 0) {
+      const stimContributions = enumerateStimulantContributions({
+        targetKeys,
+        bounds: stimulantStatBounds,
+        cleanStats,
+        isWeapon: equipmentIsWeapon,
+      });
+      // Correction bounds WITHOUT stimulant (it's already applied in this path)
+      const stimFirstCorrectionBounds = computeCorrectionBounds(targetKeys, {
+        includeStimulant: false,
+        includeGems: normalizedAllowedSources.gems,
+        includeItemLevelUp: false,
+      });
+      for (const stimC of stimContributions) {
+        if (tooManyResults) break;
+        const afterStim = subtractVectors(effectiveTargetDeltas, stimC.stats, targetKeys);
+        // Skip if stimulant alone covers everything — Tier 0 handles that
+        if (targetKeys.every((k) => (afterStim[k] || 0) === 0)) continue;
+        const stimScrollStates = enumerateExactCountScrollStates({
+          scrolls,
+          targetKeys,
+          targetDeltas: afterStim,
+          successfulScrollCount: normCount,
+          correctionBounds: stimFirstCorrectionBounds,
+          chaosStatBounds,
+          cleanStats,
+        });
+        for (const ss of stimScrollStates) {
+          if (tooManyResults) break;
+          if (isExactVector(ss.stats, afterStim, targetKeys)) {
+            addResult({
+              scrolls: ss.scrolls,
+              stimulant: { stats: stimC.stats },
+              gems: [],
+              itemLevelUp: null,
+              priorityRank: 1,
+            });
+          }
+        }
+      }
+    }
+
     // EXISTING loop verbatim — copy of the current for loop, do not modify
     for (const ss of effectiveScrollStates) {
       effectiveScrollStatesSeen++;
