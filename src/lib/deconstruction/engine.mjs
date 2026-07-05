@@ -14,6 +14,8 @@ import {
   solveStimulantResidual,
 } from './sourceContributions.mjs';
 
+export { canChaosFillResidual };
+
 const MAX_DISPLAY_STRATEGIES = 10000;
 const OVERFLOW_TOTAL = 10001;
 
@@ -42,6 +44,62 @@ function filterScrollsByRate(scrolls, rateFilter) {
 function getChaosRange(statKey) {
   if (HP_MP_KEYS.has(statKey)) return { min: -50, max: 50 };
   return { min: -5, max: 5 };
+}
+
+/**
+ * Check whether N chaos scrolls can collectively produce the residual stat vector.
+ * Uses the "trust the range" approach — each chaos scroll independently
+ * contributes within [perScrollMin, perScrollMax] per key.
+ *
+ * @param {Record<string,number>} residual - Stats still needed after fixed scrolls
+ * @param {number} chaosCount - Number of chaos scroll slots available
+ * @param {string[]} targetKeys - Stat keys being targeted
+ * @param {object|null} chaosStatBounds - User-specified per-key min/max, or null for defaults
+ * @returns {boolean}
+ */
+function canChaosFillResidual(residual, chaosCount, targetKeys, chaosStatBounds) {
+  if (chaosCount <= 0) {
+    return targetKeys.every((k) => (residual[k] || 0) === 0);
+  }
+
+  for (const key of targetKeys) {
+    const needed = residual[key] || 0;
+    const defaultRange = getChaosRange(key);
+    const bounds = chaosStatBounds?.[key];
+    const min = bounds && Number.isFinite(bounds.min)
+      ? Math.max(defaultRange.min, bounds.min)
+      : defaultRange.min;
+    const max = bounds && Number.isFinite(bounds.max)
+      ? Math.min(defaultRange.max, bounds.max)
+      : defaultRange.max;
+
+    const minPossible = chaosCount * min;
+    const maxPossible = chaosCount * max;
+
+    if (needed < minPossible || needed > maxPossible) return false;
+  }
+  return true;
+}
+
+/**
+ * Build a single aggregate chaos entry representing N chaos scrolls
+ * that collectively produce totalStats.
+ *
+ * @param {object} opts
+ * @param {object} opts.representativeScroll - Any chaos scroll (used for id, nameKo)
+ * @param {number} opts.count - Number of chaos scrolls
+ * @param {Record<string,number>} opts.totalStats - Aggregate stat contribution
+ * @returns {object}
+ */
+function buildAggregateChaosEntry({ representativeScroll, count, totalStats }) {
+  return {
+    id: representativeScroll.id,
+    nameKo: representativeScroll.nameKo,
+    stats: { ...totalStats },
+    behavior_type: 'chaos',
+    isAggregate: true,
+    aggregateCount: count,
+  };
 }
 
 function* generateChaosDeltas(stats, targetKeys, chaosBounds = null, limit = 100000, targetDeltas = null, cleanStats = null) {
