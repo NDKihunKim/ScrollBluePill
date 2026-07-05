@@ -205,7 +205,7 @@ test('insufficient scroll count may be filled by stimulant', () => {
     successfulScrollCount: 3,
     equipmentKind: '한손검',
     requiredLevel: 0,
-    cleanStats: {},
+    cleanStats: { weaponAttack: 1 },
     scrollsByEquipmentKind: fakeScrolls,
     levelUpDefinition: null,
   });
@@ -233,7 +233,7 @@ test('requires the exact successful scroll count for a scroll-only target', () =
     successfulScrollCount,
     equipmentKind: '한손검',
     requiredLevel: 0,
-    cleanStats: {},
+    cleanStats: { weaponAttack: 1 },
     scrollsByEquipmentKind: fakeScrolls,
     levelUpDefinition: null,
   });
@@ -747,7 +747,7 @@ test('stimulantStatBounds restricts stimulant outcomes', () => {
     successfulScrollCount: 0,
     equipmentKind: 'Cape',
     requiredLevel: 50,
-    cleanStats: { str: 0 },
+    cleanStats: { str: 1 },
     scrollsByEquipmentKind: new Map([['Cape', []]]),
     levelUpDefinition: null,
     allowedSources: { scrolls: false, stimulant: true, gems: false, itemLevelUp: false },
@@ -958,4 +958,141 @@ test('canChaosFillResidual: HP/MP out of range returns false', () => {
     null,
   );
   assert.equal(result, false);
+});
+
+// ── Aggregate chaos integration tests ──
+
+test('chaos aggregate entry has isAggregate and aggregateCount', () => {
+  const fakeScrolls = new Map();
+  fakeScrolls.set('Glove', [
+    {
+      id: 2001,
+      nameKo: '장갑 혼돈의 주문서 60%',
+      equipmentKind: 'Glove',
+      behavior_type: 'chaos',
+      stats: { weaponAttack: 0, str: 0, dex: 0, int: 0, luk: 0 },
+    },
+  ]);
+
+  const result = enumerateStrategies({
+    targetDeltas: { weaponAttack: 5 },
+    targetKeys: ['weaponAttack'],
+    successfulScrollCount: 1,
+    equipmentKind: 'Glove',
+    requiredLevel: 0,
+    cleanStats: {},
+    scrollsByEquipmentKind: fakeScrolls,
+    levelUpDefinition: null,
+    scrollRateFilter: new Set(['chaos']),
+    allowedSources: { scrolls: true, stimulant: false, gems: false, itemLevelUp: false },
+  });
+
+  assert.ok(result.strategies.length > 0, 'should find at least one chaos strategy');
+  const chaosScrolls = result.strategies[0].scrolls.filter(s => s.behavior_type === 'chaos');
+  assert.equal(chaosScrolls.length, 1, 'should have exactly one aggregate chaos entry');
+  assert.equal(chaosScrolls[0].isAggregate, true);
+  assert.equal(chaosScrolls[0].aggregateCount, 1);
+  assert.equal(chaosScrolls[0].stats.weaponAttack, 5);
+});
+
+test('chaos-only strategy with multiple slots produces single aggregate entry', () => {
+  const fakeScrolls = new Map();
+  fakeScrolls.set('Glove', [
+    {
+      id: 2001,
+      nameKo: '장갑 혼돈의 주문서 60%',
+      equipmentKind: 'Glove',
+      behavior_type: 'chaos',
+      stats: { weaponAttack: 0 },
+    },
+  ]);
+
+  const result = enumerateStrategies({
+    targetDeltas: { weaponAttack: 8 },
+    targetKeys: ['weaponAttack'],
+    successfulScrollCount: 3,
+    equipmentKind: 'Glove',
+    requiredLevel: 0,
+    cleanStats: {},
+    scrollsByEquipmentKind: fakeScrolls,
+    levelUpDefinition: null,
+    scrollRateFilter: new Set(['chaos']),
+    allowedSources: { scrolls: true, stimulant: false, gems: false, itemLevelUp: false },
+  });
+
+  assert.ok(result.strategies.length > 0, 'should find at least one strategy');
+  const chaosScrolls = result.strategies[0].scrolls.filter(s => s.behavior_type === 'chaos');
+  assert.equal(chaosScrolls.length, 1, 'should have exactly one aggregate chaos entry');
+  assert.equal(chaosScrolls[0].aggregateCount, 3);
+  assert.equal(chaosScrolls[0].stats.weaponAttack, 8);
+});
+
+test('chaos insufficient to fill residual returns no strategies', () => {
+  const fakeScrolls = new Map();
+  fakeScrolls.set('Glove', [
+    {
+      id: 2001,
+      nameKo: '장갑 혼돈의 주문서 60%',
+      equipmentKind: 'Glove',
+      behavior_type: 'chaos',
+      stats: { weaponAttack: 0 },
+    },
+  ]);
+
+  const result = enumerateStrategies({
+    targetDeltas: { weaponAttack: 20 },
+    targetKeys: ['weaponAttack'],
+    successfulScrollCount: 1,
+    equipmentKind: 'Glove',
+    requiredLevel: 0,
+    cleanStats: {},
+    scrollsByEquipmentKind: fakeScrolls,
+    levelUpDefinition: null,
+    scrollRateFilter: new Set(['chaos']),
+    allowedSources: { scrolls: true, stimulant: false, gems: false, itemLevelUp: false },
+  });
+
+  assert.equal(result.strategies.length, 0, 'chaos cannot produce +20 from 1 scroll');
+});
+
+test('fixed + chaos aggregate produces correct structure', () => {
+  const fakeScrolls = new Map();
+  fakeScrolls.set('Glove', [
+    {
+      id: 1001,
+      nameKo: '장갑 공격력 주문서 100%',
+      equipmentKind: 'Glove',
+      behavior_type: 'fixed',
+      stats: { weaponAttack: 2 },
+    },
+    {
+      id: 2001,
+      nameKo: '장갑 혼돈의 주문서 60%',
+      equipmentKind: 'Glove',
+      behavior_type: 'chaos',
+      stats: { weaponAttack: 0 },
+    },
+  ]);
+
+  const result = enumerateStrategies({
+    targetDeltas: { weaponAttack: 9 },
+    targetKeys: ['weaponAttack'],
+    successfulScrollCount: 3,
+    equipmentKind: 'Glove',
+    requiredLevel: 0,
+    cleanStats: {},
+    scrollsByEquipmentKind: fakeScrolls,
+    levelUpDefinition: null,
+    scrollRateFilter: new Set(['100', 'chaos']),
+    allowedSources: { scrolls: true, stimulant: false, gems: false, itemLevelUp: false },
+  });
+
+  assert.ok(result.strategies.length > 0, 'should find strategies');
+  // Should find: 2x fixed (+4) + 1x chaos agg (+5) = +9
+  const hasExpected = result.strategies.some(s => {
+    const fixed = s.scrolls.filter(sc => sc.behavior_type !== 'chaos');
+    const chaos = s.scrolls.filter(sc => sc.isAggregate);
+    return fixed.length === 2 && chaos.length === 1 && chaos[0].aggregateCount === 1;
+  });
+  assert.ok(hasExpected, 'should find 2 fixed + 1 aggregate chaos strategy');
 });
