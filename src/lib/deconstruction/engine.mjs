@@ -276,6 +276,12 @@ function* enumerateExactCountScrollStates({
 function strategyCanonicalKey({ scrolls, stimulant, gems, itemLevelUp }, targetKeys) {
   const scrollPart = scrolls
     .map((s) => {
+      if (s.isAggregate) {
+        // Aggregate chaos: key by id + total aggregate stats
+        const statKeys = Object.keys(s.stats).sort();
+        const statPart = statKeys.map((k) => `${k}:${s.stats[k]}`).join(',');
+        return `${s.id}:agg[${statPart}]`;
+      }
       const statKeys = Object.keys(s.stats).sort();
       const statPart = statKeys.map((k) => `${k}:${s.stats[k]}`).join(',');
       return `${s.id}[${statPart}]`;
@@ -309,6 +315,7 @@ function buildResult({ scrolls, stimulant, gems, itemLevelUp, priorityRank, targ
     nameKo: s.nameKo,
     stats: { ...s.stats },
     behavior_type: s.behavior_type,
+    ...(s.isAggregate ? { isAggregate: true, aggregateCount: s.aggregateCount } : {}),
   }));
 
   const hasStimulant = stimulant !== null;
