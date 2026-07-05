@@ -160,23 +160,21 @@ export function createResultFilterController({ root, secondaryContainer }) {
       }
     }
 
-    // Compute per-stat delta ranges for chaos scrolls across all entries
-    const chaosStatRanges = new Map(); // scroll:{id} → Map<statKey, {min,max}>
+    // Compute per-stat aggregate chaos delta ranges across all entries
+    const chaosStatRanges = new Map(); // Map<statKey, {min,max}> for aggregate chaos
     if (model) {
       for (const entry of model.entries) {
-        for (const s of (entry.strategy.scrolls ?? [])) {
-          if (s.behavior_type !== 'chaos') continue;
-          const key = `scroll:${s.id}`;
-          if (!chaosStatRanges.has(key)) chaosStatRanges.set(key, new Map());
-          const statMap = chaosStatRanges.get(key);
-          for (const [k, v] of Object.entries(s.stats ?? {})) {
-            if (!Number.isFinite(v)) continue;
-            const existing = statMap.get(k);
-            statMap.set(k, {
-              min: Math.min(existing?.min ?? Infinity, v),
-              max: Math.max(existing?.max ?? -Infinity, v),
-            });
-          }
+        const chaosEntry = (entry.strategy.scrolls ?? []).find(
+          (s) => s.behavior_type === 'chaos' && s.isAggregate,
+        );
+        if (!chaosEntry) continue;
+        for (const [k, v] of Object.entries(chaosEntry.stats ?? {})) {
+          if (!Number.isFinite(v)) continue;
+          const existing = chaosStatRanges.get(k);
+          chaosStatRanges.set(k, {
+            min: Math.min(existing?.min ?? Infinity, v),
+            max: Math.max(existing?.max ?? -Infinity, v),
+          });
         }
       }
     }
@@ -310,21 +308,21 @@ export function createResultFilterController({ root, secondaryContainer }) {
           row.append(sliderWrap);
         }
       } else {
-        // ── Chaos scroll: per-stat delta range sliders ──
-        const statRanges = chaosStatRanges.get(option.key);
-        if (statRanges && statRanges.size > 0) {
+        // ── Chaos scroll: per-stat aggregate delta range sliders ──
+        if (chaosStatRanges.size > 0) {
           const chaosWrap = document.createElement('span');
           chaosWrap.className = 'decon-secondary-scroll-chaos-stats';
           if (!isSelected) chaosWrap.classList.add('decon-secondary-scroll-slider-wrap--disabled');
 
-          // Get or init persisted ranges for this scroll key
-          let persisted = chaosDeltaRanges.get(option.key);
+          // Get or init persisted ranges for aggregate chaos
+          const aggKey = 'chaos:aggregate';
+          let persisted = chaosDeltaRanges.get(aggKey);
           if (!persisted) {
             persisted = new Map();
-            chaosDeltaRanges.set(option.key, persisted);
+            chaosDeltaRanges.set(aggKey, persisted);
           }
 
-          for (const [statKey, fullRange] of statRanges) {
+          for (const [statKey, fullRange] of chaosStatRanges) {
             const existing = persisted.get(statKey);
             const curMin = existing ? existing.min : fullRange.min;
             const curMax = existing ? existing.max : fullRange.max;
