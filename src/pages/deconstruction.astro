@@ -376,6 +376,12 @@ function simplifyScrollDisplayName(nameKo) {
   return match ? match[1] : nameKo;
 }
 
+function simplifyChaosAggregateName(nameKo) {
+  // "장갑 혼돈의 주문서 60%" → "혼돈의 주문서"
+  const match = String(nameKo ?? '').match(/(혼돈의 주문서)/);
+  return match ? match[1] : nameKo;
+}
+
 // ---- DOM refs ----
 const form = document.querySelector('[data-calculator-input]');
 const itemNameSearch = form?.querySelector('[data-item-name-search]');
@@ -2502,16 +2508,18 @@ const displayResults = (result, targetDeltas) => {
     // 2. Scrolls — grouped by ID, rendered as a compact table
     const scrollGroups = new Map();
     for (const s of strategy.scrolls) {
-      const isChaos = s.behavior_type === 'chaos';
-      // Chaos: key includes stat deltas so each unique outcome gets its own row.
-      // Fixed: key is just the id (all applications have identical stats).
-      const groupKey = isChaos
-        ? `${s.id}|${JSON.stringify(s.stats)}`
-        : String(s.id);
-      if (!scrollGroups.has(groupKey)) {
-        scrollGroups.set(groupKey, { scroll: s, count: 0 });
+      if (s.isAggregate) {
+        // Aggregate chaos entry — already grouped, use its own count
+        const groupKey = `agg:${s.id}`;
+        scrollGroups.set(groupKey, { scroll: s, count: s.aggregateCount });
+      } else {
+        // Fixed scroll — group by id (all applications have identical stats)
+        const groupKey = String(s.id);
+        if (!scrollGroups.has(groupKey)) {
+          scrollGroups.set(groupKey, { scroll: s, count: 0 });
+        }
+        scrollGroups.get(groupKey).count++;
       }
-      scrollGroups.get(groupKey).count++;
     }
 
     if (scrollGroups.size > 0) {
@@ -2544,7 +2552,9 @@ const displayResults = (result, targetDeltas) => {
         topLine.append(icon);
 
         const label = document.createElement('span');
-        label.textContent = simplifyScrollDisplayName(group.scroll.nameKo);
+        label.textContent = group.scroll.isAggregate
+          ? simplifyChaosAggregateName(group.scroll.nameKo)
+          : simplifyScrollDisplayName(group.scroll.nameKo);
         topLine.append(label);
 
         nameCell.append(topLine);
