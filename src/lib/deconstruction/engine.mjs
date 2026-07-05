@@ -190,13 +190,10 @@ function* enumerateExactCountScrollStates({
 
     if (chosen.length >= requiredScrollCount) {
       // Terminal: all slots allocated by fixed scrolls
-      // Verify we hit the target exactly
-      if (targetKeys.every((k) => (currentStats[k] || 0) === (targetDeltas[k] || 0))) {
-        yield {
-          scrolls: [...chosen],
-          stats: { ...currentStats },
-        };
-      }
+      yield {
+        scrolls: [...chosen],
+        stats: { ...currentStats },
+      };
       return;
     }
 
