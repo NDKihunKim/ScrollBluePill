@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import { enumerateStrategies } from '../src/lib/deconstruction/engine.mjs';
+import { enumerateStrategies, canChaosFillResidual } from '../src/lib/deconstruction/engine.mjs';
 import { enumerateItemLevelContributions } from '../src/lib/deconstruction/sourceContributions.mjs';
 
 test('enumerateStrategies returns empty for zero deltas', () => {
@@ -824,4 +824,138 @@ test('levelUpSlotStatRanges missing slot falls back to definition', () => {
   assert.ok(result.strategies.length > 0);
   // Every strategy should include itemLevelUp when enabled
   assert.ok(result.strategies.every(s => s.hasItemLevelUp));
+});
+
+// ── canChaosFillResidual ──
+
+test('canChaosFillResidual: zero chaos, zero residual returns true', () => {
+  const result = canChaosFillResidual(
+    { weaponAttack: 0 },
+    0,
+    ['weaponAttack'],
+    null,
+  );
+  assert.equal(result, true);
+});
+
+test('canChaosFillResidual: zero chaos, non-zero residual returns false', () => {
+  const result = canChaosFillResidual(
+    { weaponAttack: 5 },
+    0,
+    ['weaponAttack'],
+    null,
+  );
+  assert.equal(result, false);
+});
+
+test('canChaosFillResidual: single key in range', () => {
+  // 3 scrolls × [-5,+5] = [-15,+15], need +9 → in range
+  const result = canChaosFillResidual(
+    { weaponAttack: 9 },
+    3,
+    ['weaponAttack'],
+    null,
+  );
+  assert.equal(result, true);
+});
+
+test('canChaosFillResidual: single key above max returns false', () => {
+  // 3 scrolls × [+5 max] = +15 max, need +16 → out of range
+  const result = canChaosFillResidual(
+    { weaponAttack: 16 },
+    3,
+    ['weaponAttack'],
+    null,
+  );
+  assert.equal(result, false);
+});
+
+test('canChaosFillResidual: single key below min returns false', () => {
+  // 3 scrolls × [-5 min] = -15 min, need -16 → out of range
+  const result = canChaosFillResidual(
+    { weaponAttack: -16 },
+    3,
+    ['weaponAttack'],
+    null,
+  );
+  assert.equal(result, false);
+});
+
+test('canChaosFillResidual: at exact boundary', () => {
+  // 3 scrolls × [+5 max] = +15 max, need +15 → at boundary, in range
+  const result = canChaosFillResidual(
+    { weaponAttack: 15 },
+    3,
+    ['weaponAttack'],
+    null,
+  );
+  assert.equal(result, true);
+});
+
+test('canChaosFillResidual: multi-key all in range', () => {
+  // 2 scrolls × [-5,+5] per key = [-10,+10] per key
+  const result = canChaosFillResidual(
+    { weaponAttack: 7, str: -4 },
+    2,
+    ['weaponAttack', 'str'],
+    null,
+  );
+  assert.equal(result, true);
+});
+
+test('canChaosFillResidual: multi-key one out of range returns false', () => {
+  // 2 scrolls × [+5 max on str] = +10 max, need +12 → str out of range
+  const result = canChaosFillResidual(
+    { weaponAttack: 7, str: 12 },
+    2,
+    ['weaponAttack', 'str'],
+    null,
+  );
+  assert.equal(result, false);
+});
+
+test('canChaosFillResidual: custom bounds applied — in range', () => {
+  // Custom bounds {weaponAttack: {min:0, max:3}}
+  // 3 scrolls × [0,+3] = [0,+9], need +9 → in range
+  const result = canChaosFillResidual(
+    { weaponAttack: 9 },
+    3,
+    ['weaponAttack'],
+    { weaponAttack: { min: 0, max: 3 } },
+  );
+  assert.equal(result, true);
+});
+
+test('canChaosFillResidual: custom bounds reject — above max', () => {
+  // Custom bounds {weaponAttack: {min:0, max:3}}
+  // 3 scrolls × [0,+3] = [0,+9], need +12 → out of range
+  const result = canChaosFillResidual(
+    { weaponAttack: 12 },
+    3,
+    ['weaponAttack'],
+    { weaponAttack: { min: 0, max: 3 } },
+  );
+  assert.equal(result, false);
+});
+
+test('canChaosFillResidual: HP/MP wider default range', () => {
+  // 1 scroll × [-50,+50], need +40 → in range
+  const result = canChaosFillResidual(
+    { maxHp: 40 },
+    1,
+    ['maxHp'],
+    null,
+  );
+  assert.equal(result, true);
+});
+
+test('canChaosFillResidual: HP/MP out of range returns false', () => {
+  // 1 scroll × [-50,+50], need +60 → out of range
+  const result = canChaosFillResidual(
+    { maxHp: 60 },
+    1,
+    ['maxHp'],
+    null,
+  );
+  assert.equal(result, false);
 });
