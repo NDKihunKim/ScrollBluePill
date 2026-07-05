@@ -40,6 +40,96 @@ export function solveStimulantResidual(residual, targetKeys, { isWeapon = true, 
   return stats;
 }
 
+/**
+ * Enumerate possible stimulant stat vectors within the given bounds.
+ *
+ * Used to try stimulant as a primary contributor (before scrolls) so that
+ * strategies combining stimulant + chaos scrolls are generated even when
+ * chaos alone would otherwise cover the entire target.
+ *
+ * Caps enumeration at ~5000 combos; beyond that, samples 0/min/max per key.
+ *
+ * @param {object} opts
+ * @param {string[]} opts.targetKeys
+ * @param {object|null} opts.bounds - Per-key {min, max}
+ * @param {object|null} opts.cleanStats - Clean item stats
+ * @param {boolean} opts.isWeapon
+ * @returns {Array<{stats: Record<string,number>}>}
+ */
+export function enumerateStimulantContributions({ targetKeys, bounds, cleanStats, isWeapon }) {
+  const MAX_COMBOS = 5000;
+
+  // Compute possible values for each target key
+  const perKeyValues = {};
+  let totalCombos = 1;
+  let useSampling = false;
+
+  for (const key of targetKeys) {
+    const baseLimit = HP_MP_KEYS.has(key) ? 50 : 5;
+    const step = HP_MP_KEYS.has(key) ? 10 : 1;
+    const boundRange = bounds?.[key];
+
+    const statExistsOnBase = cleanStats && Number.isFinite(cleanStats[key]) && cleanStats[key] > 0;
+    if (!statExistsOnBase) {
+      perKeyValues[key] = [0];
+      continue;
+    }
+
+    if (!isWeapon && WEAPON_ONLY_STIM_KEYS.has(key)) {
+      perKeyValues[key] = [0];
+      continue;
+    }
+
+    const boundMin = boundRange && Number.isFinite(boundRange.min)
+      ? Math.max(-baseLimit, Math.min(baseLimit, boundRange.min))
+      : -baseLimit;
+    const boundMax = boundRange && Number.isFinite(boundRange.max)
+      ? Math.max(-baseLimit, Math.min(baseLimit, boundRange.max))
+      : baseLimit;
+
+    const count = Math.floor((boundMax - boundMin) / step) + 1;
+    totalCombos *= Math.max(1, count);
+
+    if (totalCombos > MAX_COMBOS) {
+      useSampling = true;
+    }
+
+    const values = [];
+    for (let v = boundMin; v <= boundMax; v += step) {
+      values.push(v);
+    }
+    perKeyValues[key] = values;
+  }
+
+  // Sampling fallback when full enumeration is too large
+  if (useSampling) {
+    for (const key of targetKeys) {
+      const allValues = perKeyValues[key];
+      if (allValues.length <= 3) continue;
+      const mid = Math.floor(allValues.length / 2);
+      perKeyValues[key] = [allValues[0], allValues[mid], allValues[allValues.length - 1]];
+    }
+  }
+
+  // Cartesian product (filtering out zero-only entries)
+  const results = [];
+  function visit(idx, current) {
+    if (idx === targetKeys.length) {
+      if (targetKeys.some((k) => current[k] !== 0)) {
+        results.push({ stats: { ...current } });
+      }
+      return;
+    }
+    const key = targetKeys[idx];
+    for (const value of perKeyValues[key]) {
+      current[key] = value;
+      visit(idx + 1, current);
+    }
+  }
+  visit(0, Object.fromEntries(targetKeys.map((k) => [k, 0])));
+  return results;
+}
+
 function enumerateRangeVectors(ranges, targetKeys) {
   const results = [];
 

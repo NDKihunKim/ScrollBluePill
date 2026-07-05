@@ -2380,6 +2380,48 @@ const runAnalysis = () => {
   const levelUpDef = itemLevelUpByItemId.get(selectedItem.id);
   const maxLevelUps = Number.isInteger(levelUpDef?.maxLevelUps) ? levelUpDef.maxLevelUps : 0;
   const appliedCount = Math.max(0, Math.min(maxLevelUps, deconAppliedLevelCount));
+
+  // ---- Debug payload: structured snapshot of all calculation inputs ----
+  const _debugAllowedSources = getAllowedSources();
+  console.log('=== Deconstruction Debug Payload ===');
+  console.log(JSON.stringify({
+    _label: 'Deconstruction Debug Payload',
+    timestamp: new Date().toISOString(),
+    item: {
+      id: selectedItem.id,
+      nameKo: selectedItem.nameKo,
+      equipmentKind: selectedItem.equipmentKind,
+      requiredLevel: selectedItem.requiredLevel ?? 0,
+      requiredJobs: structuredClone(selectedItem.requiredJobs ?? []),
+      cleanStats: structuredClone(selectedItem.stats ?? {}),
+    },
+    targetDeltas: structuredClone(targetDeltas),
+    targetKeys: [...checkedKeys],
+    slotState: {
+      successfulScrollCount: deconSlotState.successfulScrollCount,
+      remainingSlots: deconSlotState.remainingSlots,
+      maxSlots: deconSlotState.maxSlots,
+    },
+    allowedSources: _debugAllowedSources,
+    scrollRateFilter: deconScrollRateFilter.size > 0 ? [...deconScrollRateFilter] : null,
+    stimulantBounds: Object.keys(deconStimulantBoundsMap).length > 0
+      ? structuredClone(deconStimulantBoundsMap) : null,
+    chaosBounds: Object.keys(deconChaosBoundsMap).length > 0
+      ? structuredClone(deconChaosBoundsMap) : null,
+    gemFilter: deconGemFilter instanceof Set ? [...deconGemFilter] : null,
+    itemLevelUp: {
+      appliedCount,
+      maxAvailable: maxLevelUps,
+      definition: levelUpDef ? {
+        maxLevelUps: levelUpDef.maxLevelUps,
+        statRanges: structuredClone(levelUpDef.statRanges ?? {}),
+      } : null,
+      totalStatRanges: appliedCount > 0 && Object.keys(deconLevelUpTotalRanges).length > 0
+        ? structuredClone(deconLevelUpTotalRanges) : null,
+    },
+  }, null, 2));
+  console.log('=== End Debug Payload ===');
+
   const result = enumerateStrategies({
     targetDeltas,
     targetKeys: checkedKeys,
@@ -2560,9 +2602,22 @@ const displayResults = (result, targetDeltas) => {
         nameCell.append(topLine);
 
         // Effect sub-line
+        const isChaos = group.scroll.behavior_type === 'chaos';
+        const showAvg = isChaos && group.count > 1;
         const effects = sortStatEntries(Object.entries(group.scroll.stats))
           .filter(([, v]) => v !== 0)
-          .map(([k, v]) => `${statLabelByKey[k] ?? k} ${v > 0 ? '+' : ''}${v}`);
+          .map(([k, v]) => {
+            const statLabel = statLabelByKey[k] ?? k;
+            const sign = v > 0 ? '+' : '';
+            const statStr = `${statLabel} ${sign}${v}`;
+            if (showAvg) {
+              const avg = v / group.count;
+              const avgSign = avg > 0 ? '+' : avg < 0 ? '-' : '';
+              const avgStr = parseFloat(Math.abs(avg).toFixed(2)).toString();
+              return `${statStr} (평균: ${avgSign}${avgStr})`;
+            }
+            return statStr;
+          });
         const subLine = document.createElement('span');
         subLine.className = 'decon-scroll-name-sub';
         subLine.textContent = effects.length > 0
