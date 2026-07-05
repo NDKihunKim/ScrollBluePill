@@ -102,86 +102,14 @@ function buildAggregateChaosEntry({ representativeScroll, count, totalStats }) {
   };
 }
 
-function* generateChaosDeltas(stats, targetKeys, chaosBounds = null, limit = 100000, targetDeltas = null, cleanStats = null) {
-  // Only enumerate deltas for keys the user actually targets.
-  // A chaos scroll may have 6-10 stat keys; without filtering we'd hit
-  // the limit before reaching the relevant keys.
-
-  // Build the stat key pool: scroll's native stats + chaosBounds-introduced keys.
-  const scrollPoolKeys = Object.keys(stats).filter((k) => targetKeys.includes(k));
-  const boundsIntroducedKeys = chaosBounds
-    ? Object.keys(chaosBounds).filter((k) =>
-        targetKeys.includes(k) &&
-        !scrollPoolKeys.includes(k) &&
-        Number.isFinite(chaosBounds[k]?.min) &&
-        Number.isFinite(chaosBounds[k]?.max),
-      )
-    : [];
-  const allCandidateKeys = [...scrollPoolKeys, ...boundsIntroducedKeys];
-
-  // Prune: skip keys where target delta is 0 AND the item has no base stat to protect.
-  // Chaos moving a stat from 0→±5 that the user doesn't want changed wastes slots.
-  const statKeys = allCandidateKeys.filter((k) => {
-    const delta = targetDeltas?.[k] ?? 0;
-    if (delta !== 0) return true;                       // user wants this changed — keep
-    const base = cleanStats?.[k];
-    if (Number.isFinite(base) && base > 0) return true;  // item has a stat to protect — keep
-    return false;                                        // delta=0 AND base≤0 — skip
-  });
-
-  if (statKeys.length === 0) return;
-
-  const ranges = statKeys.map((key) => {
-    // For bounds-introduced keys, use the bounds as the authoritative range
-    // (clamped to the standard chaos range as a safety floor/ceiling).
-    const defaultRange = getChaosRange(key);
-    const min = chaosBounds?.[key] && Number.isFinite(chaosBounds[key].min)
-      ? Math.max(defaultRange.min, chaosBounds[key].min)
-      : defaultRange.min;
-    const max = chaosBounds?.[key] && Number.isFinite(chaosBounds[key].max)
-      ? Math.min(defaultRange.max, chaosBounds[key].max)
-      : defaultRange.max;
-    const values = [];
-    // Prioritise useful deltas: 0 first (neutral), then +1..+max (gains).
-    values.push(0);
-    for (let v = 1; v <= max; v++) {
-      if (v >= min) values.push(v);
-    }
-    // Only include negative deltas when the user wants to reduce this stat.
-    // For positive targets, negative chaos values are pure waste — they force
-    // extra positive applications to compensate, creating strictly worse strategies.
-    const targetDelta = targetDeltas?.[key] ?? 0;
-    if (targetDelta < 0) {
-      for (let v = -1; v >= min; v--) {
-        if (v <= max) values.push(v);
-      }
-    }
-    return { key, values };
-  });
-
-  let count = 0;
-
-  function* dfs(idx, current) {
-    if (count >= limit) return;
-    if (idx === statKeys.length) {
-      count++;
-      yield { ...current };
-      return;
-    }
-    const { key, values } = ranges[idx];
-    for (const v of values) {
-      current[key] = v;
-      yield* dfs(idx + 1, current);
-    }
-  }
-
-  yield* dfs(0, {});
-}
 
 /**
  * Generate all exact-count scroll states that could contribute to the target.
  * Each scroll state has { scrolls, stats } where scrolls is an array of applied
  * scroll entries and stats is the total stat vector.
+ *
+ * DFS branches on fixed scrolls only; chaos scrolls are handled as a
+ * terminal aggregate step via canChaosFillResidual / buildAggregateChaosEntry.
  */
 function* enumerateExactCountScrollStates({
   scrolls: allScrolls,
@@ -203,15 +131,11 @@ function* enumerateExactCountScrollStates({
   if (requiredScrollCount === 0) return [];
 
   // Filter scrolls to those touching at least one checked key.
-  // Chaos scrolls always pass — they can affect any stat and carry
-  // zero-valued stats in the data (engine uses getChaosRange for deltas).
+  // Chaos scrolls always pass — they can affect any stat.
   const relevantScrolls = allScrolls.filter((s) =>
     isChaosScroll(s) || targetKeys.some((k) => (s.stats?.[k] || 0) !== 0),
   );
-  if (relevantScrolls.length === 0) {
-    console.log('[chaos-debug] enumerateExactCountScrollStates: no relevant scrolls touch targetKeys', targetKeys);
-    return [];
-  }
+  if (relevantScrolls.length === 0) return [];
 
   const fixedScrolls = relevantScrolls
     .filter((s) => !isChaosScroll(s))
@@ -221,69 +145,18 @@ function* enumerateExactCountScrollStates({
     .filter((s) => isChaosScroll(s))
     .sort((a, b) => a.id - b.id);
 
-  console.log('[chaos-debug] enumerateExactCountScrollStates:', {
-    requiredScrollCount,
-    targetKeys,
-    targetDeltas,
-    totalScrolls: allScrolls.length,
-    relevantScrolls: relevantScrolls.length,
-    fixedScrolls: fixedScrolls.length,
-    chaosScrollsRaw: chaosScrolls.length,
-    chaosStatBounds,
-  });
+  const hasChaosAvailable = chaosScrolls.length > 0;
 
-  // Build deduplicated chaos entries with min/max per key for pruning.
-  // Each unique delta vector gets used count-based (like fixed scrolls)
-  // instead of one-at-a-time — otherwise a 378-entry pool × 6–9 slots
-  // creates a combinatorially impossible search space.
-  const chaosPoolRaw = [];
-  for (const cs of chaosScrolls) {
-    for (const deltas of generateChaosDeltas(cs.stats, targetKeys, chaosStatBounds, 100000, targetDeltas, cleanStats)) {
-      chaosPoolRaw.push({ baseScroll: cs, deltas });
-    }
-  }
-
-  // Deduplicate by delta vector key, then sort by useful contribution
-  // (sum of positive deltas descending) so the DFS finds valid combos faster.
-  const chaosSeen = new Map();
-  const chaosPool = [];
-  for (const entry of chaosPoolRaw) {
-    const key = targetKeys.map((k) => `${k}:${entry.deltas[k] || 0}`).join(',');
-    if (!chaosSeen.has(key)) {
-      chaosSeen.set(key, true);
-      chaosPool.push(entry);
-    }
-  }
-  chaosPool.sort((a, b) => {
-    const aScore = targetKeys.reduce((s, k) => s + Math.max(0, a.deltas[k] || 0), 0);
-    const bScore = targetKeys.reduce((s, k) => s + Math.max(0, b.deltas[k] || 0), 0);
-    return bScore - aScore;
-  });
-
-  console.log('[chaos-debug] chaos pool:', {
-    rawCount: chaosPoolRaw.length,
-    uniqueCount: chaosPool.length,
-    sampleEntries: chaosPool.slice(0, 3).map(e => ({
-      baseId: e.baseScroll.id,
-      deltas: e.deltas,
-    })),
-  });
-
-  // Pre-compute min/max per key across chaos pool for pruning
-  const chaosMins = Object.fromEntries(targetKeys.map((k) => [k, Infinity]));
-  const chaosMaxs = Object.fromEntries(targetKeys.map((k) => [k, -Infinity]));
-  for (const { deltas } of chaosPool) {
+  // Pre-compute chaos per-key min/max for pruning (from bounds, not pool)
+  const chaosMins = {};
+  const chaosMaxs = {};
+  if (hasChaosAvailable) {
     for (const k of targetKeys) {
-      const v = deltas[k] || 0;
-      if (v < chaosMins[k]) chaosMins[k] = v;
-      if (v > chaosMaxs[k]) chaosMaxs[k] = v;
+      const dr = getChaosRange(k);
+      chaosMins[k] = chaosStatBounds?.[k]?.min ?? dr.min;
+      chaosMaxs[k] = chaosStatBounds?.[k]?.max ?? dr.max;
     }
   }
-
-  console.log('[chaos-debug] chaos per-key ranges:', {
-    mins: chaosMins,
-    maxs: chaosMaxs,
-  });
 
   function canReachTarget(fixedIdx, remainingApps, currentStats) {
     for (const key of targetKeys) {
@@ -295,7 +168,7 @@ function* enumerateExactCountScrollStates({
         minPerApp = Math.min(minPerApp, value);
         maxPerApp = Math.max(maxPerApp, value);
       }
-      if (Number.isFinite(chaosMins[key])) {
+      if (hasChaosAvailable && chaosMins[key] != null) {
         minPerApp = Math.min(minPerApp, chaosMins[key]);
         maxPerApp = Math.max(maxPerApp, chaosMaxs[key]);
       }
@@ -312,43 +185,60 @@ function* enumerateExactCountScrollStates({
     return true;
   }
 
-  let dfsNodeCount = 0;
   function* dfs(fixedIdx, remainingApps, currentStats, chosen) {
-    dfsNodeCount++;
-    if (dfsNodeCount % 5000 === 0) {
-      console.log('[chaos-debug] DFS progress:', {
-        nodes: dfsNodeCount,
-        remainingApps,
-        chosenLen: chosen.length,
-        currentStats,
-        fixedIdx,
-      });
-    }
     if (!canReachTarget(fixedIdx, remainingApps, currentStats)) return;
-    if (remainingApps === 0 && chosen.length === requiredScrollCount) {
-      console.log('[chaos-debug] DFS found scroll state:', {
-        nodes: dfsNodeCount,
-        scrollCount: chosen.length,
-        stats: currentStats,
-        scrollBreakdown: chosen.map(s => ({ id: s.id, chaos: s.behavior_type === 'chaos', stats: s.stats })),
-      });
-      yield {
-        scrolls: [...chosen],
-        stats: { ...currentStats },
-      };
+
+    if (chosen.length >= requiredScrollCount) {
+      // Terminal: all slots allocated by fixed scrolls
+      // Verify we hit the target exactly
+      if (targetKeys.every((k) => (currentStats[k] || 0) === (targetDeltas[k] || 0))) {
+        yield {
+          scrolls: [...chosen],
+          stats: { ...currentStats },
+        };
+      }
       return;
     }
-    if (remainingApps <= 0 || chosen.length >= requiredScrollCount) return;
 
-    // Try fixed scrolls
+    const remainingSlots = requiredScrollCount - chosen.length;
+
+    // Terminal chaos check: can remaining slots be filled by chaos?
+    if (hasChaosAvailable && remainingSlots > 0) {
+      const residual = {};
+      for (const k of targetKeys) {
+        residual[k] = (targetDeltas[k] ?? 0) - (currentStats[k] || 0);
+      }
+
+      if (canChaosFillResidual(residual, remainingSlots, targetKeys, chaosStatBounds)) {
+        // Yield a strategy with fixed scrolls + aggregate chaos
+        const chaosEntry = buildAggregateChaosEntry({
+          representativeScroll: chaosScrolls[0],
+          count: remainingSlots,
+          totalStats: residual,
+        });
+        const allScrolls = [...chosen, chaosEntry];
+        const allStats = { ...currentStats };
+        for (const k of targetKeys) {
+          allStats[k] = (allStats[k] || 0) + (residual[k] || 0);
+        }
+        yield {
+          scrolls: allScrolls,
+          stats: allStats,
+        };
+      }
+    }
+
+    if (remainingSlots <= 0) return;
+
+    // Try fixed scrolls (only branching path — chaos is terminal only)
     for (let i = fixedIdx; i < fixedScrolls.length; i++) {
       const scroll = fixedScrolls[i];
       const stats = scroll.stats;
 
-      let maxUses = remainingApps;
+      let maxUses = remainingSlots;
       for (const k of targetKeys) {
         const delta = stats[k] || 0;
-        const remaining = targetDeltas[k] - (currentStats[k] || 0);
+        const remaining = (targetDeltas[k] ?? 0) - (currentStats[k] || 0);
         if (delta > 0 && remaining > 0) {
           maxUses = Math.min(maxUses, Math.floor(remaining / delta));
         }
@@ -371,60 +261,13 @@ function* enumerateExactCountScrollStates({
             stats: { ...stats },
           });
         }
-        yield* dfs(i + 1, remainingApps - count, newStats, newChosen);
-      }
-    }
-
-    // Try chaos scrolls — count-based (like fixed scrolls) to avoid
-    // combinatorial explosion from per-entry branching.
-    if (chaosPool.length > 0) {
-      for (const entry of chaosPool) {
-        const { baseScroll: cs, deltas } = entry;
-
-        // Guard: bounds-introduced keys (not in the scroll's native stat pool)
-        // can only modify stats that already exist on the item.  They cannot
-        // create a stat from zero — a fixed scroll must establish it first.
-        const nativeStats = cs.stats;
-        if (Object.keys(deltas).some(
-          (k) => !(k in (nativeStats ?? {})) && (currentStats[k] || 0) <= 0,
-        )) {
-          continue;
-        }
-
-        // Compute max uses of this delta vector — bounded by positive deltas
-        // that would overshoot their target keys.
-        let maxUses = remainingApps;
-        for (const k of targetKeys) {
-          const delta = deltas[k] || 0;
-          const remaining = targetDeltas[k] - (currentStats[k] || 0);
-          if (delta > 0 && remaining > 0) {
-            maxUses = Math.min(maxUses, Math.floor(remaining / delta));
-          }
-        }
-
-        if (maxUses <= 0) continue;
-
-        for (let count = maxUses; count >= 1; count--) {
-          const newStats = { ...currentStats };
-          for (const [k, v] of Object.entries(deltas)) {
-            if (targetKeys.includes(k)) {
-              newStats[k] = (newStats[k] || 0) + v * count;
-            }
-          }
-          const newChosen = [...chosen];
-          for (let c = 0; c < count; c++) {
-            newChosen.push({
-              ...cs,
-              stats: { ...deltas },
-            });
-          }
-          yield* dfs(fixedIdx, remainingApps - count, newStats, newChosen);
-        }
+        yield* dfs(i + 1, remainingSlots - count, newStats, newChosen);
       }
     }
   }
 
-  yield* dfs(0, requiredScrollCount, Object.fromEntries(targetKeys.map((k) => [k, 0])), []);
+  const zeroStats = Object.fromEntries(targetKeys.map((k) => [k, 0]));
+  yield* dfs(0, requiredScrollCount, zeroStats, []);
 }
 
 /**
@@ -452,33 +295,6 @@ function strategyCanonicalKey({ scrolls, stimulant, gems, itemLevelUp }, targetK
     : 'level:none';
 
   return `${scrollPart}|${stimPart}|${gemPart}|${levelPart}`;
-}
-
-/**
- * Compute a spread score for chaos scroll contributions across target keys.
- * Lower score = more evenly distributed chaos delta across stats.
- * Returns -1 when no chaos scrolls are present (ranks above chaos strategies).
- */
-function chaosSpreadScore(strategy, targetKeys) {
-  let chaosCount = 0;
-  const chaosTotals = Object.fromEntries(targetKeys.map((k) => [k, 0]));
-
-  for (const scroll of strategy.scrolls) {
-    if (scroll.behavior_type === 'chaos') {
-      chaosCount++;
-      for (const key of targetKeys) {
-        chaosTotals[key] += scroll.stats[key] || 0;
-      }
-    }
-  }
-
-  if (chaosCount === 0) return -1;
-
-  const values = targetKeys.map((k) => chaosTotals[k]);
-  const mean = values.reduce((a, b) => a + b, 0) / values.length;
-  const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
-
-  return variance;
 }
 
 /**
@@ -600,17 +416,6 @@ export function enumerateStrategies({
   if (targetKeys.length === 0) {
     return { strategies: [], total: 0, tooManyResults: false };
   }
-
-  console.log('[chaos-debug] enumerateStrategies called:', {
-    targetKeys,
-    targetDeltas,
-    successfulScrollCount,
-    equipmentKind,
-    scrollRateFilter: scrollRateFilter ? [...scrollRateFilter] : null,
-    stimulantStatBounds,
-    chaosStatBounds,
-    allowedSources,
-  });
 
   const normCount = (() => {
     try {
@@ -886,7 +691,6 @@ export function enumerateStrategies({
     for (const ss of effectiveScrollStates) {
       effectiveScrollStatesSeen++;
       if (effectiveScrollStatesSeen > 150000) {
-        console.log('[chaos-debug] HIT 150k scroll state limit — tooManyResults set to true. strategies so far:', strategies.length);
         tooManyResults = true;
         break;
       }
@@ -1036,18 +840,14 @@ export function enumerateStrategies({
     }
   }
 
-  console.log('[chaos-debug] total strategies found:', strategies.length, 'tooManyResults:', tooManyResults, 'scrollStatesSeen:', effectiveScrollStatesSeen);
-
   // Sort strategies within each priority tier:
-  //   1. priorityRank ascending (existing tier system)
-  //   2. Non-chaos strategies first (chaosSpreadScore === -1)
-  //   3. Chaos strategies by spread evenness (lower variance = more even)
+  //   1. priorityRank ascending
+  //   2. Non-chaos strategies before chaos strategies
   strategies.sort((a, b) => {
     if (a.priorityRank !== b.priorityRank) return a.priorityRank - b.priorityRank;
-    const aScore = chaosSpreadScore(a, targetKeys);
-    const bScore = chaosSpreadScore(b, targetKeys);
-    if (aScore !== bScore) return aScore - bScore;
-    return 0;
+    const aHasChaos = a.scrolls.some((s) => s.behavior_type === 'chaos');
+    const bHasChaos = b.scrolls.some((s) => s.behavior_type === 'chaos');
+    return (aHasChaos ? 1 : 0) - (bHasChaos ? 1 : 0);
   });
 
   return tooManyResults
