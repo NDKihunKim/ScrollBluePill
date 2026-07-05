@@ -503,7 +503,11 @@ let deconSlotState = createDeconstructionSlotState(0);
 let deconHasActionableResults = false;
 let deconScrollRateFilter = new Set(['100', '60', '10']);
 let deconStimulantBoundsMap = {};
+let deconStimulantEnabledKeys = new Set();
+let deconStimulantShadow = {};
 let deconChaosBoundsMap = {};
+let deconChaosEnabledKeys = new Set();
+let deconChaosShadow = {};
 let deconGemFilter = null; // null = all gems available, Set<string> of "gemKey:gradeIndex" = whitelist
 let deconGemEligible = true; // whether selected item meets maker gem REQLEV threshold for its class
 let deconLevelUpTotalRanges = {};
@@ -1116,6 +1120,7 @@ const buildStimulantBoundsEditor = () => {
   deconStimulantBoundsList.replaceChildren();
   if (!selectedItem) return;
   deconStimulantBoundsMap = {};
+  deconStimulantEnabledKeys = new Set();
   for (const key of deconStatKeys) {
     // Only show stats present on the clean base item with a value > 0.
     // User-added stats (via "+ 스탯 추가") are skipped — stimulant bounds
@@ -1126,16 +1131,26 @@ const buildStimulantBoundsEditor = () => {
     const isHpMp = HP_MP_KEYS.has(key);
     const defaultLimit = isHpMp ? 50 : 5;
     const stepSize = isHpMp ? 10 : 1;
-    // Default: 0 to +limit, with room to drag into negative
-    deconStimulantBoundsMap[key] = { min: 0, max: defaultLimit };
+    const defaultChecked = new Set(getCheckedTargetKeys()).has(key);
+
+    // Initialize bounds (only included in map when checked)
+    if (defaultChecked) {
+      deconStimulantBoundsMap[key] = { min: 0, max: defaultLimit };
+      deconStimulantEnabledKeys.add(key);
+    }
 
     const row = document.createElement('div');
     row.className = 'decon-secondary-stimulant-row';
 
+    // Checkbox — enable/disable this stat
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'decon-stimulant-checkbox';
+    checkbox.checked = defaultChecked;
+
     const label = document.createElement('span');
     label.className = 'decon-secondary-stimulant-stat';
     label.textContent = statLabelByKey[key] || key;
-    row.append(label);
 
     const minVal = document.createElement('span');
     minVal.className = 'decon-secondary-stimulant-value';
@@ -1159,6 +1174,7 @@ const buildStimulantBoundsEditor = () => {
     minSlider.max = defaultLimit;
     minSlider.step = stepSize;
     minSlider.value = 0;
+    minSlider.disabled = !defaultChecked;
 
     const maxSlider = document.createElement('input');
     maxSlider.type = 'range';
@@ -1166,8 +1182,45 @@ const buildStimulantBoundsEditor = () => {
     maxSlider.max = defaultLimit;
     maxSlider.step = stepSize;
     maxSlider.value = defaultLimit;
+    maxSlider.disabled = !defaultChecked;
 
     dualWrap.append(minSlider, maxSlider);
+
+    const applyCheckboxState = (checked) => {
+      minSlider.disabled = !checked;
+      maxSlider.disabled = !checked;
+      if (checked) {
+        // Restore last-known values or use defaults
+        const restored = deconStimulantShadow[key];
+        const mn = restored ? restored.min : 0;
+        const mx = restored ? restored.max : defaultLimit;
+        minSlider.value = mn;
+        maxSlider.value = mx;
+        minVal.textContent = String(mn);
+        maxVal.textContent = String(mx);
+        deconStimulantBoundsMap[key] = { min: mn, max: mx };
+        deconStimulantEnabledKeys.add(key);
+        delete deconStimulantShadow[key];
+        row.classList.remove('decon-secondary-stimulant-row--disabled');
+      } else {
+        // Save current values to shadow, remove from bounds
+        const mn = Number(minSlider.value);
+        const mx = Number(maxSlider.value);
+        deconStimulantShadow[key] = { min: mn, max: mx };
+        delete deconStimulantBoundsMap[key];
+        deconStimulantEnabledKeys.delete(key);
+        row.classList.add('decon-secondary-stimulant-row--disabled');
+      }
+      checkDeconStarState();
+    };
+
+    if (!defaultChecked) {
+      row.classList.add('decon-secondary-stimulant-row--disabled');
+    }
+
+    checkbox.addEventListener('change', () => {
+      applyCheckboxState(checkbox.checked);
+    });
 
     const updateBounds = () => {
       let mn = Number(minSlider.value);
@@ -1184,7 +1237,7 @@ const buildStimulantBoundsEditor = () => {
     minSlider.addEventListener('change', () => { checkDeconStarState(); });
     maxSlider.addEventListener('change', () => { checkDeconStarState(); });
 
-    row.append(dualWrap, minVal, sep, maxVal);
+    row.append(checkbox, label, dualWrap, minVal, sep, maxVal);
     deconStimulantBoundsList.append(row);
   }
 };
@@ -1193,21 +1246,33 @@ const buildChaosBoundsEditor = () => {
   if (!(deconChaosBoundsList instanceof HTMLElement)) return;
   deconChaosBoundsList.replaceChildren();
   deconChaosBoundsMap = {};
+  deconChaosEnabledKeys = new Set();
   // Only show stats that have a target delta set (non-zero)
   const targetedKeys = deconStatKeys.filter((k) => deconDeltas[k] !== 0);
+  const checkedTargetKeys = new Set(getCheckedTargetKeys());
   for (const key of targetedKeys) {
     const isHpMp = HP_MP_KEYS.has(key);
     const defaultLimit = isHpMp ? 50 : 5;
     const stepSize = isHpMp ? 10 : 1;
-    deconChaosBoundsMap[key] = { min: -defaultLimit, max: defaultLimit };
+    const defaultChecked = checkedTargetKeys.has(key);
+
+    if (defaultChecked) {
+      deconChaosBoundsMap[key] = { min: -defaultLimit, max: defaultLimit };
+      deconChaosEnabledKeys.add(key);
+    }
 
     const row = document.createElement('div');
     row.className = 'decon-secondary-stimulant-row';
 
+    // Checkbox — enable/disable this stat
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'decon-stimulant-checkbox';
+    checkbox.checked = defaultChecked;
+
     const label = document.createElement('span');
     label.className = 'decon-secondary-stimulant-stat';
     label.textContent = statLabelByKey[key] || key;
-    row.append(label);
 
     // Dual-range slider (two thumbs overlaid on one track)
     const chaosDualWrap = document.createElement('span');
@@ -1218,7 +1283,8 @@ const buildChaosBoundsEditor = () => {
     minSlider.min = -defaultLimit;
     minSlider.max = defaultLimit;
     minSlider.step = stepSize;
-    minSlider.value = -defaultLimit;
+    minSlider.value = 0;
+    minSlider.disabled = !defaultChecked;
 
     const maxSlider = document.createElement('input');
     maxSlider.type = 'range';
@@ -1226,12 +1292,13 @@ const buildChaosBoundsEditor = () => {
     maxSlider.max = defaultLimit;
     maxSlider.step = stepSize;
     maxSlider.value = defaultLimit;
+    maxSlider.disabled = !defaultChecked;
 
     chaosDualWrap.append(minSlider, maxSlider);
 
     const minVal = document.createElement('span');
     minVal.className = 'decon-secondary-stimulant-value';
-    minVal.textContent = String(-defaultLimit);
+    minVal.textContent = '0';
 
     const sep = document.createElement('span');
     sep.className = 'decon-secondary-stimulant-sep';
@@ -1240,6 +1307,40 @@ const buildChaosBoundsEditor = () => {
     const maxVal = document.createElement('span');
     maxVal.className = 'decon-secondary-stimulant-value';
     maxVal.textContent = String(defaultLimit);
+
+    const applyCheckboxState = (checked) => {
+      minSlider.disabled = !checked;
+      maxSlider.disabled = !checked;
+      if (checked) {
+        const restored = deconChaosShadow[key];
+        const mn = restored ? restored.min : -defaultLimit;
+        const mx = restored ? restored.max : defaultLimit;
+        minSlider.value = mn;
+        maxSlider.value = mx;
+        minVal.textContent = String(mn);
+        maxVal.textContent = String(mx);
+        deconChaosBoundsMap[key] = { min: mn, max: mx };
+        deconChaosEnabledKeys.add(key);
+        delete deconChaosShadow[key];
+        row.classList.remove('decon-secondary-stimulant-row--disabled');
+      } else {
+        const mn = Number(minSlider.value);
+        const mx = Number(maxSlider.value);
+        deconChaosShadow[key] = { min: mn, max: mx };
+        delete deconChaosBoundsMap[key];
+        deconChaosEnabledKeys.delete(key);
+        row.classList.add('decon-secondary-stimulant-row--disabled');
+      }
+      checkDeconStarState();
+    };
+
+    if (!defaultChecked) {
+      row.classList.add('decon-secondary-stimulant-row--disabled');
+    }
+
+    checkbox.addEventListener('change', () => {
+      applyCheckboxState(checkbox.checked);
+    });
 
     const updateBounds = () => {
       let mn = Number(minSlider.value);
@@ -1256,7 +1357,7 @@ const buildChaosBoundsEditor = () => {
     minSlider.addEventListener('change', () => { checkDeconStarState(); });
     maxSlider.addEventListener('change', () => { checkDeconStarState(); });
 
-    row.append(chaosDualWrap, minVal, sep, maxVal);
+    row.append(checkbox, label, chaosDualWrap, minVal, sep, maxVal);
     deconChaosBoundsList.append(row);
   }
 };
@@ -1750,7 +1851,11 @@ const clearDeconCalculationState = (item) => {
   deconAppliedLevelCount = 0;
   deconScrollRateFilter = new Set(['100', '60', '10']);
   deconStimulantBoundsMap = {};
+  deconStimulantEnabledKeys = new Set();
+  deconStimulantShadow = {};
   deconChaosBoundsMap = {};
+  deconChaosEnabledKeys = new Set();
+  deconChaosShadow = {};
   deconGemFilter = null;
   deconGemEligible = true;
   deconLevelUpTotalRanges = {};
@@ -2489,17 +2594,19 @@ const displayResults = (result, targetDeltas) => {
   deconHasActionableResults = true;
   summary.textContent = `총 ${result.total}개의 전략을 찾았습니다.`;
 
-  // Filter chips — exclude gems when item is not maker-gem-eligible
+  // Filter chips — only show categories relevant to the current calculation.
+  // Relevance is derived from getAllowedSources(), which reflects both the
+  // user's checkbox selections and item-level constraints (e.g. gem/level-up
+  // eligibility).  If a source was not enabled, its filter chip is omitted.
+  const _allowedSources = getAllowedSources();
   const stimulantFilterLabel = deconGemEligible ? '촉진제/추옵' : '추가 옵션';
-  const FILTER_DEFS = [
-    { source: null, label: '전체' },
-    { source: 'scrolls', label: '주문서' },
-    { source: 'stimulant', label: stimulantFilterLabel },
-    ...(deconGemEligible ? [{ source: 'gems', label: '보석 (메이커)' }] : []),
-    { source: 'itemLevelUp', label: '레벨업' },
-  ];
+  const filterDefs = [{ source: null, label: '전체' }];
+  if (_allowedSources.scrolls) filterDefs.push({ source: 'scrolls', label: '주문서' });
+  if (_allowedSources.stimulant) filterDefs.push({ source: 'stimulant', label: stimulantFilterLabel });
+  if (_allowedSources.gems && deconGemEligible) filterDefs.push({ source: 'gems', label: '보석 (메이커)' });
+  if (_allowedSources.itemLevelUp) filterDefs.push({ source: 'itemLevelUp', label: '레벨업' });
 
-  for (const def of FILTER_DEFS) {
+  for (const def of filterDefs) {
     const chip = document.createElement('button');
     chip.type = 'button';
     chip.className = 'decon-filter-chip';
@@ -2902,6 +3009,8 @@ deconScrollRateInputs.forEach((chip) => {
           deconChaosBounds.classList.remove('decon-source-sub--open');
           deconChaosBounds.hidden = true;
           deconChaosBoundsMap = {};
+          deconChaosEnabledKeys = new Set();
+          deconChaosShadow = {};
         }
       }
       checkDeconStarState();
@@ -4332,7 +4441,7 @@ aside.panel {
   align-items: center;
   gap: 5px;
   flex-shrink: 0;
-  font-size: 0.84rem;
+  font-size: 0.72rem;
   color: var(--muted);
   line-height: 1.3;
   white-space: nowrap;
@@ -4350,17 +4459,17 @@ aside.panel {
 
 /* Bigger thumbs for scroll-count dual-range so they are visible and tappable */
 :global(.decon-secondary-scroll-slider-wrap .dual-range input[type="range"]) {
-  left: 11px;
-  width: calc(100% - 22px);
+  left: 7px;
+  width: calc(100% - 14px);
 }
 :global(.decon-secondary-scroll-slider-wrap .dual-range input[type="range"])::-webkit-slider-thumb {
-  width: 18px;
-  height: 18px;
-  margin-top: -7px;
+  width: 12px;
+  height: 12px;
+  margin-top: -5px;
 }
 :global(.decon-secondary-scroll-slider-wrap .dual-range input[type="range"])::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
+  width: 12px;
+  height: 12px;
 }
 
 :global(.decon-secondary-scroll-slider-wrap--disabled) {
@@ -4482,6 +4591,9 @@ aside.panel {
 :global(.decon-secondary-scroll-stat) {
   font-size: 0.68rem;
   color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -4832,8 +4944,8 @@ aside.panel {
 }
 
 :global(.decon-secondary-stimulant-stat) {
-  font-size: 0.7rem;
-  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
   line-height: 1.15;
   min-width: 28px;
 }
@@ -4923,8 +5035,8 @@ aside.panel {
 :global(.decon-secondary-stimulant-value) {
   min-width: 14px;
   text-align: center;
-  font-weight: 600;
   font-size: 0.75rem;
+  color: var(--muted);
 }
 
 :global(.decon-secondary-stimulant-sep) {
@@ -4989,8 +5101,6 @@ aside.panel {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: 480px;
-  overflow-y: auto;
   padding-right: 4px;
 }
 
@@ -5442,5 +5552,22 @@ aside.panel {
   background: var(--green);
   border-color: var(--green);
   color: #fff;
+}
+
+/* Stimulant editor per-stat checkbox */
+:global(.decon-stimulant-checkbox) {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--blue);
+  cursor: pointer;
+}
+
+:global(.decon-secondary-stimulant-row--disabled) {
+  opacity: 0.45;
+}
+
+:global(.decon-secondary-stimulant-row--disabled) :global(.decon-secondary-stimulant-stat) {
+  color: var(--ink-muted, #888);
 }
 </style>

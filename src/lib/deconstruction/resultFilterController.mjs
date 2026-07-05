@@ -170,10 +170,12 @@ export function createResultFilterController({ root, secondaryContainer }) {
         if (!chaosEntry) continue;
         for (const [k, v] of Object.entries(chaosEntry.stats ?? {})) {
           if (!Number.isFinite(v)) continue;
+          const count = chaosEntry.aggregateCount || 1;
+          const avg = v / count;
           const existing = chaosStatRanges.get(k);
           chaosStatRanges.set(k, {
-            min: Math.min(existing?.min ?? Infinity, v),
-            max: Math.max(existing?.max ?? -Infinity, v),
+            min: Math.floor(Math.min(existing?.min ?? Infinity, avg)),
+            max: Math.ceil(Math.max(existing?.max ?? -Infinity, avg)),
           });
         }
       }
@@ -327,9 +329,9 @@ export function createResultFilterController({ root, secondaryContainer }) {
             rowS.className = 'decon-secondary-scroll-chaos-stat-row';
 
             const label = document.createElement('span');
-            label.className = 'decon-secondary-stimulant-stat';
+            label.className = 'decon-secondary-scroll-stat';
             const formatLabel = (mn, mx) =>
-              `${statLabelByKey[statKey] ?? statKey} ${mn}~${mx}`;
+              `${statLabelByKey[statKey] ?? statKey}: ${mn} ~ ${mx}`;
             label.textContent = formatLabel(curMin, curMax);
 
             const minSlider = document.createElement('input');

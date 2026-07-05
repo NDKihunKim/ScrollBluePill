@@ -18,9 +18,12 @@ export function solveStimulantResidual(residual, targetKeys, { isWeapon = true, 
     const baseLimit = HP_MP_KEYS.has(key) ? 50 : 5;
     const step = HP_MP_KEYS.has(key) ? 10 : 1;
     const boundRange = bounds?.[key];
+    // When explicit bounds are provided but this key is not in them,
+    // the user has not enabled stimulant for this stat → no contribution.
+    const keyIsBounded = bounds ? Object.hasOwn(bounds, key) : false;
     const boundMin = boundRange && Number.isFinite(boundRange.min)
       ? Math.max(-baseLimit, Math.min(baseLimit, boundRange.min))
-      : -baseLimit;
+      : keyIsBounded ? 0 : -baseLimit;
     // Stimulant can only affect stats that exist on the clean item with a
     // positive base value — same rule as the stimulant bounds UI.
     const statExistsOnBase = cleanStats && Number.isFinite(cleanStats[key]) && cleanStats[key] > 0;
@@ -28,7 +31,7 @@ export function solveStimulantResidual(residual, targetKeys, { isWeapon = true, 
     const effectiveMin = statExistsOnBase ? boundMin : 0;
     const effectiveMax = boundRange && Number.isFinite(boundRange.max)
       ? Math.max(-baseLimit, Math.min(baseLimit, boundRange.max))
-      : baseLimit;
+      : keyIsBounded ? 0 : baseLimit;
     // 촉진제 can only affect weaponAttack/magicAttack on weapons
     if (!isWeapon && WEAPON_ONLY_STIM_KEYS.has(key) && value !== 0) return null;
     if (value < effectiveMin || value > effectiveMax || value % step !== 0) return null;
@@ -76,6 +79,13 @@ export function enumerateStimulantContributions({ targetKeys, bounds, cleanStats
     }
 
     if (!isWeapon && WEAPON_ONLY_STIM_KEYS.has(key)) {
+      perKeyValues[key] = [0];
+      continue;
+    }
+
+    // When explicit bounds are provided but this key is not in them,
+    // the user has not enabled stimulant for this stat → only 0 allowed.
+    if (bounds && !Object.hasOwn(bounds, key)) {
       perKeyValues[key] = [0];
       continue;
     }

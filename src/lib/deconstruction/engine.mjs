@@ -84,12 +84,15 @@ function canChaosFillResidual(residual, chaosCount, targetKeys, chaosStatBounds,
 
     const defaultRange = getChaosRange(key);
     const bounds = chaosStatBounds?.[key];
+    // When explicit bounds are provided but this key is not in them,
+    // the user has not enabled chaos for this stat → no contribution.
+    const keyIsBounded = chaosStatBounds ? Object.hasOwn(chaosStatBounds, key) : false;
     const min = bounds && Number.isFinite(bounds.min)
       ? Math.max(defaultRange.min, bounds.min)
-      : defaultRange.min;
+      : keyIsBounded ? 0 : defaultRange.min;
     const max = bounds && Number.isFinite(bounds.max)
       ? Math.min(defaultRange.max, bounds.max)
-      : defaultRange.max;
+      : keyIsBounded ? 0 : defaultRange.max;
 
     const minPossible = chaosCount * min;
     const maxPossible = chaosCount * max;
