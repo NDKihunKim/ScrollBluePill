@@ -73,16 +73,31 @@ const buildScrollSortKey = (scroll) => {
 };
 
 export function getStrategySecondaryOptions(strategy) {
-  const scrolls = uniqueOptions((strategy.scrolls ?? []).map((scroll) => ({
-    source: 'scrolls',
-    key: `scroll:${scroll.id}`,
-    label: simplifyScrollDisplayName(scroll.nameKo) ?? String(scroll.id),
-    iconId: scroll.behavior_type === 'chaos' ? 2049100 : scroll.id,
-    stats: { ...scroll.stats },
-    statKeys: getScrollStatKeys(scroll.stats),
-    behaviorType: scroll.behavior_type ?? 'normal',
-    sortKey: buildScrollSortKey(scroll),
-  })));
+  const scrolls = uniqueOptions((strategy.scrolls ?? []).map((scroll) => {
+    if (scroll.isAggregate) {
+      return {
+        source: 'scrolls',
+        key: 'scroll:chaos:aggregate',
+        label: simplifyScrollDisplayName(scroll.nameKo) ?? String(scroll.id),
+        iconId: 2049100,
+        stats: { ...scroll.stats },
+        statKeys: getScrollStatKeys(scroll.stats),
+        behaviorType: 'chaos',
+        isAggregate: true,
+        sortKey: 'chaos:aggregate',
+      };
+    }
+    return {
+      source: 'scrolls',
+      key: `scroll:${scroll.id}`,
+      label: simplifyScrollDisplayName(scroll.nameKo) ?? String(scroll.id),
+      iconId: scroll.behavior_type === 'chaos' ? 2049100 : scroll.id,
+      stats: { ...scroll.stats },
+      statKeys: getScrollStatKeys(scroll.stats),
+      behaviorType: scroll.behavior_type ?? 'normal',
+      sortKey: buildScrollSortKey(scroll),
+    };
+  }));
   let stimulant = [];
   if (strategy.stimulant === null) {
     stimulant = [{
@@ -128,8 +143,12 @@ export function buildSecondaryFilterModel(strategies) {
     // Count how many times each scroll appears in this strategy
     const scrollCounts = new Map();
     for (const scroll of (strategy.scrolls ?? [])) {
-      const key = `scroll:${scroll.id}`;
-      scrollCounts.set(key, (scrollCounts.get(key) || 0) + 1);
+      if (scroll.isAggregate) {
+        scrollCounts.set('scroll:chaos:aggregate', scroll.aggregateCount);
+      } else {
+        const key = `scroll:${scroll.id}`;
+        scrollCounts.set(key, (scrollCounts.get(key) || 0) + 1);
+      }
     }
     return { strategyIndex, strategy, optionsBySource, scrollCounts };
   });
@@ -213,14 +232,14 @@ function scrollCountInRange(entry, ranges) {
 
 function chaosDeltaInRange(entry, chaosRanges) {
   if (!chaosRanges || chaosRanges.size === 0) return true;
-  for (const scroll of (entry.strategy.scrolls ?? [])) {
-    if (scroll.behavior_type !== 'chaos') continue;
-    const scrollRanges = chaosRanges.get(`scroll:${scroll.id}`);
-    if (!scrollRanges) continue;
-    for (const [statKey, { min, max }] of scrollRanges) {
-      const value = scroll.stats?.[statKey] ?? 0;
-      if (value < min || value > max) return false;
-    }
+  // With aggregate chaos, check the single aggregate entry's total stats
+  const chaosEntry = (entry.strategy.scrolls ?? []).find(
+    (s) => s.behavior_type === 'chaos' && s.isAggregate,
+  );
+  if (!chaosEntry) return true;
+  for (const [statKey, { min, max }] of chaosRanges) {
+    const value = chaosEntry.stats?.[statKey] ?? 0;
+    if (value < min || value > max) return false;
   }
   return true;
 }
