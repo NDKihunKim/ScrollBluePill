@@ -232,14 +232,16 @@ function scrollCountInRange(entry, ranges) {
 
 function chaosDeltaInRange(entry, chaosRanges) {
   if (!chaosRanges || chaosRanges.size === 0) return true;
-  // With aggregate chaos, check the single aggregate entry's total stats
+  // With aggregate chaos, check the single aggregate entry's average per scroll
   const chaosEntry = (entry.strategy.scrolls ?? []).find(
     (s) => s.behavior_type === 'chaos' && s.isAggregate,
   );
   if (!chaosEntry) return true;
+  const count = chaosEntry.aggregateCount || 1;
   for (const [statKey, { min, max }] of chaosRanges) {
-    const value = chaosEntry.stats?.[statKey] ?? 0;
-    if (value < min || value > max) return false;
+    const total = chaosEntry.stats?.[statKey] ?? 0;
+    const avg = total / count;
+    if (avg < min || avg > max) return false;
   }
   return true;
 }
