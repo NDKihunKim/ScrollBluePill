@@ -4423,7 +4423,8 @@ aside.panel {
   align-items: center;
   gap: 6px;
   min-width: 0;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  overflow: hidden;
 }
 
 :global(.decon-secondary-scroll-slider-wrap) {
@@ -4433,6 +4434,7 @@ aside.panel {
   gap: 10px;
   flex: 1 1 0;
   min-width: 0;
+  overflow: hidden;
   padding: 2px 0;
 }
 
@@ -4486,6 +4488,7 @@ aside.panel {
   gap: 4px;
   flex: 1 1 0;
   min-width: 0;
+  overflow: hidden;
 }
 
 :global(.decon-secondary-scroll-chaos-stat-row) {
@@ -4577,6 +4580,7 @@ aside.panel {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  overflow: hidden;
   gap: 1px;
 }
 
@@ -4595,9 +4599,6 @@ aside.panel {
   text-overflow: ellipsis;
   white-space: nowrap;
   line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* Gem drill-down */
