@@ -4593,7 +4593,10 @@ aside.panel {
 }
 
 :global(.decon-secondary-scroll-stat) {
-  font-size: 0.68rem;
+  /* Same font-size as the name (inherited from row at 0.74rem)
+     so the stat line uses the same per-character width budget.
+     Muted color and normal weight keep it visually subordinate
+     while the ellipsis boundary aligns with the name line. */
   color: var(--muted);
   overflow: hidden;
   text-overflow: ellipsis;
