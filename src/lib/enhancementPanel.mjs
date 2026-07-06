@@ -1003,6 +1003,17 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
         const allKinds = [...scrollsByEquipmentKind.keys()];
         allKinds.forEach((kind) => {
           wildcardOverrides.forEach((override) => {
+            // When a wildcard chaos-scroll override is present, remove the
+            // equipment-specific chaos scrolls from the main index (e.g.
+            // "한손검 혼돈의 주문서") so only the canonical chaos scroll remains.
+            if (override.behavior_type === 'chaos') {
+              const list = scrollsByEquipmentKind.get(kind);
+              for (let i = list.length - 1; i >= 0; i--) {
+                if (list[i].behavior_type === 'chaos') {
+                  list.splice(i, 1);
+                }
+              }
+            }
             scrollsByEquipmentKind.get(kind).push({ ...override, equipmentKind: kind });
           });
         });
