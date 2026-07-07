@@ -4576,6 +4576,11 @@ aside.panel {
   border-radius: 2px;
   flex-shrink: 0;
   image-rendering: pixelated;
+  transition: opacity 0.15s ease;
+}
+
+:global(.decon-secondary-scroll-row:not(.decon-secondary-scroll-row--selected):not(.decon-secondary-scroll-row--unavailable) .decon-secondary-scroll-icon) {
+  opacity: 0.5;
 }
 
 :global(.decon-secondary-scroll-text) {

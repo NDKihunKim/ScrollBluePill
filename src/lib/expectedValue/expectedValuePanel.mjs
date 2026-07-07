@@ -24,6 +24,31 @@ function gradeColorToKoreanName(hex) {
 }
 
 export { DEFAULT_TRIAL_COUNT };
+
+/**
+ * Formats a trial count integer for display with thousands separators and the Korean 회 suffix.
+ * e.g. 100000 → "100,000회"
+ *
+ * @param {number} value - Raw integer trial count
+ * @returns {string} Formatted display string
+ */
+function formatTrialDisplay(value) {
+  return `${value.toLocaleString('en-US')}회`;
+}
+
+/**
+ * Parses a trial count string back to a raw integer, stripping any formatting.
+ * Handles values like "100,000회", "100000", or "100000회".
+ *
+ * @param {string} raw - Display or input string
+ * @returns {number} Raw integer trial count
+ */
+function parseTrialInput(raw) {
+  const cleaned = String(raw).replace(/[^0-9]/g, '');
+  const parsed = parseInt(cleaned, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_TRIAL_COUNT;
+}
+
 import {
   formatProbability,
   formatCalculationLabel,
@@ -171,12 +196,33 @@ export function createTargetSelectionUI(cleanStats, previewStats, previewGradeCl
   const trialLabel = document.createElement('label');
   trialLabel.textContent = '시뮬레이션 횟수:';
   const trialInput = document.createElement('input');
-  trialInput.type = 'number';
+  trialInput.type = 'text';
+  trialInput.inputMode = 'numeric';
+  trialInput.pattern = '[0-9]*';
   trialInput.min = String(MIN_TRIALS);
   trialInput.max = String(MAX_TRIALS);
   trialInput.step = String(TRIAL_STEP);
-  trialInput.value = String(DEFAULT_TRIAL_COUNT);
+  trialInput.value = formatTrialDisplay(DEFAULT_TRIAL_COUNT);
   trialInput.className = 'ev-trial-input';
+
+  // Store the raw integer value so display formatting doesn't corrupt it
+  let rawTrialValue = DEFAULT_TRIAL_COUNT;
+
+  trialInput.addEventListener('focus', () => {
+    // Show raw number for editing
+    trialInput.value = String(rawTrialValue);
+  });
+
+  trialInput.addEventListener('blur', () => {
+    // Re-format on blur: parse whatever the user typed and clamp
+    rawTrialValue = roundTrialCount(parseTrialInput(trialInput.value));
+    trialInput.value = formatTrialDisplay(rawTrialValue);
+  });
+
+  trialInput.addEventListener('input', () => {
+    // Track the raw value as the user types (strip non-digits)
+    rawTrialValue = parseTrialInput(trialInput.value);
+  });
   trialRow.append(trialLabel, trialInput);
   container.appendChild(trialRow);
 
@@ -226,8 +272,7 @@ export function createTargetSelectionUI(cleanStats, previewStats, previewGradeCl
    * @returns {number}
    */
   function getTrialCount() {
-    const raw = parseInt(trialInput.value, 10);
-    return roundTrialCount(Number.isFinite(raw) ? raw : DEFAULT_TRIAL_COUNT);
+    return roundTrialCount(rawTrialValue);
   }
 
   /**
