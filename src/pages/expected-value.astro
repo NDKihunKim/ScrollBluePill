@@ -1409,6 +1409,53 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	    useStimulant: enhancementState.stimulantSlot?.mode === MATERIAL_MODE_PROBABILITY,
 	  };
 
+	  // ---- Debug payload: structured snapshot of all calculation inputs ----
+	  console.log('=== Expected-Value Debug Payload ===');
+	  console.log(JSON.stringify({
+	    _label: 'Expected-Value Debug Payload',
+	    timestamp: new Date().toISOString(),
+	    item: {
+	      id: selectedBaseItem.id,
+	      nameKo: selectedBaseItem.nameKo,
+	      equipmentKind: selectedBaseItem.equipmentKind,
+	      requiredLevel: selectedBaseItem.requiredLevel ?? 0,
+	      requiredJobs: structuredClone(selectedBaseItem.requiredJobs ?? []),
+	      cleanStats: structuredClone(cleanStats ?? {}),
+	    },
+	    previewStats: structuredClone(previewStats ?? {}),
+	    targetConditions: {
+	      checkedStats,
+	      thresholds: structuredClone(targetConditions.statThresholds ?? {}),
+	    },
+	    enhancementState: {
+	      scrollSequence: scrollSequence.map(s => ({
+	        nameKo: s.nameKo,
+	        stats: structuredClone(s.stats ?? {}),
+	        behavior_type: s.behavior_type,
+	        success_rate: s.success_rate,
+	      })),
+	      makerChoices: structuredClone(makerChoices),
+	      stimulant: enhancementState.stimulantSlot ? {
+	        mode: enhancementState.stimulantSlot.mode,
+	        stats: structuredClone(enhancementState.stimulantSlot.stats ?? {}),
+	      } : null,
+	      itemLevelUp: {
+	        mode: itemLevelUpMode,
+	        slotCount: enhancementState.itemLevelUpSlots.filter(s => s !== null).length,
+	        slots: enhancementState.itemLevelUpSlots
+	          .filter(s => s !== null)
+	          .map(s => ({ stats: structuredClone(s.stats ?? {}) })),
+	      },
+	    },
+	    trialCount,
+	    effectiveCleanStats: structuredClone(effectiveCleanStats),
+	    effectiveTargetConditions: {
+	      statThresholds: structuredClone(effectiveTargetConditions.statThresholds ?? {}),
+	    },
+	    userStrategy,
+	  }, null, 2));
+	  console.log('=== End Debug Payload ===');
+
 	  // Show result panel and hide its placeholder
 	  if (resultPlaceholder instanceof HTMLElement && resultContent instanceof HTMLElement) {
 	    resultPlaceholder.hidden = true;
@@ -2409,6 +2456,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		opacity: 0.85;
 	}
 
+		:global(.slot-checkpoint-row .slot-box--filled) {
+			background: #295979;
+		}
+
 	/* Current slot: offset outline to make the active slot unmistakable */
 	:global(.slot-box--current) {
 		outline: 2px solid var(--ink);
@@ -2801,6 +2852,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 			gap: 8px;
 		}
 	:global(.maker-toggle-button) {
+		position: relative;
 		display: inline-flex;
 		align-items: center;
 		gap: 6px;
@@ -2831,6 +2883,22 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		background: var(--green) !important;
 		color: white !important;
 	}
+
+		:global(.maker-toggle-button--has-values)::after {
+			content: '';
+			position: absolute;
+			top: 5px;
+			right: 7px;
+			width: 6px;
+			height: 6px;
+			border-radius: 50%;
+			background: var(--green);
+			pointer-events: none;
+		}
+		:global(.maker-toggle-button--active.maker-toggle-button--has-values)::after,
+		:global(.item-level-up-toggle--active.maker-toggle-button--has-values)::after {
+			background: white;
+		}
 		:global(.maker-gem-area) {
 		margin-top: 12px;
 		}
@@ -3228,7 +3296,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  outline-offset: 2px;
 	}
 	:global(.ev-trial-row) { display: flex; align-items: center; gap: 8px; margin: 10px 0; font-size: 13px; }
-	:global(.ev-trial-input) { width: 96px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); }
+	:global(.ev-trial-input) { width: 120px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); text-align: right; }
 	:global(.ev-button-row) { display: flex; gap: 8px; margin-top: 10px; }
 	:global(.ev-button-row button) { padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; }
 		:global(.ev-result) { padding: 12px 0; }

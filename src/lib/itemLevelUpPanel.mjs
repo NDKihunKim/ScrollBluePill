@@ -38,7 +38,8 @@ export function initItemLevelUpPanel({
 
 	const updateItemLevelUpToggleLabel = () => {
 		if (!(toggle instanceof HTMLElement)) return;
-		toggle.textContent = hasItemLevelUpContributions() ? '아이템 레벨업 ✓' : '아이템 레벨업';
+		toggle.textContent = '아이템 레벨업';
+		toggle.classList.toggle('maker-toggle-button--has-values', hasItemLevelUpContributions());
 	};
 
 	const refreshEnhancedCard = () => {
@@ -356,6 +357,7 @@ export function initItemLevelUpPanel({
 			if (toggle instanceof HTMLElement) {
 				toggle.hidden = true;
 				toggle.classList.remove('item-level-up-toggle--active');
+				toggle.classList.remove('maker-toggle-button--has-values');
 			}
 			if (area instanceof HTMLElement) area.hidden = true;
 			if (slots instanceof HTMLElement) slots.replaceChildren();

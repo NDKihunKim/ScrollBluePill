@@ -515,7 +515,8 @@ export function initMakerPanel({
 
   const updateMakerToggleLabel = () => {
     if (!(makerToggle instanceof HTMLElement)) return;
-    makerToggle.textContent = hasMakerContributions() ? '추옵 & 메이커 ✓' : '추옵 & 메이커';
+    makerToggle.textContent = '추옵 & 메이커';
+    makerToggle.classList.toggle('maker-toggle-button--has-values', hasMakerContributions());
   };
 
   const renderGemSlots = () => {
