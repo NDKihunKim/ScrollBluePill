@@ -119,7 +119,7 @@ test('result panel renders interactive attempt row with input and cumulative pro
   assert.match(panelSource, /updatePercentFromCount/);
   assert.match(panelSource, /updateCountFromPercent/);
   assert.match(panelSource, /percentInput\.addEventListener\('input',\s*updateCountFromPercent\)/);
-  assert.match(panelSource, /countInput\.addEventListener\('input',\s*updatePercentFromCount\)/);
+  assert.match(panelSource, /countInput\.addEventListener\('input',/);
   assert.doesNotMatch(panelSource, /제작 횟수/);
   assert.match(panelSource, /formatPercentInputValue\(cumulative\)/);
   assert.match(indexSource, /:global\(\.ev-result-title\)\s*\{/);

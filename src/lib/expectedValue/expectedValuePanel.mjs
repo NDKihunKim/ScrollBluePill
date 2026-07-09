@@ -7,6 +7,7 @@ import {
   computeAttemptsForPercentile,
   computeCumulativeProbability,
 } from './monteCarloEngine.mjs';
+import { formatKoreanNumber, parseKoreanNumber } from '../formatKoreanNumber.mjs';
 
 function gradeColorToKoreanName(hex) {
   if (!hex) return null;
@@ -295,11 +296,11 @@ export function createResultUI() {
   const countPrefix = document.createElement('span');
   countPrefix.textContent = '시도 횟수:';
   const countInput = document.createElement('input');
-  countInput.type = 'number';
-  countInput.min = '0';
-  countInput.max = '1000000';
-  countInput.step = '1';
+  countInput.type = 'text';
+  countInput.inputMode = 'numeric';
+  countInput.enterKeyHint = 'done';
   countInput.className = 'ev-count-input';
+  let countRawValue = 0;
   const countSuffix = document.createElement('span');
   countSuffix.textContent = '회';
   countField.append(countPrefix, countInput, countSuffix);
@@ -308,11 +309,11 @@ export function createResultUI() {
   container.appendChild(converterRow);
 
   /**
-   * Updates the percentile input from the current count input value.
+   * Updates the percentile input from the current countRawValue.
    */
   function updatePercentFromCount() {
     const p = parseFloat(countInput.dataset.successProbability || '0');
-    const n = parseInt(countInput.value, 10);
+    const n = countRawValue;
     if (Number.isFinite(n) && n >= 0) {
       const cumulative = computeCumulativeProbability(p, n);
       percentInput.value = formatPercentInputValue(cumulative);
@@ -323,15 +324,52 @@ export function createResultUI() {
 
   /**
    * Updates the count input from the current percentile input value.
+   * Formats the display unless the count input is currently focused.
    */
   function updateCountFromPercent() {
     const p = parseFloat(percentInput.dataset.successProbability || '0');
     const count = computeCountForTopPercent(p, percentInput.value, countInput.value);
-    countInput.value = count === '' ? '' : String(count);
+    if (count === '') {
+      countRawValue = 0;
+    } else {
+      countRawValue = Number(count);
+    }
+    // Show formatted value unless the user is actively editing
+    if (document.activeElement !== countInput) {
+      countInput.value = formatKoreanNumber(countRawValue);
+    } else {
+      countInput.value = String(countRawValue);
+    }
   }
 
+  // ── Count input: focus/blur dual display ────────────────────────────
+  // When idle: shows Korean-formatted value (e.g. "12.69억")
+  // When focused: shows raw number for editing (e.g. "1269037573")
+
+  countInput.addEventListener('focus', () => {
+    countInput.value = String(countRawValue);
+    countInput.select();
+  });
+
+  countInput.addEventListener('blur', () => {
+    const parsed = parseKoreanNumber(countInput.value);
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      countRawValue = parsed;
+    }
+    countInput.value = formatKoreanNumber(countRawValue);
+    updatePercentFromCount();
+  });
+
+  countInput.addEventListener('input', () => {
+    const parsed = parseKoreanNumber(countInput.value);
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      countRawValue = parsed;
+      updatePercentFromCount();
+    }
+    // If unparseable, wait for blur before updating
+  });
+
   percentInput.addEventListener('input', updateCountFromPercent);
-  countInput.addEventListener('input', updatePercentFromCount);
 
   /**
    * Fills all displays from a createResultSummary output and renders the chart.
@@ -339,11 +377,12 @@ export function createResultUI() {
    * @param {object} resultSummary - Result summary from createResultSummary
    */
   function update(resultSummary) {
-    equipmentCount.textContent = `평균 시도 횟수: ${resultSummary.expectedAttempts.toLocaleString('en-US')}회`;
+    equipmentCount.textContent = `평균 시도 횟수: ${formatKoreanNumber(resultSummary.expectedAttempts)}`;
 
     percentInput.dataset.successProbability = resultSummary.successProbability;
     countInput.dataset.successProbability = resultSummary.successProbability;
-    countInput.value = resultSummary.expectedAttempts;
+    countRawValue = resultSummary.expectedAttempts;
+    countInput.value = formatKoreanNumber(countRawValue);
     updatePercentFromCount();
 
     renderAttemptChart(canvas, resultSummary.chartData);

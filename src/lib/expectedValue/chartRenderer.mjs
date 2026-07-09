@@ -1,3 +1,5 @@
+import { formatKoreanNumber } from '../formatKoreanNumber.mjs';
+
 const DEFAULT_CHART_HEIGHT = 220;
 const X_TICK_MIN_GAP = 8;
 
@@ -236,13 +238,12 @@ export function renderAttemptChart(canvas, chartData, _p95) {
     ctx.font = '10px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
-    ctx.fillText(`${closest.attempts.toLocaleString('en-US')}회`, dx, dy - 6);
+    ctx.fillText(`${formatKoreanNumber(closest.attempts)}회`, dx, dy - 6);
   }
 }
 
 function formatYAxisTick(value) {
-  if (Math.abs(value) < 1000) return String(value);
-  return `${Number((value / 1000).toFixed(1))}k`;
+  return formatKoreanNumber(value);
 }
 
 /**
