@@ -1,221 +1,22 @@
-import { applyChaosToStats, CHAOS_SUCCESS_RATE } from './chaosModel.mjs';
-import { satisfiesTargets } from './exactEngine.mjs';
-import { computeGemContribution } from './makerModel.mjs';
-import { parseScrollSuccessRate } from './scrollModel.mjs';
-
-/** Stimulant (촉진제) success rate: 90% */
-export const STIMULANT_SUCCESS_RATE = 0.9;
-
-/** Stimulant outcome table: 0 ~ +5 (no negatives) */
-export const STIMULANT_OUTCOME_TABLE = [
-  { delta: 5, probability: 0.022 },
-  { delta: 4, probability: 0.054 },
-  { delta: 3, probability: 0.128 },
-  { delta: 2, probability: 0.242 },
-  { delta: 1, probability: 0.352 },
-  { delta: 0, probability: 0.202 },
-];
-
-/** Cached cumulative stimulant table */
-let _stimulantCumulativeTable = null;
-
-function buildStimulantCumulativeTable() {
-  if (_stimulantCumulativeTable) return _stimulantCumulativeTable;
-  let running = 0;
-  _stimulantCumulativeTable = STIMULANT_OUTCOME_TABLE.map((entry) => {
-    running += entry.probability;
-    return { delta: entry.delta, cumulative: running };
-  });
-  return _stimulantCumulativeTable;
-}
-
-function rollStimulantStatDelta(randomValue) {
-  const table = buildStimulantCumulativeTable();
-  for (const entry of table) {
-    if (randomValue < entry.cumulative) return entry.delta;
-  }
-  return 0;
-}
-
 /**
- * Creates a deterministic pseudorandom number generator using Mulberry32.
+ * Geometric distribution math utilities.
  *
- * @param {number} seed - A 32-bit integer seed
- * @returns {() => number} A function that returns uniform [0, 1) values
- */
-export function createSeededRng(seed) {
-  let state = seed | 0;
-  return function next() {
-    state = (state + 0x6D2B79F5) | 0;
-    let t = Math.imul(state ^ (state >>> 15), 1 | state);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-/**
- * Generates a random 32-bit seed.
- * Uses crypto.getRandomValues in browser environments,
- * falls back to Math.random elsewhere.
+ * These functions model the number of independent Bernoulli trials
+ * needed to achieve at least one success, given a per-trial success
+ * probability p. All values are rounded up (Math.ceil) to whole
+ * clean-item attempts.
  *
- * @returns {number} A 32-bit unsigned integer
+ * Previously this file also contained the Monte Carlo simulation runner.
+ * That code has been removed in favor of the unified exact DP engine at
+ * exactEngine.mjs. Only the geometric math layer remains here.
  */
-export function createRandomSeed() {
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-    const arr = new Uint32Array(1);
-    crypto.getRandomValues(arr);
-    return arr[0];
-  }
-  return (Math.random() * 4294967296) | 0;
-}
-
-/** Default trial count for Monte Carlo simulations */
-export const DEFAULT_TRIAL_COUNT = 100000;
 
 export const GEOMETRIC_PERCENTILE_KEYS = ['p50', 'p75', 'p90', 'p95'];
 
 /**
- * Runs a Monte Carlo simulation with seeded RNG.
- * @param {(rng: () => number) => boolean} simulateOneTrial
- * @param {number} trialCount
- * @param {number} seed
- * @returns {{ successCount: number, totalTrials: number, isZeroSuccess: boolean }}
- */
-export function runMonteCarloSimulation(simulateOneTrial, trialCount, seed) {
-  const rng = createSeededRng(seed);
-  let successCount = 0;
-  for (let i = 0; i < trialCount; i++) {
-    if (simulateOneTrial(rng)) {
-      successCount++;
-    }
-  }
-  return {
-    successCount,
-    totalTrials: trialCount,
-    isZeroSuccess: successCount === 0,
-  };
-}
-
-function addStats(target, stats) {
-  for (const [key, value] of Object.entries(stats ?? {})) {
-    if (Number.isFinite(value)) {
-      target[key] = (target[key] ?? 0) + value;
-    }
-  }
-}
-
-function inferMakerChoiceGrade(choice) {
-  if (Number.isInteger(choice?.grade)) return choice.grade;
-
-  if (choice?.gemKey === 'blackAmethyst') {
-    const maxAbsValue = Math.max(
-      0,
-      ...Object.values(choice.stats ?? {})
-        .filter(Number.isFinite)
-        .map((value) => Math.abs(value)),
-    );
-    if (maxAbsValue >= 3) return 2;
-    if (maxAbsValue === 2) return 1;
-    return 0;
-  }
-
-  return 0;
-}
-
-function isChaosScroll(scroll) {
-  return scroll?.behavior_type === 'chaos' || scroll?.behaviorType === 'chaos';
-}
-
-function getScrollSuccessRate(scroll) {
-  const name = scroll?.nameKo ?? '';
-  if (isChaosScroll(scroll) && !/%/.test(name)) {
-    return CHAOS_SUCCESS_RATE;
-  }
-  return parseScrollSuccessRate(name);
-}
-
-function simulateStrategyTrial(strategy, cleanStats, targetConditions, rng) {
-  const { makerChoices = [], scrollSequence = [], useStimulant = false } = strategy || {};
-  const state = { ...cleanStats };
-
-  for (const choice of makerChoices) {
-    if (!choice?.gemKey) continue;
-
-    if (choice.stats && choice.mode !== 'probability') {
-      addStats(state, choice.stats);
-      continue;
-    }
-
-    const gemStats = computeGemContribution(
-      choice.gemKey,
-      inferMakerChoiceGrade(choice),
-      cleanStats,
-      rng,
-    );
-    addStats(state, gemStats);
-  }
-
-  // Stimulant (촉진제): 90% success, 0~+5 deltas on each stat
-  if (useStimulant) {
-    if (rng() < STIMULANT_SUCCESS_RATE) {
-      const HP_MP_KEYS = new Set(['maxHp', 'maxMp']);
-      for (const [key, value] of Object.entries(state)) {
-        if (value <= 0) continue;
-        if (key === 'upgradeSlots' || key === 'attackSpeed') continue;
-        const delta = rollStimulantStatDelta(rng());
-        const multiplier = HP_MP_KEYS.has(key) ? 10 : 1;
-        const newValue = value + delta * multiplier;
-        if (newValue > 0) state[key] = newValue;
-      }
-    }
-  }
-
-  for (const scroll of scrollSequence) {
-    if (!scroll) continue;
-    if (rng() >= getScrollSuccessRate(scroll)) continue;
-
-    if (isChaosScroll(scroll)) {
-      const chaosState = applyChaosToStats(state, rng);
-      for (const [key, value] of Object.entries(chaosState)) {
-        state[key] = value;
-      }
-    } else {
-      addStats(state, scroll.stats);
-    }
-  }
-
-  return satisfiesTargets(state, cleanStats, targetConditions);
-}
-
-/**
- * Runs a seeded Monte Carlo simulation for a full enhancement strategy.
- *
- * This wraps the lower-level trial-function runner used by tests and callers
- * that already provide their own trial function.
- *
- * @param {{ makerChoices: Array<object>, scrollSequence: Array<object>, useItemLevelUp: boolean }} strategy
- * @param {Record<string, number>} cleanStats
- * @param {{ statThresholds: Record<string, number>, gradeThreshold: number|null }} targetConditions
- * @param {number} trialCount
- * @param {number} seed
- * @returns {{ successCount: number, totalTrials: number, isZeroSuccess: boolean, successProbability: number }}
- */
-export function runStrategyMonteCarloSimulation(strategy, cleanStats, targetConditions, trialCount, seed) {
-  const result = runMonteCarloSimulation(
-    (rng) => simulateStrategyTrial(strategy, cleanStats, targetConditions, rng),
-    trialCount,
-    seed,
-  );
-
-  return {
-    ...result,
-    successProbability: result.totalTrials > 0 ? result.successCount / result.totalTrials : 0,
-  };
-}
-
-/**
  * Computes attempt-count percentiles from a geometric distribution.
  * All values are rounded up (Math.ceil) to whole clean-item attempts.
+ *
  * @param {number} p - per-clean-item success probability [0, 1]
  * @returns {{ p50: number, p75: number, p90: number, p95: number }}
  */
@@ -247,6 +48,7 @@ export function computeAttemptsForPercentile(p, q) {
 
 /**
  * Computes expected number of clean-item attempts (geometric mean, rounded up).
+ *
  * @param {number} p - per-clean-item success probability [0, 1]
  * @returns {number}
  */

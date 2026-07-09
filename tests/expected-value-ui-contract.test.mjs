@@ -14,10 +14,6 @@ const {
   CONFIRM_TEXT,
   CONFIRM_BUTTON_TEXT,
   CANCEL_BUTTON_TEXT,
-  MIN_TRIALS,
-  MAX_TRIALS,
-  TRIAL_STEP,
-  roundTrialCount,
   computeCountForTopPercent,
   computeTopPercentForCount,
   createResultMutationGuard,
@@ -105,49 +101,19 @@ test('expected value strategy separates manual material stats from probability m
   assert.match(indexSource, /useStimulant:\s*enhancementState\.stimulantSlot\?\.mode\s*===\s*MATERIAL_MODE_PROBABILITY/);
 });
 
-test('MIN_TRIALS=1000, MAX_TRIALS=10000000, DEFAULT_TRIAL_COUNT=100000', async () => {
-  assert.equal(MIN_TRIALS, 1000);
-  assert.equal(MAX_TRIALS, 10000000);
-
-  const { DEFAULT_TRIAL_COUNT } = await import('../src/lib/expectedValue/monteCarloEngine.mjs');
-  assert.equal(DEFAULT_TRIAL_COUNT, 100000);
-});
-
-test('roundTrialCount rounds to nearest TRIAL_STEP (10000) and clamps', () => {
-  assert.equal(roundTrialCount(0), 1000);
-  assert.equal(roundTrialCount(5000), 10000);
-  assert.equal(roundTrialCount(15000), 20000);
-  assert.equal(roundTrialCount(50000), 50000);
-  assert.equal(roundTrialCount(55000), 60000);
-});
-
-test('roundTrialCount clamps to MIN', () => {
-  assert.equal(roundTrialCount(-100), 1000);
-  assert.equal(roundTrialCount(0), 1000);
-  assert.equal(roundTrialCount(1), 1000);
-  assert.equal(roundTrialCount(999), 1000);
-});
-
-test('roundTrialCount clamps to MAX', () => {
-  assert.equal(roundTrialCount(10000001), 10000000);
-  assert.equal(roundTrialCount(20000000), 10000000);
-  assert.equal(roundTrialCount(9999999), 10000000);
-});
-
 test('result panel renders interactive attempt row with input and cumulative probability', async () => {
   const indexSource = await readFile(new URL('../src/pages/expected-value.astro', import.meta.url), 'utf8');
 
   assert.match(panelSource, /ev-result-title/);
-  assert.match(panelSource, /장비 기대값/);
+  assert.match(panelSource, /제작 시도 횟수 기대값/);
   assert.doesNotMatch(panelSource, /평균 장비 기대값/);
   assert.match(panelSource, /ev-equipment-count/);
-  assert.match(panelSource, /평균 장비 갯수/);
   assert.match(panelSource, /ev-converter-row/);
   assert.match(panelSource, /ev-percent-input/);
   assert.match(panelSource, /ev-count-input/);
   assert.match(panelSource, /상위/);
   assert.match(panelSource, /countPrefix\.textContent = '시도 횟수:'/);
-  assert.match(panelSource, /countSuffix\.textContent = '번'/);
+  assert.match(panelSource, /countSuffix\.textContent = '회'/);
   assert.match(panelSource, /computeCumulativeProbability/);
   assert.match(panelSource, /computeAttemptsForPercentile/);
   assert.match(panelSource, /updatePercentFromCount/);

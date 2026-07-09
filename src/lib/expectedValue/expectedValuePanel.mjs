@@ -4,7 +4,6 @@ import {
 } from './targetExtraction.mjs';
 import { statLabelByKey } from '../scrollState.mjs';
 import {
-  DEFAULT_TRIAL_COUNT,
   computeAttemptsForPercentile,
   computeCumulativeProbability,
 } from './monteCarloEngine.mjs';
@@ -23,7 +22,7 @@ function gradeColorToKoreanName(hex) {
   return null;
 }
 
-export { DEFAULT_TRIAL_COUNT };
+export {};
 
 /**
  * Formats a trial count integer for display with thousands separators and the Korean 회 suffix.
@@ -31,6 +30,7 @@ export { DEFAULT_TRIAL_COUNT };
  *
  * @param {number} value - Raw integer trial count
  * @returns {string} Formatted display string
+ * @deprecated Trial count is no longer user-configurable. Kept for backward compat.
  */
 function formatTrialDisplay(value) {
   return `${value.toLocaleString('en-US')}회`;
@@ -42,17 +42,16 @@ function formatTrialDisplay(value) {
  *
  * @param {string} raw - Display or input string
  * @returns {number} Raw integer trial count
+ * @deprecated Trial count is no longer user-configurable. Kept for backward compat.
  */
 function parseTrialInput(raw) {
   const cleaned = String(raw).replace(/[^0-9]/g, '');
   const parsed = parseInt(cleaned, 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_TRIAL_COUNT;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 100000;
 }
 
 import {
   formatProbability,
-  formatCalculationLabel,
-  isResultStale,
   createResultSummary,
 } from './resultFormatter.mjs';
 import { renderAttemptChart } from './chartRenderer.mjs';
@@ -66,9 +65,6 @@ export const CANCEL_BUTTON_TEXT = '취소';
 export const CALCULATE_LABEL = '기대값 계산';
 export const START_BUTTON_TEXT = '계산 시작';
 export const CANCEL_LABEL = '계산 취소';
-export const MIN_TRIALS = 1000;
-export const MAX_TRIALS = 10000000;
-export const TRIAL_STEP = 10000;
 
 export function createResultMutationGuard({ hasResult, clearResult, requestConfirmation }) {
   return (mutation) => {
@@ -83,17 +79,6 @@ export function createResultMutationGuard({ hasResult, clearResult, requestConfi
       mutation();
     });
   };
-}
-
-/**
- * Rounds a trial count to the nearest TRIAL_STEP and clamps to [MIN_TRIALS, MAX_TRIALS].
- *
- * @param {number} value - Raw trial count value
- * @returns {number} Rounded and clamped trial count
- */
-export function roundTrialCount(value) {
-  const rounded = Math.round(value / TRIAL_STEP) * TRIAL_STEP;
-  return Math.max(MIN_TRIALS, Math.min(MAX_TRIALS, rounded));
 }
 
 function formatPercentInputValue(probability) {
@@ -190,42 +175,6 @@ export function createTargetSelectionUI(cleanStats, previewStats, previewGradeCl
   gradeLabel.append(gradeCheckbox, gradeChipLabel);
   chipGrid.appendChild(gradeLabel);
 
-  // Trial count input
-  const trialRow = document.createElement('div');
-  trialRow.className = 'ev-trial-row';
-  const trialLabel = document.createElement('label');
-  trialLabel.textContent = '시뮬레이션 횟수:';
-  const trialInput = document.createElement('input');
-  trialInput.type = 'text';
-  trialInput.inputMode = 'numeric';
-  trialInput.pattern = '[0-9]*';
-  trialInput.min = String(MIN_TRIALS);
-  trialInput.max = String(MAX_TRIALS);
-  trialInput.step = String(TRIAL_STEP);
-  trialInput.value = formatTrialDisplay(DEFAULT_TRIAL_COUNT);
-  trialInput.className = 'ev-trial-input';
-
-  // Store the raw integer value so display formatting doesn't corrupt it
-  let rawTrialValue = DEFAULT_TRIAL_COUNT;
-
-  trialInput.addEventListener('focus', () => {
-    // Show raw number for editing
-    trialInput.value = String(rawTrialValue);
-  });
-
-  trialInput.addEventListener('blur', () => {
-    // Re-format on blur: parse whatever the user typed and clamp
-    rawTrialValue = roundTrialCount(parseTrialInput(trialInput.value));
-    trialInput.value = formatTrialDisplay(rawTrialValue);
-  });
-
-  trialInput.addEventListener('input', () => {
-    // Track the raw value as the user types (strip non-digits)
-    rawTrialValue = parseTrialInput(trialInput.value);
-  });
-  trialRow.append(trialLabel, trialInput);
-  container.appendChild(trialRow);
-
   // Buttons
   const buttonRow = document.createElement('div');
   buttonRow.className = 'ev-button-row';
@@ -267,15 +216,6 @@ export function createTargetSelectionUI(cleanStats, previewStats, previewGradeCl
   }
 
   /**
-   * Returns the current trial count, rounded and clamped.
-   *
-   * @returns {number}
-   */
-  function getTrialCount() {
-    return roundTrialCount(rawTrialValue);
-  }
-
-  /**
    * Binds a click handler to the start button.
    *
    * @param {Function} fn - Click handler
@@ -293,13 +233,13 @@ export function createTargetSelectionUI(cleanStats, previewStats, previewGradeCl
     cancelButton.addEventListener('click', fn);
   }
 
-  return { container, getCheckedStats, getTrialCount, onStart, onCancel };
+  return { container, getCheckedStats, onStart, onCancel };
 }
 
 /**
  * Creates DOM elements for result display.
  *
- * @returns {{ container: HTMLElement, update: (resultSummary: object) => void, showStale: () => void, hideStale: () => void, showNoStrategy: () => void, showZeroSuccess: (trialCount: number) => void }}
+ * @returns {{ container: HTMLElement, update: (resultSummary: object) => void, showStale: () => void, hideStale: () => void, showNoStrategy: () => void, showZeroSuccess: () => void }}
  */
 export function createResultUI() {
   const container = document.createElement('div');
@@ -430,16 +370,10 @@ export function createResultUI() {
   }
 
   /**
-   * Shows a zero-success message with an upper bound.
-   *
-   * @param {number} trialCount - Number of simulation trials
+   * Shows a zero-success message (exact probability = 0).
    */
-  function showZeroSuccess(trialCount) {
-    if (trialCount > 0) {
-      equipmentCount.textContent = `성공 확률: 0% (상한 < 1/${trialCount.toLocaleString('en-US')})`;
-    } else {
-      equipmentCount.textContent = '성공 확률: 0%';
-    }
+  function showZeroSuccess() {
+    equipmentCount.textContent = '성공 확률: 0%';
     percentInput.value = '';
     countInput.value = '';
     staleLabel.hidden = true;

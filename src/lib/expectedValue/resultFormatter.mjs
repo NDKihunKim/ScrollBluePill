@@ -57,51 +57,26 @@ export function formatProbability(p) {
 }
 
 /**
- * Formats a label describing how the calculation was performed.
- *
- * @param {boolean} isExact - Whether the result is from exact computation
- * @param {number} trialCount - Number of simulation trials (ignored when isExact)
- * @returns {string}
- */
-export function formatCalculationLabel(isExact, trialCount) {
-  if (isExact) return '정확 계산';
-  return `시뮬레이션 추정 · ${trialCount.toLocaleString('en-US')}회`;
-}
-
-/**
- * Checks whether a previously computed result is stale based on trial count.
- *
- * @param {number} resultTrialCount - Trial count used when the result was computed
- * @param {number} currentTrialCount - Current trial count setting
- * @returns {boolean}
- */
-export function isResultStale(resultTrialCount, currentTrialCount) {
-  return resultTrialCount !== currentTrialCount;
-}
-
-/**
  * Creates a complete result summary for display, including chart data.
+ *
+ * All results are exact (no more Monte Carlo path), so isExact and
+ * trialCount parameters have been removed.
  *
  * @param {object} params
  * @param {number} params.successProbability - The probability of success [0, 1]
- * @param {boolean} params.isExact - Whether this is an exact computation
- * @param {number} params.trialCount - Number of simulation trials
  * @param {object} [params.bestStrategy] - Optional best strategy data
- * @returns {{ successProbability: number, probabilityLabel: string, calculationLabel: string, isExact: boolean, trialCount: number, expectedAttempts: number, percentiles: { p50: number, p75: number, p90: number, p95: number }, chartData: Array<{ percentile: number, attempts: number }>, bestStrategy: object | undefined }}
+ * @returns {{ successProbability: number, probabilityLabel: string, expectedAttempts: number, percentiles: { p50: number, p75: number, p90: number, p95: number }, chartData: Array<{ percentile: number, attempts: number }>, bestStrategy: object | undefined }}
  */
-export function createResultSummary({ successProbability, isExact, trialCount, bestStrategy }) {
+export function createResultSummary({ successProbability, bestStrategy }) {
   const percentiles = computeGeometricPercentiles(successProbability);
   const expectedAttempts = computeExpectedAttempts(successProbability);
   const probabilityLabel = formatProbability(successProbability);
-  const calculationLabel = formatCalculationLabel(isExact, trialCount);
 
   // Generate inverse CDF chart data: percentile (X) → attempts (Y)
-  // Step through cumulative probabilities and compute required attempts.
   const p95 = percentiles.p95;
   const maxAttempts = Number.isFinite(p95) ? Math.max(p95, 50) : 200;
   const chartData = [];
 
-  // Dense sampling for a smooth curve: every 1% from 0% to 99%
   for (let qPct = 0; qPct <= 99; qPct++) {
     const q = qPct / 100;
     const attempts = computeAttemptsForPercentile(successProbability, q);
@@ -113,9 +88,6 @@ export function createResultSummary({ successProbability, isExact, trialCount, b
   return {
     successProbability,
     probabilityLabel,
-    calculationLabel,
-    isExact,
-    trialCount,
     expectedAttempts,
     percentiles,
     chartData,

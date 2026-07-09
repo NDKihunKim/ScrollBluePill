@@ -341,10 +341,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	import { readSlots, saveToSlot, clearSlot, findMatchingSlot, MAX_SLOTS } from '../lib/itemSlotStore.mjs';
 
 	import { computeEnhancementGains, getDefaultCheckedStats, extractTargetConditions } from '../lib/expectedValue/targetExtraction.mjs';
-	import { createTargetSelectionUI, createResultUI, createResultMutationGuard, DEFAULT_TRIAL_COUNT, roundTrialCount, PLACEHOLDER_TEXT, NO_STRATEGY_TEXT, CONFIRM_TEXT, CONFIRM_BUTTON_TEXT, CANCEL_BUTTON_TEXT, STALE_LABEL } from '../lib/expectedValue/expectedValuePanel.mjs';
-	import { isDeterministicStrategy, computeExactProbability } from '../lib/expectedValue/exactEngine.mjs';
-	import { createRandomSeed, runStrategyMonteCarloSimulation } from '../lib/expectedValue/monteCarloEngine.mjs';
-	import { createResultSummary, isResultStale } from '../lib/expectedValue/resultFormatter.mjs';
+	import { createTargetSelectionUI, createResultUI, createResultMutationGuard, PLACEHOLDER_TEXT, NO_STRATEGY_TEXT, CONFIRM_TEXT, CONFIRM_BUTTON_TEXT, CANCEL_BUTTON_TEXT, STALE_LABEL } from '../lib/expectedValue/expectedValuePanel.mjs';
+	import { computeDirectOutcomeProbability, canUseExactOutcome } from '../lib/expectedValue/directProbability.mjs';
+	import { computeExactProbability } from '../lib/expectedValue/exactEngine.mjs';
+	import { createResultSummary } from '../lib/expectedValue/resultFormatter.mjs';
 	const form = document.querySelector('[data-calculator-input]');
 	const itemNameSearch = form?.querySelector('[data-item-name-search]');
 	const itemNameInput = form?.querySelector('[data-item-name-input]');
@@ -1220,35 +1220,16 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
 	/** Update EV button enabled/disabled state based on current enhancement state. */
 	const updateEvButtonState = () => {
-		  const evState = window.__evState?.();
-		  const calcStartBtn = document.querySelector('[data-ev-calc-start]');
-		  if (!calcStartBtn || !(calcStartBtn instanceof HTMLButtonElement)) return;
+          const calcStartBtn = document.querySelector('[data-ev-calc-start]');
+          if (!calcStartBtn || !(calcStartBtn instanceof HTMLButtonElement)) return;
 
-	  if (!evState || !evState.enhancementState || !evState.selectedBaseItem) {
-	    calcStartBtn.disabled = true;
-	    return;
-	  }
+          // Button is enabled whenever there is an active enhancement state.
+          // All strategies are now computed exactly, so there is no MC-only gate.
+          const evState = window.__evState?.();
+          calcStartBtn.disabled = !(evState && evState.enhancementState && evState.selectedBaseItem);
+        };
 
-	  const st = evState.enhancementState;
-
-	  // Only enable when at least one probability-based element exists
-	  const hasNonDeterministicScroll = st.scrollState.slots.some(s => {
-	    if (!s) return false;
-	    if (s.behavior_type === 'chaos') return true;
-	    const pctMatch = s.nameKo?.match(/(\d+)%/);
-	    return pctMatch ? parseInt(pctMatch[1], 10) < 100 : false;
-	  });
-	  const hasProbabilityGem = st.gemSlots.some(s =>
-	    s && s.stats && s.mode === 'probability'
-	  );
-	  const hasProbabilityStimulant = st.stimulantSlot?.mode === 'probability';
-	  const hasLevelUp = st.itemLevelUpSlots.some(s => s !== null) && st.itemLevelUpMode === 'probability';
-
-	  calcStartBtn.disabled = !(hasNonDeterministicScroll || hasProbabilityGem || hasProbabilityStimulant || hasLevelUp);
-	};
-
-	// Register callback for enhancement state changes
-	window.__evRefresh = () => {
+window.__evRefresh = () => {
 	  updateEvButtonState();
 	  if (evResultSummary && evResultUI) {
 	    evResultUI.showStale();
@@ -1350,7 +1331,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	  // Handle start: run calculation
 	  targetUI.onStart(() => {
 	    evCheckedStats = targetUI.getCheckedStats();
-	    runEvCalculation(targetUI.getCheckedStats(), targetUI.getTrialCount(), cleanStats, previewStats, enhancementState, selectedBaseItem);
+	    runEvCalculation(targetUI.getCheckedStats(), cleanStats, previewStats, enhancementState, selectedBaseItem);
 	  });
 	};
 
@@ -1358,11 +1339,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 		window.__evOpenCalcPanel = openCalcPanel;
 
 	/** Run the actual EV calculation and display results. */
-	const runEvCalculation = (checkedStats, trialCount, cleanStats, previewStats, enhancementState, selectedBaseItem) => {
-	  // Get target conditions from the user's enhanced preview
-	  const targetConditions = extractTargetConditions(cleanStats, previewStats, checkedStats, 0);
-
-	  // Build a single strategy from the user's actual enhancement state
+	const runEvCalculation = (checkedStats, cleanStats, previewStats, enhancementState, selectedBaseItem) => {
+	  // Build the scroll sequence from the user's enhancement state
 	  const scrollSequence = enhancementState.scrollState.slots.filter(s => s !== null);
 	  const makerChoices = enhancementState.gemSlots
 	    .filter(s => s !== null)
@@ -1370,46 +1348,26 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	      ? { gemKey: s.gemKey, stats: s.stats, mode: s.mode === MATERIAL_MODE_PROBABILITY ? MATERIAL_MODE_PROBABILITY : 'manual', grade: s.gradeIndex ?? 0 }
 	      : { gemKey: s.gemKey, grade: s.gradeIndex }));
 
-	  // Pre-apply user-specified stats that are not represented in makerChoices.
-	  const effectiveCleanStats = { ...cleanStats };
-	  const adjustedThresholds = { ...targetConditions.statThresholds };
+  const itemLevelUpMode = enhancementState.itemLevelUpMode ?? 'manual';
 
-	  const preApply = (stats) => {
-	    for (const [key, value] of Object.entries(stats ?? {})) {
-	      if (!Number.isFinite(value)) continue;
-	      effectiveCleanStats[key] = (effectiveCleanStats[key] ?? 0) + value;
-	      if (adjustedThresholds[key] !== undefined) {
-	        adjustedThresholds[key] = Math.max(0, adjustedThresholds[key] - value);
-	      }
-	    }
-	  };
+  const userStrategy = {
+    makerChoices,
+    scrollSequence,
+    useItemLevelUp: itemLevelUpMode === MATERIAL_MODE_PROBABILITY,
+    useStimulant: enhancementState.stimulantSlot?.mode === MATERIAL_MODE_PROBABILITY,
+  };
 
-	  if (enhancementState.stimulantSlot?.stats &&
-	      enhancementState.stimulantSlot.mode !== MATERIAL_MODE_PROBABILITY) {
-	    preApply(enhancementState.stimulantSlot.stats);
-	  }
+  // Build stat filter from checked target stat checkboxes.
+  // Only stats the user checked affect the probability; unchecked stats are ignored.
+  const statFilter = new Set();
+  if (checkedStats && typeof checkedStats === 'object') {
+    for (const [key, checked] of Object.entries(checkedStats)) {
+      if (key === 'grade') continue;
+      if (checked) statFilter.add(key);
+    }
+  }
 
-	  // Item level-up: pre-apply only if manual mode
-	  const itemLevelUpMode = enhancementState.itemLevelUpMode ?? 'manual';
-	  if (itemLevelUpMode !== MATERIAL_MODE_PROBABILITY) {
-	    for (const slot of enhancementState.itemLevelUpSlots ?? []) {
-	      if (slot?.stats) preApply(slot.stats);
-	    }
-	  }
-
-	  const effectiveTargetConditions = {
-	    ...targetConditions,
-	    statThresholds: adjustedThresholds,
-	  };
-
-	  const userStrategy = {
-	    makerChoices,
-	    scrollSequence,
-	    useItemLevelUp: itemLevelUpMode === MATERIAL_MODE_PROBABILITY,
-	    useStimulant: enhancementState.stimulantSlot?.mode === MATERIAL_MODE_PROBABILITY,
-	  };
-
-	  // ---- Debug payload: structured snapshot of all calculation inputs ----
+  // ---- Debug payload: structured snapshot of all calculation inputs ----
 	  console.log('=== Expected-Value Debug Payload ===');
 	  console.log(JSON.stringify({
 	    _label: 'Expected-Value Debug Payload',
@@ -1424,37 +1382,33 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	    },
 	    previewStats: structuredClone(previewStats ?? {}),
 	    targetConditions: {
-	      checkedStats,
-	      thresholds: structuredClone(targetConditions.statThresholds ?? {}),
-	    },
-	    enhancementState: {
-	      scrollSequence: scrollSequence.map(s => ({
-	        nameKo: s.nameKo,
-	        stats: structuredClone(s.stats ?? {}),
-	        behavior_type: s.behavior_type,
-	        success_rate: s.success_rate,
-	      })),
-	      makerChoices: structuredClone(makerChoices),
-	      stimulant: enhancementState.stimulantSlot ? {
-	        mode: enhancementState.stimulantSlot.mode,
-	        stats: structuredClone(enhancementState.stimulantSlot.stats ?? {}),
-	      } : null,
-	      itemLevelUp: {
-	        mode: itemLevelUpMode,
-	        slotCount: enhancementState.itemLevelUpSlots.filter(s => s !== null).length,
-	        slots: enhancementState.itemLevelUpSlots
-	          .filter(s => s !== null)
-	          .map(s => ({ stats: structuredClone(s.stats ?? {}) })),
-	      },
-	    },
-	    trialCount,
-	    effectiveCleanStats: structuredClone(effectiveCleanStats),
-	    effectiveTargetConditions: {
-	      statThresholds: structuredClone(effectiveTargetConditions.statThresholds ?? {}),
-	    },
-	    userStrategy,
-	  }, null, 2));
-	  console.log('=== End Debug Payload ===');
+      checkedStats,
+      statFilter: [...statFilter],
+    },
+    enhancementState: {
+      scrollSequence: scrollSequence.map(s => ({
+        nameKo: s.nameKo,
+        stats: structuredClone(s.stats ?? {}),
+        behavior_type: s.behavior_type,
+        success_rate: s.success_rate,
+      })),
+      makerChoices: structuredClone(makerChoices),
+      stimulant: enhancementState.stimulantSlot ? {
+        mode: enhancementState.stimulantSlot.mode,
+        stats: structuredClone(enhancementState.stimulantSlot.stats ?? {}),
+      } : null,
+      itemLevelUp: {
+        mode: itemLevelUpMode,
+        slotCount: enhancementState.itemLevelUpSlots.filter(s => s !== null).length,
+        slots: enhancementState.itemLevelUpSlots
+          .filter(s => s !== null)
+          .map(s => ({ stats: structuredClone(s.stats ?? {}) })),
+      },
+    },
+    userStrategy,
+    computationMode: canUseExactOutcome(userStrategy) ? 'exact-outcome' : 'threshold',
+  }, null, 2));
+		  console.log('=== End Debug Payload ===');
 
 	  // Show result panel and hide its placeholder
 	  if (resultPlaceholder instanceof HTMLElement && resultContent instanceof HTMLElement) {
@@ -1475,52 +1429,69 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	    || enhancementState.stimulantSlot !== null
 	    || enhancementState.itemLevelUpSlots.some(s => s !== null);
 
-	  if (isDeterministicStrategy(userStrategy)) {
-	    const probability = hasEnhancements
-	      ? computeExactProbability(userStrategy, effectiveCleanStats, effectiveTargetConditions)
-	      : 1.0;
+	  let probability;
+  try {
+    if (!hasEnhancements) {
+      probability = 1.0;
+    } else if (canUseExactOutcome(userStrategy)) {
+      // Exact-outcome mode: probability that every scroll produces
+      // EXACTLY its user-specified stats. Direct multiplication — no DP.
+      probability = computeDirectOutcomeProbability(scrollSequence, { statFilter });
+    } else {
+      // Threshold mode: fall back to DP engine for complex strategies
+      // (stimulant, random gems, level-up in probability mode, or
+      // chaos scrolls without explicit stat deltas).
+      const effectiveCleanStats = { ...cleanStats };
+      const targetConditions = extractTargetConditions(cleanStats, previewStats, checkedStats, 0);
+      const adjustedThresholds = { ...targetConditions.statThresholds };
 
-	    if (probability <= 0) {
-	      evResultUI.showZeroSuccess(/* exact → no trial count */ 0);
-	      evResultSummary = null;
-	    } else {
-	      const resultSummary = createResultSummary({
-	        successProbability: probability,
-	        isExact: true,
-	        trialCount,
-	        bestStrategy: userStrategy,
-	      });
-	      evResultUI.update(resultSummary);
-	      evResultSummary = resultSummary;
-	    }
-	  } else {
-	    // Non-deterministic scrolls (chaos) or random gems — use Monte Carlo
-	    const seed = createRandomSeed();
-	    const simResult = runStrategyMonteCarloSimulation(
-	      userStrategy,
-	      effectiveCleanStats,
-	      effectiveTargetConditions,
-	      trialCount,
-	      seed,
-	    );
+      // Pre-apply manual-mode stats that aren't in the probability model
+      const preApply = (stats) => {
+        for (const [key, value] of Object.entries(stats ?? {})) {
+          if (!Number.isFinite(value)) continue;
+          effectiveCleanStats[key] = (effectiveCleanStats[key] ?? 0) + value;
+          if (adjustedThresholds[key] !== undefined) {
+            adjustedThresholds[key] = Math.max(0, adjustedThresholds[key] - value);
+          }
+        }
+      };
 
-	    if (simResult.isZeroSuccess) {
-	      evResultUI.showZeroSuccess(trialCount);
-	      evResultSummary = null;
-	    } else {
-	      const resultSummary = createResultSummary({
-	        successProbability: simResult.successProbability,
-	        isExact: false,
-	        trialCount,
-	        bestStrategy: userStrategy,
-	      });
-	      evResultUI.update(resultSummary);
-	      evResultSummary = resultSummary;
-	    }
-	  }
-	};
+      if (enhancementState.stimulantSlot?.stats &&
+          enhancementState.stimulantSlot.mode !== MATERIAL_MODE_PROBABILITY) {
+        preApply(enhancementState.stimulantSlot.stats);
+      }
+      if (itemLevelUpMode !== MATERIAL_MODE_PROBABILITY) {
+        for (const slot of enhancementState.itemLevelUpSlots ?? []) {
+          if (slot?.stats) preApply(slot.stats);
+        }
+      }
 
-	// Calculation is triggered from the 계산 시작 button inside the calc panel.
+      probability = computeExactProbability(userStrategy, effectiveCleanStats, {
+        ...targetConditions,
+        statThresholds: adjustedThresholds,
+      });
+    }
+  } catch (err) {
+    console.error('Expected-value computation failed:', err);
+    evResultUI.showZeroSuccess();
+    evResultSummary = null;
+    return;
+  }
+
+          if (probability <= 0) {
+            evResultUI.showZeroSuccess();
+            evResultSummary = null;
+          } else {
+            const resultSummary = createResultSummary({
+              successProbability: probability,
+              bestStrategy: userStrategy,
+		    computationMode: canUseExactOutcome(userStrategy) ? 'exact-outcome' : 'threshold',
+            });
+            evResultUI.update(resultSummary);
+            evResultSummary = resultSummary;
+          }
+		};
+		// Calculation is triggered from the 계산 시작 button inside the calc panel.
 		// The button is rendered by createTargetSelectionUI and wired via onStart in openCalcPanel.
 
 	// ---- Save slot helpers (EV-specific) ----
