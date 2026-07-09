@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
+import { CHAOS_SCROLLS } from './chaos-scroll-defs.mjs';
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
@@ -156,6 +157,29 @@ async function main() {
 	const droppedNullIds = visibleScrolls.length - frontendScrolls.length;
 	if (droppedNullIds > 0) {
 		console.log(`Dropped ${droppedNullIds} scrolls with null maplestory_io_item_id.`);
+	}
+
+	// ── Inject chaos scrolls ──────────────────────────────────────────────
+	// Chaos scrolls do not exist in Supabase (they are not regular scrolls
+	// with fixed stat contributions).  They are injected here so that the
+	// deconstruction calculator's chaos strategy enumeration has entries
+	// with behavior_type === 'chaos' to match against.  Each chaos scroll
+	// has all stats at 0 because chaos provides random deltas via an
+	// outcome table, not fixed values.
+	//
+	// When Supabase eventually includes chaos scroll rows, deduplicate by
+	// ID to avoid doubling-up.
+
+	const _existingIds = new Set(frontendScrolls.map((s) => s.id));
+	let _chaosInjected = 0;
+	for (const chaos of CHAOS_SCROLLS) {
+		if (!_existingIds.has(chaos.id)) {
+			frontendScrolls.push({ ...chaos });
+			_chaosInjected++;
+		}
+	}
+	if (_chaosInjected > 0) {
+		console.log(`Injected ${_chaosInjected} chaos scroll entries (${CHAOS_SCROLLS.length - _chaosInjected} already present in DB).`);
 	}
 
 	// Stat priority by stats object keys: weaponAttack > magicAttack > str > dex > int > luk > rest
