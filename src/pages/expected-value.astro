@@ -345,7 +345,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	import { computeDirectOutcomeProbability, canUseExactOutcome } from '../lib/expectedValue/directProbability.mjs';
 	import { computeExactProbability } from '../lib/expectedValue/exactEngine.mjs';
 	import { createResultSummary } from '../lib/expectedValue/resultFormatter.mjs';
-import { consumeDeconTransfer, buildEnhancementStateFromStrategy } from '../lib/deconToEvTransfer.mjs';
 	const form = document.querySelector('[data-calculator-input]');
 	const itemNameSearch = form?.querySelector('[data-item-name-search]');
 	const itemNameInput = form?.querySelector('[data-item-name-input]');
@@ -382,7 +381,6 @@ import { consumeDeconTransfer, buildEnhancementStateFromStrategy } from '../lib/
 	const evCardWrapper = document.querySelector('[data-selected-item-card-wrapper]');
 	let itemIndex = [];
 	let itemById = new Map();
-	let pendingDeconTransfer = null;
 	const ITEM_LEVEL_UP_META_UNCHANGED = Symbol('item-level-up-meta-unchanged');
 	let activeItemLevelUpCardMeta = null;
 
@@ -1207,36 +1205,6 @@ import { consumeDeconTransfer, buildEnhancementStateFromStrategy } from '../lib/
 
 			renderItemSuggestions();
 			renderEvSlotBar();
-
-			// Check for incoming strategy transfer from deconstruction page
-			const transferPayload = consumeDeconTransfer();
-			if (transferPayload) {
-				const targetItem = itemById.get(transferPayload.itemId);
-				if (targetItem) {
-					// Try to apply immediately; if enhancement data not ready,
-					// store as pending for the enhancementDataReady event
-					const levelUpById = window.__evGetItemLevelUpById?.();
-					if (levelUpById) {
-						const levelUpDef = levelUpById.get(targetItem.id) ?? null;
-						const constructedState = buildEnhancementStateFromStrategy(
-							transferPayload.strategy,
-							targetItem,
-							levelUpDef,
-						);
-						selectSuggestedItem(targetItem);
-						window.__evSetState(constructedState, targetItem);
-						// Auto-open the calc panel and trigger the calculation
-						if (typeof window.__evOpenCalcPanel === 'function') {
-							window.__evOpenCalcPanel();
-							setTimeout(() => {
-								document.querySelector('.ev-start-btn')?.click();
-							}, 50);
-						}
-					} else {
-						pendingDeconTransfer = { targetItem, strategy: transferPayload.strategy };
-					}
-				}
-			}
 		})
 		.catch((error) => {
 			console.error(error);
@@ -1245,30 +1213,7 @@ import { consumeDeconTransfer, buildEnhancementStateFromStrategy } from '../lib/
 	import { initEnhancementPanel } from '../lib/enhancementPanel.mjs';
 
 	window.activatePanel2 = initEnhancementPanel(renderEnhancedItemCard);
-
-	// Listen for enhancement data to finish loading so we can apply a
-	// pending deconstruction→EV transfer that arrived before the data was ready.
-	window.addEventListener('enhancementDataReady', () => {
-		if (!pendingDeconTransfer) return;
-		const { targetItem, strategy } = pendingDeconTransfer;
-		pendingDeconTransfer = null;
-		const levelUpById = window.__evGetItemLevelUpById?.();
-		const levelUpDef = levelUpById?.get(targetItem.id) ?? null;
-		const constructedState = buildEnhancementStateFromStrategy(
-			strategy,
-			targetItem,
-			levelUpDef,
-		);
-		window.__evSetState(constructedState, targetItem);
-		// Auto-open the calc panel and trigger the calculation
-		if (typeof window.__evOpenCalcPanel === 'function') {
-			window.__evOpenCalcPanel();
-			setTimeout(() => {
-				document.querySelector('.ev-start-btn')?.click();
-			}, 50);
-		}
-	});
-
+	
 	// ---- Expected Value Calculator wiring ----
 
 	const resultPanel = document.querySelector('[data-result-panel]');
