@@ -58,20 +58,38 @@ export function renderAttemptChart(canvas, chartData, _p95) {
   canvas.height = Math.round(height * dpr);
   ctx.scale(dpr, dpr);
 
-  // --- Theme detection ---
-  const theme =
-    document.documentElement.getAttribute('data-theme') || 'light';
-  const isDark = theme === 'dark';
+  /**
+   * Resolves chart colors from the current page theme by reading CSS custom
+   * properties via getComputedStyle so the palette stays synchronized with
+   * the design tokens defined in BaseLayout.astro.
+   *
+   * @returns {{
+   *   line: string,
+   *   area: string,
+   *   grid: string,
+   *   text: string,
+   *   referenceLine: string,
+   *   background: string,
+   * }}
+   */
+  function resolveChartColors() {
+    const isDark = document.documentElement.dataset.theme === 'dark';
+    const styles = getComputedStyle(document.documentElement);
+    const surface = styles.getPropertyValue('--surface').trim() || (isDark ? '#0f2f3d' : '#ffffff');
+    const lineColor = styles.getPropertyValue('--line').trim() || (isDark ? '#285365' : '#cfe6ef');
+    const muted = styles.getPropertyValue('--muted').trim() || (isDark ? '#a8c5d0' : '#5a6870');
 
-  const colors = {
-    line: isDark ? '#4A9EFF' : '#3B82F6',
-    area: isDark ? 'rgba(74,158,255,0.08)' : 'rgba(59,130,246,0.08)',
-    grid: isDark ? '#374151' : '#E5E7EB',
-    text: isDark ? '#D1D5DB' : '#6B7280',
-    marker: isDark ? '#EF4444' : '#DC2626',
-    referenceLine: isDark ? '#F59E0B' : '#D97706',
-    background: isDark ? '#1F2937' : '#FFFFFF',
-  };
+    return {
+      line: isDark ? '#4A9EFF' : '#3B82F6',
+      area: isDark ? 'rgba(74,158,255,0.08)' : 'rgba(59,130,246,0.08)',
+      grid: lineColor,
+      text: muted,
+      referenceLine: isDark ? '#F59E0B' : '#D97706',
+      background: surface,
+    };
+  }
+
+  const colors = resolveChartColors();
 
   // --- Layout ---
   const padding = { top: 28, right: 20, bottom: 40, left: 60 };
