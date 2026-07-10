@@ -3292,10 +3292,60 @@ window.__evRefresh = () => {
 	:global(.ev-result-title) { font-size: 16px; font-weight: 700; margin: 0 0 8px; color: var(--ink); }
 		:global(.ev-stale-label) { color: #d97706; font-size: 12px; margin-bottom: 8px; }
 	:global(.ev-chart) { display: block; width: 100%; max-width: 100%; height: 220px; margin: 12px 0; box-sizing: border-box; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
-	:global(.ev-equipment-count) { font-size: 14px; margin: 4px 0 10px; color: var(--ink); }
+	:global(.ev-equipment-count) { display: flex; align-items: center; gap: 6px; font-size: 14px; margin: 4px 0 10px; color: var(--ink); }
+	:global(.ev-help-trigger) {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		min-height: 0;
+		width: 18px;
+		height: 18px;
+		border: 1px solid var(--line);
+		border-radius: 50%;
+		background: var(--surface);
+		color: var(--muted);
+		font-size: 0.72rem;
+		font-weight: 800;
+		line-height: 1;
+		cursor: help;
+		padding: 0;
+		margin: 0;
+	}
+	:global(.ev-help-trigger:focus-visible) {
+		outline: 2px solid var(--green);
+		outline-offset: 2px;
+	}
+	:global(.ev-help-tooltip) {
+		position: absolute;
+		left: 50%;
+		bottom: calc(100% + 8px);
+		z-index: 20;
+		padding: 6px 10px;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		background: var(--surface);
+		color: var(--ink);
+		box-shadow: 0 6px 18px rgba(15, 23, 42, 0.16);
+		font-size: 0.82rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+		opacity: 0;
+		pointer-events: none;
+		transform: translateX(-50%) translateY(4px);
+		transition: opacity 0.12s ease, transform 0.12s ease;
+	}
+	:global(.ev-help-trigger:hover .ev-help-tooltip),
+	:global(.ev-help-trigger:focus .ev-help-tooltip),
+	:global(.ev-help-trigger:focus-within .ev-help-tooltip) {
+		opacity: 1;
+		transform: translateX(-50%) translateY(0);
+	}
 	:global(.ev-converter-row) { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 10px; margin: 8px 0; }
 	:global(.ev-converter-field) { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 8px 12px; border-radius: 8px; background: var(--surface-soft); color: var(--muted); font-size: 13px; font-weight: 700; }
-	:global(.ev-converter-field input) { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 16px; font-weight: 600; text-align: left; }
+	:global(.ev-converter-field input) { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 16px; font-weight: 600; text-align: right; }
 	:global(.ev-percent-input) { width: 72px; }
 	:global(.ev-count-input) { width: 88px; }
 	:global(.ev-converter-arrow) { color: var(--muted); font-size: 20px; font-weight: 700; line-height: 1; }

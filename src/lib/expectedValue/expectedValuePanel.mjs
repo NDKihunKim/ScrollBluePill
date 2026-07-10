@@ -267,6 +267,21 @@ export function createResultUI() {
   // Equipment count (expected attempts)
   const equipmentCount = document.createElement('div');
   equipmentCount.className = 'ev-equipment-count';
+
+  const equipmentCountText = document.createElement('span');
+  equipmentCountText.className = 'ev-equipment-count-text';
+
+  const helpButton = document.createElement('button');
+  helpButton.className = 'ev-help-trigger';
+  helpButton.type = 'button';
+  helpButton.setAttribute('aria-label', '정확한 수치 보기');
+  helpButton.textContent = '?';
+
+  const helpTooltip = document.createElement('span');
+  helpTooltip.className = 'ev-help-tooltip';
+  helpButton.appendChild(helpTooltip);
+
+  equipmentCount.append(equipmentCountText, helpButton);
   container.appendChild(equipmentCount);
 
   // Interactive percentile ↔ count converter
@@ -294,7 +309,7 @@ export function createResultUI() {
   const countField = document.createElement('label');
   countField.className = 'ev-converter-field';
   const countPrefix = document.createElement('span');
-  countPrefix.textContent = '시도 횟수:';
+  countPrefix.textContent = '시도 횟수';
   const countInput = document.createElement('input');
   countInput.type = 'text';
   countInput.inputMode = 'numeric';
@@ -376,8 +391,12 @@ export function createResultUI() {
    *
    * @param {object} resultSummary - Result summary from createResultSummary
    */
+  let lastChartData = null;
+
   function update(resultSummary) {
-    equipmentCount.textContent = `평균 시도 횟수: ${formatKoreanNumber(resultSummary.expectedAttempts)}`;
+    equipmentCountText.textContent = `평균 시도 횟수: ${formatKoreanNumber(resultSummary.expectedAttempts)}`;
+    helpTooltip.textContent = resultSummary.expectedAttempts.toLocaleString('en-US');
+    helpButton.hidden = false;
 
     percentInput.dataset.successProbability = resultSummary.successProbability;
     countInput.dataset.successProbability = resultSummary.successProbability;
@@ -385,7 +404,8 @@ export function createResultUI() {
     countInput.value = formatKoreanNumber(countRawValue);
     updatePercentFromCount();
 
-    renderAttemptChart(canvas, resultSummary.chartData);
+    lastChartData = resultSummary.chartData;
+    renderAttemptChart(canvas, lastChartData);
 
     staleLabel.hidden = true;
   }
@@ -402,7 +422,8 @@ export function createResultUI() {
 
   /** Shows the no-strategy message. */
   function showNoStrategy() {
-    equipmentCount.textContent = NO_STRATEGY_TEXT;
+    equipmentCountText.textContent = NO_STRATEGY_TEXT;
+    helpButton.hidden = true;
     percentInput.value = '';
     countInput.value = '';
     staleLabel.hidden = true;
@@ -412,11 +433,28 @@ export function createResultUI() {
    * Shows a zero-success message (exact probability = 0).
    */
   function showZeroSuccess() {
-    equipmentCount.textContent = '성공 확률: 0%';
+    equipmentCountText.textContent = '성공 확률: 0%';
+    helpButton.hidden = true;
     percentInput.value = '';
     countInput.value = '';
     staleLabel.hidden = true;
   }
+
+  /** Re-renders the chart with the last known data (e.g. after a theme change). */
+  function rechart() {
+    if (lastChartData) {
+      renderAttemptChart(canvas, lastChartData);
+    }
+  }
+
+  // Watch for theme changes so the chart re-renders with updated colors.
+  const themeObserver = new MutationObserver(() => {
+    if (lastChartData) rechart();
+  });
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  });
 
   return {
     container,
@@ -425,5 +463,6 @@ export function createResultUI() {
     hideStale,
     showNoStrategy,
     showZeroSuccess,
+    rechart,
   };
 }

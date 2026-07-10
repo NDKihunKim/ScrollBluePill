@@ -112,7 +112,7 @@ test('result panel renders interactive attempt row with input and cumulative pro
   assert.match(panelSource, /ev-percent-input/);
   assert.match(panelSource, /ev-count-input/);
   assert.match(panelSource, /상위/);
-  assert.match(panelSource, /countPrefix\.textContent = '시도 횟수:'/);
+  assert.match(panelSource, /countPrefix\.textContent = '시도 횟수'/);
   assert.match(panelSource, /countSuffix\.textContent = '회'/);
   assert.match(panelSource, /computeCumulativeProbability/);
   assert.match(panelSource, /computeAttemptsForPercentile/);
