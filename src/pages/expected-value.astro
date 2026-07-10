@@ -737,12 +737,23 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 				syncFiltersToSelectedItem(item);
 			}
 			renderSelectedItemCard(item);
-			if (typeof window.activatePanel2 === 'function') {
+
+			// Guard: confirm before replacing enhancement state when a result exists.
+			const activateItem = () => {
+				if (typeof window.activatePanel2 === 'function') {
 					window.activatePanel2(item);
 				}
 				if (typeof window.__evOpenCalcPanel === 'function') {
 					window.__evOpenCalcPanel();
 				}
+			};
+
+			if (typeof window.__evGuardEnhancementMutation === 'function') {
+				window.__evGuardEnhancementMutation(activateItem);
+			} else {
+				activateItem();
+			}
+
 			if (syncFilters) {
 				syncItemSearchUrl();
 				hideItemSuggestions();
@@ -1717,16 +1728,23 @@ window.__evRefresh = () => {
 	    return;
 	  }
 
-	  // Set state in enhancement panel if setter exists
-	  if (typeof window.__evSetState === 'function') {
-	    window.__evSetState(s.pageState.enhancementState, item);
-	  } else if (typeof window.activatePanel2 === 'function') {
-	    // Fallback: re-activate panel with the saved item
-	    window.activatePanel2(item);
-	  }
+	  // Guard: confirm before overwriting a generated result, same as Panel 2.
+	  const applyLoad = () => {
+	    if (typeof window.__evSetState === 'function') {
+	      window.__evSetState(s.pageState.enhancementState, item);
+	    } else if (typeof window.activatePanel2 === 'function') {
+	      // Fallback: re-activate panel with the saved item
+	      window.activatePanel2(item);
+	    }
+	    renderEvSlotBar();
+	    checkEvStarState();
+	  };
 
-	  renderEvSlotBar();
-	  checkEvStarState();
+	  if (typeof window.__evGuardEnhancementMutation === 'function') {
+	    window.__evGuardEnhancementMutation(applyLoad);
+	  } else {
+	    applyLoad();
+	  }
 	};
 
 	// ---- State setter for loading saved slots ----

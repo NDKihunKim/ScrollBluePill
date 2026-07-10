@@ -1,11 +1,13 @@
 /**
- * Formats a number using Korean large-number units (만, 억, 조).
+ * Formats a number using Korean large-number units (만, 억, 조, 경, 해).
  *
  * Rules:
  *   < 10,000       → raw number with commas (e.g. "9,999", "0")
  *   1만 ~ 9,999만   → X.XX만  (e.g. "12.69만", "500만", "1.2만")
  *   1억 ~ 9,999억   → X.XX억  (e.g. "12.69억", "500억")
- *   ≥ 1조          → X.XX조
+ *   1조 ~ 9,999조   → X.XX조
+ *   1경 ~ 9,999경   → X.XX경
+ *   ≥ 1해          → X.XX해
  *
  * Decimals: up to 2 decimal places, trailing zeros stripped.
  *   "12.60억" → "12.6억"
@@ -41,9 +43,21 @@ export function formatKoreanNumber(value) {
     return sign + stripTrailingZeros(eok.toFixed(2)) + '억';
   }
 
-  // 조 range: ≥ 1,000,000,000,000
-  const jo = abs / 1_000_000_000_000;
-  return sign + stripTrailingZeros(jo.toFixed(2)) + '조';
+  if (abs < 10_000_000_000_000_000) {
+    // 조 range: 1,000,000,000,000 ~ 9,999,999,999,999,999
+    const jo = abs / 1_000_000_000_000;
+    return sign + stripTrailingZeros(jo.toFixed(2)) + '조';
+  }
+
+  if (abs < 100_000_000_000_000_000_000) {
+    // 경 range: 10,000,000,000,000,000 ~ 99,999,999,999,999,999,999
+    const gyeong = abs / 10_000_000_000_000_000;
+    return sign + stripTrailingZeros(gyeong.toFixed(2)) + '경';
+  }
+
+  // 해 range: ≥ 100,000,000,000,000,000,000
+  const hae = abs / 100_000_000_000_000_000_000;
+  return sign + stripTrailingZeros(hae.toFixed(2)) + '해';
 }
 
 /**
@@ -72,7 +86,7 @@ function stripTrailingZeros(formatted) {
  *   "5,000"    → 5_000
  *   "0"        → 0
  *
- * Unit multipliers: 만 = 10⁴, 억 = 10⁸, 조 = 10¹².
+ * Unit multipliers: 만 = 10⁴, 억 = 10⁸, 조 = 10¹², 경 = 10¹⁶, 해 = 10²⁰.
  * Commas, spaces, and the 회 suffix are stripped before parsing.
  *
  * @param {string} formatted - A Korean-unit string or raw numeric string
@@ -89,7 +103,7 @@ export function parseKoreanNumber(formatted) {
   s = s.replace(/,/g, '');
 
   // Try unit-based parsing first
-  const unitPattern = /^(-?[\d.]+)\s*(만|억|조)$/;
+  const unitPattern = /^(-?[\d.]+)\s*(만|억|조|경|해)$/;
   const unitMatch = s.match(unitPattern);
   if (unitMatch) {
     const numPart = parseFloat(unitMatch[1]);
@@ -98,6 +112,8 @@ export function parseKoreanNumber(formatted) {
     if (unit === '만') return numPart * 10_000;
     if (unit === '억') return numPart * 100_000_000;
     if (unit === '조') return numPart * 1_000_000_000_000;
+    if (unit === '경') return numPart * 10_000_000_000_000_000;
+    if (unit === '해') return numPart * 100_000_000_000_000_000_000;
   }
 
   // Fallback: plain numeric string

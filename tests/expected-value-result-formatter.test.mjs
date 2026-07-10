@@ -81,3 +81,30 @@ test('createResultSummary generates correct chart data length', async () => {
     assert.equal(typeof entry.attempts, 'number');
   }
 });
+
+test('createResultSummary with p=1e-20 produces non-empty chart data', async () => {
+  const { createResultSummary } = await import(FORMATTER_MODULE);
+  const result = createResultSummary({ successProbability: 1e-20 });
+
+  assert.ok(result.chartData.length > 0, 'chartData should not be empty');
+  assert.equal(result.chartData[0].percentile, 0);
+  assert.equal(result.chartData[0].attempts, 0);
+
+  // All percentiles should be finite (not -Infinity from log(1-p) underflow)
+  assert.ok(Number.isFinite(result.percentiles.p50), 'p50 should be finite');
+  assert.ok(Number.isFinite(result.percentiles.p75), 'p75 should be finite');
+  assert.ok(Number.isFinite(result.percentiles.p90), 'p90 should be finite');
+  assert.ok(Number.isFinite(result.percentiles.p95), 'p95 should be finite');
+
+  // Expected attempts should be finite and large
+  assert.ok(Number.isFinite(result.expectedAttempts), 'expectedAttempts should be finite');
+  assert.ok(result.expectedAttempts > 1e10, 'expectedAttempts should be very large for p=1e-20');
+
+  // Chart data should be monotonically increasing
+  for (let i = 1; i < result.chartData.length; i++) {
+    assert.ok(
+      result.chartData[i].attempts >= result.chartData[i - 1].attempts,
+      `chartData attempts should be non-decreasing at index ${i}`,
+    );
+  }
+});

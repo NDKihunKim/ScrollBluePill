@@ -43,7 +43,7 @@ export function computeAttemptsForPercentile(p, q) {
   if (p >= 1.0) return 1;
   if (p <= 0) return Infinity;
   if (q <= 0) return 0;
-  return Math.ceil(Math.log(1 - q) / Math.log(1 - p));
+  return Math.ceil(Math.log(1 - q) / Math.log1p(-p));
 }
 
 /**
@@ -73,5 +73,5 @@ export function computeCumulativeProbability(p, n) {
   if (p <= 0) return 0;
   const attempts = Math.max(0, Math.round(n));
   if (attempts <= 0) return 0;
-  return 1 - Math.pow(1 - p, attempts);
+  return -Math.expm1(attempts * Math.log1p(-p));
 }

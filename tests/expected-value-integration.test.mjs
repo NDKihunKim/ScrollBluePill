@@ -191,3 +191,52 @@ test('full integration: chaos scroll now uses exact engine', () => {
     assert.ok(countRngSources(s) >= 1);
   }
 });
+
+// ---- Geometric math precision for extremely small probabilities ----
+
+import {
+  computeAttemptsForPercentile,
+  computeCumulativeProbability,
+  computeExpectedAttempts,
+  computeGeometricPercentiles,
+} from '../src/lib/expectedValue/monteCarloEngine.mjs';
+
+test('computeAttemptsForPercentile handles extremely small p without precision underflow', () => {
+  // p=1e-20 is well below double epsilon (~2.22e-16). The old code
+  // would produce -Infinity because Math.log(1-p) returns 0.
+  // Math.log1p(-p) avoids this precision loss.
+  const attempts = computeAttemptsForPercentile(1e-20, 0.50);
+  assert.ok(Number.isFinite(attempts), 'attempts should be finite, not -Infinity');
+  assert.ok(attempts > 0, 'attempts should be positive');
+
+  // Edge cases: unchanged behavior
+  assert.equal(computeAttemptsForPercentile(0, 0.50), Infinity);
+  assert.equal(computeAttemptsForPercentile(1.0, 0.50), 1);
+  assert.equal(computeAttemptsForPercentile(1e-20, 0), 0);
+});
+
+test('computeCumulativeProbability handles extremely small p', () => {
+  // With p=1e-20 and n=1e19, probability should be > 0.
+  // Old code returned 0 because Math.pow(1.0, n) === 1.0.
+  const prob = computeCumulativeProbability(1e-20, 1e19);
+  assert.ok(prob > 0, 'probability should be > 0');
+  assert.ok(prob < 1, 'probability should be < 1');
+
+  // Edge cases: unchanged behavior
+  assert.equal(computeCumulativeProbability(0, 100), 0);
+  assert.equal(computeCumulativeProbability(1.0, 100), 1);
+});
+
+test('computeGeometricPercentiles produces finite values for extremely small p', () => {
+  const result = computeGeometricPercentiles(1e-20);
+  for (const key of ['p50', 'p75', 'p90', 'p95']) {
+    assert.ok(Number.isFinite(result[key]), `${key} should be finite for p=1e-20`);
+    assert.ok(result[key] > 0, `${key} should be positive`);
+  }
+
+  // p=0 should still return Infinity for all percentiles
+  const zeroResult = computeGeometricPercentiles(0);
+  for (const key of ['p50', 'p75', 'p90', 'p95']) {
+    assert.equal(zeroResult[key], Infinity, `${key} should be Infinity for p=0`);
+  }
+});
