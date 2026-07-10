@@ -1034,6 +1034,9 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       for (const list of scrollsByEquipmentKind.values()) {
         sortScrollList(list);
       }
+
+      // Signal that enhancement data is ready (for decon→EV transfer)
+      window.dispatchEvent(new CustomEvent('enhancementDataReady'));
     })
     .catch((error) => {
       console.error(error);
@@ -1051,6 +1054,9 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
 
   // Expose restore function so saved slots can reload enhancement state
   window.__restoreEvState = restoreEnhancementState;
+
+  // Expose item-level-up-by-id map for deconstruction strategy transfer
+  window.__evGetItemLevelUpById = () => itemLevelUpByItemId;
 
   /**
    * Notifies the EV calculator (if available) that the enhancement state changed.
