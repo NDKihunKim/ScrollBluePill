@@ -2780,7 +2780,7 @@ const displayResults = (result, targetDeltas) => {
       e.stopPropagation();
       if (!selectedItem) return;
       writeDeconTransfer(strategy, selectedItem.id);
-      window.open('/expected-value/', '_blank');
+      window.location.href = '/expected-value/';
     });
     card.append(transferBtn);
 
