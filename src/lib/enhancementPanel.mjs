@@ -3,6 +3,7 @@ import { createEnhancementState, applyScroll, revertToSlot, resetState, computeA
 import { initMakerPanel } from './makerPanel.mjs';
 import { initItemLevelUpPanel } from './itemLevelUpPanel.mjs';
 import { buildItemIconUrl } from './maplestoryIo.mjs';
+import { CHAOS_SCROLL_ICON_ID } from './makerData.mjs';
 
 export function initEnhancementPanel(renderEnhancedItemCard) {
   const enhancementPanel = document.querySelector('[data-enhancement-panel]');
@@ -187,7 +188,9 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
         } else {
           const icon = document.createElement('img');
           icon.className = 'slot-box-icon';
-          icon.src = buildItemIconUrl(scroll.id);
+          icon.src = buildItemIconUrl(
+            scroll.behavior_type === 'chaos' ? CHAOS_SCROLL_ICON_ID : scroll.id,
+          );
           icon.alt = scroll.nameKo;
           icon.loading = 'lazy';
           number.append(icon);
@@ -585,7 +588,9 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
 
       const icon = document.createElement('img');
       icon.className = 'scroll-option-icon';
-      icon.src = buildItemIconUrl(scroll.id);
+      icon.src = buildItemIconUrl(
+        scroll.behavior_type === 'chaos' ? CHAOS_SCROLL_ICON_ID : scroll.id,
+      );
       icon.alt = '';
       icon.loading = 'lazy';
 

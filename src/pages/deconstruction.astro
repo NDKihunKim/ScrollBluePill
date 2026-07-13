@@ -348,11 +348,12 @@ import { buildItemIconUrl, buildItemSearchUrl } from '../lib/maplestoryIo.mjs';
 import { HP_MP_KEYS, computeItemLevelUpCardMeta } from '../lib/enhancementState.mjs';
 import { enumerateStrategies } from '../lib/deconstruction/engine.mjs';
 import { guardCheckboxMutation } from '../lib/deconstruction/guardedCheckboxMutation.mjs';
-import { GEM_GRADES, GEM_ITEM_IDS, GEM_TYPES, isWeaponKind, computeGemSlotCount } from '../lib/makerData.mjs';
+import { GEM_GRADES, GEM_ITEM_IDS, GEM_TYPES, isWeaponKind, computeGemSlotCount, CHAOS_SCROLL_ICON_ID } from '../lib/makerData.mjs';
 import {
   createDeconstructionSlotState,
   setSuccessfulScrollCount,
   setRemainingSlotCount,
+  inferFailedScrollCount,
 } from '../lib/deconstruction/slotState.mjs';
 import {
   getDefaultSourceSelection,
@@ -364,6 +365,7 @@ import {
 } from '../lib/deconstruction/resultFilterController.mjs';
 import { readSlots, saveToSlot, clearSlot, findMatchingSlot, MAX_SLOTS } from '../lib/itemSlotStore.mjs';
 import { writeDeconTransfer } from '../lib/deconToEvTransfer.mjs';
+import { saveDeconSession, loadDeconSession, clearDeconSession } from '../lib/deconSessionState.mjs';
 
 // ---- Helpers ----
 
@@ -1872,6 +1874,7 @@ const commitSuggestedItem = (item, { syncFilters = true } = {}) => {
   const itemChanged = selectedItem?.id !== item.id;
   if (itemChanged) {
     clearDeconCalculationState(item);
+    clearDeconSession();
   }
   if (syncFilters) {
     itemNameInput.value = item.nameKo;
@@ -2550,6 +2553,8 @@ const runAnalysis = () => {
   });
 
   displayResults(result, targetDeltas);
+  // Cache result for session-state auto-save (back-navigation restoration)
+  window.__lastDeconResult = result;
 };
 
 // ---- Display results ----
@@ -2695,7 +2700,7 @@ const displayResults = (result, targetDeltas) => {
 
         const icon = document.createElement('img');
         icon.className = 'decon-scroll-icon';
-        const iconId = group.scroll.behavior_type === 'chaos' ? 2049100 : group.scroll.id;
+        const iconId = group.scroll.behavior_type === 'chaos' ? CHAOS_SCROLL_ICON_ID : group.scroll.id;
         icon.src = buildItemIconUrl(iconId);
         icon.alt = '';
         icon.loading = 'lazy';
@@ -2779,7 +2784,34 @@ const displayResults = (result, targetDeltas) => {
     transferBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       if (!selectedItem) return;
-      writeDeconTransfer(strategy, selectedItem.id);
+
+      const totalAppliedScrolls = deconSlotState.successfulScrollCount
+        + inferFailedScrollCount(deconSlotState);
+      writeDeconTransfer(strategy, selectedItem.id, { totalAppliedScrolls });
+
+      // Auto-save deconstruction state for back-navigation restoration
+      saveDeconSession({
+        itemId: selectedItem.id,
+        itemName: itemNameInput instanceof HTMLInputElement ? itemNameInput.value : (selectedItem.nameKo ?? ''),
+        deconDeltas: { ...deconDeltas },
+        deconStatKeys: [...deconStatKeys],
+        successfulScrollCount: deconSlotState.successfulScrollCount,
+        remainingSlots: deconSlotState.remainingSlots,
+        maxSlots: deconSlotState.maxSlots,
+        totalAppliedScrolls,
+        appliedLevelCount: deconAppliedLevelCount,
+        scrollRateFilter: [...deconScrollRateFilter],
+        stimulantBoundsMap: structuredClone(deconStimulantBoundsMap),
+        stimulantEnabledKeys: [...deconStimulantEnabledKeys],
+        chaosBoundsMap: structuredClone(deconChaosBoundsMap),
+        chaosEnabledKeys: [...deconChaosEnabledKeys],
+        gemFilter: deconGemFilter instanceof Set ? [...deconGemFilter] : null,
+        levelUpTotalRanges: structuredClone(deconLevelUpTotalRanges),
+        targetKeys: getCheckedTargetKeys(),
+        result: window.__lastDeconResult ?? null,
+        scrollPosition: window.scrollY,
+      });
+
       window.location.href = '/expected-value/';
     });
     card.append(transferBtn);
@@ -3174,6 +3206,95 @@ document.querySelector('[data-enhancement-reset]')?.addEventListener('click', ()
   });
 });
 
+// ---- Session restoration (back-navigation) ----
+
+const tryRestoreDeconSession = () => {
+  const saved = loadDeconSession();
+  if (!saved || saved.v !== 1 || !saved.itemId) return;
+
+  const item = itemById.get(saved.itemId);
+  if (!item) return; // item no longer in index — skip silently
+
+  // 1. Restore item selection (set selectedItem first so commitSuggestedItem
+  //    sees the same item and skips the clear-on-change codepath)
+  selectedItem = item;
+  commitSuggestedItem(item, { syncFilters: false });
+  resetAllowedSources();
+  updateLevelUpSourceEligibility();
+
+  // Restore search input text
+  if (itemNameInput instanceof HTMLInputElement) {
+    itemNameInput.value = saved.itemName ?? item.nameKo;
+  }
+
+  // 2. Restore deconstruction inputs
+  deconDeltas = { ...(saved.deconDeltas ?? {}) };
+  deconStatKeys = [...(saved.deconStatKeys ?? [])];
+  deconSlotState = createDeconstructionSlotState(saved.maxSlots ?? 0);
+  deconSlotState = setSuccessfulScrollCount(deconSlotState, saved.successfulScrollCount ?? 0);
+  deconSlotState = setRemainingSlotCount(deconSlotState, saved.remainingSlots ?? deconSlotState.maxSlots);
+  deconAppliedLevelCount = saved.appliedLevelCount ?? 0;
+
+  // Restore source configuration
+  deconScrollRateFilter = new Set(saved.scrollRateFilter ?? ['100', '60', '10']);
+  deconStimulantBoundsMap = saved.stimulantBoundsMap ?? {};
+  deconStimulantEnabledKeys = new Set(saved.stimulantEnabledKeys ?? []);
+  deconChaosBoundsMap = saved.chaosBoundsMap ?? {};
+  deconChaosEnabledKeys = new Set(saved.chaosEnabledKeys ?? []);
+  deconGemFilter = saved.gemFilter ? new Set(saved.gemFilter) : null;
+  deconLevelUpTotalRanges = saved.levelUpTotalRanges ?? {};
+
+  // Sync scroll-rate checkboxes to restored filter
+  deconScrollRateInputs.forEach(inp => {
+    if (inp instanceof HTMLInputElement) {
+      inp.checked = deconScrollRateFilter.has(inp.dataset.deconScrollRate);
+    }
+  });
+
+  // 3. Update UI panels
+  renderDeconSlotState();
+  renderDeconItemLevel();
+  rebuildStatEditor();
+  updateTargetCard();
+  renderDeconSlotBar();
+  checkDeconStarState();
+  updateAnalyzeButton();
+  activateDeconEditPanel(item);
+
+  // Restore target chip checkmarks
+  if (deconTargetChips instanceof HTMLElement && saved.targetKeys) {
+    const targetKeySet = new Set(saved.targetKeys);
+    const checkboxes = deconTargetChips.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach((cb) => {
+      cb.checked = targetKeySet.has(cb.dataset.deconTargetKey);
+    });
+  }
+
+  // 4. Restore results if available
+  if (saved.result && saved.result.strategies?.length > 0) {
+    const targetDeltas = {};
+    for (const key of (saved.targetKeys ?? [])) {
+      targetDeltas[key] = saved.deconDeltas?.[key] ?? 0;
+    }
+    displayResults(saved.result, targetDeltas);
+  }
+
+  // 5. Restore scroll position (after layout settles)
+  requestAnimationFrame(() => {
+    window.scrollTo(0, saved.scrollPosition ?? 0);
+  });
+};
+
+// Data-load readiness tracking — both fetches must complete before restoration
+let _itemsLoaded = false;
+let _scrollsLoaded = false;
+
+const _maybeRestoreDeconSession = () => {
+  if (_itemsLoaded && _scrollsLoaded) {
+    tryRestoreDeconSession();
+  }
+};
+
 // ---- Init ----
 setManualSearchOpen(false);
 syncJobButtons();
@@ -3197,9 +3318,14 @@ fetch('/data/items-gms83-ko.json')
     }
     renderItemSuggestions();
     renderDeconSlotBar();
+
+    _itemsLoaded = true;
+    _maybeRestoreDeconSession();
   })
   .catch((error) => {
     console.error(error);
+    _itemsLoaded = true;
+    _maybeRestoreDeconSession();
   });
 
 // Load scroll and item-level-up data
@@ -3237,9 +3363,14 @@ Promise.all([
     updateLevelUpSourceEligibility();
     renderDeconItemLevel();
     updateTargetCard();
+
+    _scrollsLoaded = true;
+    _maybeRestoreDeconSession();
   })
   .catch((error) => {
     console.error(error);
+    _scrollsLoaded = true;
+    _maybeRestoreDeconSession();
   });
 </script>
 
