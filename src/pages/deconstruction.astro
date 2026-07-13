@@ -2776,13 +2776,16 @@ const displayResults = (result, targetDeltas) => {
       }
     }
 
-    // Transfer button: open this strategy in the expected-value page
-    const transferBtn = document.createElement('button');
-    transferBtn.type = 'button';
-    transferBtn.className = 'decon-ev-transfer-btn';
-    transferBtn.textContent = '기대값 계산으로 보내기';
-    transferBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
+    // Transfer link: open this strategy in the expected-value page.
+    // Uses an <a> tag so Cmd+click / right-click "Open in new tab" work
+    // natively.  The payload is written on mousedown (which fires before
+    // any browser navigation) so the new tab always finds fresh data.
+    const transferLink = document.createElement('a');
+    transferLink.href = '/expected-value/';
+    transferLink.className = 'decon-ev-transfer-btn';
+    transferLink.textContent = '기대값 계산으로 보내기';
+
+    transferLink.addEventListener('mousedown', () => {
       if (!selectedItem) return;
 
       const totalAppliedScrolls = deconSlotState.successfulScrollCount
@@ -2811,10 +2814,24 @@ const displayResults = (result, targetDeltas) => {
         result: window.__lastDeconResult ?? null,
         scrollPosition: window.scrollY,
       });
-
-      window.location.href = '/expected-value/';
     });
-    card.append(transferBtn);
+
+    transferLink.addEventListener('click', (e) => {
+      if (!selectedItem) {
+        e.preventDefault();
+        return;
+      }
+      // Unmodified left-click: navigate in the same tab
+      if (!e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) {
+        e.preventDefault();
+        window.location.href = '/expected-value/';
+      }
+      // Modified clicks (Cmd, Ctrl, Shift) or middle-click: let the
+      // browser handle natively via the href — payload was already
+      // written in the mousedown handler above.
+    });
+
+    card.append(transferLink);
 
     listContainer.append(card);
   });
@@ -5315,6 +5332,7 @@ aside.panel {
   font-weight: 650;
   line-height: 1.3;
   white-space: nowrap;
+  text-decoration: none;
   transition: background 0.15s, border-color 0.15s;
 }
 :global(.decon-ev-transfer-btn:hover) {
