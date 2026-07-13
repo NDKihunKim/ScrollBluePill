@@ -1,8 +1,26 @@
 /**
  * Cross-page state transfer: Deconstruction → Expected-Value.
  *
- * Writes a strategy payload to localStorage, navigates, and the destination
- * page reconstructs a full enhancement state matching the strategy.
+ * ## Payload lifecycle
+ *
+ * 1. **Written** when the user clicks "기대값 계산으로 보내기" on the
+ *    deconstruction page.  A single localStorage key holds the latest
+ *    transfer — each new transfer overwrites the previous one.
+ *
+ * 2. **Read** when the expected-value page loads.  The payload is NOT
+ *    deleted on read (it persists so other tabs can also consume it).
+ *
+ * 3. **Dedup** — each payload carries a `transferId` (UUID).  The EV page
+ *    records the last-applied id in its own sessionStorage.  On reload
+ *    the same id is skipped so the transfer isn't re-applied.
+ *
+ * 4. **Staleness** — payloads older than STALE_WINDOW_MS (5 min) are
+ *    treated as stale and ignored, preventing a direct visit from picking
+ *    up a days-old transfer.
+ *
+ * 5. **Cleanup** — no explicit cleanup.  Stale payloads sit in localStorage
+ *    until the next transfer overwrites them, and are always ignored by
+ *    the staleness check.
  *
  * Chaos aggregate stat totals are split into per-scroll integer values using
  * integer division with remainder so individual values differ by at most 1
@@ -11,8 +29,25 @@
 
 import { computeGemSlotCount } from './makerData.mjs';
 
-/** localStorage key used for the one-shot transfer payload. */
+/** localStorage key for the transfer payload. */
 export const DECON_TO_EV_KEY = 'deconToEv:v1';
+
+/** sessionStorage key for per-tab dedup tracking. */
+const APPLIED_KEY = 'evAppliedTransfer:v1';
+
+/** Payloads older than this window are treated as stale (5 minutes). */
+const STALE_WINDOW_MS = 5 * 60 * 1000;
+
+/** Generate a unique transfer identifier. */
+function generateTransferId() {
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+  } catch { /* fall through */ }
+  // Fallback: timestamp + random
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
 
 // ── Chaos even-distribution helpers ──────────────────────────────────────
 
@@ -95,6 +130,8 @@ export function serializeDeconStrategy(strategy, itemId, { totalAppliedScrolls }
   return {
     v: 1,
     itemId,
+    transferId: generateTransferId(),
+    transferredAt: new Date().toISOString(),
     strategy: {
       scrolls: (strategy.scrolls ?? []).map((s) => ({
         id: s.id,
@@ -152,29 +189,54 @@ export function writeDeconTransfer(strategy, itemId, slotState) {
 }
 
 /**
- * Reads and atomically deletes the transfer payload from localStorage.
+ * Reads the transfer payload from localStorage (non-destructive).
  *
- * @returns {object|null} The parsed payload, or null if none exists or data is invalid
+ * Deduplication: records the last-applied `transferId` in sessionStorage
+ * (per-tab) so refreshes don't re-apply the same transfer.
+ *
+ * Staleness: payloads older than STALE_WINDOW_MS are treated as stale
+ * and ignored, preventing a direct visit from picking up a days-old
+ * transfer.  The stale payload stays in localStorage until the next
+ * transfer overwrites it.
+ *
+ * @returns {object|null} The parsed payload, or null if absent, stale,
+ *   already applied, or invalid.
  */
 export function consumeDeconTransfer() {
   try {
     const raw = localStorage.getItem(DECON_TO_EV_KEY);
     if (!raw) return null;
 
-    // Delete immediately so refreshes don't re-apply
-    localStorage.removeItem(DECON_TO_EV_KEY);
-
     const payload = JSON.parse(raw);
     if (!payload || payload.v !== 1 || !Number.isInteger(payload.itemId)) {
       return null;
     }
+
+    // ── Staleness check ──────────────────────────────────────────────
+    if (payload.transferredAt) {
+      const elapsed = Date.now() - new Date(payload.transferredAt).getTime();
+      if (!Number.isFinite(elapsed) || elapsed > STALE_WINDOW_MS) {
+        return null; // stale — ignore without deleting
+      }
+    }
+    // Old payloads without transferredAt: still accepted for backward
+    // compatibility (they'll be overwritten by the next transfer).
+
+    // ── Dedup (per-tab, survives refresh) ─────────────────────────────
+    if (payload.transferId) {
+      try {
+        const lastApplied = sessionStorage.getItem(APPLIED_KEY);
+        if (lastApplied === payload.transferId) {
+          return null; // already applied in this tab
+        }
+        sessionStorage.setItem(APPLIED_KEY, payload.transferId);
+      } catch {
+        // sessionStorage unavailable — proceed without dedup
+      }
+    }
+
     return payload;
   } catch {
-    try {
-      localStorage.removeItem(DECON_TO_EV_KEY);
-    } catch {
-      // best effort
-    }
     return null;
   }
 }
