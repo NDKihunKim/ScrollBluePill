@@ -1230,6 +1230,15 @@ import { consumeDeconTransfer, buildEnhancementStateFromStrategy } from '../lib/
 							window.__evOpenCalcPanel();
 							setTimeout(() => {
 								document.querySelector('.ev-start-btn')?.click();
+								// Auto-scroll to results after calculation renders
+								requestAnimationFrame(() => {
+									requestAnimationFrame(() => {
+										const rp = document.querySelector('[data-result-panel]');
+										if (rp instanceof HTMLElement) {
+											rp.scrollIntoView({ behavior: 'smooth', block: 'start' });
+										}
+									});
+								});
 							}, 50);
 						}
 					} else {
@@ -1265,6 +1274,15 @@ import { consumeDeconTransfer, buildEnhancementStateFromStrategy } from '../lib/
 			window.__evOpenCalcPanel();
 			setTimeout(() => {
 				document.querySelector('.ev-start-btn')?.click();
+				// Auto-scroll to results after calculation renders
+				requestAnimationFrame(() => {
+					requestAnimationFrame(() => {
+						const rp = document.querySelector('[data-result-panel]');
+						if (rp instanceof HTMLElement) {
+							rp.scrollIntoView({ behavior: 'smooth', block: 'start' });
+						}
+					});
+				});
 			}, 50);
 		}
 	});
@@ -1295,9 +1313,9 @@ import { consumeDeconTransfer, buildEnhancementStateFromStrategy } from '../lib/
           calcStartBtn.disabled = !(evState && evState.enhancementState && evState.selectedBaseItem);
         };
 
-window.__evRefresh = () => {
+window.__evRefresh = ({ showStale = true } = {}) => {
 	  updateEvButtonState();
-	  if (evResultSummary && evResultUI) {
+	  if (showStale && evResultSummary && evResultUI) {
 	    evResultUI.showStale();
 	  }
 	  // Re-render calc panel to reflect updated enhancement gains
@@ -1814,7 +1832,7 @@ window.__evRefresh = () => {
 	  // After a brief delay, refresh the EV calc panel
 	  setTimeout(() => {
 	    if (typeof window.__evRefresh === 'function') {
-	      window.__evRefresh();
+	      window.__evRefresh({ showStale: false });
 	    }
 	  }, 100);
 	};
@@ -3416,6 +3434,7 @@ window.__evRefresh = () => {
 	  border-radius: 8px;
 	  background: var(--surface);
 	  box-shadow: var(--shadow);
+	  scroll-margin-top: var(--header-offset);
 	}
 	.calculator-panel.calc-panel h3,
 	.calculator-panel.result-panel h3 {

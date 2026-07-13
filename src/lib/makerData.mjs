@@ -2,6 +2,11 @@ import { weaponKinds } from './calculatorInput.mjs';
 
 export const GEM_GRADES = ['하급', '중급', '상급'];
 
+/** Fallback icon ID for chaos scrolls — equipment-specific chaos scroll IDs
+ *  (e.g. 2045000) don't have icons on the MapleStory.io API, but the
+ *  generic Chaos Scroll (2049100) does. */
+export const CHAOS_SCROLL_ICON_ID = 2049100;
+
 export const STAT_KEY_RANK = {
   weaponAttack: 0,
   magicAttack: 1,

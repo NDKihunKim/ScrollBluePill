@@ -86,9 +86,12 @@ export function distributeStatTotals(aggregateStats, count) {
  *
  * @param {object} strategy - Strategy object from deconstruction engine's buildResult()
  * @param {number} itemId - ID of the item the strategy targets
+ * @param {object} [opts] - Optional slot-state metadata
+ * @param {number} [opts.totalAppliedScrolls] - Total scrolls applied (successful + failed)
  * @returns {object} Serialisable payload
  */
-export function serializeDeconStrategy(strategy, itemId) {
+export function serializeDeconStrategy(strategy, itemId, { totalAppliedScrolls } = {}) {
+  const totalApplied = totalAppliedScrolls ?? strategy.scrolls?.length ?? 0;
   return {
     v: 1,
     itemId,
@@ -102,6 +105,7 @@ export function serializeDeconStrategy(strategy, itemId) {
           ? { isAggregate: true, aggregateCount: s.aggregateCount }
           : {}),
       })),
+      totalAppliedScrolls: totalApplied,
       stimulant: strategy.stimulant
         ? { stats: { ...strategy.stimulant.stats } }
         : null,
@@ -136,10 +140,11 @@ export function serializeDeconStrategy(strategy, itemId) {
  *
  * @param {object} strategy - Strategy from deconstruction engine
  * @param {number} itemId - Item ID
+ * @param {object} [slotState] - Optional slot-state metadata ({ totalAppliedScrolls })
  */
-export function writeDeconTransfer(strategy, itemId) {
+export function writeDeconTransfer(strategy, itemId, slotState) {
   try {
-    const payload = serializeDeconStrategy(strategy, itemId);
+    const payload = serializeDeconStrategy(strategy, itemId, slotState);
     localStorage.setItem(DECON_TO_EV_KEY, JSON.stringify(payload));
   } catch {
     // localStorage unavailable or full — silently continue navigation
@@ -216,6 +221,21 @@ export function buildEnhancementStateFromStrategy(strategy, item, levelUpDefinit
       };
       currentSlot++;
     }
+  }
+
+  // Pad remaining consumed slots with failed-scroll entries so the
+  // expected-value page shows the same applied-slot count the
+  // deconstruction page intended (successful + failed scrolls).
+  const totalApplied = strategy.totalAppliedScrolls ?? currentSlot;
+  while (currentSlot < totalApplied && currentSlot < slotCount) {
+    scrollSlots[currentSlot] = {
+      id: '__failed_scroll__',
+      nameKo: '실패한 주문서',
+      equipmentKind: item.equipmentKind,
+      behavior_type: 'fixed',
+      stats: {},
+    };
+    currentSlot++;
   }
 
   // ── Gem slots ──────────────────────────────────────────────────────
