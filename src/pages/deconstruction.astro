@@ -3215,8 +3215,9 @@ const tryRestoreDeconSession = () => {
   const item = itemById.get(saved.itemId);
   if (!item) return; // item no longer in index — skip silently
 
-  // 1. Restore item selection (set selectedItem first so commitSuggestedItem
-  //    sees the same item and skips the clear-on-change codepath)
+  // 1. Restore item selection — commitSuggestedItem calls
+  //    activateDeconEditPanel internally which sets up the panel
+  //    with item defaults (slot state, stat keys, source config).
   selectedItem = item;
   commitSuggestedItem(item, { syncFilters: false });
   resetAllowedSources();
@@ -3227,7 +3228,9 @@ const tryRestoreDeconSession = () => {
     itemNameInput.value = saved.itemName ?? item.nameKo;
   }
 
-  // 2. Restore deconstruction inputs
+  // 2. Override item defaults with saved state (must run AFTER
+  //    commitSuggestedItem / activateDeconEditPanel which resets
+  //    these to defaults)
   deconDeltas = { ...(saved.deconDeltas ?? {}) };
   deconStatKeys = [...(saved.deconStatKeys ?? [])];
   deconSlotState = createDeconstructionSlotState(saved.maxSlots ?? 0);
@@ -3251,7 +3254,7 @@ const tryRestoreDeconSession = () => {
     }
   });
 
-  // 3. Update UI panels
+  // 3. Re-render UI panels with restored values
   renderDeconSlotState();
   renderDeconItemLevel();
   rebuildStatEditor();
@@ -3259,7 +3262,6 @@ const tryRestoreDeconSession = () => {
   renderDeconSlotBar();
   checkDeconStarState();
   updateAnalyzeButton();
-  activateDeconEditPanel(item);
 
   // Restore target chip checkmarks
   if (deconTargetChips instanceof HTMLElement && saved.targetKeys) {
@@ -3930,6 +3932,8 @@ aside.panel {
   border-radius: 8px;
   background: var(--surface);
   box-shadow: var(--shadow);
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .calculator-panel h2 {
@@ -5267,6 +5271,7 @@ aside.panel {
   flex-direction: column;
   gap: 12px;
   padding-right: 4px;
+  min-width: 0;
 }
 
 :global(.decon-strategy-card) {
@@ -5427,6 +5432,7 @@ aside.panel {
   color: var(--muted);
   padding-left: 2px;
   line-height: 1.5;
+  overflow-wrap: break-word;
 }
 
 :global(.decon-strategy-stats) {

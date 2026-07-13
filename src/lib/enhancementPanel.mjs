@@ -18,6 +18,9 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   const scrollList = enhancementPanel?.querySelector('[data-scroll-list]');
   const scrollStatFilters = enhancementPanel?.querySelector('[data-scroll-stat-filters]');
   const enhancementMessage = enhancementPanel?.querySelector('[data-enhancement-message]');
+  const enhancementSummary = enhancementPanel?.querySelector('[data-enhancement-summary]');
+  const enhancementSummaryStats = enhancementPanel?.querySelector('[data-enhancement-summary-stats]');
+  const scrollSection = enhancementPanel?.querySelector('.enhancement-scroll-section');
   const makerSection = enhancementPanel?.querySelector('[data-maker-section]');
   const makerToggle = enhancementPanel?.querySelector('[data-maker-toggle]');
   const makerGemArea = enhancementPanel?.querySelector('[data-maker-gem-area]');
@@ -251,6 +254,69 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       });
 
       slotCheckpointRow.append(box);
+    }
+
+    renderEnhancementSummary();
+  };
+
+  const renderEnhancementSummary = () => {
+    if (!(enhancementSummary instanceof HTMLElement) ||
+        !(enhancementSummaryStats instanceof HTMLElement) ||
+        !(scrollSection instanceof HTMLElement) ||
+        !enhancementState || !selectedBaseItem) {
+      return;
+    }
+
+    const remaining = computeRemainingSlots(enhancementState);
+    if (remaining !== 0) {
+      // Not all slots filled — show editor, hide summary
+      enhancementSummary.hidden = true;
+      scrollSection.hidden = false;
+      return;
+    }
+
+    // All slots filled — hide editor, show summary
+    scrollSection.hidden = true;
+    enhancementSummary.hidden = false;
+
+    // Compute total stat delta from all enhancement sources
+    const accumulated = computeAccumulatedStats(selectedBaseItem.stats, enhancementState);
+    const baseStats = selectedBaseItem.stats ?? {};
+
+    const deltas = [];
+    for (const key of Object.keys(accumulated)) {
+      if (key === 'upgradeSlots' || key === 'attackSpeed') continue;
+      const baseValue = Number.isFinite(baseStats[key]) ? baseStats[key] : 0;
+      const delta = accumulated[key] - baseValue;
+      if (delta !== 0 && Number.isFinite(delta)) {
+        deltas.push({ key, delta });
+      }
+    }
+
+    // Sort by the same STAT_KEY_RANK used in the rest of the panel
+    deltas.sort((a, b) => {
+      const rankA = STAT_KEY_RANK[a.key] ?? 99;
+      const rankB = STAT_KEY_RANK[b.key] ?? 99;
+      return rankA - rankB;
+    });
+
+    enhancementSummaryStats.replaceChildren();
+
+    if (deltas.length === 0) {
+      const empty = document.createElement('p');
+      empty.className = 'enhancement-summary-stat';
+      empty.textContent = '변동없음';
+      enhancementSummaryStats.append(empty);
+      return;
+    }
+
+    for (const { key, delta } of deltas) {
+      const label = statLabelByKey[key] ?? key;
+      const sign = delta > 0 ? '+' : '';
+      const line = document.createElement('p');
+      line.className = 'enhancement-summary-stat';
+      line.textContent = `└ ${label} ${sign}${delta}`;
+      enhancementSummaryStats.append(line);
     }
   };
 

@@ -203,6 +203,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 					<div class="slot-checkpoint-row" data-slot-checkpoint-row>
 					</div>
 
+					<div class="enhancement-summary" data-enhancement-summary hidden>
+						<p class="enhancement-section-label">강화 요약</p>
+						<div class="enhancement-summary-stats" data-enhancement-summary-stats></div>
+					</div>
+
 					<div class="scroll-detail-popup" data-scroll-detail-popup hidden>
 						<strong data-scroll-detail-name></strong>
 						<span data-scroll-detail-stat></span>
@@ -2633,6 +2638,23 @@ window.__evRefresh = ({ showStale = true } = {}) => {
 		border: 1px solid var(--line);
 		border-radius: 8px;
 		background: var(--surface-soft);
+	}
+
+	.enhancement-summary {
+		margin-top: 12px;
+		padding: 12px;
+		border: 1px solid var(--line);
+		border-radius: 8px;
+		background: var(--surface-soft);
+	}
+
+	:global(.enhancement-summary-stat) {
+		margin: 2px 0;
+		padding-left: 4px;
+		color: var(--ink);
+		font-size: 0.9rem;
+		font-family: var(--font-mono, monospace);
+		line-height: 1.5;
 	}
 
 	.enhancement-section-label {
