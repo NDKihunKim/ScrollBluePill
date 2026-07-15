@@ -36,6 +36,28 @@
     "maxApplications": null
   },
   {
+    "id": 2045000,
+    "nameKo": "귀 장식 혼돈의 주문서",
+    "equipmentKind": "귀고리",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2040316,
     "nameKo": "귀 장식 민첩 주문서 100%",
     "equipmentKind": "귀고리",
@@ -208,6 +230,30 @@
     "maxApplications": null
   },
   {
+    "id": 2045001,
+    "nameKo": "너클 혼돈의 주문서",
+    "equipmentKind": "너클",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0,
+      "weaponAttack": 0,
+      "magicAttack": 0
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2043300,
     "nameKo": "단검 공격력 주문서 100%",
     "equipmentKind": "단검",
@@ -239,6 +285,30 @@
       "luk": 3,
       "weaponAttack": 5,
       "weaponDefense": 1
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
+    "id": 2045002,
+    "nameKo": "단검 혼돈의 주문서",
+    "equipmentKind": "단검",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0,
+      "weaponAttack": 0,
+      "magicAttack": 0
     },
     "targetItemId": null,
     "maxApplications": null
@@ -317,6 +387,30 @@
     "maxApplications": null
   },
   {
+    "id": 2045003,
+    "nameKo": "두손검 혼돈의 주문서",
+    "equipmentKind": "두손검",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0,
+      "weaponAttack": 0,
+      "magicAttack": 0
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2044100,
     "nameKo": "두손도끼 공격력 주문서 100%",
     "equipmentKind": "두손도끼",
@@ -390,6 +484,30 @@
     "maxApplications": null
   },
   {
+    "id": 2045004,
+    "nameKo": "두손도끼 혼돈의 주문서",
+    "equipmentKind": "두손도끼",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0,
+      "weaponAttack": 0,
+      "magicAttack": 0
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2044200,
     "nameKo": "두손둔기 공격력 주문서 100%",
     "equipmentKind": "두손둔기",
@@ -458,6 +576,52 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
+    "id": 2045005,
+    "nameKo": "두손둔기 혼돈의 주문서",
+    "equipmentKind": "두손둔기",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0,
+      "weaponAttack": 0,
+      "magicAttack": 0
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
+    "id": 2045006,
+    "nameKo": "망토 혼돈의 주문서",
+    "equipmentKind": "망토",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0
     },
     "targetItemId": null,
     "maxApplications": null
@@ -733,6 +897,28 @@
     "maxApplications": null
   },
   {
+    "id": 2045007,
+    "nameKo": "투구 혼돈의 주문서",
+    "equipmentKind": "모자",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2040027,
     "nameKo": "투구 민첩 주문서 100%",
     "equipmentKind": "모자",
@@ -852,6 +1038,28 @@
     "behavior_type": "fixed",
     "stats": {
       "maxHp": 30
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
+    "id": 2045008,
+    "nameKo": "반지 혼돈의 주문서",
+    "equipmentKind": "반지",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0
     },
     "targetItemId": null,
     "maxApplications": null
@@ -984,6 +1192,28 @@
     "behavior_type": "random",
     "stats": {
       "luk": 3
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
+    "id": 2045009,
+    "nameKo": "방패 혼돈의 주문서",
+    "equipmentKind": "방패",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0
     },
     "targetItemId": null,
     "maxApplications": null
@@ -1124,6 +1354,28 @@
     "maxApplications": null
   },
   {
+    "id": 2045010,
+    "nameKo": "벨트 혼돈의 주문서",
+    "equipmentKind": "벨트",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2041300,
     "nameKo": "벨트 힘 주문서 100%",
     "equipmentKind": "벨트",
@@ -1251,6 +1503,28 @@
     "behavior_type": "random",
     "stats": {
       "luk": 3
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
+    "id": 2045011,
+    "nameKo": "상의 혼돈의 주문서",
+    "equipmentKind": "상의",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0
     },
     "targetItemId": null,
     "maxApplications": null
@@ -1427,6 +1701,54 @@
     "maxApplications": null
   },
   {
+    "id": 2045012,
+    "nameKo": "석궁 혼돈의 주문서",
+    "equipmentKind": "석궁",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0,
+      "weaponAttack": 0,
+      "magicAttack": 0
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
+    "id": 2045013,
+    "nameKo": "스태프 혼돈의 주문서",
+    "equipmentKind": "스태프",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0,
+      "weaponAttack": 0,
+      "magicAttack": 0
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2043800,
     "nameKo": "스태프 마력 주문서 100%",
     "equipmentKind": "스태프",
@@ -1458,6 +1780,28 @@
       "int": 3,
       "magicAttack": 5,
       "magicDefense": 1
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
+    "id": 2045014,
+    "nameKo": "신발 혼돈의 주문서",
+    "equipmentKind": "신발",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0
     },
     "targetItemId": null,
     "maxApplications": null
@@ -1604,6 +1948,54 @@
     "maxApplications": null
   },
   {
+    "id": 2045015,
+    "nameKo": "아대 혼돈의 주문서",
+    "equipmentKind": "아대",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0,
+      "weaponAttack": 0,
+      "magicAttack": 0
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
+    "id": 2045016,
+    "nameKo": "완드 혼돈의 주문서",
+    "equipmentKind": "완드",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0,
+      "weaponAttack": 0,
+      "magicAttack": 0
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2043700,
     "nameKo": "완드 마력 주문서 100%",
     "equipmentKind": "완드",
@@ -1668,6 +2060,28 @@
     "behavior_type": "fixed",
     "stats": {
       "weaponAttack": 3
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
+    "id": 2045017,
+    "nameKo": "장갑 혼돈의 주문서",
+    "equipmentKind": "장갑",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0
     },
     "targetItemId": null,
     "maxApplications": null
@@ -1815,6 +2229,30 @@
     "maxApplications": null
   },
   {
+    "id": 2045018,
+    "nameKo": "창 혼돈의 주문서",
+    "equipmentKind": "창",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0,
+      "weaponAttack": 0,
+      "magicAttack": 0
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2044900,
     "nameKo": "총 공격력 주문서 100%",
     "equipmentKind": "총",
@@ -1851,6 +2289,30 @@
     "maxApplications": null
   },
   {
+    "id": 2045019,
+    "nameKo": "총 혼돈의 주문서",
+    "equipmentKind": "총",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0,
+      "weaponAttack": 0,
+      "magicAttack": 0
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2041200,
     "nameKo": "드래곤의 돌",
     "equipmentKind": "펜던트",
@@ -1866,6 +2328,28 @@
     },
     "targetItemId": 1122000,
     "maxApplications": 1
+  },
+  {
+    "id": 2045020,
+    "nameKo": "펜던트 혼돈의 주문서",
+    "equipmentKind": "펜던트",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0
+    },
+    "targetItemId": null,
+    "maxApplications": null
   },
   {
     "id": 2044400,
@@ -1936,6 +2420,52 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
+    "id": 2045021,
+    "nameKo": "폴암 혼돈의 주문서",
+    "equipmentKind": "폴암",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0,
+      "weaponAttack": 0,
+      "magicAttack": 0
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
+    "id": 2045022,
+    "nameKo": "하의 혼돈의 주문서",
+    "equipmentKind": "하의",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0
     },
     "targetItemId": null,
     "maxApplications": null
@@ -2112,6 +2642,28 @@
       "str": 5,
       "maxHp": 5,
       "weaponDefense": 3
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
+    "id": 2045023,
+    "nameKo": "한벌옷 혼돈의 주문서",
+    "equipmentKind": "한벌옷",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0
     },
     "targetItemId": null,
     "maxApplications": null
@@ -2334,6 +2886,30 @@
     "maxApplications": null
   },
   {
+    "id": 2045024,
+    "nameKo": "한손검 혼돈의 주문서",
+    "equipmentKind": "한손검",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0,
+      "weaponAttack": 0,
+      "magicAttack": 0
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2043100,
     "nameKo": "한손도끼 공격력 주문서 100%",
     "equipmentKind": "한손도끼",
@@ -2402,6 +2978,30 @@
       "dex": 3,
       "accuracy": 5,
       "weaponAttack": 3
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
+    "id": 2045025,
+    "nameKo": "한손도끼 혼돈의 주문서",
+    "equipmentKind": "한손도끼",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0,
+      "weaponAttack": 0,
+      "magicAttack": 0
     },
     "targetItemId": null,
     "maxApplications": null
@@ -2480,6 +3080,30 @@
     "maxApplications": null
   },
   {
+    "id": 2045026,
+    "nameKo": "한손둔기 혼돈의 주문서",
+    "equipmentKind": "한손둔기",
+    "behavior_type": "chaos",
+    "stats": {
+      "str": 0,
+      "dex": 0,
+      "int": 0,
+      "luk": 0,
+      "weaponDefense": 0,
+      "magicDefense": 0,
+      "accuracy": 0,
+      "avoidability": 0,
+      "speed": 0,
+      "jump": 0,
+      "maxHp": 0,
+      "maxMp": 0,
+      "weaponAttack": 0,
+      "magicAttack": 0
+    },
+    "targetItemId": null,
+    "maxApplications": null
+  },
+  {
     "id": 2044500,
     "nameKo": "활 공격력 주문서 100%",
     "equipmentKind": "활",
@@ -2511,630 +3135,6 @@
       "dex": 1,
       "accuracy": 3,
       "weaponAttack": 5
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045000,
-    "nameKo": "귀 장식 혼돈의 주문서",
-    "equipmentKind": "귀고리",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045001,
-    "nameKo": "너클 혼돈의 주문서",
-    "equipmentKind": "너클",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0,
-      "weaponAttack": 0,
-      "magicAttack": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045002,
-    "nameKo": "단검 혼돈의 주문서",
-    "equipmentKind": "단검",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0,
-      "weaponAttack": 0,
-      "magicAttack": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045003,
-    "nameKo": "두손검 혼돈의 주문서",
-    "equipmentKind": "두손검",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0,
-      "weaponAttack": 0,
-      "magicAttack": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045004,
-    "nameKo": "두손도끼 혼돈의 주문서",
-    "equipmentKind": "두손도끼",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0,
-      "weaponAttack": 0,
-      "magicAttack": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045005,
-    "nameKo": "두손둔기 혼돈의 주문서",
-    "equipmentKind": "두손둔기",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0,
-      "weaponAttack": 0,
-      "magicAttack": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045006,
-    "nameKo": "망토 혼돈의 주문서",
-    "equipmentKind": "망토",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045007,
-    "nameKo": "투구 혼돈의 주문서",
-    "equipmentKind": "모자",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045008,
-    "nameKo": "반지 혼돈의 주문서",
-    "equipmentKind": "반지",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045009,
-    "nameKo": "방패 혼돈의 주문서",
-    "equipmentKind": "방패",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045010,
-    "nameKo": "벨트 혼돈의 주문서",
-    "equipmentKind": "벨트",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045011,
-    "nameKo": "상의 혼돈의 주문서",
-    "equipmentKind": "상의",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045012,
-    "nameKo": "석궁 혼돈의 주문서",
-    "equipmentKind": "석궁",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0,
-      "weaponAttack": 0,
-      "magicAttack": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045013,
-    "nameKo": "스태프 혼돈의 주문서",
-    "equipmentKind": "스태프",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0,
-      "weaponAttack": 0,
-      "magicAttack": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045014,
-    "nameKo": "신발 혼돈의 주문서",
-    "equipmentKind": "신발",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045015,
-    "nameKo": "아대 혼돈의 주문서",
-    "equipmentKind": "아대",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0,
-      "weaponAttack": 0,
-      "magicAttack": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045016,
-    "nameKo": "완드 혼돈의 주문서",
-    "equipmentKind": "완드",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0,
-      "weaponAttack": 0,
-      "magicAttack": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045017,
-    "nameKo": "장갑 혼돈의 주문서",
-    "equipmentKind": "장갑",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045018,
-    "nameKo": "창 혼돈의 주문서",
-    "equipmentKind": "창",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0,
-      "weaponAttack": 0,
-      "magicAttack": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045019,
-    "nameKo": "총 혼돈의 주문서",
-    "equipmentKind": "총",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0,
-      "weaponAttack": 0,
-      "magicAttack": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045020,
-    "nameKo": "펜던트 혼돈의 주문서",
-    "equipmentKind": "펜던트",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045021,
-    "nameKo": "폴암 혼돈의 주문서",
-    "equipmentKind": "폴암",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0,
-      "weaponAttack": 0,
-      "magicAttack": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045022,
-    "nameKo": "하의 혼돈의 주문서",
-    "equipmentKind": "하의",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045023,
-    "nameKo": "한벌옷 혼돈의 주문서",
-    "equipmentKind": "한벌옷",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045024,
-    "nameKo": "한손검 혼돈의 주문서",
-    "equipmentKind": "한손검",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0,
-      "weaponAttack": 0,
-      "magicAttack": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045025,
-    "nameKo": "한손도끼 혼돈의 주문서",
-    "equipmentKind": "한손도끼",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0,
-      "weaponAttack": 0,
-      "magicAttack": 0
-    },
-    "targetItemId": null,
-    "maxApplications": null
-  },
-  {
-    "id": 2045026,
-    "nameKo": "한손둔기 혼돈의 주문서",
-    "equipmentKind": "한손둔기",
-    "behavior_type": "chaos",
-    "stats": {
-      "str": 0,
-      "dex": 0,
-      "int": 0,
-      "luk": 0,
-      "weaponDefense": 0,
-      "magicDefense": 0,
-      "accuracy": 0,
-      "avoidability": 0,
-      "speed": 0,
-      "jump": 0,
-      "maxHp": 0,
-      "maxMp": 0,
-      "weaponAttack": 0,
-      "magicAttack": 0
     },
     "targetItemId": null,
     "maxApplications": null
