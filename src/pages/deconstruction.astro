@@ -1122,8 +1122,11 @@ const buildStimulantBoundsEditor = () => {
   if (!(deconStimulantBoundsList instanceof HTMLElement)) return;
   deconStimulantBoundsList.replaceChildren();
   if (!selectedItem) return;
-  deconStimulantBoundsMap = {};
-  deconStimulantEnabledKeys = new Set();
+  const hasExisting = Object.keys(deconStimulantBoundsMap).length > 0;
+  if (!hasExisting) {
+    deconStimulantBoundsMap = {};
+    deconStimulantEnabledKeys = new Set();
+  }
   for (const key of deconStatKeys) {
     // Only show stats present on the clean base item with a value > 0.
     // User-added stats (via "+ 스탯 추가") are skipped — stimulant bounds
@@ -1136,10 +1139,12 @@ const buildStimulantBoundsEditor = () => {
     const stepSize = isHpMp ? 10 : 1;
     const defaultChecked = new Set(getCheckedTargetKeys()).has(key);
 
-    // Initialize bounds (only included in map when checked)
-    if (defaultChecked) {
+    // Initialize bounds (only included in map when checked).
+    // When restoring from session, preserve previously saved bounds
+    // so back-navigation does not wipe user customisations.
+    if (defaultChecked && !(key in deconStimulantBoundsMap)) {
       deconStimulantBoundsMap[key] = { min: 0, max: defaultLimit };
-      deconStimulantEnabledKeys.add(key);
+      if (!hasExisting) deconStimulantEnabledKeys.add(key);
     }
 
     const row = document.createElement('div');
@@ -1248,8 +1253,11 @@ const buildStimulantBoundsEditor = () => {
 const buildChaosBoundsEditor = () => {
   if (!(deconChaosBoundsList instanceof HTMLElement)) return;
   deconChaosBoundsList.replaceChildren();
-  deconChaosBoundsMap = {};
-  deconChaosEnabledKeys = new Set();
+  const hasExisting = Object.keys(deconChaosBoundsMap).length > 0;
+  if (!hasExisting) {
+    deconChaosBoundsMap = {};
+    deconChaosEnabledKeys = new Set();
+  }
   // Only show stats that have a target delta set (non-zero)
   const targetedKeys = deconStatKeys.filter((k) => deconDeltas[k] !== 0);
   const checkedTargetKeys = new Set(getCheckedTargetKeys());
@@ -1259,9 +1267,11 @@ const buildChaosBoundsEditor = () => {
     const stepSize = isHpMp ? 10 : 1;
     const defaultChecked = checkedTargetKeys.has(key);
 
-    if (defaultChecked) {
+    // Preserve restored bounds across back-navigation so user
+    // customisations are not reset when the editor is rebuilt.
+    if (defaultChecked && !(key in deconChaosBoundsMap)) {
       deconChaosBoundsMap[key] = { min: -defaultLimit, max: defaultLimit };
-      deconChaosEnabledKeys.add(key);
+      if (!hasExisting) deconChaosEnabledKeys.add(key);
     }
 
     const row = document.createElement('div');
@@ -2811,6 +2821,12 @@ const displayResults = (result, targetDeltas) => {
         gemFilter: deconGemFilter instanceof Set ? [...deconGemFilter] : null,
         levelUpTotalRanges: structuredClone(deconLevelUpTotalRanges),
         targetKeys: getCheckedTargetKeys(),
+        sourceChecked: {
+          scrolls: deconScrollSource instanceof HTMLInputElement ? deconScrollSource.checked : false,
+          stimulant: deconStimulantSource instanceof HTMLInputElement ? deconStimulantSource.checked : false,
+          gems: deconGemsSource instanceof HTMLInputElement ? deconGemsSource.checked : false,
+          itemLevelUp: deconItemLevelUpSource instanceof HTMLInputElement ? deconItemLevelUpSource.checked : false,
+        },
         result: window.__lastDeconResult ?? null,
         scrollPosition: window.scrollY,
       });
@@ -3237,7 +3253,14 @@ const tryRestoreDeconSession = () => {
   //    with item defaults (slot state, stat keys, source config).
   selectedItem = item;
   commitSuggestedItem(item, { syncFilters: false });
-  resetAllowedSources();
+  // Restore source checkboxes from saved session (instead of resetAllowedSources
+  // which would wipe the user's calc config).  The build editors preserve
+  // existing map entries so the restored bounds/keys survive the rebuild.
+  const restoreSources = saved.sourceChecked ?? {};
+  if (deconScrollSource instanceof HTMLInputElement) deconScrollSource.checked = restoreSources.scrolls ?? false;
+  if (deconStimulantSource instanceof HTMLInputElement) deconStimulantSource.checked = restoreSources.stimulant ?? false;
+  if (deconGemsSource instanceof HTMLInputElement) deconGemsSource.checked = restoreSources.gems ?? false;
+  if (deconItemLevelUpSource instanceof HTMLInputElement) deconItemLevelUpSource.checked = restoreSources.itemLevelUp ?? false;
   updateLevelUpSourceEligibility();
 
   // Restore search input text
@@ -3286,6 +3309,31 @@ const tryRestoreDeconSession = () => {
     const checkboxes = deconTargetChips.querySelectorAll('input[type="checkbox"]');
     checkboxes.forEach((cb) => {
       cb.checked = targetKeySet.has(cb.dataset.deconTargetKey);
+    });
+  }
+
+  // Re-open source sub-panels that were checked in the saved session.
+  // Because buildStimulantBoundsEditor / buildChaosBoundsEditor now
+  // preserve existing map entries, the restored bounds survive the rebuild.
+  if (restoreSources.scrolls) {
+    toggleSourceSub(deconScrollSource, deconScrollRateSub);
+  }
+  if (restoreSources.stimulant) {
+    toggleSourceSub(deconStimulantSource, deconStimulantBounds, () => {
+      buildStimulantBoundsEditor();
+      if (deconStimulantBounds instanceof HTMLElement) deconStimulantBounds.hidden = false;
+    });
+  }
+  if (restoreSources.gems) {
+    toggleSourceSub(deconGemsSource, deconGemSub, () => {
+      buildGemPreFilter();
+      if (deconGemSub instanceof HTMLElement) deconGemSub.hidden = false;
+    });
+  }
+  if (restoreSources.itemLevelUp) {
+    toggleSourceSub(deconItemLevelUpSource, deconLevelSlotRanges, () => {
+      buildLevelUpSlotEditors();
+      if (deconLevelSlotRanges instanceof HTMLElement) deconLevelSlotRanges.hidden = false;
     });
   }
 
@@ -4147,6 +4195,8 @@ aside.panel {
   position: absolute;
   opacity: 0;
   pointer-events: none;
+  width: 0;
+  height: 0;
 }
 :global(.ev-target-chip-label) {
   display: flex;

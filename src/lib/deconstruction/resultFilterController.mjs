@@ -533,6 +533,8 @@ export function createResultFilterController({ root, secondaryContainer }) {
     wrapper.className = 'decon-secondary-stimulant';
 
     for (const [key, fullRange] of statRange) {
+      // Skip stats whose effective range is 0 ~ 0 — no meaningful slider
+      if (fullRange.min === 0 && fullRange.max === 0) continue;
       const limit = HP_MP_KEYS.has(key) ? 50 : 5;
       const absMin = Math.max(-limit, fullRange.min);
       const absMax = Math.min(limit, fullRange.max);
@@ -627,6 +629,8 @@ export function createResultFilterController({ root, secondaryContainer }) {
     wrapper.className = 'decon-secondary-stimulant';
 
     for (const [key, fullRange] of statRange) {
+      // Skip stats whose effective range is 0 ~ 0 — no meaningful slider
+      if (fullRange.min === 0 && fullRange.max === 0) continue;
       const limit = HP_MP_KEYS.has(key) ? 50 : 5;
       const absMin = Math.max(-limit, fullRange.min);
       const absMax = Math.min(limit, fullRange.max);
