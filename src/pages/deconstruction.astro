@@ -516,14 +516,14 @@ let deconGemEligible = true; // whether selected item meets maker gem REQLEV thr
 let deconLevelUpTotalRanges = {};
 let deconAppliedLevelCount = 0;      // how many level-ups are already applied (0..maxLevelUps)
 
-const guardDeconMutation = (fn) => {
+const guardDeconMutation = (fn, onCancel) => {
   if (!deconHasActionableResults) { fn(); return; }
   showDeconConfirmDialog(() => {
     deconHasActionableResults = false;
     if (deconResultPlaceholder instanceof HTMLElement) deconResultPlaceholder.hidden = false;
     if (deconResultContent instanceof HTMLElement) deconResultContent.hidden = true;
     fn();
-  });
+  }, onCancel);
 };
 
 const STAT_PRIORITY = ['weaponAttack', 'magicAttack', 'str', 'dex', 'int', 'luk', 'maxHp', 'maxMp', 'weaponDefense', 'magicDefense', 'accuracy', 'avoidability', 'speed', 'jump'];
@@ -1227,7 +1227,7 @@ const buildStimulantBoundsEditor = () => {
     }
 
     checkbox.addEventListener('change', () => {
-      applyCheckboxState(checkbox.checked);
+      guardDeconMutation(() => applyCheckboxState(checkbox.checked));
     });
 
     const updateBounds = () => {
@@ -1352,14 +1352,13 @@ const buildChaosBoundsEditor = () => {
     }
 
     checkbox.addEventListener('change', () => {
-      applyCheckboxState(checkbox.checked);
+      guardDeconMutation(() => applyCheckboxState(checkbox.checked));
     });
 
     const updateBounds = () => {
       let mn = Number(minSlider.value);
       let mx = Number(maxSlider.value);
       if (mn > mx) [mn, mx] = [mx, mn];
-      deconChaosBoundsMap[key] = { min: mn, max: mx };
       minSlider.value = mn;
       maxSlider.value = mx;
       minVal.textContent = String(mn);
@@ -1367,8 +1366,30 @@ const buildChaosBoundsEditor = () => {
     };
     minSlider.addEventListener('input', updateBounds);
     maxSlider.addEventListener('input', updateBounds);
-    minSlider.addEventListener('change', () => { checkDeconStarState(); });
-    maxSlider.addEventListener('change', () => { checkDeconStarState(); });
+    minSlider.addEventListener('change', () => {
+      let mn = Number(minSlider.value);
+      let mx = Number(maxSlider.value);
+      if (mn > mx) [mn, mx] = [mx, mn];
+      const savedKey = key;
+      const savedBounds = deconChaosBoundsMap[savedKey]
+        ? { min: deconChaosBoundsMap[savedKey].min, max: deconChaosBoundsMap[savedKey].max }
+        : { min: 0, max: defaultLimit };
+      guardDeconMutation(() => {
+        deconChaosBoundsMap[savedKey] = { min: mn, max: mx };
+        minVal.textContent = String(mn);
+        maxVal.textContent = String(mx);
+        checkDeconStarState();
+      }, () => {
+        // User cancelled — revert display to saved bounds
+        minSlider.value = savedBounds.min;
+        maxSlider.value = savedBounds.max;
+        minVal.textContent = String(savedBounds.min);
+        maxVal.textContent = String(savedBounds.max);
+      });
+    });
+    maxSlider.addEventListener('change', () => {
+      // minSlider change handler already handles both sliders
+    });
 
     row.append(checkbox, label, chaosDualWrap, minVal, sep, maxVal);
     deconChaosBoundsList.append(row);
@@ -2329,7 +2350,10 @@ const confirmReplaceDeconSlot = (slotIndex, newState) => {
   });
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = '취소';
-  cancelBtn.addEventListener('click', () => overlay.remove());
+  cancelBtn.addEventListener('click', () => {
+    overlay.remove();
+    if (onCancel) onCancel();
+  });
   buttons.append(confirmBtn, cancelBtn);
   dialog.append(buttons);
   overlay.append(dialog);
@@ -2370,7 +2394,10 @@ const confirmDeleteDeconSlot = (slotIndex) => {
   });
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = '취소';
-  cancelBtn.addEventListener('click', () => overlay.remove());
+  cancelBtn.addEventListener('click', () => {
+    overlay.remove();
+    if (onCancel) onCancel();
+  });
   buttons.append(confirmBtn, cancelBtn);
   dialog.append(buttons);
   overlay.append(dialog);
@@ -2415,7 +2442,10 @@ const confirmUnsaveDeconSlot = () => {
   });
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = '취소';
-  cancelBtn.addEventListener('click', () => overlay.remove());
+  cancelBtn.addEventListener('click', () => {
+    overlay.remove();
+    if (onCancel) onCancel();
+  });
   buttons.append(confirmBtn, cancelBtn);
   dialog.append(buttons);
   overlay.append(dialog);
@@ -3153,7 +3183,7 @@ deconItemLevelUpSource?.addEventListener('change', () => {
 });
 
 // ---- Reset button ----
-const showDeconConfirmDialog = (onConfirm) => {
+const showDeconConfirmDialog = (onConfirm, onCancel) => {
   const overlay = document.createElement('div');
   overlay.className = 'decon-confirm-overlay';
 
@@ -3175,7 +3205,10 @@ const showDeconConfirmDialog = (onConfirm) => {
 
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = '취소';
-  cancelBtn.addEventListener('click', () => overlay.remove());
+  cancelBtn.addEventListener('click', () => {
+    overlay.remove();
+    if (onCancel) onCancel();
+  });
 
   buttonRow.append(confirmBtn, cancelBtn);
   dialog.append(msg, buttonRow);
@@ -3205,7 +3238,10 @@ const showDeconItemChangeDialog = (onConfirm) => {
 
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = '취소';
-  cancelBtn.addEventListener('click', () => overlay.remove());
+  cancelBtn.addEventListener('click', () => {
+    overlay.remove();
+    if (onCancel) onCancel();
+  });
 
   buttonRow.append(confirmBtn, cancelBtn);
   dialog.append(msg, buttonRow);
