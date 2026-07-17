@@ -83,33 +83,22 @@ function canChaosFillResidual(residual, chaosCount, targetKeys, chaosStatBounds,
     }
 
     const defaultRange = getChaosRange(key);
-    const hasBounds = chaosStatBounds != null;
-    const bounds = hasBounds ? chaosStatBounds[key] : undefined;
     // When explicit bounds are provided but this key is not in them,
     // the user has not enabled chaos for this stat → skip entirely.
     // The downstream aggregate-chaos builder will not include this key
     // in the chaos entry's stats; other sources must fill the residual.
-    if (hasBounds && !Object.hasOwn(chaosStatBounds, key)) {
+    if (chaosStatBounds && !Object.hasOwn(chaosStatBounds, key)) {
       continue;
     }
 
-    let min;
-    if (bounds && Number.isFinite(bounds.min)) {
-      min = Math.max(defaultRange.min, bounds.min);
-    } else if (hasBounds) {
-      min = 0;
-    } else {
-      min = defaultRange.min;
-    }
-
-    let max;
-    if (bounds && Number.isFinite(bounds.max)) {
-      max = Math.min(defaultRange.max, bounds.max);
-    } else if (hasBounds) {
-      max = 0;
-    } else {
-      max = defaultRange.max;
-    }
+    const bounds = chaosStatBounds?.[key];
+    const keyIsBounded = chaosStatBounds ? Object.hasOwn(chaosStatBounds, key) : false;
+    const min = bounds && Number.isFinite(bounds.min)
+      ? Math.max(defaultRange.min, bounds.min)
+      : keyIsBounded ? 0 : defaultRange.min;
+    const max = bounds && Number.isFinite(bounds.max)
+      ? Math.min(defaultRange.max, bounds.max)
+      : keyIsBounded ? 0 : defaultRange.max;
 
     const minPossible = chaosCount * min;
     const maxPossible = chaosCount * max;
