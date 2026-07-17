@@ -1227,7 +1227,11 @@ const buildStimulantBoundsEditor = () => {
     }
 
     checkbox.addEventListener('change', () => {
-      guardDeconMutation(() => applyCheckboxState(checkbox.checked));
+      const wasChecked = !checkbox.checked; // pre-click (change event already toggled native state)
+      guardDeconMutation(
+        () => applyCheckboxState(checkbox.checked),
+        () => { checkbox.checked = wasChecked; }
+      );
     });
 
     const updateBounds = () => {
@@ -1352,7 +1356,11 @@ const buildChaosBoundsEditor = () => {
     }
 
     checkbox.addEventListener('change', () => {
-      guardDeconMutation(() => applyCheckboxState(checkbox.checked));
+      const wasChecked = !checkbox.checked; // pre-click (change event already toggled native state)
+      guardDeconMutation(
+        () => applyCheckboxState(checkbox.checked),
+        () => { checkbox.checked = wasChecked; }
+      );
     });
 
     const updateBounds = () => {
