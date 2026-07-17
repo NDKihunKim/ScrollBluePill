@@ -49,16 +49,17 @@ test('button labels exist in source', () => {
   assert.match(panelSource, /계산 취소/);
 });
 
-test('target selection renders compact chips and skips zero-gain stats', async () => {
+test('target selection auto-derives targets from gains (no chip grid)', async () => {
   const indexSource = await readFile(new URL('../src/pages/expected-value.astro', import.meta.url), 'utf8');
 
-  assert.match(panelSource, /ev-target-chip-grid/);
-  assert.match(panelSource, /ev-target-chip/);
-  assert.match(panelSource, /ev-target-chip-label/);
-  assert.match(panelSource, /if \(!gain \|\| gain <= 0\) \{\s*continue;\s*\}/);
-  assert.match(indexSource, /:global\(\.ev-target-chip-grid\)\s*\{/);
-  assert.match(indexSource, /grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/);
-  assert.match(indexSource, /:global\(\.ev-target-chip input:checked \+ \.ev-target-chip-label\)/);
+  assert.match(panelSource, /ev-target-selection/);
+  assert.match(panelSource, /ev-target-header/);
+  assert.doesNotMatch(panelSource, /ev-target-chip-grid/);
+  assert.doesNotMatch(panelSource, /ev-target-chip-label/);
+  // Auto-derived getCheckedStats: all stats with positive gain are treated as checked
+  assert.match(panelSource, /result\[statKey\] = \(gains\[statKey\] \?\? 0\) > 0/);
+  // Simplified call site passes only gains
+  assert.match(indexSource, /createTargetSelectionUI\(gains\)/);
 });
 
 test('confirmation dialog uses global fixed overlay styles for dynamic body append', async () => {
