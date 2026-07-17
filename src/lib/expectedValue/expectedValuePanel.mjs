@@ -1,27 +1,11 @@
 import {
   ALL_TARGET_STAT_KEYS,
-  getDefaultCheckedStats,
 } from './targetExtraction.mjs';
-import { statLabelByKey } from '../scrollState.mjs';
 import {
   computeAttemptsForPercentile,
   computeCumulativeProbability,
 } from './monteCarloEngine.mjs';
 import { formatKoreanNumber, parseKoreanNumber } from '../formatKoreanNumber.mjs';
-
-function gradeColorToKoreanName(hex) {
-  if (!hex) return null;
-  const normalized = hex.toLowerCase();
-  if (normalized === '#ff3333') return '빨간색';
-  if (normalized === '#33cc33') return '초록색';
-  if (normalized === '#ffd700') return '노란색';
-  if (normalized === '#9933ff') return '보라색';
-  if (normalized === '#3366ff') return '파란색';
-  if (normalized === '#ff8c00') return '주황색';
-  if (normalized === '#ffffff') return '흰색';
-  if (normalized === '#9e9e9e') return '회색';
-  return null;
-}
 
 export {};
 
@@ -113,13 +97,15 @@ export function computeCountForTopPercent(successProbability, topPercent, prefer
 /**
  * Creates DOM elements for the target selection view.
  *
- * @param {Record<string, number>} cleanStats - Clean base item stats
- * @param {Record<string, number>} previewStats - Enhanced preview item stats
- * @param {number|null} previewGradeClass - The grade class value of the preview item
+ * All stats with positive enhancement gains are automatically treated as
+ * target conditions — no manual checkbox selection is required. The user
+ * only needs to click the start button to run the calculation.
+ *
  * @param {Record<string, number>} gains - Enhancement gains from computeEnhancementGains
- * @returns {{ container: HTMLElement, getCheckedStats: () => { [statKey: string]: boolean, grade: boolean }, getTrialCount: () => number, onStart: (fn: Function) => void, onCancel: (fn: Function) => void }}
+ * @param {{ showCancel?: boolean }} [options]
+ * @returns {{ container: HTMLElement, getCheckedStats: () => { [statKey: string]: boolean, grade: boolean }, onStart: (fn: Function) => void, onCancel: (fn: Function) => void }}
  */
-export function createTargetSelectionUI(cleanStats, previewStats, previewGradeClass, gains, { showCancel = false, preselected = null, gradeColor = null } = {}) {
+export function createTargetSelectionUI(gains, { showCancel = false } = {}) {
   const container = document.createElement('div');
   container.className = 'ev-target-selection';
 
@@ -128,53 +114,6 @@ export function createTargetSelectionUI(cleanStats, previewStats, previewGradeCl
   header.className = 'ev-target-header';
   header.textContent = '목표 조건 선택';
   container.appendChild(header);
-
-  const defaults = getDefaultCheckedStats(gains);
-  const defaultChecked = preselected
-    ? { ...defaults, ...preselected }
-    : defaults;
-  const checkboxes = {};
-
-  const chipGrid = document.createElement('div');
-  chipGrid.className = 'ev-target-chip-grid';
-  container.appendChild(chipGrid);
-
-  for (const statKey of ALL_TARGET_STAT_KEYS) {
-    const gain = gains[statKey];
-    if (!gain || gain <= 0) {
-      continue;
-    }
-
-    const label = document.createElement('label');
-    label.className = 'ev-target-chip';
-
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = defaultChecked[statKey];
-    checkbox.dataset.statKey = statKey;
-
-    const displayName = statLabelByKey[statKey] ?? statKey;
-    const chipLabel = document.createElement('span');
-    chipLabel.className = 'ev-target-chip-label';
-    chipLabel.textContent = `${displayName} +${gain} 이상`;
-    label.append(checkbox, chipLabel);
-
-    chipGrid.appendChild(label);
-    checkboxes[statKey] = checkbox;
-  }
-
-  const gradeLabel = document.createElement('label');
-  gradeLabel.className = 'ev-target-chip ev-target-grade';
-  const gradeCheckbox = document.createElement('input');
-  gradeCheckbox.type = 'checkbox';
-  gradeCheckbox.checked = defaultChecked.grade ?? false;
-  gradeCheckbox.dataset.statKey = 'grade';
-  const gradeChipLabel = document.createElement('span');
-  gradeChipLabel.className = 'ev-target-chip-label';
-  const gradeColorName = gradeColorToKoreanName(gradeColor);
-  gradeChipLabel.textContent = gradeColorName ? `등급 유지 (${gradeColorName})` : '등급 현재 이상';
-  gradeLabel.append(gradeCheckbox, gradeChipLabel);
-  chipGrid.appendChild(gradeLabel);
 
   // Buttons
   const buttonRow = document.createElement('div');
@@ -197,21 +136,17 @@ export function createTargetSelectionUI(cleanStats, previewStats, previewGradeCl
   container.appendChild(buttonRow);
 
   /**
-   * Returns the current checked state of all target stat checkboxes.
+   * Returns the auto-derived checked state for all target stats.
+   * Every stat in ALL_TARGET_STAT_KEYS with a positive gain is treated
+   * as checked. Grade is always unchecked. No user interaction needed.
    *
    * @returns {{ [statKey: string]: boolean, grade: boolean }}
    */
   function getCheckedStats() {
-    const result = { grade: gradeCheckbox.checked };
+    const result = { grade: false };
     for (const statKey of ALL_TARGET_STAT_KEYS) {
       if (statKey === 'grade') continue;
-      // Only include stats that have actual checkbox elements.
-	      // Stats with zero gain never render a checkbox, so omitting
-	      // them prevents stale all-false values from shadowing defaults
-	      // when preselected state is merged back in after a re-render.
-	      if (checkboxes[statKey]) {
-	        result[statKey] = checkboxes[statKey].checked;
-	      }
+      result[statKey] = (gains[statKey] ?? 0) > 0;
     }
     return result;
   }

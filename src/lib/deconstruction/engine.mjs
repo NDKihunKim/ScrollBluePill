@@ -83,16 +83,33 @@ function canChaosFillResidual(residual, chaosCount, targetKeys, chaosStatBounds,
     }
 
     const defaultRange = getChaosRange(key);
-    const bounds = chaosStatBounds?.[key];
+    const hasBounds = chaosStatBounds != null;
+    const bounds = hasBounds ? chaosStatBounds[key] : undefined;
     // When explicit bounds are provided but this key is not in them,
-    // the user has not enabled chaos for this stat → no contribution.
-    const keyIsBounded = chaosStatBounds ? Object.hasOwn(chaosStatBounds, key) : false;
-    const min = bounds && Number.isFinite(bounds.min)
-      ? Math.max(defaultRange.min, bounds.min)
-      : keyIsBounded ? 0 : defaultRange.min;
-    const max = bounds && Number.isFinite(bounds.max)
-      ? Math.min(defaultRange.max, bounds.max)
-      : keyIsBounded ? 0 : defaultRange.max;
+    // the user has not enabled chaos for this stat → skip entirely.
+    // The downstream aggregate-chaos builder will not include this key
+    // in the chaos entry's stats; other sources must fill the residual.
+    if (hasBounds && !Object.hasOwn(chaosStatBounds, key)) {
+      continue;
+    }
+
+    let min;
+    if (bounds && Number.isFinite(bounds.min)) {
+      min = Math.max(defaultRange.min, bounds.min);
+    } else if (hasBounds) {
+      min = 0;
+    } else {
+      min = defaultRange.min;
+    }
+
+    let max;
+    if (bounds && Number.isFinite(bounds.max)) {
+      max = Math.min(defaultRange.max, bounds.max);
+    } else if (hasBounds) {
+      max = 0;
+    } else {
+      max = defaultRange.max;
+    }
 
     const minPossible = chaosCount * min;
     const maxPossible = chaosCount * max;
@@ -174,8 +191,15 @@ function* enumerateExactCountScrollStates({
   if (hasChaosAvailable) {
     for (const k of targetKeys) {
       const dr = getChaosRange(k);
-      chaosMins[k] = chaosStatBounds?.[k]?.min ?? dr.min;
-      chaosMaxs[k] = chaosStatBounds?.[k]?.max ?? dr.max;
+      // When bounds are provided but this key is not in them, the user
+      // has deselected chaos for this stat → clamp contribution to 0.
+      if (chaosStatBounds && !Object.hasOwn(chaosStatBounds, k)) {
+        chaosMins[k] = 0;
+        chaosMaxs[k] = 0;
+      } else {
+        chaosMins[k] = chaosStatBounds?.[k]?.min ?? dr.min;
+        chaosMaxs[k] = chaosStatBounds?.[k]?.max ?? dr.max;
+      }
     }
   }
 
@@ -234,25 +258,35 @@ function* enumerateExactCountScrollStates({
 
     // Terminal chaos check: can remaining slots be filled by chaos?
     if (hasChaosAvailable && remainingSlots > 0) {
-      const residual = {};
+      const fullResidual = {};
       for (const k of targetKeys) {
-        residual[k] = (targetDeltas[k] ?? 0) - (currentStats[k] || 0);
+        fullResidual[k] = (targetDeltas[k] ?? 0) - (currentStats[k] || 0);
       }
 
-      if (canChaosFillResidual(residual, remainingSlots, targetKeys, chaosStatBounds,
+      if (canChaosFillResidual(fullResidual, remainingSlots, targetKeys, chaosStatBounds,
           new Set(targetKeys.filter((k) =>
             (cleanStats && Number.isFinite(cleanStats[k]) && cleanStats[k] > 0)
             || (currentStats[k] || 0) !== 0)))) {
+        // When chaos bounds are provided, only include bounded keys in the
+        // aggregate chaos entry and the allStats sum. Non-bounded keys were
+        // skipped by canChaosFillResidual and must be filled by other sources.
+        const chaosStats = {};
+        for (const k of targetKeys) {
+          if (!chaosStatBounds || Object.hasOwn(chaosStatBounds, k)) {
+            chaosStats[k] = fullResidual[k] || 0;
+          }
+        }
+
         // Yield a strategy with fixed scrolls + aggregate chaos
         const chaosEntry = buildAggregateChaosEntry({
           representativeScroll: chaosScrolls[0],
           count: remainingSlots,
-          totalStats: residual,
+          totalStats: chaosStats,
         });
         const allScrolls = [...chosen, chaosEntry];
         const allStats = { ...currentStats };
         for (const k of targetKeys) {
-          allStats[k] = (allStats[k] || 0) + (residual[k] || 0);
+          allStats[k] = (allStats[k] || 0) + (chaosStats[k] || 0);
         }
         yield {
           scrolls: allScrolls,

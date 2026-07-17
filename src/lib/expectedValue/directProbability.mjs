@@ -56,7 +56,7 @@ function singleScrollProbability(scroll, statFilter) {
   }
 
   if (scroll.behavior_type === 'chaos') {
-    return chaosScrollProbability(scroll, statFilter);
+    return chaosScrollProbability(scroll);
   }
 
   return fixedScrollProbability(scroll);
@@ -65,11 +65,15 @@ function singleScrollProbability(scroll, statFilter) {
 /**
  * Compute the probability of a chaos scroll producing its exact specified stats.
  *
+ * Every explicitly-specified stat delta in the scroll contributes to the
+ * probability product. No per-stat filtering is applied — the caller is
+ * responsible for deciding whether this scroll is relevant at all (see
+ * singleScrollProbability for the scroll-level statFilter gate).
+ *
  * @param {object} scroll - Chaos scroll entry
- * @param {Set<string>|null} statFilter - Stat key filter
  * @returns {number}
  */
-function chaosScrollProbability(scroll, statFilter) {
+function chaosScrollProbability(scroll) {
   const successRate = Number.isFinite(scroll.success_rate)
     ? scroll.success_rate
     : CHAOS_SUCCESS_RATE;
@@ -78,9 +82,6 @@ function chaosScrollProbability(scroll, statFilter) {
   const stats = scroll.stats ?? {};
 
   for (const [key, storedValue] of Object.entries(stats)) {
-    // Skip stats not in the filter (if filter is active)
-    if (statFilter && statFilter.size > 0 && !statFilter.has(key)) continue;
-
     if (!Number.isFinite(storedValue)) continue;
 
     let delta;
