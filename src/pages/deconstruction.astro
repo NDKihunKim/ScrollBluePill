@@ -1227,18 +1227,18 @@ const buildStimulantBoundsEditor = () => {
     }
 
     checkbox.addEventListener('change', () => {
-      const wasChecked = !checkbox.checked; // pre-click (change event already toggled native state)
-      guardDeconMutation(
-        () => applyCheckboxState(checkbox.checked),
-        () => { checkbox.checked = wasChecked; }
-      );
+      const nextChecked = checkbox.checked;
+      checkbox.checked = !nextChecked; // revert immediately, re-apply on confirm
+      guardDeconMutation(() => {
+        checkbox.checked = nextChecked;
+        applyCheckboxState(nextChecked);
+      });
     });
 
     const updateBounds = () => {
       let mn = Number(minSlider.value);
       let mx = Number(maxSlider.value);
       if (mn > mx) [mn, mx] = [mx, mn];
-      deconStimulantBoundsMap[key] = { min: mn, max: mx };
       minSlider.value = mn;
       maxSlider.value = mx;
       minVal.textContent = String(mn);
@@ -1246,8 +1246,28 @@ const buildStimulantBoundsEditor = () => {
     };
     minSlider.addEventListener('input', updateBounds);
     maxSlider.addEventListener('input', updateBounds);
-    minSlider.addEventListener('change', () => { checkDeconStarState(); });
-    maxSlider.addEventListener('change', () => { checkDeconStarState(); });
+    minSlider.addEventListener('change', () => {
+      let mn = Number(minSlider.value);
+      let mx = Number(maxSlider.value);
+      if (mn > mx) [mn, mx] = [mx, mn];
+      const savedBounds = deconStimulantBoundsMap[key]
+        ? { min: deconStimulantBoundsMap[key].min, max: deconStimulantBoundsMap[key].max }
+        : { min: 0, max: defaultLimit };
+      guardDeconMutation(() => {
+        deconStimulantBoundsMap[key] = { min: mn, max: mx };
+        minVal.textContent = String(mn);
+        maxVal.textContent = String(mx);
+        checkDeconStarState();
+      }, () => {
+        minSlider.value = savedBounds.min;
+        maxSlider.value = savedBounds.max;
+        minVal.textContent = String(savedBounds.min);
+        maxVal.textContent = String(savedBounds.max);
+      });
+    });
+    maxSlider.addEventListener('change', () => {
+      // minSlider change handler already handles both sliders
+    });
 
     row.append(checkbox, label, dualWrap, minVal, sep, maxVal);
     deconStimulantBoundsList.append(row);
@@ -1356,11 +1376,12 @@ const buildChaosBoundsEditor = () => {
     }
 
     checkbox.addEventListener('change', () => {
-      const wasChecked = !checkbox.checked; // pre-click (change event already toggled native state)
-      guardDeconMutation(
-        () => applyCheckboxState(checkbox.checked),
-        () => { checkbox.checked = wasChecked; }
-      );
+      const nextChecked = checkbox.checked;
+      checkbox.checked = !nextChecked; // revert immediately, re-apply on confirm
+      guardDeconMutation(() => {
+        checkbox.checked = nextChecked;
+        applyCheckboxState(nextChecked);
+      });
     });
 
     const updateBounds = () => {
@@ -1441,7 +1462,7 @@ const buildGemPreFilter = () => {
   selectAllBtn.type = 'button';
   selectAllBtn.className = 'decon-gem-action-btn';
   selectAllBtn.textContent = '전체 선택';
-  selectAllBtn.addEventListener('click', () => {
+  selectAllBtn.addEventListener('click', () => guardDeconMutation(() => {
     if (currentGradeGem) {
       // In grade view: select all grades of current gem only
       for (let gi = 0; gi < GEM_GRADES.length; gi++) {
@@ -1460,14 +1481,14 @@ const buildGemPreFilter = () => {
       renderCategories();
 	      checkDeconStarState();
     }
-  });
+  }));
   actions.append(selectAllBtn);
 
   const deselectAllBtn = document.createElement('button');
   deselectAllBtn.type = 'button';
   deselectAllBtn.className = 'decon-gem-action-btn';
   deselectAllBtn.textContent = '전체 해제';
-  deselectAllBtn.addEventListener('click', () => {
+  deselectAllBtn.addEventListener('click', () => guardDeconMutation(() => {
     if (currentGradeGem) {
       // In grade view: deselect all grades of current gem only
       for (let gi = 0; gi < GEM_GRADES.length; gi++) {
@@ -1486,7 +1507,7 @@ const buildGemPreFilter = () => {
       }
       renderCategories();
     }
-  });
+  }));
   actions.append(deselectAllBtn);
 
   topRow.append(actions);
@@ -1739,33 +1760,51 @@ const buildLevelUpSlotEditors = () => {
     minSlider.addEventListener('input', () => {
       const val = Number(minSlider.value);
       minVal.textContent = String(val);
-      // Enforce min ≤ max
+      // Enforce min ≤ max — visual feedback only, commit on change
       const clamped = Math.min(val, deconLevelUpTotalRanges[key].max);
-      deconLevelUpTotalRanges[key] = { ...deconLevelUpTotalRanges[key], min: clamped };
+      minSlider.value = clamped;
     });
     minSlider.addEventListener('change', () => {
       const val = Number(minSlider.value);
       const clamped = Math.min(val, deconLevelUpTotalRanges[key].max);
-      deconLevelUpTotalRanges[key] = { ...deconLevelUpTotalRanges[key], min: clamped };
-      minSlider.value = clamped;
-      minVal.textContent = String(clamped);
-      checkDeconStarState();
+      const savedBounds = deconLevelUpTotalRanges[key]
+        ? { ...deconLevelUpTotalRanges[key] }
+        : { min: 0, max: 0 };
+      guardDeconMutation(() => {
+        deconLevelUpTotalRanges[key] = { ...deconLevelUpTotalRanges[key], min: clamped };
+        minSlider.value = clamped;
+        minVal.textContent = String(clamped);
+        checkDeconStarState();
+      }, () => {
+        // User cancelled — revert display
+        minSlider.value = savedBounds.min;
+        minVal.textContent = String(savedBounds.min);
+      });
     });
 
     maxSlider.addEventListener('input', () => {
       const val = Number(maxSlider.value);
       maxVal.textContent = String(val);
-      // Enforce max ≥ min
+      // Enforce max ≥ min — visual feedback only, commit on change
       const clamped = Math.max(val, deconLevelUpTotalRanges[key].min);
-      deconLevelUpTotalRanges[key] = { ...deconLevelUpTotalRanges[key], max: clamped };
+      maxSlider.value = clamped;
     });
     maxSlider.addEventListener('change', () => {
       const val = Number(maxSlider.value);
       const clamped = Math.max(val, deconLevelUpTotalRanges[key].min);
-      deconLevelUpTotalRanges[key] = { ...deconLevelUpTotalRanges[key], max: clamped };
-      maxSlider.value = clamped;
-      maxVal.textContent = String(clamped);
-      checkDeconStarState();
+      const savedBounds = deconLevelUpTotalRanges[key]
+        ? { ...deconLevelUpTotalRanges[key] }
+        : { min: 0, max: 0 };
+      guardDeconMutation(() => {
+        deconLevelUpTotalRanges[key] = { ...deconLevelUpTotalRanges[key], max: clamped };
+        maxSlider.value = clamped;
+        maxVal.textContent = String(clamped);
+        checkDeconStarState();
+      }, () => {
+        // User cancelled — revert display
+        maxSlider.value = savedBounds.max;
+        maxVal.textContent = String(savedBounds.max);
+      });
     });
 
     row.append(dualWrap, minVal, sep, maxVal);
