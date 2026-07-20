@@ -346,11 +346,15 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	import { readSlots, saveToSlot, clearSlot, findMatchingSlot, MAX_SLOTS } from '../lib/itemSlotStore.mjs';
 
 	import { computeEnhancementGains, getDefaultCheckedStats, extractTargetConditions } from '../lib/expectedValue/targetExtraction.mjs';
-	import { createTargetSelectionUI, createResultUI, createResultMutationGuard, PLACEHOLDER_TEXT, NO_STRATEGY_TEXT, CONFIRM_TEXT, CONFIRM_BUTTON_TEXT, CANCEL_BUTTON_TEXT, STALE_LABEL } from '../lib/expectedValue/expectedValuePanel.mjs';
+	import { createTargetSelectionUI, createResultUI, createResultMutationGuard, PLACEHOLDER_TEXT, NO_STRATEGY_TEXT, STALE_LABEL } from '../lib/expectedValue/expectedValuePanel.mjs';
 	import { computeDirectOutcomeProbability, canUseExactOutcome } from '../lib/expectedValue/directProbability.mjs';
 	import { computeExactProbability } from '../lib/expectedValue/exactEngine.mjs';
 	import { createResultSummary } from '../lib/expectedValue/resultFormatter.mjs';
 import { consumeDeconTransfer, buildEnhancementStateFromStrategy } from '../lib/deconToEvTransfer.mjs';
+import { requirementRows, statRows, jobKindByRequiredJob, weaponAttackSpeedBySubCategory, formatRequiredJobs, createItemLine, resolveAttackSpeed, formatStatValue } from '../lib/ui/itemCardHelpers.mjs';
+import { getSelectedJobKinds, itemMatchesSelectedJobs } from '../lib/ui/itemSearchHelpers.mjs';
+import { buildEvPageState, checkEvStarState, renderEvSlotBar, showEvSavePicker, confirmReplaceEvSlot, confirmDeleteEvSlot, confirmUnsaveEvSlot } from '../lib/expectedValue/slotBarUI.mjs';
+import { showEvConfirmationDialog } from '../lib/expectedValue/dialogs.mjs';
 	const form = document.querySelector('[data-calculator-input]');
 	const itemNameSearch = form?.querySelector('[data-item-name-search]');
 	const itemNameInput = form?.querySelector('[data-item-name-input]');
@@ -446,78 +450,6 @@ import { consumeDeconTransfer, buildEnhancementStateFromStrategy } from '../lib/
 		);
 	};
 
-	const requirementRows = [
-		['REQLEV', 'requiredLevel'],
-		['REQSTR', 'str'],
-		['REQDEX', 'dex'],
-		['REQINT', 'int'],
-		['REQLUK', 'luk'],
-		['REQPOP', 'pop'],
-	];
-	const statRows = [
-		['공격속도', 'attackSpeed'],
-		['STR', 'str'],
-		['DEX', 'dex'],
-		['INT', 'int'],
-		['LUK', 'luk'],
-		['최대HP', 'maxHp'],
-		['최대MP', 'maxMp'],
-		['공격력', 'weaponAttack'],
-		['마력', 'magicAttack'],
-		['물리방어력', 'weaponDefense'],
-		['마법방어력', 'magicDefense'],
-		['명중률', 'accuracy'],
-		['회피율', 'avoidability'],
-		['이동속도', 'speed'],
-		['점프력', 'jump'],
-		['업그레이드 가능 횟수', 'upgradeSlots'],
-	];
-	const jobKindByRequiredJob = {
-		Beginner: '초보자',
-			Warrior: '전사',
-		Magician: '마법사',
-		Bowman: '궁수',
-		Thief: '도적',
-		Pirate: '해적',
-	};
-
-			const formatRequiredJobs = (requiredJobs = []) => {
-					const allJobs = ['초보자', '전사', '마법사', '궁수', '도적', '해적'];
-					const equippableSet = new Set(
-						(requiredJobs ?? []).length === 0 || (requiredJobs ?? []).includes('Beginner')
-							? allJobs
-							: requiredJobs.map((job) => jobKindByRequiredJob[job]).filter(Boolean),
-					);
-
-					const row = document.createElement('div');
-					row.className = 'selected-item-jobs-row';
-
-					allJobs.forEach((job) => {
-						const chip = document.createElement('span');
-						chip.className = 'job-chip';
-						chip.textContent = job;
-						if (!equippableSet.has(job)) {
-							chip.classList.add('job-chip--inactive');
-						}
-						row.append(chip);
-					});
-
-					return row;
-				};
-
-	const createItemLine = (label, value, className = '') => {
-		const row = document.createElement('div');
-		row.className = `selected-item-line ${className}`.trim();
-
-		const labelElement = document.createElement('span');
-		labelElement.textContent = label;
-
-		const valueElement = document.createElement('strong');
-		valueElement.textContent = String(value);
-
-		row.append(labelElement, document.createTextNode(' : '), valueElement);
-		return row;
-	};
 
 	const appendItemLevelUpCardMeta = (meta) => {
 		if (!(selectedItemRequirements instanceof HTMLElement) || !meta) {
@@ -528,54 +460,6 @@ import { consumeDeconTransfer, buildEnhancementStateFromStrategy } from '../lib/
 		selectedItemRequirements.append(createItemLine('ITEM EXP', meta.itemExp, 'selected-item-line--item-level'));
 	};
 
-	const weaponAttackSpeedBySubCategory = {
-			'One-Handed Sword': 5,
-			'Two-Handed Sword': 6,
-			'One-Handed Axe': 5,
-			'Two-Handed Axe': 6,
-			'One-Handed Blunt Weapon': 5,
-			'Two-Handed Blunt': 6,
-			Spear: 7,
-			'Pole Arm': 8,
-			Wand: 6,
-			Staff: 8,
-			Bow: 6,
-			Crossbow: 6,
-			Claw: 4,
-			Dagger: 4,
-			Knuckle: 5,
-			Gun: 5,
-		};
-
-		const resolveAttackSpeed = (item) => {
-			if (Number.isFinite(item.stats?.attackSpeed)) {
-				return item.stats.attackSpeed;
-			}
-
-			return weaponAttackSpeedBySubCategory[item.typeInfo?.subCategory] ?? null;
-		};
-
-		const formatStatValue = (key, value) => {
-			if (key === 'attackSpeed') {
-				const speedLabelByValue = {
-					2: '매우 빠름',
-					3: '빠름',
-					4: '빠름',
-					5: '빠름',
-					6: '보통',
-					7: '느림',
-					8: '느림',
-					9: '매우 느림',
-				};
-				return speedLabelByValue[value] ?? '속도 정보 없음';
-			}
-
-			if (key === 'upgradeSlots' || value <= 0) {
-				return value;
-			}
-
-			return `+${value}`;
-		};
 
 		const formatStatBreakdownValue = (key, breakdown) => {
 			if (!breakdown || !Number.isFinite(breakdown.total)) {
@@ -835,28 +719,7 @@ import { consumeDeconTransfer, buildEnhancementStateFromStrategy } from '../lib/
 		if (evCardWrapper instanceof HTMLElement) evCardWrapper.hidden = false;
 	};
 
-	const getSelectedJobKinds = () =>
-			new Set(
-				[...(jobInputs ?? [])]
-					.filter((input) => input instanceof HTMLInputElement && input.checked)
-					.map((input) => input.value),
-			);
-
-		const itemMatchesSelectedJobs = (item, selectedJobs) => {
-			if (selectedJobs.size === 0) {
-				return false;
-			}
-
-			const requiredJobs = item.requiredJobs ?? [];
-			const hasOnlyBeginner = requiredJobs.length === 1 && requiredJobs[0] === 'Beginner';
-			if (requiredJobs.length === 0 || hasOnlyBeginner) {
-				return true;
-			}
-
-			return requiredJobs.some((job) => selectedJobs.has(jobKindByRequiredJob[job]));
-		};
-
-		const getManualFilteredItems = () => {
+	const getManualFilteredItems = () => {
 			if (!(equipmentInput instanceof HTMLInputElement)) {
 				return [];
 			}
@@ -865,7 +728,7 @@ import { consumeDeconTransfer, buildEnhancementStateFromStrategy } from '../lib/
 				return [];
 			}
 
-			const selectedJobs = getSelectedJobKinds();
+			const selectedJobs = getSelectedJobKinds(jobInputs);
 			const levelRange =
 				levelMinInput instanceof HTMLInputElement && levelMaxInput instanceof HTMLInputElement
 					? normalizeItemLevelRange(levelMinInput.value, levelMaxInput.value)
@@ -1211,7 +1074,7 @@ import { consumeDeconTransfer, buildEnhancementStateFromStrategy } from '../lib/
 			}
 
 			renderItemSuggestions();
-			renderEvSlotBar();
+			renderEvSlots();
 
 			// Check for incoming strategy transfer from deconstruction page
 			const transferPayload = consumeDeconTransfer();
@@ -1322,7 +1185,7 @@ window.__evRefresh = ({ showStale = true } = {}) => {
 	    evResultUI.showStale();
 	  }
 	  openCalcPanel();
-	  checkEvStarState();
+	  checkStarState();
 	};
 
 	// Initial button state
@@ -1337,43 +1200,12 @@ window.__evRefresh = ({ showStale = true } = {}) => {
 	  }
 	  evResultUI = null;
 	  evResultSummary = null;
-	  checkEvStarState();
+	  checkStarState();
 	};
 		// Exposed for enhancementPanel reset — fully clears EV results
 		window.__evClear = showEvPlaceholder;
 
 	/** Show a confirmation dialog overlay. Calls onConfirm if user confirms. */
-	const showEvConfirmationDialog = (onConfirm, { message = CONFIRM_TEXT, confirmLabel = CONFIRM_BUTTON_TEXT } = {}) => {
-	  const overlay = document.createElement('div');
-	  overlay.className = 'ev-confirm-overlay';
-
-	  const dialog = document.createElement('div');
-	  dialog.className = 'ev-confirm-dialog';
-
-	  const msg = document.createElement('p');
-	  msg.textContent = message;
-
-	  const buttonRow = document.createElement('div');
-	  buttonRow.className = 'ev-confirm-buttons';
-
-	  const confirmBtn = document.createElement('button');
-	  confirmBtn.textContent = confirmLabel;
-	  confirmBtn.addEventListener('click', () => {
-	    overlay.remove();
-	    onConfirm();
-	  });
-
-	  const cancelBtn = document.createElement('button');
-	  cancelBtn.textContent = CANCEL_BUTTON_TEXT;
-	  cancelBtn.addEventListener('click', () => {
-	    overlay.remove();
-	  });
-
-	  buttonRow.append(confirmBtn, cancelBtn);
-	  dialog.append(msg, buttonRow);
-	  overlay.append(dialog);
-	  document.body.append(overlay);
-	};
 
 	window.__evGuardEnhancementMutation = createResultMutationGuard({
 	  hasResult: () => evResultUI !== null,
@@ -1574,216 +1406,15 @@ window.__evRefresh = ({ showStale = true } = {}) => {
 		// The button is rendered by createTargetSelectionUI and wired via onStart in openCalcPanel.
 
 	// ---- Save slot helpers (EV-specific) ----
-	const buildEvPageState = () => {
-	  const evState = window.__evState?.();
-	  if (!evState?.selectedBaseItem) return null;
-	  return {
-	    itemId: evState.selectedBaseItem.id,
-	    enhancementState: evState.enhancementState,
-	  };
-	};
 
-	const checkEvStarState = () => {
-	  if (!(evStar instanceof HTMLElement)) return;
-	  const state = buildEvPageState();
-	  if (!state) {
-	    evStar.textContent = '☆';
-	    evStar.classList.remove('item-card-star--saved');
-	    return;
-	  }
-	  const match = findMatchingSlot('expectedValue', state);
-	  if (match >= 0) {
-	    evStar.textContent = '★';
-	    evStar.classList.add('item-card-star--saved');
-	  } else {
-	    evStar.textContent = '☆';
-	    evStar.classList.remove('item-card-star--saved');
-	  }
-	};
 
-	const renderEvSlotBar = () => {
-	  if (!(evSlotBar instanceof HTMLElement)) return;
-	  const slots = readSlots('expectedValue');
-	  evSlotBar.replaceChildren();
-	  for (let i = 0; i < MAX_SLOTS; i++) {
-	    const s = slots[i];
-	    const box = document.createElement('div');
-	    box.className = s ? 'item-slot item-slot--filled' : 'item-slot item-slot--empty';
-	    if (s) {
-	      const icon = document.createElement('img');
-	      icon.src = buildItemIconUrl(s.item.iconId);
-	      icon.alt = s.item.nameKo;
-	      box.append(icon);
-	      box.title = s.item.nameKo;
-	      box.addEventListener('click', () => loadEvSlot(i));
 
-	      const xBtn = document.createElement('button');
-	      xBtn.type = 'button';
-	      xBtn.className = 'item-slot-x';
-	      xBtn.textContent = '×';
-	      xBtn.addEventListener('click', (e) => { e.stopPropagation(); confirmDeleteEvSlot(i); });
-	      box.append(xBtn);
-	    }
-	    evSlotBar.append(box);
-	  }
-	};
+	// ---- Wrappers for extracted slot bar functions ----
+	const refreshEvSlots = () => { renderEvSlots(); checkStarState(); };
+	const renderEvSlots = () => renderEvSlotBar({ evSlotBar, readSlots, MAX_SLOTS, buildItemIconUrl, onLoadSlot: loadEvSlot, onDeleteSlot: (i) => confirmDeleteEvSlot({ slotIndex: i, readSlots, clearSlot, buildItemIconUrl, onSlotChanged: refreshEvSlots }) });
+	const checkStarState = () => checkEvStarState({ evStar, buildPageState: buildEvPageState, findMatchingSlot });
 
-	renderEvSlotBar();
-
-	const showEvSavePicker = () => {
-	  const evState = window.__evState?.();
-	  const selectedItem = evState?.selectedBaseItem;
-	  if (!selectedItem) return;
-	  const state = buildEvPageState();
-	  if (!state) return;
-
-	  const slots = readSlots('expectedValue');
-	  const overlay = document.createElement('div');
-	  overlay.className = 'slot-picker-overlay';
-
-	  const dialog = document.createElement('div');
-	  dialog.className = 'slot-picker-dialog';
-
-	  const title = document.createElement('h3');
-	  title.textContent = '저장할 슬롯 선택';
-	  dialog.append(title);
-
-	  const grid = document.createElement('div');
-	  grid.className = 'slot-picker-grid';
-
-	  for (let i = 0; i < MAX_SLOTS; i++) {
-	    const s = slots[i];
-	    const cell = document.createElement('div');
-	    cell.className = s ? 'slot-picker-slot slot-picker-slot--filled' : 'slot-picker-slot slot-picker-slot--empty';
-	    if (s) {
-	      const icon = document.createElement('img');
-	      icon.src = buildItemIconUrl(s.item.iconId);
-	      icon.alt = s.item.nameKo;
-	      cell.append(icon);
-	      const name = document.createElement('span');
-	      name.className = 'slot-picker-slot-name';
-	      name.textContent = s.item.nameKo;
-	      cell.append(name);
-	      cell.addEventListener('click', () => {
-	        overlay.remove();
-	        confirmReplaceEvSlot(i, state);
-	      });
-	    } else {
-	      cell.textContent = '빈 슬롯';
-	      cell.addEventListener('click', () => {
-	        saveToSlot('expectedValue', i, selectedItem, state);
-	        overlay.remove();
-	        renderEvSlotBar();
-	        checkEvStarState();
-	      });
-	    }
-	    grid.append(cell);
-	  }
-	  dialog.append(grid);
-
-	  const closeBtn = document.createElement('button');
-	  closeBtn.type = 'button';
-	  closeBtn.className = 'slot-picker-close';
-	  closeBtn.textContent = '취소';
-	  closeBtn.addEventListener('click', () => overlay.remove());
-	  dialog.append(closeBtn);
-
-	  overlay.append(dialog);
-	  document.body.append(overlay);
-	};
-
-	const confirmReplaceEvSlot = (slotIndex, newState) => {
-	  const evState = window.__evState?.();
-	  const selectedItem = evState?.selectedBaseItem;
-	  if (!selectedItem) return;
-
-	  const slots = readSlots('expectedValue');
-	  const existing = slots[slotIndex];
-	  if (!existing) return;
-
-	  const overlay = document.createElement('div');
-	  overlay.className = 'slot-picker-overlay';
-	  const dialog = document.createElement('div');
-	  dialog.className = 'slot-picker-dialog';
-	  dialog.style.maxWidth = '500px';
-
-	  const msg = document.createElement('p');
-	  msg.textContent = '기존 저장된 아이템을 덮어쓰시겠습니까?';
-	  dialog.append(msg);
-
-	  const cards = document.createElement('div');
-	  cards.className = 'replace-confirm-cards';
-
-	  const existingCard = document.createElement('div');
-	  existingCard.className = 'replace-confirm-card';
-	  existingCard.innerHTML = '<h4>기존 저장</h4><img src="' + buildItemIconUrl(existing.item.iconId) + '" alt=""><div class="item-name">' + existing.item.nameKo + '</div>';
-	  cards.append(existingCard);
-
-	  const newCard = document.createElement('div');
-	  newCard.className = 'replace-confirm-card';
-	  newCard.innerHTML = '<h4>새로 저장</h4><img src="' + buildItemIconUrl(selectedItem.id) + '" alt=""><div class="item-name">' + selectedItem.nameKo + '</div>';
-	  cards.append(newCard);
-	  dialog.append(cards);
-
-	  const buttons = document.createElement('div');
-	  buttons.className = 'replace-confirm-buttons';
-	  const confirmBtn = document.createElement('button');
-	  confirmBtn.textContent = '덮어쓰기';
-	  confirmBtn.addEventListener('click', () => {
-	    saveToSlot('expectedValue', slotIndex, selectedItem, newState);
-	    overlay.remove();
-	    renderEvSlotBar();
-	    checkEvStarState();
-	  });
-	  const cancelBtn = document.createElement('button');
-	  cancelBtn.textContent = '취소';
-	  cancelBtn.addEventListener('click', () => overlay.remove());
-	  buttons.append(confirmBtn, cancelBtn);
-	  dialog.append(buttons);
-	  overlay.append(dialog);
-	  document.body.append(overlay);
-	};
-
-	const confirmDeleteEvSlot = (slotIndex) => {
-	  const slots = readSlots('expectedValue');
-	  const s = slots[slotIndex];
-	  if (!s) return;
-
-	  const overlay = document.createElement('div');
-	  overlay.className = 'slot-picker-overlay';
-	  const dialog = document.createElement('div');
-	  dialog.className = 'slot-picker-dialog';
-
-	  const msg = document.createElement('p');
-	  msg.textContent = '저장된 아이템을 삭제하시겠습니까?';
-	  dialog.append(msg);
-
-	  const card = document.createElement('div');
-	  card.className = 'replace-confirm-card';
-	  card.innerHTML = '<img src="' + buildItemIconUrl(s.item.iconId) + '" alt=""><div class="item-name">' + s.item.nameKo + '</div>';
-	  dialog.append(card);
-
-	  const buttons = document.createElement('div');
-	  buttons.className = 'replace-confirm-buttons';
-	  const confirmBtn = document.createElement('button');
-	  confirmBtn.textContent = '삭제';
-	  confirmBtn.style.background = '#e74c3c';
-	  confirmBtn.style.borderColor = '#e74c3c';
-	  confirmBtn.style.color = '#fff';
-	  confirmBtn.addEventListener('click', () => {
-	    clearSlot('expectedValue', slotIndex);
-	    overlay.remove();
-	    renderEvSlotBar();
-	    checkEvStarState();
-	  });
-	  const cancelBtn = document.createElement('button');
-	  cancelBtn.textContent = '취소';
-	  cancelBtn.addEventListener('click', () => overlay.remove());
-	  buttons.append(confirmBtn, cancelBtn);
-	  dialog.append(buttons);
-	  overlay.append(dialog);
-	  document.body.append(overlay);
-	};
+	renderEvSlots();
 
 	const loadEvSlot = (slotIndex) => {
 	  const slots = readSlots('expectedValue');
@@ -1804,8 +1435,8 @@ window.__evRefresh = ({ showStale = true } = {}) => {
 	      // Fallback: re-activate panel with the saved item
 	      window.activatePanel2(item);
 	    }
-	    renderEvSlotBar();
-	    checkEvStarState();
+	    renderEvSlots();
+	    checkStarState();
 	  };
 
 	  if (typeof window.__evGuardEnhancementMutation === 'function') {
@@ -1833,58 +1464,14 @@ window.__evRefresh = ({ showStale = true } = {}) => {
 	};
 
 	// ---- Unsave confirmation (mirrors deconstruction page) ----
-	const confirmUnsaveEvSlot = () => {
-	  const state = buildEvPageState();
-	  if (!state) return;
-	  const slotIndex = findMatchingSlot('expectedValue', state);
-	  if (slotIndex < 0) return;
-	  const slots = readSlots('expectedValue');
-	  const s = slots[slotIndex];
-	  if (!s) return;
-
-	  const overlay = document.createElement('div');
-	  overlay.className = 'decon-confirm-overlay';
-	  const dialog = document.createElement('div');
-	  dialog.className = 'decon-confirm-dialog';
-
-	  const msg = document.createElement('p');
-	  msg.textContent = '이 설정은 슬롯에 저장되어 있습니다. 저장을 해제하시겠습니까?';
-	  dialog.append(msg);
-
-	  const card = document.createElement('div');
-	  card.className = 'replace-confirm-card';
-	  card.innerHTML = '<img src="' + buildItemIconUrl(s.item.iconId) + '" alt=""><div class="item-name">' + s.item.nameKo + '</div>';
-	  dialog.append(card);
-
-	  const buttons = document.createElement('div');
-	  buttons.className = 'replace-confirm-buttons';
-	  const confirmBtn = document.createElement('button');
-	  confirmBtn.textContent = '해제';
-	  confirmBtn.style.background = '#e74c3c';
-	  confirmBtn.style.borderColor = '#e74c3c';
-	  confirmBtn.style.color = '#fff';
-	  confirmBtn.addEventListener('click', () => {
-	    clearSlot('expectedValue', slotIndex);
-	    overlay.remove();
-	    renderEvSlotBar();
-	    checkEvStarState();
-	  });
-	  const cancelBtn = document.createElement('button');
-	  cancelBtn.textContent = '취소';
-	  cancelBtn.addEventListener('click', () => overlay.remove());
-	  buttons.append(confirmBtn, cancelBtn);
-	  dialog.append(buttons);
-	  overlay.append(dialog);
-	  document.body.append(overlay);
-	};
 
 	// ---- Wire star button click ----
 	if (evStar instanceof HTMLElement) {
 	  evStar.addEventListener('click', () => {
 	    if (evStar.classList.contains('item-card-star--saved')) {
-	      confirmUnsaveEvSlot();
+	      confirmUnsaveEvSlot({ buildPageState: buildEvPageState, findMatchingSlot, readSlots, clearSlot, buildItemIconUrl, onSlotChanged: refreshEvSlots });
 	    } else {
-	      showEvSavePicker();
+	      showEvSavePicker({ buildPageState: buildEvPageState, readSlots, saveToSlot, MAX_SLOTS, buildItemIconUrl, onSlotChanged: refreshEvSlots });
 	    }
 	  });
 	}
