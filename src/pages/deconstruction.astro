@@ -1822,9 +1822,12 @@ const displayResults = (result, targetDeltas) => {
     transferLink.className = 'decon-ev-transfer-btn';
     transferLink.textContent = '기대값 계산으로 보내기';
 
-    transferLink.addEventListener('mousedown', () => {
+    // Write the transfer payload before navigation.  We hook both
+    // mousedown (fires first for mouse users) and click (fires for
+    // keyboard Enter, touch taps, and as a safety net).  The first
+    // call writes the payload; the second is a no-op overwrite.
+    const writeTransferPayload = () => {
       if (!selectedItem) return;
-
       const totalAppliedScrolls = deconSlotState.successfulScrollCount
         + inferFailedScrollCount(deconSlotState);
       writeDeconTransfer(strategy, selectedItem.id, { totalAppliedScrolls });
@@ -1857,13 +1860,20 @@ const displayResults = (result, targetDeltas) => {
         result: window.__lastDeconResult ?? null,
         scrollPosition: window.scrollY,
       });
-    });
+    };
+
+    transferLink.addEventListener('mousedown', writeTransferPayload);
 
     transferLink.addEventListener('click', (e) => {
       if (!selectedItem) {
         e.preventDefault();
         return;
       }
+      // Belt-and-suspenders: also write on click in case mousedown
+      // didn't fire (keyboard Enter, touch, etc.).  Writing twice is
+      // harmless — the second write simply overwrites with the same data.
+      writeTransferPayload();
+
       // Unmodified left-click: navigate in the same tab
       if (!e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) {
         e.preventDefault();
