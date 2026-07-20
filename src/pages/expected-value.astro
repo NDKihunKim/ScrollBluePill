@@ -1409,13 +1409,6 @@ window.__evRefresh = ({ showStale = true } = {}) => {
 
 
 
-	// ---- Wrappers for extracted slot bar functions ----
-	const refreshEvSlots = () => { renderEvSlots(); checkStarState(); };
-	const renderEvSlots = () => renderEvSlotBar({ evSlotBar, readSlots, MAX_SLOTS, buildItemIconUrl, onLoadSlot: loadEvSlot, onDeleteSlot: (i) => confirmDeleteEvSlot({ slotIndex: i, readSlots, clearSlot, buildItemIconUrl, onSlotChanged: refreshEvSlots }) });
-	const checkStarState = () => checkEvStarState({ evStar, buildPageState: buildEvPageState, findMatchingSlot });
-
-	renderEvSlots();
-
 	const loadEvSlot = (slotIndex) => {
 	  const slots = readSlots('expectedValue');
 	  const s = slots[slotIndex];
@@ -1445,6 +1438,14 @@ window.__evRefresh = ({ showStale = true } = {}) => {
 	    applyLoad();
 	  }
 	};
+
+	// ---- Wrappers for extracted slot bar functions ----
+	const refreshEvSlots = () => { renderEvSlots(); checkStarState(); };
+	const renderEvSlots = () => renderEvSlotBar({ evSlotBar, readSlots, MAX_SLOTS, buildItemIconUrl, onLoadSlot: loadEvSlot, onDeleteSlot: (i) => confirmDeleteEvSlot({ slotIndex: i, readSlots, clearSlot, buildItemIconUrl, onSlotChanged: refreshEvSlots }) });
+	const checkStarState = () => checkEvStarState({ evStar, buildPageState: buildEvPageState, findMatchingSlot });
+
+	renderEvSlots();
+
 
 	// ---- State setter for loading saved slots ----
 	window.__evSetState = (storedEnhancementState, storedItem) => {
