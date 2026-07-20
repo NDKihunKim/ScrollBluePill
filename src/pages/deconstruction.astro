@@ -366,6 +366,15 @@ import {
 import { readSlots, saveToSlot, clearSlot, findMatchingSlot, MAX_SLOTS } from '../lib/itemSlotStore.mjs';
 import { writeDeconTransfer } from '../lib/deconToEvTransfer.mjs';
 import { saveDeconSession, loadDeconSession, clearDeconSession } from '../lib/deconSessionState.mjs';
+import { STAT_PRIORITY, statLabelByKey, CORE_STATS, STAT_ORDER } from '../lib/deconstruction/displayHelpers.mjs';
+import { requirementRows, statRows, jobKindByRequiredJob, weaponAttackSpeedBySubCategory, formatRequiredJobs, createItemLine, resolveAttackSpeed, formatStatValue } from '../lib/ui/itemCardHelpers.mjs';
+import { getSelectedJobKinds, itemMatchesSelectedJobs } from '../lib/ui/itemSearchHelpers.mjs';
+import { showDeconConfirmDialog, showResetConfirmDialog, showDeconItemChangeDialog, showDeconSavePicker, confirmReplaceDeconSlot, confirmDeleteDeconSlot, confirmUnsaveDeconSlot } from '../lib/deconstruction/dialogs.mjs';
+import { buildDeconPageState, checkDeconStarState, renderDeconSlotBar } from '../lib/deconstruction/slotBarUI.mjs';
+import { buildStimulantBoundsEditor } from '../lib/deconstruction/stimulantBoundsEditor.mjs';
+import { buildChaosBoundsEditor } from '../lib/deconstruction/chaosBoundsEditor.mjs';
+import { buildGemPreFilter } from '../lib/deconstruction/gemPreFilterUI.mjs';
+import { buildLevelUpSlotEditors } from '../lib/deconstruction/levelUpSlotEditors.mjs';
 
 // ---- Helpers ----
 
@@ -518,7 +527,7 @@ let deconAppliedLevelCount = 0;      // how many level-ups are already applied (
 
 const guardDeconMutation = (fn, onCancel) => {
   if (!deconHasActionableResults) { fn(); return; }
-  showDeconConfirmDialog(() => {
+  showResetConfirmDialog(() => {
     deconHasActionableResults = false;
     if (deconResultPlaceholder instanceof HTMLElement) deconResultPlaceholder.hidden = false;
     if (deconResultContent instanceof HTMLElement) deconResultContent.hidden = true;
@@ -526,15 +535,6 @@ const guardDeconMutation = (fn, onCancel) => {
   }, onCancel);
 };
 
-const STAT_PRIORITY = ['weaponAttack', 'magicAttack', 'str', 'dex', 'int', 'luk', 'maxHp', 'maxMp', 'weaponDefense', 'magicDefense', 'accuracy', 'avoidability', 'speed', 'jump'];
-
-const statLabelByKey = {
-  weaponAttack: '공격력', magicAttack: '마력', str: 'STR', dex: 'DEX', int: 'INT', luk: 'LUK',
-  maxHp: '최대HP', maxMp: '최대MP', weaponDefense: '물리방어력', magicDefense: '마법방어력',
-  accuracy: '명중률', avoidability: '회피율', speed: '이동속도', jump: '점프력',
-};
-
-const CORE_STATS = new Set(['str', 'dex', 'int', 'luk', 'weaponAttack', 'magicAttack']);
 
 const getAllowedSources = () => resolveAllowedSources(
   {
@@ -679,121 +679,6 @@ const renderTargetChips = () => {
   updateAnalyzeButton();
 };
 
-// ---- Requirement/Stat row definitions (copied from expected-value.astro) ----
-const requirementRows = [
-  ['REQLEV', 'requiredLevel'],
-  ['REQSTR', 'str'],
-  ['REQDEX', 'dex'],
-  ['REQINT', 'int'],
-  ['REQLUK', 'luk'],
-  ['REQPOP', 'pop'],
-];
-const deconStatRows = [
-  ['공격속도', 'attackSpeed'],
-  ['STR', 'str'],
-  ['DEX', 'dex'],
-  ['INT', 'int'],
-  ['LUK', 'luk'],
-  ['공격력', 'weaponAttack'],
-  ['마력', 'magicAttack'],
-  ['최대HP', 'maxHp'],
-  ['최대MP', 'maxMp'],
-  ['물리방어력', 'weaponDefense'],
-  ['마법방어력', 'magicDefense'],
-  ['명중률', 'accuracy'],
-  ['회피율', 'avoidability'],
-  ['이동속도', 'speed'],
-  ['점프력', 'jump'],
-  ['업그레이드 가능 횟수', 'upgradeSlots'],
-];
-const jobKindByRequiredJob = {
-  Beginner: '초보자',
-  Warrior: '전사',
-  Magician: '마법사',
-  Bowman: '궁수',
-  Thief: '도적',
-  Pirate: '해적',
-};
-
-const weaponAttackSpeedBySubCategory = {
-  'One-Handed Sword': 5,
-  'Two-Handed Sword': 6,
-  'One-Handed Axe': 5,
-  'Two-Handed Axe': 6,
-  'One-Handed Blunt Weapon': 5,
-  'Two-Handed Blunt': 6,
-  Spear: 7,
-  'Pole Arm': 8,
-  Wand: 6,
-  Staff: 8,
-  Bow: 6,
-  Crossbow: 6,
-  Claw: 4,
-  Dagger: 4,
-  Knuckle: 5,
-  Gun: 5,
-};
-
-// ---- Utility functions (copied from expected-value.astro) ----
-const formatRequiredJobs = (requiredJobs = []) => {
-  const allJobs = ['초보자', '전사', '마법사', '궁수', '도적', '해적'];
-  const equippableSet = new Set(
-    (requiredJobs ?? []).length === 0 || (requiredJobs ?? []).includes('Beginner')
-      ? allJobs
-      : requiredJobs.map((job) => jobKindByRequiredJob[job]).filter(Boolean),
-  );
-
-  const row = document.createElement('div');
-  row.className = 'selected-item-jobs-row';
-  allJobs.forEach((job) => {
-    const chip = document.createElement('span');
-    chip.className = 'job-chip';
-    chip.textContent = job;
-    if (!equippableSet.has(job)) {
-      chip.classList.add('job-chip--inactive');
-    }
-    row.append(chip);
-  });
-  return row;
-};
-
-const createItemLine = (label, value, className = '') => {
-  const row = document.createElement('div');
-  row.className = `selected-item-line ${className}`.trim();
-  const labelElement = document.createElement('span');
-  labelElement.textContent = label;
-  const valueElement = document.createElement('strong');
-  valueElement.textContent = String(value);
-  row.append(labelElement, document.createTextNode(' : '), valueElement);
-  return row;
-};
-
-const resolveAttackSpeed = (item) => {
-  if (Number.isFinite(item.stats?.attackSpeed)) {
-    return item.stats.attackSpeed;
-  }
-  return weaponAttackSpeedBySubCategory[item.typeInfo?.subCategory] ?? null;
-};
-
-const formatStatValue = (key, value) => {
-  if (key === 'attackSpeed') {
-    const speedLabelByValue = {
-      2: '매우 빠름',
-      3: '빠름',
-      4: '빠름',
-      5: '빠름',
-      6: '보통',
-      7: '느림',
-      8: '느림',
-      9: '매우 느림',
-    };
-    return speedLabelByValue[value] ?? '속도 정보 없음';
-  }
-  if (key === 'upgradeSlots' || value <= 0) {
-    return value;
-  }
-  return `+${value}`;
-};
 
 // ---- Render item card with deconstruction deltas ----
 const renderTargetItemCard = (item) => {
@@ -842,7 +727,7 @@ const renderTargetItemCard = (item) => {
     );
   }
 
-  deconStatRows.forEach(([label, key]) => {
+  statRows.forEach(([label, key]) => {
     if (key === 'attackSpeed') {
       const base = resolveAttackSpeed(item);
       if (Number.isFinite(base)) {
@@ -885,7 +770,7 @@ const renderTargetItemCard = (item) => {
   const resetBtn = document.querySelector('[data-enhancement-reset]');
   if (resetBtn instanceof HTMLElement) resetBtn.hidden = false;
 
-  checkDeconStarState();
+  checkStarState();
 };
 
 const updateTargetCard = () => {
@@ -929,7 +814,6 @@ const computeDeconGrade = () => {
 };
 
 // ---- Stat editor ----
-const STAT_ORDER = ['str','dex','int','luk','weaponAttack','magicAttack','maxHp','maxMp','weaponDefense','magicDefense','accuracy','avoidability','speed','jump','attackSpeed','upgradeSlots'];
 
 const equalizeGroupLabels = (container, labelSelector) => {
   if (!(container instanceof HTMLElement)) return;
@@ -1049,7 +933,7 @@ const rebuildStatEditor = () => {
   populateAddStatList();
   renderTargetChips();
   updateTargetCard();
-  checkDeconStarState();
+  checkStarState();
 };
 
 const populateAddStatList = () => {
@@ -1099,7 +983,7 @@ const setStatDelta = (key, value, { skipGuard = false } = {}) => {
     updateAnalyzeButton();
     updateTargetCard();
     renderTargetChips();
-	    checkDeconStarState();
+	    checkStarState();
   };
   if (skipGuard) { apply(); } else { guardDeconMutation(apply); }
 };
@@ -1118,702 +1002,38 @@ const updateAnalyzeButton = () => {
   deconAnalyzeBtn.disabled = checkedCount === 0 || sourceValidationMessage !== '';
 };
 
-const buildStimulantBoundsEditor = () => {
-  if (!(deconStimulantBoundsList instanceof HTMLElement)) return;
-  deconStimulantBoundsList.replaceChildren();
-  if (!selectedItem) return;
-  const hasExisting = Object.keys(deconStimulantBoundsMap).length > 0;
-  if (!hasExisting) {
-    deconStimulantBoundsMap = {};
-    deconStimulantEnabledKeys = new Set();
-  }
-  for (const key of deconStatKeys) {
-    // Only show stats present on the clean base item with a value > 0.
-    // User-added stats (via "+ 스탯 추가") are skipped — stimulant bounds
-    // should not apply to stats the item doesn't naturally have.
-    const baseVal = selectedItem?.stats?.[key];
-    if (!Number.isFinite(baseVal) || baseVal <= 0) continue;
-
-    const isHpMp = HP_MP_KEYS.has(key);
-    const defaultLimit = isHpMp ? 50 : 5;
-    const stepSize = isHpMp ? 10 : 1;
-    const defaultChecked = new Set(getCheckedTargetKeys()).has(key);
-
-    // Initialize bounds (only included in map when checked).
-    // When restoring from session, preserve previously saved bounds
-    // so back-navigation does not wipe user customisations.
-    if (defaultChecked && !(key in deconStimulantBoundsMap)) {
-      deconStimulantBoundsMap[key] = { min: 0, max: defaultLimit };
-      if (!hasExisting) deconStimulantEnabledKeys.add(key);
-    }
-
-    const row = document.createElement('div');
-    row.className = 'decon-secondary-stimulant-row';
-
-    // Checkbox — enable/disable this stat
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.className = 'decon-stimulant-checkbox';
-    checkbox.checked = defaultChecked;
-
-    const label = document.createElement('span');
-    label.className = 'decon-secondary-stimulant-stat';
-    label.textContent = statLabelByKey[key] || key;
-
-    const minVal = document.createElement('span');
-    minVal.className = 'decon-secondary-stimulant-value';
-    minVal.textContent = '0';
-
-    const sep = document.createElement('span');
-    sep.className = 'decon-secondary-stimulant-sep';
-    sep.textContent = '~';
-
-    const maxVal = document.createElement('span');
-    maxVal.className = 'decon-secondary-stimulant-value';
-    maxVal.textContent = String(defaultLimit);
-
-    // Dual-range slider (two thumbs overlaid on one track)
-    const dualWrap = document.createElement('span');
-    dualWrap.className = 'dual-range';
-
-    const minSlider = document.createElement('input');
-    minSlider.type = 'range';
-    minSlider.min = -defaultLimit;
-    minSlider.max = defaultLimit;
-    minSlider.step = stepSize;
-    minSlider.value = 0;
-    minSlider.disabled = !defaultChecked;
-
-    const maxSlider = document.createElement('input');
-    maxSlider.type = 'range';
-    maxSlider.min = -defaultLimit;
-    maxSlider.max = defaultLimit;
-    maxSlider.step = stepSize;
-    maxSlider.value = defaultLimit;
-    maxSlider.disabled = !defaultChecked;
-
-    dualWrap.append(minSlider, maxSlider);
-
-    const applyCheckboxState = (checked) => {
-      minSlider.disabled = !checked;
-      maxSlider.disabled = !checked;
-      if (checked) {
-        // Restore last-known values or use defaults
-        const restored = deconStimulantShadow[key];
-        const mn = restored ? restored.min : 0;
-        const mx = restored ? restored.max : defaultLimit;
-        minSlider.value = mn;
-        maxSlider.value = mx;
-        minVal.textContent = String(mn);
-        maxVal.textContent = String(mx);
-        deconStimulantBoundsMap[key] = { min: mn, max: mx };
-        deconStimulantEnabledKeys.add(key);
-        delete deconStimulantShadow[key];
-        row.classList.remove('decon-secondary-stimulant-row--disabled');
-      } else {
-        // Save current values to shadow, remove from bounds
-        const mn = Number(minSlider.value);
-        const mx = Number(maxSlider.value);
-        deconStimulantShadow[key] = { min: mn, max: mx };
-        delete deconStimulantBoundsMap[key];
-        deconStimulantEnabledKeys.delete(key);
-        row.classList.add('decon-secondary-stimulant-row--disabled');
-      }
-      checkDeconStarState();
-    };
-
-    if (!defaultChecked) {
-      row.classList.add('decon-secondary-stimulant-row--disabled');
-    }
-
-    checkbox.addEventListener('change', () => {
-      const nextChecked = checkbox.checked;
-      checkbox.checked = !nextChecked; // revert immediately, re-apply on confirm
-      guardDeconMutation(() => {
-        checkbox.checked = nextChecked;
-        applyCheckboxState(nextChecked);
-      });
-    });
-
-    const updateBounds = () => {
-      let mn = Number(minSlider.value);
-      let mx = Number(maxSlider.value);
-      if (mn > mx) [mn, mx] = [mx, mn];
-      minSlider.value = mn;
-      maxSlider.value = mx;
-      minVal.textContent = String(mn);
-      maxVal.textContent = String(mx);
-    };
-    minSlider.addEventListener('input', updateBounds);
-    maxSlider.addEventListener('input', updateBounds);
-    minSlider.addEventListener('change', () => {
-      let mn = Number(minSlider.value);
-      let mx = Number(maxSlider.value);
-      if (mn > mx) [mn, mx] = [mx, mn];
-      const savedBounds = deconStimulantBoundsMap[key]
-        ? { min: deconStimulantBoundsMap[key].min, max: deconStimulantBoundsMap[key].max }
-        : { min: 0, max: defaultLimit };
-      guardDeconMutation(() => {
-        deconStimulantBoundsMap[key] = { min: mn, max: mx };
-        minVal.textContent = String(mn);
-        maxVal.textContent = String(mx);
-        checkDeconStarState();
-      }, () => {
-        minSlider.value = savedBounds.min;
-        maxSlider.value = savedBounds.max;
-        minVal.textContent = String(savedBounds.min);
-        maxVal.textContent = String(savedBounds.max);
-      });
-    });
-    maxSlider.addEventListener('change', () => {
-      // minSlider change handler already handles both sliders
-    });
-
-    row.append(checkbox, label, dualWrap, minVal, sep, maxVal);
-    deconStimulantBoundsList.append(row);
-  }
-};
-
-const buildChaosBoundsEditor = () => {
-  if (!(deconChaosBoundsList instanceof HTMLElement)) return;
-  deconChaosBoundsList.replaceChildren();
-  const hasExisting = Object.keys(deconChaosBoundsMap).length > 0;
-  if (!hasExisting) {
-    deconChaosBoundsMap = {};
-    deconChaosEnabledKeys = new Set();
-  }
-  // Only show stats that have a target delta set (non-zero)
-  const targetedKeys = deconStatKeys.filter((k) => deconDeltas[k] !== 0);
-  const checkedTargetKeys = new Set(getCheckedTargetKeys());
-  for (const key of targetedKeys) {
-    const isHpMp = HP_MP_KEYS.has(key);
-    const defaultLimit = isHpMp ? 50 : 5;
-    const stepSize = isHpMp ? 10 : 1;
-    const defaultChecked = checkedTargetKeys.has(key);
-
-    // Preserve restored bounds across back-navigation so user
-    // customisations are not reset when the editor is rebuilt.
-    if (defaultChecked && !(key in deconChaosBoundsMap)) {
-      deconChaosBoundsMap[key] = { min: -defaultLimit, max: defaultLimit };
-      if (!hasExisting) deconChaosEnabledKeys.add(key);
-    }
-
-    const row = document.createElement('div');
-    row.className = 'decon-secondary-stimulant-row';
-
-    // Checkbox — enable/disable this stat
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.className = 'decon-stimulant-checkbox';
-    checkbox.checked = defaultChecked;
-
-    const label = document.createElement('span');
-    label.className = 'decon-secondary-stimulant-stat';
-    label.textContent = statLabelByKey[key] || key;
-
-    // Dual-range slider (two thumbs overlaid on one track)
-    const chaosDualWrap = document.createElement('span');
-    chaosDualWrap.className = 'decon-chaos-dual-range';
-
-    const minSlider = document.createElement('input');
-    minSlider.type = 'range';
-    minSlider.min = -defaultLimit;
-    minSlider.max = defaultLimit;
-    minSlider.step = stepSize;
-    minSlider.value = 0;
-    minSlider.disabled = !defaultChecked;
-
-    const maxSlider = document.createElement('input');
-    maxSlider.type = 'range';
-    maxSlider.min = -defaultLimit;
-    maxSlider.max = defaultLimit;
-    maxSlider.step = stepSize;
-    maxSlider.value = defaultLimit;
-    maxSlider.disabled = !defaultChecked;
-
-    chaosDualWrap.append(minSlider, maxSlider);
-
-    const minVal = document.createElement('span');
-    minVal.className = 'decon-secondary-stimulant-value';
-    minVal.textContent = '0';
-
-    const sep = document.createElement('span');
-    sep.className = 'decon-secondary-stimulant-sep';
-    sep.textContent = '~';
-
-    const maxVal = document.createElement('span');
-    maxVal.className = 'decon-secondary-stimulant-value';
-    maxVal.textContent = String(defaultLimit);
-
-    const applyCheckboxState = (checked) => {
-      minSlider.disabled = !checked;
-      maxSlider.disabled = !checked;
-      if (checked) {
-        const restored = deconChaosShadow[key];
-        const mn = restored ? restored.min : -defaultLimit;
-        const mx = restored ? restored.max : defaultLimit;
-        minSlider.value = mn;
-        maxSlider.value = mx;
-        minVal.textContent = String(mn);
-        maxVal.textContent = String(mx);
-        deconChaosBoundsMap[key] = { min: mn, max: mx };
-        deconChaosEnabledKeys.add(key);
-        delete deconChaosShadow[key];
-        row.classList.remove('decon-secondary-stimulant-row--disabled');
-      } else {
-        const mn = Number(minSlider.value);
-        const mx = Number(maxSlider.value);
-        deconChaosShadow[key] = { min: mn, max: mx };
-        delete deconChaosBoundsMap[key];
-        deconChaosEnabledKeys.delete(key);
-        row.classList.add('decon-secondary-stimulant-row--disabled');
-      }
-      checkDeconStarState();
-    };
-
-    if (!defaultChecked) {
-      row.classList.add('decon-secondary-stimulant-row--disabled');
-    }
-
-    checkbox.addEventListener('change', () => {
-      const nextChecked = checkbox.checked;
-      checkbox.checked = !nextChecked; // revert immediately, re-apply on confirm
-      guardDeconMutation(() => {
-        checkbox.checked = nextChecked;
-        applyCheckboxState(nextChecked);
-      });
-    });
-
-    const updateBounds = () => {
-      let mn = Number(minSlider.value);
-      let mx = Number(maxSlider.value);
-      if (mn > mx) [mn, mx] = [mx, mn];
-      minSlider.value = mn;
-      maxSlider.value = mx;
-      minVal.textContent = String(mn);
-      maxVal.textContent = String(mx);
-    };
-    minSlider.addEventListener('input', updateBounds);
-    maxSlider.addEventListener('input', updateBounds);
-    minSlider.addEventListener('change', () => {
-      let mn = Number(minSlider.value);
-      let mx = Number(maxSlider.value);
-      if (mn > mx) [mn, mx] = [mx, mn];
-      const savedKey = key;
-      const savedBounds = deconChaosBoundsMap[savedKey]
-        ? { min: deconChaosBoundsMap[savedKey].min, max: deconChaosBoundsMap[savedKey].max }
-        : { min: 0, max: defaultLimit };
-      guardDeconMutation(() => {
-        deconChaosBoundsMap[savedKey] = { min: mn, max: mx };
-        minVal.textContent = String(mn);
-        maxVal.textContent = String(mx);
-        checkDeconStarState();
-      }, () => {
-        // User cancelled — revert display to saved bounds
-        minSlider.value = savedBounds.min;
-        maxSlider.value = savedBounds.max;
-        minVal.textContent = String(savedBounds.min);
-        maxVal.textContent = String(savedBounds.max);
-      });
-    });
-    maxSlider.addEventListener('change', () => {
-      // minSlider change handler already handles both sliders
-    });
-
-    row.append(checkbox, label, chaosDualWrap, minVal, sep, maxVal);
-    deconChaosBoundsList.append(row);
-  }
-};
-
-const buildGemPreFilter = () => {
-  if (!(deconGemSub instanceof HTMLElement)) return;
-  if (!selectedItem) return;
-
-  const equipmentKind = selectedItem.equipmentKind;
-
-  // Initialize filter with all gems/grades if null
+// ---- Wrappers for extracted UI builder functions ----
+const buildStimulantBounds = () => buildStimulantBoundsEditor({
+  container: deconStimulantBoundsList, selectedItem, deconStatKeys,
+  boundsMap: deconStimulantBoundsMap, enabledKeys: deconStimulantEnabledKeys, shadow: deconStimulantShadow,
+  statLabelByKey, HP_MP_KEYS, getCheckedTargetKeys, guardMutation: guardDeconMutation, onStateChange: checkStarState,
+});
+const buildChaosBounds = () => buildChaosBoundsEditor({
+  container: deconChaosBoundsList, selectedItem, deconStatKeys, deconDeltas,
+  boundsMap: deconChaosBoundsMap, enabledKeys: deconChaosEnabledKeys, shadow: deconChaosShadow,
+  statLabelByKey, HP_MP_KEYS, getCheckedTargetKeys, guardMutation: guardDeconMutation, onStateChange: checkStarState,
+});
+const buildGemFilter = () => {
   if (deconGemFilter === null) {
     deconGemFilter = new Set();
     for (const gem of GEM_TYPES) {
-      if (gem.weaponOnly && !isWeaponKind(equipmentKind)) continue;
+      if (gem.weaponOnly && !isWeaponKind(selectedItem?.equipmentKind)) continue;
       for (let gi = 0; gi < GEM_GRADES.length; gi++) {
         deconGemFilter.add(`${gem.key}:${gi}`);
       }
     }
   }
-
-  // ---- persistent header (stays when navigating to grade view) ----
-  deconGemSub.replaceChildren();
-
-  const topRow = document.createElement('div');
-  topRow.className = 'decon-gem-top-row';
-
-  const label = document.createElement('p');
-  label.className = 'decon-gem-picker-label';
-  label.textContent = '보석 종류 선택';
-  topRow.append(label);
-
-  const actions = document.createElement('div');
-  actions.className = 'decon-gem-actions';
-
-  let currentGradeGem = null; // set when viewing a specific gem's grades
-
-  const selectAllBtn = document.createElement('button');
-  selectAllBtn.type = 'button';
-  selectAllBtn.className = 'decon-gem-action-btn';
-  selectAllBtn.textContent = '전체 선택';
-  selectAllBtn.addEventListener('click', () => guardDeconMutation(() => {
-    if (currentGradeGem) {
-      // In grade view: select all grades of current gem only
-      for (let gi = 0; gi < GEM_GRADES.length; gi++) {
-        deconGemFilter.add(`${currentGradeGem.key}:${gi}`);
-      }
-      renderGrades(currentGradeGem);
-	      checkDeconStarState();
-    } else {
-      // In category view: select all gems and grades
-      for (const g of GEM_TYPES) {
-        if (g.weaponOnly && !isWeaponKind(equipmentKind)) continue;
-        for (let gi = 0; gi < GEM_GRADES.length; gi++) {
-          deconGemFilter.add(`${g.key}:${gi}`);
-        }
-      }
-      renderCategories();
-	      checkDeconStarState();
-    }
-  }));
-  actions.append(selectAllBtn);
-
-  const deselectAllBtn = document.createElement('button');
-  deselectAllBtn.type = 'button';
-  deselectAllBtn.className = 'decon-gem-action-btn';
-  deselectAllBtn.textContent = '전체 해제';
-  deselectAllBtn.addEventListener('click', () => guardDeconMutation(() => {
-    if (currentGradeGem) {
-      // In grade view: deselect all grades of current gem only
-      for (let gi = 0; gi < GEM_GRADES.length; gi++) {
-        deconGemFilter.delete(`${currentGradeGem.key}:${gi}`);
-      }
-	      checkDeconStarState();
-      renderGrades(currentGradeGem);
-    } else {
-      // In category view: deselect all gems and grades
-      for (const g of GEM_TYPES) {
-        if (g.weaponOnly && !isWeaponKind(equipmentKind)) continue;
-        for (let gi = 0; gi < GEM_GRADES.length; gi++) {
-          deconGemFilter.delete(`${g.key}:${gi}`);
-        }
-	      checkDeconStarState();
-      }
-      renderCategories();
-    }
-  }));
-  actions.append(deselectAllBtn);
-
-  topRow.append(actions);
-  deconGemSub.append(topRow);
-
-  // ---- replaceable content area ----
-  const contentArea = document.createElement('div');
-  contentArea.className = 'decon-gem-content';
-  deconGemSub.append(contentArea);
-
-  const renderCategories = () => {
-    currentGradeGem = null;
-    contentArea.replaceChildren();
-
-    const grid = document.createElement('div');
-    grid.className = 'decon-gem-grid';
-
-    for (const gem of GEM_TYPES) {
-      if (gem.weaponOnly && !isWeaponKind(equipmentKind)) continue;
-
-      const card = document.createElement('button');
-      card.type = 'button';
-      card.className = 'decon-gem-category';
-
-      // Highlight if at least one grade is selected
-      let hasSelectedGrade = false;
-      for (let gi = 0; gi < GEM_GRADES.length; gi++) {
-        if (deconGemFilter.has(`${gem.key}:${gi}`)) {
-          hasSelectedGrade = true;
-          break;
-        }
-      }
-      if (hasSelectedGrade) card.classList.add('decon-gem-category--selected');
-
-      const baseId = GEM_ITEM_IDS[gem.key]?.base;
-      if (baseId) {
-        const icon = document.createElement('img');
-        icon.src = buildItemIconUrl(baseId);
-        icon.alt = '';
-        icon.loading = 'lazy';
-        card.append(icon);
-      }
-
-      const name = document.createElement('span');
-      name.textContent = gem.nameKo;
-      card.append(name);
-
-      if (gem.key !== 'darkCrystal') {
-        const statSub = document.createElement('span');
-        statSub.className = 'decon-gem-category-stat';
-        if (gem.behavior === 'variable') {
-          const keyLabels = (gem.variableKeys ?? []).map((k) => statLabelByKey[k] ?? k);
-          statSub.textContent = `(${keyLabels.join('/')})`;
-        } else {
-          statSub.textContent = `(${statLabelByKey[gem.stat] ?? gem.stat})`;
-        }
-        card.append(statSub);
-      }
-
-      card.addEventListener('click', () => renderGrades(gem));
-      grid.append(card);
-    }
-
-    contentArea.append(grid);
-
-  };
-
-  const renderGrades = (gem) => {
-    currentGradeGem = gem;
-    contentArea.replaceChildren();
-
-    const header = document.createElement('div');
-    header.className = 'decon-gem-picker-header';
-
-    const backBtn = document.createElement('button');
-    backBtn.type = 'button';
-    backBtn.className = 'decon-gem-back';
-    backBtn.textContent = '← 뒤로';
-    backBtn.addEventListener('click', renderCategories);
-    header.append(backBtn);
-
-    const baseId = GEM_ITEM_IDS[gem.key]?.base;
-    if (baseId) {
-      const icon = document.createElement('img');
-      icon.src = buildItemIconUrl(baseId);
-      icon.alt = '';
-      icon.loading = 'lazy';
-      header.append(icon);
-    }
-
-    const nameEl = document.createElement('span');
-    nameEl.className = 'decon-gem-name';
-    nameEl.textContent = gem.nameKo;
-    header.append(nameEl);
-
-    contentArea.append(header);
-
-    const gradesList = document.createElement('div');
-    gradesList.className = 'decon-gem-grades';
-
-    for (let gradeIndex = 0; gradeIndex < GEM_GRADES.length; gradeIndex++) {
-      const gradeLabel = GEM_GRADES[gradeIndex];
-
-      const row = document.createElement('button');
-      row.type = 'button';
-      row.className = 'decon-gem-grade';
-
-      const filterKey = `${gem.key}:${gradeIndex}`;
-      const isSelected = deconGemFilter?.has(filterKey) ?? true;
-      if (isSelected) row.classList.add('decon-gem-grade--selected');
-
-      const gradeKey = ['low', 'mid', 'high'][gradeIndex];
-      const gradeIconId = GEM_ITEM_IDS[gem.key]?.[gradeKey];
-      if (gradeIconId) {
-        const gradeIcon = document.createElement('img');
-        gradeIcon.src = buildItemIconUrl(gradeIconId);
-        gradeIcon.alt = '';
-        gradeIcon.loading = 'lazy';
-        row.append(gradeIcon);
-      }
-
-      // Grade name span (matching maker-picker-item: normal weight, card font)
-      const gradeName = document.createElement('span');
-      gradeName.textContent = gradeLabel;
-      row.append(gradeName);
-
-      // Stat value or range span (matching .maker-picker-item-stat)
-      const statSpan = document.createElement('span');
-      statSpan.className = 'decon-gem-category-stat';
-      if (gem.stat && gem.values) {
-        // Fixed-stat gem: e.g. "STR +1"
-        const val = gem.values[gradeIndex];
-        const dispLabel = statLabelByKey[gem.stat] || gem.stat;
-        statSpan.textContent = `${dispLabel} +${val}`;
-      } else if (gem.behavior === 'variable') {
-        // Variable gem: show delta range per grade
-        const isDark = gem.key === 'darkCrystal';
-        const ranges = isDark
-          ? ['-2 ~ +2', '-3 ~ +3', '-5 ~ +5']
-          : ['-1 ~ +1', '-2 ~ +2', '-3 ~ +3'];
-        statSpan.textContent = ranges[gradeIndex];
-      }
-      row.append(statSpan);
-
-      // Click to toggle selection
-      row.addEventListener('click', () => {
-        guardDeconMutation(() => {
-          if (deconGemFilter.has(filterKey)) {
-            deconGemFilter.delete(filterKey);
-            row.classList.remove('decon-gem-grade--selected');
-          } else {
-            deconGemFilter.add(filterKey);
-            row.classList.add('decon-gem-grade--selected');
-          }
-          checkDeconStarState();
-        });
-      });
-
-      gradesList.append(row);
-    }
-
-    contentArea.append(gradesList);
-
-	  checkDeconStarState();
-  };
-
-  renderCategories();
+  buildGemPreFilter({
+    container: deconGemSub, selectedItem, gemFilter: deconGemFilter,
+    GEM_TYPES, GEM_GRADES, GEM_ITEM_IDS, isWeaponKind, statLabelByKey, buildItemIconUrl,
+    guardMutation: guardDeconMutation, onStateChange: checkStarState,
+  });
 };
-
-const buildLevelUpSlotEditors = () => {
-  if (!(deconLevelSlotList instanceof HTMLElement) || !(deconLevelSlotLabel instanceof HTMLElement)) return;
-  deconLevelSlotList.replaceChildren();
-  if (!selectedItem) return;
-  const def = itemLevelUpByItemId.get(selectedItem.id);
-  const maxLevelUps = Number.isInteger(def?.maxLevelUps) ? def.maxLevelUps : 0;
-  if (maxLevelUps <= 0) return;
-
-  const statRanges = def?.statRanges ?? {};
-  const applied = deconAppliedLevelCount;
-
-  if (applied <= 0) {
-    deconLevelSlotLabel.textContent = '아이템 레벨 +1 이상 설정 시 레벨업 총합 범위를 입력할 수 있습니다.';
-    deconLevelUpTotalRanges = {};
-    return;
-  }
-
-  deconLevelSlotLabel.textContent = `아이템 레벨 +${applied} 레벨업 총합 범위:`;
-
-  const slot = document.createElement('div');
-  slot.className = 'decon-level-slot';
-  slot.setAttribute('data-decon-level-total-range', String(applied));
-
-  const statsRow = document.createElement('div');
-  statsRow.className = 'decon-level-slot-stats';
-
-  for (const key of Object.keys(statRanges)) {
-    const defRange = statRanges[key] ?? { min: 0, max: 0 };
-    const totalMin = defRange.min * applied;
-    const totalMax = defRange.max * applied;
-    if (!deconLevelUpTotalRanges[key]) {
-      deconLevelUpTotalRanges[key] = { min: totalMin, max: totalMax };
-    }
-
-    const range = deconLevelUpTotalRanges[key];
-
-    // Row — reuses stimulant CSS for visual consistency
-    const row = document.createElement('div');
-    row.className = 'decon-secondary-stimulant-row';
-
-    const label = document.createElement('span');
-    label.className = 'decon-secondary-stimulant-stat';
-    label.textContent = statLabelByKey[key] || key;
-    row.append(label);
-
-    // Dual-range wrapper
-    const dualWrap = document.createElement('span');
-    dualWrap.className = 'dual-range';
-
-    // Min slider
-    const minSlider = document.createElement('input');
-    minSlider.type = 'range';
-    minSlider.min = totalMin;
-    minSlider.max = totalMax;
-    minSlider.step = 1;
-    minSlider.value = range.min;
-
-    // Max slider
-    const maxSlider = document.createElement('input');
-    maxSlider.type = 'range';
-    maxSlider.min = totalMin;
-    maxSlider.max = totalMax;
-    maxSlider.step = 1;
-    maxSlider.value = range.max;
-
-    dualWrap.append(minSlider, maxSlider);
-
-    const minVal = document.createElement('span');
-    minVal.className = 'decon-secondary-stimulant-value';
-    minVal.textContent = String(range.min);
-
-    const sep = document.createElement('span');
-    sep.className = 'decon-secondary-stimulant-sep';
-    sep.textContent = '~';
-
-    const maxVal = document.createElement('span');
-    maxVal.className = 'decon-secondary-stimulant-value';
-    maxVal.textContent = String(range.max);
-
-    // ---- event handlers (mirror stimulant editor pattern) ----
-    minSlider.addEventListener('input', () => {
-      const val = Number(minSlider.value);
-      minVal.textContent = String(val);
-      // Enforce min ≤ max — visual feedback only, commit on change
-      const clamped = Math.min(val, deconLevelUpTotalRanges[key].max);
-      minSlider.value = clamped;
-    });
-    minSlider.addEventListener('change', () => {
-      const val = Number(minSlider.value);
-      const clamped = Math.min(val, deconLevelUpTotalRanges[key].max);
-      const savedBounds = deconLevelUpTotalRanges[key]
-        ? { ...deconLevelUpTotalRanges[key] }
-        : { min: 0, max: 0 };
-      guardDeconMutation(() => {
-        deconLevelUpTotalRanges[key] = { ...deconLevelUpTotalRanges[key], min: clamped };
-        minSlider.value = clamped;
-        minVal.textContent = String(clamped);
-        checkDeconStarState();
-      }, () => {
-        // User cancelled — revert display
-        minSlider.value = savedBounds.min;
-        minVal.textContent = String(savedBounds.min);
-      });
-    });
-
-    maxSlider.addEventListener('input', () => {
-      const val = Number(maxSlider.value);
-      maxVal.textContent = String(val);
-      // Enforce max ≥ min — visual feedback only, commit on change
-      const clamped = Math.max(val, deconLevelUpTotalRanges[key].min);
-      maxSlider.value = clamped;
-    });
-    maxSlider.addEventListener('change', () => {
-      const val = Number(maxSlider.value);
-      const clamped = Math.max(val, deconLevelUpTotalRanges[key].min);
-      const savedBounds = deconLevelUpTotalRanges[key]
-        ? { ...deconLevelUpTotalRanges[key] }
-        : { min: 0, max: 0 };
-      guardDeconMutation(() => {
-        deconLevelUpTotalRanges[key] = { ...deconLevelUpTotalRanges[key], max: clamped };
-        maxSlider.value = clamped;
-        maxVal.textContent = String(clamped);
-        checkDeconStarState();
-      }, () => {
-        // User cancelled — revert display
-        maxSlider.value = savedBounds.max;
-        maxVal.textContent = String(savedBounds.max);
-      });
-    });
-
-    row.append(dualWrap, minVal, sep, maxVal);
-    statsRow.append(row);
-  }
-
-  slot.append(statsRow);
-  deconLevelSlotList.append(slot);
-};
+const buildLevelUpEditors = () => buildLevelUpSlotEditors({
+  container: deconLevelSlotList, labelEl: deconLevelSlotLabel, selectedItem,
+  deconAppliedLevelCount, itemLevelUpByItemId, levelUpTotalRanges: deconLevelUpTotalRanges,
+  statLabelByKey, guardMutation: guardDeconMutation, onStateChange: checkStarState,
+});
 
 const renderDeconSlotState = () => {
   if (deconSuccessValue instanceof HTMLElement) {
@@ -1827,7 +1047,7 @@ const renderDeconSlotState = () => {
   equalizeGroupLabels(deconEditContent, '.decon-success-row > .chaos-stat-label, .decon-slot-row > .chaos-stat-label, .decon-level-row:not([hidden]) > .chaos-stat-label');
   if (deconItemInfoTitle instanceof HTMLElement) deconItemInfoTitle.hidden = false;
   if (deconItemInfoSep instanceof HTMLElement) deconItemInfoSep.hidden = false;
-  checkDeconStarState();
+  checkStarState();
 };
 
 const renderDeconItemLevel = () => {
@@ -1844,11 +1064,11 @@ const renderDeconItemLevel = () => {
   }
   updateTargetCard();
   if (deconItemLevelUpSource instanceof HTMLInputElement && deconItemLevelUpSource.checked) {
-    buildLevelUpSlotEditors();
+    buildLevelUpEditors();
   }
   equalizeGroupLabels(deconEditContent, '.decon-success-row > .chaos-stat-label, .decon-slot-row > .chaos-stat-label, .decon-level-row:not([hidden]) > .chaos-stat-label');
   updateLevelUpSourceEligibility();
-  checkDeconStarState();
+  checkStarState();
 };
 
 // ---- Item search handling (adapted from expected-value.astro) ----
@@ -2093,25 +1313,10 @@ const syncFiltersToSelectedItem = (item) => {
   }
 };
 
-const getSelectedJobKinds = () =>
-  new Set(
-    [...(jobInputs ?? [])]
-      .filter((input) => input instanceof HTMLInputElement && input.checked)
-      .map((input) => input.value),
-  );
-
-const itemMatchesSelectedJobs = (item, selectedJobs) => {
-  if (selectedJobs.size === 0) return false;
-  const requiredJobs = item.requiredJobs ?? [];
-  const hasOnlyBeginner = requiredJobs.length === 1 && requiredJobs[0] === 'Beginner';
-  if (requiredJobs.length === 0 || hasOnlyBeginner) return true;
-  return requiredJobs.some((job) => selectedJobs.has(jobKindByRequiredJob[job]));
-};
-
 const getManualFilteredItems = () => {
   if (!(equipmentInput instanceof HTMLInputElement)) return [];
   if (!equipmentInput.value) return [];
-  const selectedJobs = getSelectedJobKinds();
+  const selectedJobs = getSelectedJobKinds(jobInputs);
   const levelRange =
     levelMinInput instanceof HTMLInputElement && levelMaxInput instanceof HTMLInputElement
       ? (() => {
@@ -2224,280 +1429,15 @@ const activateDeconEditPanel = (item) => {
   });
   rebuildStatEditor();
   updateAnalyzeButton();
-  renderDeconSlotBar();
-  checkDeconStarState();
+  renderSlots();
+  checkStarState();
 };
 
 // ---- Save slot helpers ----
-const buildDeconPageState = () => {
-  if (!selectedItem) return null;
-  // Strip zero entries — rebuildStatEditor seeds missing keys as 0,
-  // which would otherwise break slot match after load
-  const deltas = {};
-  for (const key of deconStatKeys) {
-    const value = deconDeltas[key];
-    if (value !== 0 && Number.isFinite(value)) deltas[key] = value;
-  }
-  return {
-    itemId: selectedItem.id,
-    deconDeltas: deltas,
-    successfulScrollCount: deconSlotState.successfulScrollCount,
-    deconStatKeys: [...deconStatKeys],
-    remainingSlots: deconSlotState.remainingSlots,
-    appliedLevelCount: deconAppliedLevelCount,
-  };
-};
 
-const checkDeconStarState = () => {
-  if (!selectedItem || !(deconStar instanceof HTMLElement)) return;
-  const state = buildDeconPageState();
-  if (!state) {
-    deconStar.textContent = '☆';
-    deconStar.classList.remove('item-card-star--saved');
-    console.log('checkDeconStarState: no state → ☆');
-    return;
-  }
-  const match = findMatchingSlot('deconstruction', state);
-  if (match >= 0) {
-    deconStar.textContent = '★';
-    deconStar.classList.add('item-card-star--saved');
-    console.log('checkDeconStarState: match slot', match, '→ ★');
-  } else {
-    deconStar.textContent = '☆';
-    deconStar.classList.remove('item-card-star--saved');
-    console.log('checkDeconStarState: no match → ☆', 'state:', state);
-  }
-};
 
-const renderDeconSlotBar = () => {
-  if (!(deconSlotBar instanceof HTMLElement)) return;
-  const slots = readSlots('deconstruction');
-  deconSlotBar.replaceChildren();
-  for (let i = 0; i < MAX_SLOTS; i++) {
-    const s = slots[i];
-    const box = document.createElement('div');
-    box.className = s ? 'item-slot item-slot--filled' : 'item-slot item-slot--empty';
-    if (s) {
-      const icon = document.createElement('img');
-      icon.src = buildItemIconUrl(s.item.iconId);
-      icon.alt = s.item.nameKo;
-      box.append(icon);
-      box.title = s.item.nameKo;
-      box.addEventListener('click', () => loadDeconSlot(i));
 
-      const xBtn = document.createElement('button');
-      xBtn.type = 'button';
-      xBtn.className = 'item-slot-x';
-      xBtn.textContent = '×';
-      xBtn.addEventListener('click', (e) => { e.stopPropagation(); confirmDeleteDeconSlot(i); });
-      box.append(xBtn);
-    }
-    deconSlotBar.append(box);
-  }
-};
 
-const showDeconSavePicker = () => {
-  if (!selectedItem) return;
-  const state = buildDeconPageState();
-  if (!state) return;
-
-  const slots = readSlots('deconstruction');
-  const overlay = document.createElement('div');
-  overlay.className = 'slot-picker-overlay';
-
-  const dialog = document.createElement('div');
-  dialog.className = 'slot-picker-dialog';
-
-  const title = document.createElement('h3');
-  title.textContent = '저장할 슬롯 선택';
-  dialog.append(title);
-
-  const grid = document.createElement('div');
-  grid.className = 'slot-picker-grid';
-
-  for (let i = 0; i < MAX_SLOTS; i++) {
-    const s = slots[i];
-    const cell = document.createElement('div');
-    cell.className = s ? 'slot-picker-slot slot-picker-slot--filled' : 'slot-picker-slot slot-picker-slot--empty';
-    if (s) {
-      const icon = document.createElement('img');
-      icon.src = buildItemIconUrl(s.item.iconId);
-      icon.alt = s.item.nameKo;
-      cell.append(icon);
-      const name = document.createElement('span');
-      name.className = 'slot-picker-slot-name';
-      name.textContent = s.item.nameKo;
-      cell.append(name);
-      cell.addEventListener('click', () => {
-        overlay.remove();
-        confirmReplaceDeconSlot(i, state);
-      });
-    } else {
-      cell.textContent = '빈 슬롯';
-      cell.addEventListener('click', () => {
-        saveToSlot('deconstruction', i, selectedItem, state);
-        overlay.remove();
-        renderDeconSlotBar();
-        checkDeconStarState();
-      });
-    }
-    grid.append(cell);
-  }
-  dialog.append(grid);
-
-  const closeBtn = document.createElement('button');
-  closeBtn.type = 'button';
-  closeBtn.className = 'slot-picker-close';
-  closeBtn.textContent = '취소';
-  closeBtn.addEventListener('click', () => overlay.remove());
-  dialog.append(closeBtn);
-
-  overlay.append(dialog);
-  document.body.append(overlay);
-};
-
-const confirmReplaceDeconSlot = (slotIndex, newState) => {
-  const slots = readSlots('deconstruction');
-  const existing = slots[slotIndex];
-  if (!existing) return;
-
-  const overlay = document.createElement('div');
-  overlay.className = 'decon-confirm-overlay';
-  const dialog = document.createElement('div');
-  dialog.className = 'decon-confirm-dialog';
-  dialog.style.maxWidth = '500px';
-
-  const msg = document.createElement('p');
-  msg.textContent = '기존 저장된 아이템을 덮어쓰시겠습니까?';
-  dialog.append(msg);
-
-  const cards = document.createElement('div');
-  cards.className = 'replace-confirm-cards';
-
-  const existingCard = document.createElement('div');
-  existingCard.className = 'replace-confirm-card';
-  existingCard.innerHTML = '<h4>기존 저장</h4><img src="' + buildItemIconUrl(existing.item.iconId) + '" alt=""><div class="item-name">' + existing.item.nameKo + '</div>';
-  cards.append(existingCard);
-
-  const newCard = document.createElement('div');
-  newCard.className = 'replace-confirm-card';
-  newCard.innerHTML = '<h4>새로 저장</h4><img src="' + buildItemIconUrl(selectedItem.id) + '" alt=""><div class="item-name">' + selectedItem.nameKo + '</div>';
-  cards.append(newCard);
-  dialog.append(cards);
-
-  const buttons = document.createElement('div');
-  buttons.className = 'replace-confirm-buttons';
-  const confirmBtn = document.createElement('button');
-  confirmBtn.textContent = '덮어쓰기';
-  confirmBtn.addEventListener('click', () => {
-    saveToSlot('deconstruction', slotIndex, selectedItem, newState);
-    overlay.remove();
-    renderDeconSlotBar();
-    checkDeconStarState();
-  });
-  const cancelBtn = document.createElement('button');
-  cancelBtn.textContent = '취소';
-  cancelBtn.addEventListener('click', () => {
-    overlay.remove();
-    if (onCancel) onCancel();
-  });
-  buttons.append(confirmBtn, cancelBtn);
-  dialog.append(buttons);
-  overlay.append(dialog);
-  document.body.append(overlay);
-};
-
-const confirmDeleteDeconSlot = (slotIndex) => {
-  const slots = readSlots('deconstruction');
-  const s = slots[slotIndex];
-  if (!s) return;
-
-  const overlay = document.createElement('div');
-  overlay.className = 'decon-confirm-overlay';
-  const dialog = document.createElement('div');
-  dialog.className = 'decon-confirm-dialog';
-
-  const msg = document.createElement('p');
-  msg.textContent = '저장된 아이템을 삭제하시겠습니까?';
-  dialog.append(msg);
-
-  const card = document.createElement('div');
-  card.className = 'replace-confirm-card';
-  card.innerHTML = '<img src="' + buildItemIconUrl(s.item.iconId) + '" alt=""><div class="item-name">' + s.item.nameKo + '</div>';
-  dialog.append(card);
-
-  const buttons = document.createElement('div');
-  buttons.className = 'replace-confirm-buttons';
-  const confirmBtn = document.createElement('button');
-  confirmBtn.textContent = '삭제';
-  confirmBtn.style.background = '#e74c3c';
-  confirmBtn.style.borderColor = '#e74c3c';
-  confirmBtn.style.color = '#fff';
-  confirmBtn.addEventListener('click', () => {
-    clearSlot('deconstruction', slotIndex);
-    overlay.remove();
-    renderDeconSlotBar();
-    checkDeconStarState();
-  });
-  const cancelBtn = document.createElement('button');
-  cancelBtn.textContent = '취소';
-  cancelBtn.addEventListener('click', () => {
-    overlay.remove();
-    if (onCancel) onCancel();
-  });
-  buttons.append(confirmBtn, cancelBtn);
-  dialog.append(buttons);
-  overlay.append(dialog);
-  document.body.append(overlay);
-};
-
-const confirmUnsaveDeconSlot = () => {
-  const state = buildDeconPageState();
-  if (!state) return;
-  const slotIndex = findMatchingSlot('deconstruction', state);
-  if (slotIndex < 0) return;
-  const slots = readSlots('deconstruction');
-  const s = slots[slotIndex];
-  if (!s) return;
-
-  const overlay = document.createElement('div');
-  overlay.className = 'decon-confirm-overlay';
-  const dialog = document.createElement('div');
-  dialog.className = 'decon-confirm-dialog';
-
-  const msg = document.createElement('p');
-  msg.textContent = '이 설정은 슬롯에 저장되어 있습니다. 저장을 해제하시겠습니까?';
-  dialog.append(msg);
-
-  const card = document.createElement('div');
-  card.className = 'replace-confirm-card';
-  card.innerHTML = '<img src="' + buildItemIconUrl(s.item.iconId) + '" alt=""><div class="item-name">' + s.item.nameKo + '</div>';
-  dialog.append(card);
-
-  const buttons = document.createElement('div');
-  buttons.className = 'replace-confirm-buttons';
-  const confirmBtn = document.createElement('button');
-  confirmBtn.textContent = '해제';
-  confirmBtn.style.background = '#e74c3c';
-  confirmBtn.style.borderColor = '#e74c3c';
-  confirmBtn.style.color = '#fff';
-  confirmBtn.addEventListener('click', () => {
-    clearSlot('deconstruction', slotIndex);
-    overlay.remove();
-    renderDeconSlotBar();
-    checkDeconStarState();
-  });
-  const cancelBtn = document.createElement('button');
-  cancelBtn.textContent = '취소';
-  cancelBtn.addEventListener('click', () => {
-    overlay.remove();
-    if (onCancel) onCancel();
-  });
-  buttons.append(confirmBtn, cancelBtn);
-  dialog.append(buttons);
-  overlay.append(dialog);
-  document.body.append(overlay);
-};
 
 const loadDeconSlot = (slotIndex) => {
   const slots = readSlots('deconstruction');
@@ -2532,25 +1472,35 @@ const loadDeconSlot = (slotIndex) => {
     renderDeconItemLevel();
     rebuildStatEditor();
     updateTargetCard();
-    renderDeconSlotBar();
-    checkDeconStarState();
+    renderSlots();
+    checkStarState();
     updateAnalyzeButton();
   };
 
   if (hasDeconDraftState()) {
-    showDeconConfirmDialog(doLoad);
+    showDeconConfirmDialog({ message: '현재 변경사항이 저장되지 않습니다. 계속하시겠습니까?', confirmLabel: '계속', onConfirm: doLoad });
   } else {
     doLoad();
   }
 };
 
+// ---- Wrappers for extracted slot bar functions (close over page globals) ----
+const buildPageState = () => buildDeconPageState({ selectedItem, deconStatKeys, deconDeltas, deconSlotState, deconAppliedLevelCount });
+const checkStarState = () => checkDeconStarState({ selectedItem, deconStar, buildPageState, findMatchingSlot });
+const renderSlots = () => renderDeconSlotBar({
+  deconSlotBar, readSlots, MAX_SLOTS, buildItemIconUrl,
+  onLoadSlot: loadDeconSlot,
+  onDeleteSlot: (i) => confirmDeleteDeconSlot({ slotIndex: i, readSlots, clearSlot, buildItemIconUrl, onSlotChanged: refreshSlots }),
+});
+const refreshSlots = () => { renderSlots(); checkStarState(); };
+
 // ---- Star button click ----
 if (deconStar instanceof HTMLElement) {
   deconStar.addEventListener('click', () => {
     if (deconStar.classList.contains('item-card-star--saved')) {
-      confirmUnsaveDeconSlot();
+      confirmUnsaveDeconSlot({ buildPageState, findMatchingSlot, readSlots, clearSlot, buildItemIconUrl, onSlotChanged: refreshSlots });
     } else {
-      showDeconSavePicker();
+      showDeconSavePicker({ selectedItem, buildPageState, readSlots, saveToSlot, MAX_SLOTS, buildItemIconUrl, onSlotChanged: refreshSlots });
     }
   });
 }
@@ -3160,7 +2110,7 @@ deconScrollRateInputs.forEach((chip) => {
         if (chip.checked) {
           deconChaosBounds.hidden = false;
           deconChaosBounds.classList.add('decon-source-sub--open');
-          buildChaosBoundsEditor();
+          buildChaosBounds();
         } else {
           deconChaosBounds.classList.remove('decon-source-sub--open');
           deconChaosBounds.hidden = true;
@@ -3169,7 +2119,7 @@ deconScrollRateInputs.forEach((chip) => {
           deconChaosShadow = {};
         }
       }
-      checkDeconStarState();
+      checkStarState();
     });
   });
 });
@@ -3201,7 +2151,7 @@ deconScrollSource?.addEventListener('change', () => {
 deconStimulantSource?.addEventListener('change', () => {
   guardCheckboxMutation(deconStimulantSource, guardDeconMutation, () => {
     toggleSourceSub(deconStimulantSource, deconStimulantBounds, () => {
-      buildStimulantBoundsEditor();
+      buildStimulantBounds();
     });
     updateAnalyzeButton();
   });
@@ -3211,7 +2161,7 @@ deconGemsSource?.addEventListener('change', () => {
   guardCheckboxMutation(deconGemsSource, guardDeconMutation, () => {
     toggleSourceSub(deconGemsSource, deconGemSub, () => {
       deconGemFilter = null;
-      buildGemPreFilter();
+      buildGemFilter();
     });
     if (!deconGemsSource.checked) {
       deconGemFilter = null;
@@ -3223,81 +2173,17 @@ deconGemsSource?.addEventListener('change', () => {
 deconItemLevelUpSource?.addEventListener('change', () => {
   guardCheckboxMutation(deconItemLevelUpSource, guardDeconMutation, () => {
     toggleSourceSub(deconItemLevelUpSource, deconLevelSlotRanges, () => {
-      buildLevelUpSlotEditors();
+      buildLevelUpEditors();
     });
     updateAnalyzeButton();
   });
 });
 
 // ---- Reset button ----
-const showDeconConfirmDialog = (onConfirm, onCancel) => {
-  const overlay = document.createElement('div');
-  overlay.className = 'decon-confirm-overlay';
 
-  const dialog = document.createElement('div');
-  dialog.className = 'decon-confirm-dialog';
-
-  const msg = document.createElement('p');
-  msg.textContent = '모든 계산 설정과 분석 결과를 초기화합니다. 계속하시겠습니까?';
-
-  const buttonRow = document.createElement('div');
-  buttonRow.className = 'decon-confirm-buttons';
-
-  const confirmBtn = document.createElement('button');
-  confirmBtn.textContent = '초기화';
-  confirmBtn.addEventListener('click', () => {
-    overlay.remove();
-    onConfirm();
-  });
-
-  const cancelBtn = document.createElement('button');
-  cancelBtn.textContent = '취소';
-  cancelBtn.addEventListener('click', () => {
-    overlay.remove();
-    if (onCancel) onCancel();
-  });
-
-  buttonRow.append(confirmBtn, cancelBtn);
-  dialog.append(msg, buttonRow);
-  overlay.append(dialog);
-  document.body.append(overlay);
-};
-
-const showDeconItemChangeDialog = (onConfirm) => {
-  const overlay = document.createElement('div');
-  overlay.className = 'decon-confirm-overlay';
-
-  const dialog = document.createElement('div');
-  dialog.className = 'decon-confirm-dialog';
-
-  const msg = document.createElement('p');
-  msg.textContent = '아이템을 변경하면 현재 스탯 편집과 분석 결과가 초기화됩니다. 계속하시겠습니까?';
-
-  const buttonRow = document.createElement('div');
-  buttonRow.className = 'decon-confirm-buttons';
-
-  const confirmBtn = document.createElement('button');
-  confirmBtn.textContent = '변경';
-  confirmBtn.addEventListener('click', () => {
-    overlay.remove();
-    onConfirm();
-  });
-
-  const cancelBtn = document.createElement('button');
-  cancelBtn.textContent = '취소';
-  cancelBtn.addEventListener('click', () => {
-    overlay.remove();
-    if (onCancel) onCancel();
-  });
-
-  buttonRow.append(confirmBtn, cancelBtn);
-  dialog.append(msg, buttonRow);
-  overlay.append(dialog);
-  document.body.append(overlay);
-};
 
 document.querySelector('[data-enhancement-reset]')?.addEventListener('click', () => {
-  showDeconConfirmDialog(() => {
+  showResetConfirmDialog(() => {
     deconDeltas = {};
     resetAllowedSources();
     deconSlotState = createDeconstructionSlotState(selectedItem?.stats?.upgradeSlots ?? 0);
@@ -3382,8 +2268,8 @@ const tryRestoreDeconSession = () => {
   renderDeconItemLevel();
   rebuildStatEditor();
   updateTargetCard();
-  renderDeconSlotBar();
-  checkDeconStarState();
+  renderSlots();
+  checkStarState();
   updateAnalyzeButton();
 
   // Restore target chip checkmarks
@@ -3403,19 +2289,19 @@ const tryRestoreDeconSession = () => {
   }
   if (restoreSources.stimulant) {
     toggleSourceSub(deconStimulantSource, deconStimulantBounds, () => {
-      buildStimulantBoundsEditor();
+      buildStimulantBounds();
       if (deconStimulantBounds instanceof HTMLElement) deconStimulantBounds.hidden = false;
     });
   }
   if (restoreSources.gems) {
     toggleSourceSub(deconGemsSource, deconGemSub, () => {
-      buildGemPreFilter();
+      buildGemFilter();
       if (deconGemSub instanceof HTMLElement) deconGemSub.hidden = false;
     });
   }
   if (restoreSources.itemLevelUp) {
     toggleSourceSub(deconItemLevelUpSource, deconLevelSlotRanges, () => {
-      buildLevelUpSlotEditors();
+      buildLevelUpEditors();
       if (deconLevelSlotRanges instanceof HTMLElement) deconLevelSlotRanges.hidden = false;
     });
   }
@@ -3449,7 +2335,7 @@ const _maybeRestoreDeconSession = () => {
 setManualSearchOpen(false);
 syncJobButtons();
 syncItemSearchUrl();
-renderDeconSlotBar();
+renderSlots();
 
 // Load item index
 fetch('/data/items-gms83-ko.json')
@@ -3467,7 +2353,7 @@ fetch('/data/items-gms83-ko.json')
       selectSuggestedItem(itemById.get(initialSelectedItemId));
     }
     renderItemSuggestions();
-    renderDeconSlotBar();
+    renderSlots();
 
     _itemsLoaded = true;
     _maybeRestoreDeconSession();
