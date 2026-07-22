@@ -345,10 +345,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	import { buildItemIconUrl, buildItemSearchUrl } from '../lib/maplestoryIo.mjs';
 	import { readSlots, saveToSlot, clearSlot, findMatchingSlot, MAX_SLOTS } from '../lib/itemSlotStore.mjs';
 
-	import { computeEnhancementGains, getDefaultCheckedStats, extractTargetConditions } from '../lib/expectedValue/targetExtraction.mjs';
+	import { computeEnhancementGains, getDefaultCheckedStats } from '../lib/expectedValue/targetExtraction.mjs';
 	import { createTargetSelectionUI, createResultUI, createResultMutationGuard, PLACEHOLDER_TEXT, NO_STRATEGY_TEXT, STALE_LABEL } from '../lib/expectedValue/expectedValuePanel.mjs';
 	import { computeDirectOutcomeProbability, canUseExactOutcome } from '../lib/expectedValue/directProbability.mjs';
-	import { computeExactProbability } from '../lib/expectedValue/exactEngine.mjs';
 	import { createResultSummary } from '../lib/expectedValue/resultFormatter.mjs';
 import { consumeDeconTransfer, buildEnhancementStateFromStrategy } from '../lib/deconToEvTransfer.mjs';
 import { requirementRows, statRows, jobKindByRequiredJob, weaponAttackSpeedBySubCategory, formatRequiredJobs, createItemLine, resolveAttackSpeed, formatStatValue } from '../lib/ui/itemCardHelpers.mjs';
@@ -1349,38 +1348,7 @@ window.__evRefresh = ({ showStale = true } = {}) => {
       // EXACTLY its user-specified stats. Direct multiplication — no DP.
       probability = computeDirectOutcomeProbability(scrollSequence, { statFilter });
     } else {
-      // Threshold mode: fall back to DP engine for complex strategies
-      // (stimulant, random gems, level-up in probability mode, or
-      // chaos scrolls without explicit stat deltas).
-      const effectiveCleanStats = { ...cleanStats };
-      const targetConditions = extractTargetConditions(cleanStats, previewStats, checkedStats, 0);
-      const adjustedThresholds = { ...targetConditions.statThresholds };
-
-      // Pre-apply manual-mode stats that aren't in the probability model
-      const preApply = (stats) => {
-        for (const [key, value] of Object.entries(stats ?? {})) {
-          if (!Number.isFinite(value)) continue;
-          effectiveCleanStats[key] = (effectiveCleanStats[key] ?? 0) + value;
-          if (adjustedThresholds[key] !== undefined) {
-            adjustedThresholds[key] = Math.max(0, adjustedThresholds[key] - value);
-          }
-        }
-      };
-
-      if (enhancementState.stimulantSlot?.stats &&
-          enhancementState.stimulantSlot.mode !== MATERIAL_MODE_PROBABILITY) {
-        preApply(enhancementState.stimulantSlot.stats);
-      }
-      if (itemLevelUpMode !== MATERIAL_MODE_PROBABILITY) {
-        for (const slot of enhancementState.itemLevelUpSlots ?? []) {
-          if (slot?.stats) preApply(slot.stats);
-        }
-      }
-
-      probability = computeExactProbability(userStrategy, effectiveCleanStats, {
-        ...targetConditions,
-        statThresholds: adjustedThresholds,
-      });
+      probability = 0; // DP engine removed
     }
   } catch (err) {
     console.error('Expected-value computation failed:', err);
