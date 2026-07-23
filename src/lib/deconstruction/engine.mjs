@@ -537,17 +537,41 @@ export function enumerateStrategies({
     return { strategies: [], total: 0, tooManyResults: false };
   }
 
-  // Normalize bounds for fallback generation
+  // Normalize bounds for fallback generation.
+  // When the user provided explicit stimulant bounds, use them instead of
+  // defaults so that computeCorrectionBounds reflects the actual stimulant
+  // contribution the solver will later enforce via solveStimulantResidual.
   const stimulantBounds = {};
   const gemBounds = {};
+  const hasUserStimulantBounds = stimulantStatBounds != null
+    && Object.keys(stimulantStatBounds).length > 0;
   for (const k of targetKeys) {
     const limit = HP_MP_KEYS.has(k) ? 50 : 5;
-    // Stimulant can only affect stats that exist on the clean item with a
-    // positive base value — same rule as the stimulant bounds UI.
     const statExistsOnBase = cleanStats && Number.isFinite(cleanStats[k]) && cleanStats[k] > 0;
-    stimulantBounds[k] = statExistsOnBase ? { min: -limit, max: limit } : { min: 0, max: 0 };
+    if (hasUserStimulantBounds && Object.hasOwn(stimulantStatBounds, k)) {
+      // User configured bounds for this key — clamp to valid range.
+      const ub = stimulantStatBounds[k];
+      stimulantBounds[k] = {
+        min: Math.max(-limit, Math.min(limit, ub.min)),
+        max: Math.max(-limit, Math.min(limit, ub.max)),
+      };
+    } else if (hasUserStimulantBounds) {
+      // User configured bounds for other keys but not this one —
+      // stimulant cannot affect this stat.
+      stimulantBounds[k] = { min: 0, max: 0 };
+    } else {
+      // No user bounds — use default full range.
+      stimulantBounds[k] = statExistsOnBase
+        ? { min: -limit, max: limit }
+        : { min: 0, max: 0 };
+    }
     gemBounds[k] = { min: -Infinity, max: Infinity };
   }
+
+  // When the user has fixated stimulant minimums (min > 0 for any key),
+  // stimulant is mandatory — scrolls-only results must be suppressed.
+  const stimulantHasMandatoryMin = hasUserStimulantBounds
+    && Object.values(stimulantStatBounds).some(b => b.min > 0);
   const itemBounds = {};
   for (const k of targetKeys) {
     itemBounds[k] = { min: -Infinity, max: Infinity };
@@ -730,8 +754,12 @@ export function enumerateStrategies({
         if (tooManyResults) break;
         const residual = subtractVectors(remainingTarget, ss.stats, targetKeys);
 
-        // Tier A (0): scroll-only fills remainingTarget
+        // Tier A (0): scroll-only fills remainingTarget.
+        // Suppressed when stimulant has mandatory minimums — the user
+        // explicitly configured stimulant to contribute, so a stimulant-free
+        // result would be misleading.
         if (normalizedAllowedSources.scrolls
+            && !stimulantHasMandatoryMin
             && isExactVector(ss.stats, remainingTarget, targetKeys)) {
           addResult({
             scrolls: ss.scrolls,
@@ -857,8 +885,12 @@ export function enumerateStrategies({
       if (tooManyResults) break;
       const residual = subtractVectors(effectiveTargetDeltas, ss.stats, targetKeys);
 
-      // Tier 0: scroll-only (scrolls cover the entire effective target)
+      // Tier 0: scroll-only (scrolls cover the entire effective target).
+      // Suppressed when stimulant has mandatory minimums — the user
+      // explicitly configured stimulant to contribute, so a stimulant-free
+      // result would be misleading.
       if (normalizedAllowedSources.scrolls
+          && !stimulantHasMandatoryMin
           && isExactVector(ss.stats, effectiveTargetDeltas, targetKeys)) {
         addResult({
           scrolls: ss.scrolls,

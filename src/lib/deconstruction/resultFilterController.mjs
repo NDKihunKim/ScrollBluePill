@@ -101,10 +101,10 @@ export function createResultFilterController({ root, secondaryContainer }) {
     const filtersRow = document.createElement('div');
     filtersRow.className = 'decon-secondary-scroll-filters';
 
-    const allBtn = document.createElement('button');
-    allBtn.type = 'button';
+    const allBtn = document.createElement('span');
+    allBtn.setAttribute('role', 'button');
+    allBtn.setAttribute('tabindex', '0');
     allBtn.className = 'decon-secondary-scroll-filter';
-    allBtn.textContent = '전체';
     allBtn.setAttribute('aria-pressed', String(activeScrollStatFilter === 'all'));
     if (activeScrollStatFilter === 'all') {
       allBtn.classList.add('decon-secondary-scroll-filter--active');
@@ -113,14 +113,15 @@ export function createResultFilterController({ root, secondaryContainer }) {
       activeScrollStatFilter = 'all';
       renderPanel('scrolls');
     });
+    allBtn.textContent = '전체';
     filtersRow.append(allBtn);
 
     for (const key of statKeys) {
-      const label = statLabelByKey[key] ?? key;
-      const btn = document.createElement('button');
-      btn.type = 'button';
+      const labelText = statLabelByKey[key] ?? key;
+      const btn = document.createElement('span');
+      btn.setAttribute('role', 'button');
+      btn.setAttribute('tabindex', '0');
       btn.className = 'decon-secondary-scroll-filter';
-      btn.textContent = label;
       btn.setAttribute('aria-pressed', String(activeScrollStatFilter === key));
       if (activeScrollStatFilter === key) {
         btn.classList.add('decon-secondary-scroll-filter--active');
@@ -129,6 +130,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
         activeScrollStatFilter = key;
         renderPanel('scrolls');
       });
+      btn.textContent = labelText;
       filtersRow.append(btn);
     }
 
@@ -714,6 +716,49 @@ export function createResultFilterController({ root, secondaryContainer }) {
       renderStimulantPanel(options);
     } else if (source === 'itemLevelUp') {
       renderItemLevelUpPanel(options);
+    } else if (source === 'grade') {
+      // Grade filter: button chips with subtle grade-colored backgrounds
+      // when selected.  Reuses the existing .decon-secondary-scroll-filter
+      // base styling.
+      secondaryContainer.replaceChildren();
+      const chipRow = document.createElement('div');
+      chipRow.className = 'decon-secondary-scroll-filters';
+      for (const option of options) {
+        const chip = document.createElement('span');
+        chip.setAttribute('role', 'button');
+        chip.setAttribute('tabindex', '0');
+        chip.className = 'decon-secondary-scroll-filter';
+        chip.dataset.gradeKey = option.key;
+        if (!option.available) {
+          chip.style.opacity = '0.35';
+          chip.style.cursor = 'not-allowed';
+          chip.setAttribute('aria-disabled', 'true');
+        }
+        chip.textContent = option.label;
+        const isSelected = selected.has(option.key);
+        if (isSelected) {
+          chip.classList.add('decon-secondary-scroll-filter--active');
+          // Subtle grade-colored tint instead of the default green
+          chip.style.setProperty('--grade-color', option.color ?? '#888');
+          chip.style.borderColor = 'color-mix(in srgb, var(--grade-color) 50%, transparent)';
+          chip.style.background = 'color-mix(in srgb, var(--grade-color) 22%, transparent)';
+          chip.style.color = 'var(--ink)';
+        }
+        chip.addEventListener('click', () => {
+          if (chip.getAttribute('aria-disabled') === 'true') return;
+          const nowSelected = !selections.get(source)?.has(option.key);
+          setSecondaryOption(source, option.key, nowSelected);
+        });
+        chip.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            chip.click();
+          }
+        });
+        chipRow.append(chip);
+      }
+      secondaryContainer.append(chipRow);
+      secondaryContainer.hidden = false;
     } else {
       secondaryContainer.replaceChildren();
       const list = document.createElement('div');

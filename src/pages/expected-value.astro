@@ -804,11 +804,11 @@ import { showEvConfirmationDialog } from '../lib/expectedValue/dialogs.mjs';
 			return;
 		}
 
-		if (selectedItemIdInput instanceof HTMLInputElement) {
-			selectedItemIdInput.value = '';
-		}
-		form?.removeAttribute('data-selected-item-id');
-		clearSelectedItemCard();
+		// NOTE: Do NOT clear selectedItemIdInput, data-selected-item-id, or the
+		// item preview card here.  The search input text is decoupled from the
+		// committed selected-item state — typing or clearing the search field
+		// must only update the suggestion dropdown, never wipe the active item
+		// or its enhancement data.
 		itemSuggestions.replaceChildren();
 
 		const results = searchKoreanItems(itemNameInput.value, { items: itemIndex });
@@ -2453,6 +2453,12 @@ window.__evRefresh = ({ showStale = true } = {}) => {
 		:global(.maker-toggle-area:not([hidden])) {
 		grid-template-rows: 1fr;
 		}
+
+		/* Allow tooltips to render fully above the accordion when a help icon is hovered or focused. */
+		:global(.maker-toggle-area:not([hidden]):has(.maker-material-help:hover)),
+		:global(.maker-toggle-area:not([hidden]):has(.maker-material-help:focus-within)) {
+			overflow: visible;
+		}
 		:global(.maker-toggle-area[hidden]) {
 		display: grid;
 		margin-top: 0;
@@ -2460,7 +2466,7 @@ window.__evRefresh = ({ showStale = true } = {}) => {
 		}
 		:global(.maker-accordion-inner) {
 		min-height: 0;
-		overflow: hidden;
+		overflow: visible;
 		}
 		:global(.maker-stimulant-slot-container) {
 		display: flex;
@@ -2504,13 +2510,13 @@ window.__evRefresh = ({ showStale = true } = {}) => {
 		cursor: not-allowed;
 	}
 	:global(.maker-toggle-button.maker-toggle-button--active) {
-		border-color: var(--green);
-		background: var(--green);
+		border-color: rgb(1 143 199 / 70%);
+		background: rgb(1 143 199 / 45%);
 		color: white;
 	}
 	:global(.item-level-up-toggle--active) {
-		border-color: var(--green) !important;
-		background: var(--green) !important;
+		border-color: rgb(1 143 199 / 70%) !important;
+		background: rgb(1 143 199 / 45%) !important;
 		color: white !important;
 	}
 
@@ -2644,52 +2650,62 @@ window.__evRefresh = ({ showStale = true } = {}) => {
 		gap: 6px;
 		margin-top: 8px;
 	}
-	:global(.maker-material-help) {
-		position: relative;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 18px;
-		height: 18px;
-		border: 1px solid var(--line);
-		border-radius: 50%;
-		background: var(--surface);
-		color: var(--muted);
-		font-size: 0.72rem;
-		font-weight: 800;
-		line-height: 1;
-		cursor: help;
-	}
-	:global(.maker-material-help:focus-visible) {
-		outline: 2px solid var(--green);
-		outline-offset: 2px;
-	}
+		:global(.maker-material-help) {
+			position: relative;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 16px;
+			height: 16px;
+			border: 1px solid #777;
+			border-radius: 50%;
+			color: #aaa;
+			font-size: 0.65rem;
+			font-weight: 700;
+			line-height: 1;
+			cursor: help;
+			transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+		}
+		:global(.maker-material-help:hover) {
+			border-color: var(--green);
+			color: white;
+			background: var(--green);
+		}
+		:global(.maker-material-help:focus-visible) {
+			outline: 2px solid var(--green);
+			outline-offset: 2px;
+		}
 	:global(.maker-material-help-tooltip) {
 		position: absolute;
 		left: 50%;
 		bottom: calc(100% + 8px);
 		z-index: 20;
-		width: min(300px, 80vw);
-		padding: 8px 10px;
-		border: 1px solid var(--line);
+		padding: 6px 10px;
 		border-radius: 6px;
-		background: var(--surface);
-		color: var(--ink);
-		box-shadow: 0 6px 18px rgba(15, 23, 42, 0.16);
+		background: #333;
+		color: #f0f0f0;
 		font-size: 0.78rem;
 		font-weight: 500;
-		line-height: 1.45;
-		text-align: left;
+		line-height: 1.35;
+		white-space: nowrap;
 		opacity: 0;
 		pointer-events: none;
-		transform: translateX(-50%) translateY(4px);
-		transition: opacity 0.12s ease, transform 0.12s ease;
+		transform: translateX(-50%);
+		transition: opacity 0.15s ease;
+	}
+	:global(.maker-material-help-tooltip::after) {
+		content: '';
+		position: absolute;
+		top: 100%;
+		left: 50%;
+		transform: translateX(-50%);
+		border: 5px solid transparent;
+		border-top-color: #333;
 	}
 	:global(.maker-material-help:hover .maker-material-help-tooltip),
 	:global(.maker-material-help:focus .maker-material-help-tooltip),
 	:global(.maker-material-help:focus-within .maker-material-help-tooltip) {
 		opacity: 1;
-		transform: translateX(-50%) translateY(0);
 	}
 
 	:global(.maker-picker-grid) {
@@ -2937,24 +2953,34 @@ window.__evRefresh = ({ showStale = true } = {}) => {
 	:global(.ev-chart) { display: block; width: 100%; max-width: 100%; height: 220px; margin: 12px 0; box-sizing: border-box; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
 	:global(.ev-equipment-count) { display: flex; align-items: center; gap: 6px; font-size: 14px; margin: 4px 0 10px; color: var(--ink); }
 	:global(.ev-help-trigger) {
+		appearance: none;
 		position: relative;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
+		width: 16px;
+		height: 16px;
+		min-width: 16px;
+		min-height: 16px;
 		flex-shrink: 0;
-		min-height: 0;
-		width: 18px;
-		height: 18px;
-		border: 1px solid var(--line);
+		box-sizing: border-box;
+		border: 1px solid #777;
 		border-radius: 50%;
-		background: var(--surface);
-		color: var(--muted);
-		font-size: 0.72rem;
-		font-weight: 800;
+		background: transparent;
+		color: #aaa;
+		font-family: inherit;
+		font-size: 0.65rem;
+		font-weight: 700;
 		line-height: 1;
 		cursor: help;
 		padding: 0;
 		margin: 0;
+		transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+	}
+	:global(.ev-help-trigger:hover) {
+		border-color: var(--green);
+		color: white;
+		background: var(--green);
 	}
 	:global(.ev-help-trigger:focus-visible) {
 		outline: 2px solid var(--green);
@@ -2966,25 +2992,31 @@ window.__evRefresh = ({ showStale = true } = {}) => {
 		bottom: calc(100% + 8px);
 		z-index: 20;
 		padding: 6px 10px;
-		border: 1px solid var(--line);
 		border-radius: 6px;
-		background: var(--surface);
-		color: var(--ink);
-		box-shadow: 0 6px 18px rgba(15, 23, 42, 0.16);
+		background: #333;
+		color: #f0f0f0;
 		font-size: 0.82rem;
 		font-weight: 600;
 		font-variant-numeric: tabular-nums;
 		white-space: nowrap;
 		opacity: 0;
 		pointer-events: none;
-		transform: translateX(-50%) translateY(4px);
-		transition: opacity 0.12s ease, transform 0.12s ease;
+		transform: translateX(-50%);
+		transition: opacity 0.15s ease;
+	}
+	:global(.ev-help-tooltip::after) {
+		content: '';
+		position: absolute;
+		top: 100%;
+		left: 50%;
+		transform: translateX(-50%);
+		border: 5px solid transparent;
+		border-top-color: #333;
 	}
 	:global(.ev-help-trigger:hover .ev-help-tooltip),
 	:global(.ev-help-trigger:focus .ev-help-tooltip),
 	:global(.ev-help-trigger:focus-within .ev-help-tooltip) {
 		opacity: 1;
-		transform: translateX(-50%) translateY(0);
 	}
 	:global(.ev-converter-row) { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 10px; margin: 8px 0; }
 	:global(.ev-converter-field) { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 8px 12px; border-radius: 8px; background: var(--surface-soft); color: var(--muted); font-size: 13px; font-weight: 700; }

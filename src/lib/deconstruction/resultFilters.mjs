@@ -1,6 +1,7 @@
 import { GEM_GRADES, STAT_KEY_RANK, statLabelByKey } from '../makerData.mjs';
+import { computeGradeTier } from './gradeColor.mjs';
 
-export const RESULT_SOURCE_ORDER = ['scrolls', 'stimulant', 'gems', 'itemLevelUp'];
+export const RESULT_SOURCE_ORDER = ['scrolls', 'stimulant', 'gems', 'itemLevelUp', 'grade'];
 export const STIMULANT_NONE_KEY = 'stimulant:none';
 
 const canonicalStats = (stats = {}) => Object.entries(stats)
@@ -134,7 +135,15 @@ export function getStrategySecondaryOptions(strategy) {
     levelCount: strategy.itemLevelUp.levelCount,
   }] : [];
 
-  return { scrolls, stimulant, gems, itemLevelUp };
+  const gradeTier = computeGradeTier(strategy.totalStats);
+  const grade = [{
+    source: 'grade',
+    key: `grade:${gradeTier.key}`,
+    label: gradeTier.name,
+    color: gradeTier.color,
+    sortKey: String(gradeTier.min).padStart(3, '0'),
+  }];
+  return { scrolls, stimulant, gems, itemLevelUp, grade };
 }
 
 export function buildSecondaryFilterModel(strategies) {
