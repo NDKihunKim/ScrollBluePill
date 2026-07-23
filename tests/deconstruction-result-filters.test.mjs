@@ -102,7 +102,7 @@ test('builds a global strategy universe and selects every option initially', () 
   const model = buildSecondaryFilterModel(strategies);
   const selections = createInitialSecondarySelections(model);
 
-  assert.deepEqual(RESULT_SOURCE_ORDER, ['scrolls', 'stimulant', 'gems', 'itemLevelUp']);
+  assert.deepEqual(RESULT_SOURCE_ORDER, ['scrolls', 'stimulant', 'gems', 'itemLevelUp', 'grade']);
   assert.deepEqual(model.entries.map(({ strategyIndex }) => strategyIndex), [0, 1, 2, 3]);
   assert.deepEqual([...selections.get('scrolls')].sort(), ['scroll:1001', 'scroll:1002']);
   assert.deepEqual([...selections.get('gems')].sort(), ['gem:dexCrystal:1', 'gem:strCrystal:2']);
