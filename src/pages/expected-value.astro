@@ -1347,7 +1347,10 @@ window.__evRefresh = ({ showStale = true } = {}) => {
     } else if (canUseExactOutcome(userStrategy)) {
       // Exact-outcome mode: probability that every scroll produces
       // EXACTLY its user-specified stats. Direct multiplication — no DP.
-      probability = computeDirectOutcomeProbability(scrollSequence, { statFilter });
+      const stimulantStats = userStrategy.useStimulant
+          ? (enhancementState.stimulantSlot?.stats ?? null)
+          : null;
+        probability = computeDirectOutcomeProbability(scrollSequence, { statFilter, stimulantStats });
     } else {
       probability = 0; // DP engine removed
     }
@@ -2507,6 +2510,20 @@ window.__evRefresh = ({ showStale = true } = {}) => {
 			display: flex;
 			flex-direction: column;
 			gap: 8px;
+		}
+		:global(.maker-stimulant-error) {
+			margin: 0;
+			padding: 8px 12px;
+			border: 1px solid #e74c3c;
+			border-radius: 6px;
+			background: #fdf0ef;
+			color: #c0392b;
+			font-size: 13px;
+			font-weight: 600;
+			line-height: 1.4;
+		}
+		:global(.maker-stimulant-error[hidden]) {
+			display: none;
 		}
 	:global(.maker-toggle-button) {
 		position: relative;

@@ -191,10 +191,18 @@ const ICON_ID_OVERRIDES = {
 	1082256: 1082240, // Reverse Hermosa
 };
 
+const ICON_VERSION_OVERRIDES = {
+	// Items whose icons only exist in a newer API version
+	2048717: { version: '253' }, // Eternal Rebirth Flame (post-v83)
+};
+
 export function buildItemIconUrl(
 	itemId,
 	{ region = MAPLESTORY_IO_REGION, version = MAPLESTORY_IO_VERSION } = {},
 ) {
 	const effectiveId = ICON_ID_OVERRIDES[itemId] ?? itemId;
-	return new URL(`/api/${region}/${version}/item/${effectiveId}/icon`, MAPLESTORY_IO_BASE_URL).toString();
+	const versionOverride = ICON_VERSION_OVERRIDES[itemId];
+	const resolvedRegion = versionOverride?.region ?? region ?? MAPLESTORY_IO_REGION;
+	const resolvedVersion = versionOverride?.version ?? version ?? MAPLESTORY_IO_VERSION;
+	return new URL(`/api/${resolvedRegion}/${resolvedVersion}/item/${effectiveId}/icon`, MAPLESTORY_IO_BASE_URL).toString();
 }
