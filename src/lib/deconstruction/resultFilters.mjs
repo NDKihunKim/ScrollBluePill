@@ -209,11 +209,11 @@ export function getFacetOptions(model, selections, source) {
 
 function stimulantInRange(entry, ranges) {
   if (!ranges || ranges.size === 0) return true;
-  const stimStats = entry.strategy.stimulant?.stats;
-  if (!stimStats) return true;
+  // Treat missing stimulant as 0 contribution to every stat —
+  // a strategy with no stimulant should only pass ranges that include 0.
+  const stimStats = entry.strategy.stimulant?.stats ?? {};
   for (const [statKey, { min, max }] of ranges) {
-    if (!Object.hasOwn(stimStats, statKey)) continue;
-    const value = stimStats[statKey];
+    const value = stimStats[statKey] ?? 0;
     if (value < min || value > max) return false;
   }
   return true;
@@ -221,8 +221,8 @@ function stimulantInRange(entry, ranges) {
 
 function itemLevelUpInRange(entry, ranges) {
   if (!ranges || ranges.size === 0) return true;
-  const levelStats = entry.strategy.itemLevelUp?.stats;
-  if (!levelStats) return true;
+  // Treat missing item level-up as 0 contribution to every stat.
+  const levelStats = entry.strategy.itemLevelUp?.stats ?? {};
   for (const [statKey, { min, max }] of ranges) {
     const value = levelStats[statKey] ?? 0;
     if (value < min || value > max) return false;

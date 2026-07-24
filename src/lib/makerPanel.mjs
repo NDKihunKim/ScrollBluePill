@@ -703,7 +703,7 @@ export function initMakerPanel({
       .filter((s) => s !== null)
       .map((s) => s.gemKey);
 
-    const visibleGems = getVisibleGemTypes(selectedBaseItem.equipmentKind, usedKeys);
+    const visibleGems = getVisibleGemTypes(selectedBaseItem.equipmentKind, usedKeys, selectedBaseItem.stats ?? {});
 
     visibleGems.forEach((gem) => {
       const item = document.createElement('button');
