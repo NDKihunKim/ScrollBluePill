@@ -367,7 +367,7 @@ import { readSlots, saveToSlot, clearSlot, findMatchingSlot, MAX_SLOTS } from '.
 import { writeDeconTransfer } from '../lib/deconToEvTransfer.mjs';
 import { saveDeconSession, loadDeconSession, clearDeconSession } from '../lib/deconSessionState.mjs';
 import { STAT_PRIORITY, statLabelByKey, CORE_STATS, STAT_ORDER } from '../lib/deconstruction/displayHelpers.mjs';
-import { requirementRows, statRows, jobKindByRequiredJob, weaponAttackSpeedBySubCategory, formatRequiredJobs, createItemLine, resolveAttackSpeed, formatStatValue } from '../lib/ui/itemCardHelpers.mjs';
+import { requirementRows, statRows, jobKindByRequiredJob, weaponAttackSpeedBySubCategory, formatRequiredJobs, createItemLine, resolveAttackSpeed, formatStatValue, formatRequirementValue } from '../lib/ui/itemCardHelpers.mjs';
 import { getSelectedJobKinds, itemMatchesSelectedJobs } from '../lib/ui/itemSearchHelpers.mjs';
 import { showDeconConfirmDialog, showResetConfirmDialog, showDeconItemChangeDialog, showDeconSavePicker, confirmReplaceDeconSlot, confirmDeleteDeconSlot, confirmUnsaveDeconSlot } from '../lib/deconstruction/dialogs.mjs';
 import { buildDeconPageState, checkDeconStarState, renderDeconSlotBar } from '../lib/deconstruction/slotBarUI.mjs';
@@ -703,10 +703,11 @@ const renderTargetItemCard = (item) => {
   }
 
   requirementRows.forEach(([label, key]) => {
-    const value =
+    const rawValue =
       key === 'requiredLevel'
         ? item.requiredLevel
         : (item.requirements?.[key] ?? 0);
+    const value = formatRequirementValue(key, rawValue);
     selectedItemRequirements.append(createItemLine(label, value, 'selected-item-line--requirement'));
   });
 
@@ -2733,6 +2734,7 @@ Promise.all([
 
 .selected-item-requirements {
   gap: 0;
+  grid-template-columns: auto 1fr;
 }
 
 .selected-item-stats {
@@ -2744,6 +2746,19 @@ Promise.all([
 :global(.selected-item-line--requirement) {
   height: 16px;
   line-height: 16px;
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+}
+
+:global(.selected-item-line--requirement) :global(.selected-item-line__label) {
+  white-space: nowrap;
+}
+
+/* Non-REQ children span the full width of the requirements grid */
+.selected-item-requirements :global(.selected-item-jobs-row),
+.selected-item-requirements :global(.selected-item-line--item-level) {
+  grid-column: 1 / -1;
 }
 :global(.selected-item-line--item-level) {
   min-height: 16px;
@@ -4527,6 +4542,7 @@ aside.panel {
   }
 
   aside.panel {
+    position: static;
     max-width: 315px;
     justify-self: center;
     width: 100%;

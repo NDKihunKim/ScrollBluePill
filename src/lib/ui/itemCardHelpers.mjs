@@ -80,17 +80,28 @@ export function formatRequiredJobs(requiredJobs = []) {
   return row;
 }
 
+export function formatRequirementValue(key, rawValue) {
+  if (key === 'pop' && (rawValue === 0 || rawValue === null)) return '-';
+  return rawValue;
+}
+
 export function createItemLine(label, value, className = '') {
   const row = document.createElement('div');
   row.className = `selected-item-line ${className}`.trim();
 
   const labelElement = document.createElement('span');
+  labelElement.className = 'selected-item-line__label';
   labelElement.textContent = label;
+
+  const valueWrapper = document.createElement('span');
+  valueWrapper.className = 'selected-item-line__value';
+  valueWrapper.append(document.createTextNode(' : '));
 
   const valueElement = document.createElement('strong');
   valueElement.textContent = String(value);
+  valueWrapper.append(valueElement);
 
-  row.append(labelElement, document.createTextNode(' : '), valueElement);
+  row.append(labelElement, valueWrapper);
   return row;
 }
 
