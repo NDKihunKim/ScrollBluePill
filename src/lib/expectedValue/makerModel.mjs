@@ -7,16 +7,16 @@ import { rollChaosStatDelta } from './chaosModel.mjs';
  */
 export const BLACK_AMETHYST_TABLES = {
   low: [
-    { value: -1, probability: 0.25 },
-    { value: 0,  probability: 0.50 },
-    { value: 1,  probability: 0.25 },
+    { value: -1, probability: 0.30 },
+    { value: 0,  probability: 0.40 },
+    { value: 1,  probability: 0.30 },
   ],
   mid: [
-    { value: -2, probability: 0.10 },
-    { value: -1, probability: 0.20 },
-    { value: 0,  probability: 0.40 },
-    { value: 1,  probability: 0.20 },
-    { value: 2,  probability: 0.10 },
+    { value: -2, probability: 0.12 },
+    { value: -1, probability: 0.22 },
+    { value: 0,  probability: 0.32 },
+    { value: 1,  probability: 0.22 },
+    { value: 2,  probability: 0.12 },
   ],
   high: [
     { value: -3, probability: 0.05 },

@@ -46,8 +46,11 @@ export function initMakerPanel({
 
   const SLOT_COUNT = 3;
   const STIMULANT_ITEM_ID = 4130000;
+  const ADDITIONAL_OPTION_ICON_ID = 2048717; // Eternal Rebirth Flame — post-v83 item
   const NON_STIMULANT_STAT_KEYS = new Set(['upgradeSlots', 'attackSpeed']);
   let stimulantValues = new Map();
+  let stimulantErrorEl = null;
+  let stimulantErrorTimer = null;
 
   const hidePicker = () => {
     if (makerPicker instanceof HTMLElement) {
@@ -387,6 +390,34 @@ export function initMakerPanel({
         stats[key] = stimulantValues.get(key) ?? 0;
       }
       const currentMode = currentIsProbability ? 'probability' : 'manual';
+
+      // 촉진제 mode: negative deltas are invalid — validate before committing
+      if (currentMode === 'probability') {
+        const negativeKeys = statKeys.filter((k) => (stats[k] ?? 0) < 0);
+        if (negativeKeys.length > 0) {
+          const names = negativeKeys.map((k) => statLabelByKey[k] ?? k).join(', ');
+          if (stimulantErrorEl instanceof HTMLElement) {
+            stimulantErrorEl.textContent = `촉진제 모드에서는 0 이하 스탯을 적용할 수 없습니다. (${names})`;
+            stimulantErrorEl.hidden = false;
+            clearTimeout(stimulantErrorTimer);
+            stimulantErrorTimer = setTimeout(() => {
+              if (stimulantErrorEl instanceof HTMLElement) {
+                stimulantErrorEl.hidden = true;
+              }
+              stimulantErrorTimer = null;
+            }, 3000);
+          }
+          return;
+        }
+      }
+
+      // Clear any previous error and timeout on valid apply
+      clearTimeout(stimulantErrorTimer);
+      stimulantErrorTimer = null;
+      if (stimulantErrorEl instanceof HTMLElement) {
+        stimulantErrorEl.hidden = true;
+      }
+
       requestMutation(() => {
         applyStimulant(enhancementState, stats, currentMode);
         hideStimulantEditor();
@@ -436,10 +467,17 @@ export function initMakerPanel({
     actionsDiv.className = 'maker-mode-toggle-actions';
     actionsDiv.append(cancelBtn, applyBtn);
 
+    // Error message element — created once, reused across editor opens
+    if (!stimulantErrorEl) {
+      stimulantErrorEl = document.createElement('p');
+      stimulantErrorEl.className = 'maker-stimulant-error';
+      stimulantErrorEl.hidden = true;
+    }
+
     toggleLabel.prepend(checkbox);
     toggleLabel.append(' ', helpIcon);
     toggleRow.append(toggleLabel, actionsDiv);
-    makerStimulantEditorGrid.append(toggleRow);
+    makerStimulantEditorGrid.append(stimulantErrorEl, toggleRow);
   };
 
 
@@ -454,14 +492,16 @@ export function initMakerPanel({
     if (enhancementState?.stimulantSlot) {
       box.classList.add('maker-gem-slot--filled');
 
+      const stimMode = enhancementState?.stimulantSlot?.mode;
+      const iconId = stimMode === 'probability' ? STIMULANT_ITEM_ID : ADDITIONAL_OPTION_ICON_ID;
+
       const img = document.createElement('img');
-      img.src = buildItemIconUrl(STIMULANT_ITEM_ID);
+      img.src = buildItemIconUrl(iconId);
       img.alt = '';
       img.loading = 'lazy';
 
       const nameSpan = document.createElement('span');
       nameSpan.className = 'maker-gem-slot-name';
-      const stimMode = enhancementState?.stimulantSlot?.mode;
       nameSpan.textContent = stimMode === 'probability' ? '촉진제' : '추옵';
 
       box.append(img, nameSpan);
