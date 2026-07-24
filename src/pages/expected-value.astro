@@ -350,7 +350,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 	import { computeDirectOutcomeProbability, canUseExactOutcome } from '../lib/expectedValue/directProbability.mjs';
 	import { createResultSummary } from '../lib/expectedValue/resultFormatter.mjs';
 import { consumeDeconTransfer, buildEnhancementStateFromStrategy } from '../lib/deconToEvTransfer.mjs';
-import { requirementRows, statRows, jobKindByRequiredJob, weaponAttackSpeedBySubCategory, formatRequiredJobs, createItemLine, resolveAttackSpeed, formatStatValue } from '../lib/ui/itemCardHelpers.mjs';
+import { requirementRows, statRows, jobKindByRequiredJob, weaponAttackSpeedBySubCategory, formatRequiredJobs, createItemLine, resolveAttackSpeed, formatStatValue, formatRequirementValue } from '../lib/ui/itemCardHelpers.mjs';
 import { getSelectedJobKinds, itemMatchesSelectedJobs } from '../lib/ui/itemSearchHelpers.mjs';
 import { buildEvPageState, checkEvStarState, renderEvSlotBar, showEvSavePicker, confirmReplaceEvSlot, confirmDeleteEvSlot, confirmUnsaveEvSlot } from '../lib/expectedValue/slotBarUI.mjs';
 import { showEvConfirmationDialog } from '../lib/expectedValue/dialogs.mjs';
@@ -508,10 +508,11 @@ import { showEvConfirmationDialog } from '../lib/expectedValue/dialogs.mjs';
 		}
 
 		requirementRows.forEach(([label, key]) => {
-			const value =
+			const rawValue =
 						key === 'requiredLevel'
 							? item.requiredLevel
 							: (item.requirements?.[key] ?? 0);
+			const value = formatRequirementValue(key, rawValue);
 			selectedItemRequirements.append(createItemLine(label, value, 'selected-item-line--requirement'));
 		});
 
@@ -681,7 +682,7 @@ import { showEvConfirmationDialog } from '../lib/expectedValue/dialogs.mjs';
 				key === 'requiredLevel'
 					? item.requiredLevel
 					: (item.requirements?.[key] ?? 0);
-			const value = key === 'pop' && rawValue === 0 ? '-' : rawValue;
+			const value = formatRequirementValue(key, rawValue);
 			selectedItemRequirements.append(createItemLine(label, value, 'selected-item-line--requirement'));
 		});
 		appendItemLevelUpCardMeta(activeItemLevelUpCardMeta);
@@ -1759,6 +1760,7 @@ window.__evRefresh = ({ showStale = true } = {}) => {
 
 	.selected-item-requirements {
 		gap: 0;
+		grid-template-columns: auto 1fr;
 	}
 
 	.selected-item-stats {
@@ -1770,6 +1772,19 @@ window.__evRefresh = ({ showStale = true } = {}) => {
 	:global(.selected-item-line--requirement) {
 		height: 16px;
 		line-height: 16px;
+		display: grid;
+		grid-template-columns: subgrid;
+		grid-column: 1 / -1;
+	}
+
+	:global(.selected-item-line--requirement) :global(.selected-item-line__label) {
+		white-space: nowrap;
+	}
+
+	/* Non-REQ children span the full width of the requirements grid */
+	.selected-item-requirements :global(.selected-item-jobs-row),
+	.selected-item-requirements :global(.selected-item-line--item-level) {
+		grid-column: 1 / -1;
 	}
 
 	:global(.selected-item-line--item-level) {
@@ -2177,6 +2192,12 @@ window.__evRefresh = ({ showStale = true } = {}) => {
 		top: calc(var(--header-offset) + 1rem);
 		align-self: start;
 	}
+
+		@media (max-width: 760px) {
+			aside.panel {
+				position: static;
+			}
+		}
 
 	.enhancement-scroll-section {
 		margin-top: 12px;

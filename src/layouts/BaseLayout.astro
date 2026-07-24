@@ -488,5 +488,13 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
 		.field-grid {
 			grid-template-columns: 1fr;
 		}
+
+		/* Item Preview panel moves to top when side-by-side layout stacks */
+		.grid.two > .left-stack {
+			order: 2;
+		}
+		.grid.two > aside.panel {
+			order: 1;
+		}
 	}
 </style>
