@@ -605,6 +605,49 @@ export function enumerateStrategies({
       })
     : [];
 
+  /**
+   * Try to replace part of an aggregate chaos contribution with a gem.
+   *
+   * When chaos scrolls fill the entire target, gem-based strategies are
+   * unreachable because the residual is zero. This helper checks whether a
+   * gem contribution can be "swapped in" by reducing the chaos aggregate
+   * stats by the gem amount, producing a scroll+gems result.
+   *
+   * @returns {Array|null} New scroll list with reduced chaos, or null if infeasible
+   */
+  function trySwapGemsIntoChaos(scrollState, gemContribution) {
+    const chaosEntries = scrollState.scrolls.filter((s) => s.isAggregate);
+    if (chaosEntries.length === 0) return null;
+
+    let feasible = true;
+    const newScrolls = scrollState.scrolls.map((s) => {
+      if (!s.isAggregate) return s;
+
+      const reducedStats = { ...s.stats };
+      for (const key of targetKeys) {
+        reducedStats[key] = (reducedStats[key] || 0) - (gemContribution.stats[key] || 0);
+      }
+
+      // Determine which stat keys exist before chaos is applied on this entry.
+      // A key "exists" if it is present on the clean item OR if it was added
+      // by fixed scrolls (the non-chaos portion of the scroll state).
+      const existingKeys = new Set(targetKeys.filter((k) =>
+        (cleanStats && Number.isFinite(cleanStats[k]) && cleanStats[k] > 0)
+        || (scrollState.stats[k] || 0) - (s.stats[k] || 0) !== 0,
+      ));
+
+      if (!canChaosFillResidual(reducedStats, s.aggregateCount, targetKeys,
+          chaosStatBounds, existingKeys)) {
+        feasible = false;
+      }
+
+      return { ...s, stats: reducedStats };
+    });
+
+    if (!feasible) return null;
+    return newScrolls;
+  }
+
   function computeCorrectionBounds(targetKeys, { includeStimulant, includeGems, includeItemLevelUp }) {
     const bounds = {};
     for (const key of targetKeys) {
@@ -796,6 +839,17 @@ export function enumerateStrategies({
                 itemLevelUp: ilc,
                 priorityRank: 2,
               });
+              continue;
+            }
+            const swappedScrolls = trySwapGemsIntoChaos(ss, gc);
+            if (swappedScrolls) {
+              addResult({
+                scrolls: swappedScrolls,
+                stimulant: null,
+                gems: gc.gems,
+                itemLevelUp: ilc,
+                priorityRank: 2,
+              });
             }
           }
         }
@@ -815,6 +869,28 @@ export function enumerateStrategies({
                 itemLevelUp: ilc,
                 priorityRank: 4,
               });
+              continue;
+            }
+            const swappedScrolls = trySwapGemsIntoChaos(ss, gc);
+            if (swappedScrolls) {
+              const swapScrollTotal = {};
+              for (const s of swappedScrolls) {
+                for (const k of targetKeys) {
+                  swapScrollTotal[k] = (swapScrollTotal[k] || 0) + (s.stats[k] || 0);
+                }
+              }
+              const postSwapResidual = subtractVectors(remainingTarget, swapScrollTotal, targetKeys);
+              const postSwapAfterGems = subtractVectors(postSwapResidual, gc.stats, targetKeys);
+              const swapStimStats = solveStimulantResidual(postSwapAfterGems, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
+              if (swapStimStats) {
+                addResult({
+                  scrolls: swappedScrolls,
+                  stimulant: { stats: swapStimStats },
+                  gems: gc.gems,
+                  itemLevelUp: ilc,
+                  priorityRank: 4,
+                });
+              }
             }
           }
         }
@@ -919,9 +995,23 @@ export function enumerateStrategies({
       if (normalizedAllowedSources.gems && !tooManyResults) {
         for (const gc of gemContributions) {
           if (tooManyResults) break;
+          // Exact match: gem fills the residual exactly
           if (isExactVector(gc.stats, residual, targetKeys)) {
             addResult({
               scrolls: ss.scrolls,
+              stimulant: null,
+              gems: gc.gems,
+              itemLevelUp: null,
+              priorityRank: 2,
+            });
+            continue;
+          }
+          // Gem-swap: when chaos fills the full target, try reducing chaos
+          // contribution by the gem amount so gems can contribute.
+          const swappedScrolls = trySwapGemsIntoChaos(ss, gc);
+          if (swappedScrolls) {
+            addResult({
+              scrolls: swappedScrolls,
               stimulant: null,
               gems: gc.gems,
               itemLevelUp: null,
@@ -952,6 +1042,7 @@ export function enumerateStrategies({
         && !tooManyResults) {
         for (const gc of gemContributions) {
           if (tooManyResults) break;
+          // Exact match: gems from residual, stimulant fills remainder
           const afterGems = subtractVectors(residual, gc.stats, targetKeys);
           const stimStats = solveStimulantResidual(afterGems, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
           if (stimStats) {
@@ -962,6 +1053,31 @@ export function enumerateStrategies({
               itemLevelUp: null,
               priorityRank: 4,
             });
+            continue;
+          }
+          // Gem-swap: reduce chaos by gem amount, then solve stimulant on remainder
+          const swappedScrolls = trySwapGemsIntoChaos(ss, gc);
+          if (swappedScrolls) {
+            const swapScrollTotal = {};
+            for (const s of swappedScrolls) {
+              for (const k of targetKeys) {
+                swapScrollTotal[k] = (swapScrollTotal[k] || 0) + (s.stats[k] || 0);
+              }
+            }
+            const afterSwap = subtractVectors(
+              subtractVectors(effectiveTargetDeltas, swapScrollTotal, targetKeys),
+              gc.stats, targetKeys,
+            );
+            const swapStimStats = solveStimulantResidual(afterSwap, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
+            if (swapStimStats) {
+              addResult({
+                scrolls: swappedScrolls,
+                stimulant: { stats: swapStimStats },
+                gems: gc.gems,
+                itemLevelUp: null,
+                priorityRank: 4,
+              });
+            }
           }
         }
       }
@@ -1032,14 +1148,35 @@ export function enumerateStrategies({
     }
   }
 
-  // Sort strategies within each priority tier:
-  //   1. priorityRank ascending
-  //   2. Non-chaos strategies before chaos strategies
+  // Sort strategies by complexity (simplest first):
+  //   1. Fewer source types (priorityRank ascending)
+  //   2. Fixed scrolls before chaos scrolls
+  //   3. Fewer unique scroll IDs (less scroll variety)
+  //   4. Lower gem grades (하급 < 중급 < 상급)
   strategies.sort((a, b) => {
+    // 1. Source count
     if (a.priorityRank !== b.priorityRank) return a.priorityRank - b.priorityRank;
+
+    // 2. Fixed before chaos
     const aHasChaos = a.scrolls.some((s) => s.behavior_type === 'chaos');
     const bHasChaos = b.scrolls.some((s) => s.behavior_type === 'chaos');
-    return (aHasChaos ? 1 : 0) - (bHasChaos ? 1 : 0);
+    if (aHasChaos !== bHasChaos) return (aHasChaos ? 1 : 0) - (bHasChaos ? 1 : 0);
+
+    // 3. Fewer unique scroll types
+    const aUniqueScrolls = new Set(a.scrolls.map((s) => s.id)).size;
+    const bUniqueScrolls = new Set(b.scrolls.map((s) => s.id)).size;
+    if (aUniqueScrolls !== bUniqueScrolls) return aUniqueScrolls - bUniqueScrolls;
+
+    // 4. Lower gem grades (max grade used determines complexity)
+    const aMaxGrade = (a.gems ?? []).length > 0
+      ? Math.max(...a.gems.map((g) => g.gradeIndex ?? 0))
+      : -1;
+    const bMaxGrade = (b.gems ?? []).length > 0
+      ? Math.max(...b.gems.map((g) => g.gradeIndex ?? 0))
+      : -1;
+    if (aMaxGrade !== bMaxGrade) return aMaxGrade - bMaxGrade;
+
+    return 0;
   });
 
   return tooManyResults

@@ -76,7 +76,7 @@ export function isWeaponKind(equipmentKind) {
   return weaponKinds.includes(equipmentKind);
 }
 
-export function getVisibleGemTypes(equipmentKind, usedGemKeys) {
+export function getVisibleGemTypes(equipmentKind, usedGemKeys, cleanStats = {}) {
   const isWeapon = isWeaponKind(equipmentKind);
   const used = new Set(usedGemKeys);
 
@@ -85,10 +85,19 @@ export function getVisibleGemTypes(equipmentKind, usedGemKeys) {
       if (gem.weaponOnly && !isWeapon) return false;
       return true;
     })
-    .map((gem) => ({
-      ...gem,
-      disabled: used.has(gem.key),
-    }));
+    .map((gem) => {
+      let disabled = used.has(gem.key);
+
+      // 어둠의 크리스탈 is only usable when the item has at least one
+      // of STR/DEX/INT/LUK with a positive value in its clean stats.
+      if (gem.key === 'darkCrystal' && !disabled) {
+        const darkKeys = ['str', 'dex', 'int', 'luk'];
+        const hasEligibleStat = darkKeys.some((k) => Number.isFinite(cleanStats[k]) && cleanStats[k] > 0);
+        if (!hasEligibleStat) disabled = true;
+      }
+
+      return { ...gem, disabled };
+    });
 }
 
 export function getGemTypeByKey(key) {

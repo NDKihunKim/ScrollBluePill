@@ -5,7 +5,7 @@ import {
   getVisibleStrategyIndexes,
 } from './resultFilters.mjs';
 import { buildItemIconUrl } from '../maplestoryIo.mjs';
-import { GEM_GRADES, GEM_ITEM_IDS, statLabelByKey, STAT_KEY_RANK } from '../makerData.mjs';
+import { GEM_GRADES, GEM_ITEM_IDS, getGemTypeByKey, statLabelByKey, STAT_KEY_RANK } from '../makerData.mjs';
 import { HP_MP_KEYS } from '../enhancementState.mjs';
 import { formatScrollStatLine } from '../scrollState.mjs';
 
@@ -404,17 +404,70 @@ export function createResultFilterController({ root, secondaryContainer }) {
     const showCategories = () => {
       currentGemKey = null;
       secondaryContainer.replaceChildren();
-      const label = document.createElement('div');
-      label.className = 'decon-secondary-gem-label';
+
+      const headerRow = document.createElement('div');
+      headerRow.className = 'decon-gem-top-row';
+
+      const label = document.createElement('p');
+      label.className = 'decon-gem-picker-label';
       label.textContent = '보석 종류 선택';
-      secondaryContainer.append(label);
+
+      const actions = document.createElement('div');
+      actions.className = 'decon-gem-actions';
+
+      const selectAllBtn = document.createElement('button');
+      selectAllBtn.type = 'button';
+      selectAllBtn.className = 'decon-gem-action-btn';
+      selectAllBtn.textContent = '전체 선택';
+      selectAllBtn.addEventListener('click', () => {
+        const gemSelected = selections.get('gems');
+        if (!gemSelected) return;
+        for (const cat of categories.values()) {
+          for (const gradeOpt of cat.grades) {
+            if (gradeOpt.available) gemSelected.add(gradeOpt.key);
+          }
+        }
+        applyFilters();
+        renderPanel('gems');
+      });
+
+      const clearAllBtn = document.createElement('button');
+      clearAllBtn.type = 'button';
+      clearAllBtn.className = 'decon-gem-action-btn';
+      clearAllBtn.textContent = '전체 해제';
+      clearAllBtn.addEventListener('click', () => {
+        const gemSelected = selections.get('gems');
+        if (!gemSelected) return;
+        for (const cat of categories.values()) {
+          for (const gradeOpt of cat.grades) {
+            gemSelected.delete(gradeOpt.key);
+          }
+        }
+        applyFilters();
+        renderPanel('gems');
+      });
+
+      actions.append(selectAllBtn, clearAllBtn);
+      headerRow.append(label, actions);
+      secondaryContainer.append(headerRow);
 
       const grid = document.createElement('div');
-      grid.className = 'decon-secondary-gem-grid';
+      grid.className = 'decon-gem-grid';
 
       for (const cat of categories.values()) {
-        const item = document.createElement('div');
-        item.className = 'decon-secondary-gem-category';
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'decon-gem-category';
+
+        // Selected state: any grade within this category is selected
+        let hasSelectedGrade = false;
+        for (const gradeOpt of cat.grades) {
+          if (selected.has(gradeOpt.key)) {
+            hasSelectedGrade = true;
+            break;
+          }
+        }
+        if (hasSelectedGrade) card.classList.add('decon-gem-category--selected');
 
         const icon = document.createElement('img');
         icon.src = buildItemIconUrl(cat.iconId);
@@ -425,9 +478,24 @@ export function createResultFilterController({ root, secondaryContainer }) {
         const name = document.createElement('span');
         name.textContent = cat.nameKo;
 
-        item.append(icon, name);
-        item.addEventListener('click', () => showGrades(cat));
-        grid.append(item);
+        card.append(icon, name);
+
+        // Stat label (same as calc panel picker)
+        const gemType = getGemTypeByKey(cat.gemKey);
+        if (gemType && cat.gemKey !== 'darkCrystal') {
+          const statSub = document.createElement('span');
+          statSub.className = 'decon-gem-category-stat';
+          if (gemType.behavior === 'variable') {
+            const keyLabels = (gemType.variableKeys ?? []).map((k) => statLabelByKey[k] ?? k);
+            statSub.textContent = `(${keyLabels.join('/')})`;
+          } else {
+            statSub.textContent = `(${statLabelByKey[gemType.stat] ?? gemType.stat})`;
+          }
+          card.append(statSub);
+        }
+
+        card.addEventListener('click', () => showGrades(cat));
+        grid.append(card);
       }
 
       secondaryContainer.append(grid);
@@ -439,11 +507,11 @@ export function createResultFilterController({ root, secondaryContainer }) {
       secondaryContainer.replaceChildren();
 
       const header = document.createElement('div');
-      header.className = 'decon-secondary-gem-header';
+      header.className = 'decon-gem-picker-header';
 
       const backBtn = document.createElement('button');
       backBtn.type = 'button';
-      backBtn.className = 'decon-secondary-gem-back';
+      backBtn.className = 'decon-gem-back';
       backBtn.textContent = '← 뒤로';
       backBtn.addEventListener('click', showCategories);
 
@@ -454,42 +522,67 @@ export function createResultFilterController({ root, secondaryContainer }) {
       icon.addEventListener('error', () => { icon.hidden = true; });
 
       const name = document.createElement('span');
-      name.className = 'decon-secondary-gem-name';
+      name.className = 'decon-gem-name';
       name.textContent = cat.nameKo;
 
       header.append(backBtn, icon, name);
 
       const gradeList = document.createElement('div');
-      gradeList.className = 'decon-secondary-gem-grades';
+      gradeList.className = 'decon-gem-grades';
 
       for (const gradeOpt of cat.grades) {
-        const gradeLabel = document.createElement('label');
-        gradeLabel.className = 'decon-secondary-gem-grade';
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'decon-gem-grade';
+
+        const isSelected = selected.has(gradeOpt.key);
+        if (isSelected) row.classList.add('decon-gem-grade--selected');
         if (!gradeOpt.available) {
-          gradeLabel.classList.add('decon-secondary-gem-grade--unavailable');
+          row.disabled = true;
+          row.style.opacity = '0.35';
+          row.style.cursor = 'not-allowed';
         }
 
-        const input = document.createElement('input');
-        input.type = 'checkbox';
-        input.checked = selected.has(gradeOpt.key);
-        input.disabled = !gradeOpt.available;
-        input.addEventListener('change', () => {
-          setSecondaryOption('gems', gradeOpt.key, input.checked);
-        });
-
-        const gradeIcon = document.createElement('img');
         const gradeKey = gradeOpt.gradeIndex === 0 ? 'low' : gradeOpt.gradeIndex === 1 ? 'mid' : 'high';
         const gradeIconId = GEM_ITEM_IDS[cat.gemKey]?.[gradeKey] ?? 0;
-        gradeIcon.src = buildItemIconUrl(gradeIconId);
-        gradeIcon.alt = GEM_GRADES[gradeOpt.gradeIndex] ?? '';
-        gradeIcon.loading = 'lazy';
-        gradeIcon.addEventListener('error', () => { gradeIcon.hidden = true; });
+        if (gradeIconId) {
+          const gradeIcon = document.createElement('img');
+          gradeIcon.src = buildItemIconUrl(gradeIconId);
+          gradeIcon.alt = GEM_GRADES[gradeOpt.gradeIndex] ?? '';
+          gradeIcon.loading = 'lazy';
+          gradeIcon.addEventListener('error', () => { gradeIcon.hidden = true; });
+          row.append(gradeIcon);
+        }
 
         const gradeText = document.createElement('span');
         gradeText.textContent = GEM_GRADES[gradeOpt.gradeIndex] ?? '';
+        row.append(gradeText);
 
-        gradeLabel.append(input, gradeIcon, gradeText);
-        gradeList.append(gradeLabel);
+        // Stat info for this grade
+        const gemType = getGemTypeByKey(cat.gemKey);
+        if (gemType) {
+          const statSpan = document.createElement('span');
+          statSpan.className = 'decon-gem-category-stat';
+          if (gemType.stat && gemType.values) {
+            const val = gemType.values[gradeOpt.gradeIndex];
+            const dispLabel = statLabelByKey[gemType.stat] || gemType.stat;
+            statSpan.textContent = `${dispLabel} +${val}`;
+          } else if (gemType.behavior === 'variable') {
+            const isDark = gemType.key === 'darkCrystal';
+            const ranges = isDark
+              ? ['-2 ~ +2', '-3 ~ +3', '-5 ~ +5']
+              : ['-1 ~ +1', '-2 ~ +2', '-3 ~ +3'];
+            statSpan.textContent = ranges[gradeOpt.gradeIndex];
+          }
+          row.append(statSpan);
+        }
+
+        row.addEventListener('click', () => {
+          if (!gradeOpt.available) return;
+          setSecondaryOption('gems', gradeOpt.key, !selected.has(gradeOpt.key));
+        });
+
+        gradeList.append(row);
       }
 
       secondaryContainer.append(header, gradeList);
@@ -509,6 +602,11 @@ export function createResultFilterController({ root, secondaryContainer }) {
   const renderStimulantPanel = (options) => {
     secondaryContainer.replaceChildren();
 
+    // Check whether any strategy has zero stimulant contribution.
+    // If so, every stat slider must include 0 in its range so the user
+    // can filter for results with no 촉진제/추옵 contribution.
+    const hasNoneOption = options.some((o) => o.key === 'stimulant:none');
+
     const statRange = new Map();
     for (const option of options) {
       if (option.key === 'stimulant:none') continue;
@@ -523,6 +621,14 @@ export function createResultFilterController({ root, secondaryContainer }) {
           r.min = Math.min(r.min, value);
           r.max = Math.max(r.max, value);
         }
+      }
+    }
+
+    // Ensure 0 is included for every stat when zero-contribution results exist
+    if (hasNoneOption) {
+      for (const r of statRange.values()) {
+        r.min = Math.min(r.min, 0);
+        r.max = Math.max(r.max, 0);
       }
     }
 

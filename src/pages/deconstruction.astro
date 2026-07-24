@@ -534,8 +534,6 @@ const guardDeconMutation = (fn, onCancel) => {
     fn();
   }, onCancel);
 };
-
-
 const getAllowedSources = () => resolveAllowedSources(
   {
     scrolls: deconScrollSource instanceof HTMLInputElement && deconScrollSource.checked,
@@ -678,8 +676,6 @@ const renderTargetChips = () => {
 
   updateAnalyzeButton();
 };
-
-
 // ---- Render item card with deconstruction deltas ----
 const renderTargetItemCard = (item) => {
   if (
@@ -1436,10 +1432,6 @@ const activateDeconEditPanel = (item) => {
 
 // ---- Save slot helpers ----
 
-
-
-
-
 const loadDeconSlot = (slotIndex) => {
   const slots = readSlots('deconstruction');
   const s = slots[slotIndex];
@@ -2192,8 +2184,6 @@ deconItemLevelUpSource?.addEventListener('change', () => {
 });
 
 // ---- Reset button ----
-
-
 document.querySelector('[data-enhancement-reset]')?.addEventListener('click', () => {
   showResetConfirmDialog(() => {
     deconDeltas = {};
@@ -3841,115 +3831,7 @@ aside.panel {
   min-width: 100%;
 }
 
-/* Gem drill-down */
-:global(.decon-secondary-gem-label) {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--muted);
-  margin-bottom: 4px;
-}
-
-:global(.decon-secondary-gem-grid) {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
-  gap: 4px;
-}
-
-:global(.decon-secondary-gem-category) {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 7px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  font-size: 0.72rem;
-  cursor: pointer;
-  background: var(--panel);
-  transition: background 0.15s ease;
-}
-
-:global(.decon-secondary-gem-category:hover) {
-  background: color-mix(in srgb, var(--line) 30%, var(--panel));
-}
-
-:global(.decon-secondary-gem-category img) {
-  width: 22px;
-  height: 22px;
-  border-radius: 3px;
-}
-
-:global(.decon-secondary-gem-header) {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 6px;
-  font-size: 0.72rem;
-}
-
-:global(.decon-secondary-gem-back) {
-  background: none;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 2px 8px;
-  cursor: pointer;
-  font-size: 0.7rem;
-  color: var(--ink);
-}
-
-:global(.decon-secondary-gem-back:hover) {
-  background: var(--line);
-}
-
-:global(.decon-secondary-gem-name) {
-  font-weight: 600;
-}
-
-:global(.decon-secondary-gem-header img) {
-  width: 20px;
-  height: 20px;
-  border-radius: 3px;
-}
-
-:global(.decon-secondary-gem-grades) {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-:global(.decon-secondary-gem-grade) {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 9px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.72rem;
-  background: var(--panel);
-  transition: background 0.15s ease;
-}
-
-:global(.decon-secondary-gem-grade:hover) {
-  background: color-mix(in srgb, var(--line) 30%, var(--panel));
-}
-
-:global(.decon-secondary-gem-grade--unavailable) {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-:global(.decon-secondary-gem-grade input[type="checkbox"]) {
-  width: 13px;
-  height: 13px;
-}
-
-:global(.decon-secondary-gem-grade img) {
-  width: 22px;
-  height: 22px;
-  border-radius: 3px;
-}
-
-/* Gem pre-filter picker — matches expected-value .maker-picker-item design */
+/* Gem selector & filter — shared design for calc-panel picker and results-panel filter */
 /* All rules use :global() because elements are created dynamically via JS */
 :global(.decon-gem-top-row) {
   display: flex;
@@ -4187,12 +4069,11 @@ aside.panel {
 :global(.decon-secondary-stimulant-stat) {
   font-size: 0.75rem;
   font-weight: 600;
-  line-height: 1.15;
+  line-height: 1;
   min-width: 28px;
 }
 
 :global(.decon-secondary-stimulant-row .dual-range) {
-  --dh: 18px;
   width: auto;
   flex: 1 1 0;
   min-width: 0;
@@ -4277,10 +4158,12 @@ aside.panel {
   min-width: 14px;
   text-align: center;
   font-size: 0.75rem;
+  line-height: 1;
   color: var(--muted);
 }
 
 :global(.decon-secondary-stimulant-sep) {
+  line-height: 1;
   color: var(--muted);
 }
 
@@ -4293,14 +4176,26 @@ aside.panel {
 :global(.decon-secondary-filters .decon-secondary-stimulant-stat) {
   font-size: 0.78rem;
   min-width: 32px;
+  line-height: 1;
 }
 :global(.decon-secondary-filters .decon-secondary-stimulant-row .dual-range) {
-  --dh: 26px;
   min-width: 70px;
+}
+/* Optical alignment: nudge the slider track down 1px so it visually
+   aligns with Hangul text glyphs, which sit low in their em-box. */
+:global(.decon-secondary-filters .decon-secondary-stimulant-row .dual-range input[type="range"])::-webkit-slider-runnable-track {
+  margin-top: calc((var(--dh) - var(--th)) / 2 + 1px);
+}
+:global(.decon-secondary-filters .decon-secondary-stimulant-row .dual-range input[type="range"])::-moz-range-track {
+  margin-top: calc((var(--dh) - var(--th)) / 2 + 1px);
 }
 :global(.decon-secondary-filters .decon-secondary-stimulant-value) {
   font-size: 0.82rem;
   min-width: 16px;
+  line-height: 1;
+}
+:global(.decon-secondary-filters .decon-secondary-stimulant-sep) {
+  line-height: 1;
 }
 
 /* Generic checkbox fallback */
