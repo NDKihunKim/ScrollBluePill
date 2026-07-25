@@ -4069,7 +4069,7 @@ aside.panel {
 :global(.decon-secondary-stimulant-stat) {
   font-size: 0.75rem;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.15;
   min-width: 28px;
 }
 
@@ -4158,12 +4158,12 @@ aside.panel {
   min-width: 14px;
   text-align: center;
   font-size: 0.75rem;
-  line-height: 1;
+  line-height: 1.15;
   color: var(--muted);
 }
 
 :global(.decon-secondary-stimulant-sep) {
-  line-height: 1;
+  line-height: 1.15;
   color: var(--muted);
 }
 
@@ -4176,26 +4176,23 @@ aside.panel {
 :global(.decon-secondary-filters .decon-secondary-stimulant-stat) {
   font-size: 0.78rem;
   min-width: 32px;
-  line-height: 1;
+  line-height: 1.15;
 }
 :global(.decon-secondary-filters .decon-secondary-stimulant-row .dual-range) {
   min-width: 70px;
 }
-/* Optical alignment: nudge the slider track down 1px so it visually
-   aligns with Hangul text glyphs, which sit low in their em-box. */
-:global(.decon-secondary-filters .decon-secondary-stimulant-row .dual-range input[type="range"])::-webkit-slider-runnable-track {
-  margin-top: calc((var(--dh) - var(--th)) / 2 + 1px);
-}
-:global(.decon-secondary-filters .decon-secondary-stimulant-row .dual-range input[type="range"])::-moz-range-track {
-  margin-top: calc((var(--dh) - var(--th)) / 2 + 1px);
-}
+/* The base .dual-range track margin (calc((var(--dh) - var(--th)) / 2))
+   already centers the 4px track within the 20px dual-range container.
+   No additional offset is needed — the flex row's align-items: center
+   handles centering the container itself, so the track lands on the
+   same horizontal midline as the adjacent text spans. */
 :global(.decon-secondary-filters .decon-secondary-stimulant-value) {
   font-size: 0.82rem;
   min-width: 16px;
-  line-height: 1;
+  line-height: 1.15;
 }
 :global(.decon-secondary-filters .decon-secondary-stimulant-sep) {
-  line-height: 1;
+  line-height: 1.15;
 }
 
 /* Generic checkbox fallback */
