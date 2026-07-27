@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+	title="페이지를 찾을 수 없습니다"
+	description="요청하신 페이지를 찾을 수 없습니다. ScrollBluePill 계산기나 가이드로 이동해 주세요."
+>
+	<section class="band">
+		<div class="container prose">
+			<h1>페이지를 찾을 수 없습니다</h1>
+			<p class="lede">
+				요청하신 주소의 페이지는 존재하지 않거나 이동되었습니다.
+				주소를 다시 한 번 확인해 주세요.
+			</p>
+			<p>
+				<a href="/">계산기 홈</a>으로 돌아가거나, 아래 링크에서
+				찾으시는 내용을 확인하실 수 있습니다.
+			</p>
+			<ul>
+				<li><a href="/deconstruction/">아이템 분해 기댓값 계산기</a></li>
+				<li><a href="/expected-value/">주문서 기댓값 계산기</a></li>
+				<li><a href="/guides/">가이드</a></li>
+				<li><a href="/contact/">문의</a></li>
+			</ul>
+		</div>
+	</section>
+</BaseLayout>
