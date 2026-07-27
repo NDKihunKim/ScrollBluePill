@@ -4,17 +4,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "maxHp": {
-        "max": 20,
-        "min": 10
+        "min": 10,
+        "max": 20
       }
     },
     "sourceNameKo": "타임리스 휀넬",
@@ -27,20 +27,20 @@
     "maxLevelUps": 5,
     "statRanges": {
       "int": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "luk": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "maxHp": {
-        "max": 10,
-        "min": 5
+        "min": 5,
+        "max": 10
       },
       "maxMp": {
-        "max": 10,
-        "min": 5
+        "min": 5,
+        "max": 10
       }
     },
     "sourceNameKo": "타임리스 코럴",
@@ -52,17 +52,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "maxHp": {
-        "max": 30,
-        "min": 20
+        "min": 20,
+        "max": 30
       }
     },
     "sourceNameKo": "타임리스 라피드",
@@ -74,21 +74,21 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
       "dex": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "luk": {
-        "max": 1,
-        "min": 0
-      },
-      "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "maxHp": {
-        "max": 30,
-        "min": 20
+        "min": 20,
+        "max": 30
       }
     },
     "sourceNameKo": "타임리스 차이브",
@@ -100,17 +100,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "maxHp": {
-        "max": 20,
-        "min": 10
+        "min": 10,
+        "max": 20
       }
     },
     "sourceNameKo": "리버스 휀넬",
@@ -123,20 +123,20 @@
     "maxLevelUps": 3,
     "statRanges": {
       "int": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "luk": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "maxHp": {
-        "max": 10,
-        "min": 5
+        "min": 5,
+        "max": 10
       },
       "maxMp": {
-        "max": 10,
-        "min": 5
+        "min": 5,
+        "max": 10
       }
     },
     "sourceNameKo": "리버스 코럴",
@@ -148,17 +148,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "maxHp": {
-        "max": 30,
-        "min": 20
+        "min": 20,
+        "max": 30
       }
     },
     "sourceNameKo": "리버스 라피드",
@@ -170,24 +170,68 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
       "dex": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "luk": {
-        "max": 1,
-        "min": 0
-      },
-      "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "maxHp": {
-        "max": 30,
-        "min": 20
+        "min": 20,
+        "max": 30
       }
     },
     "sourceNameKo": "리버스 차이브",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1002794,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "maxHp": {
+        "min": 10,
+        "max": 20
+      }
+    },
+    "sourceNameKo": "타임리스 콘라드헨켈",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1002795,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "maxHp": {
+        "min": 10,
+        "max": 20
+      }
+    },
+    "sourceNameKo": "리버스 콘라드헨켈",
     "sourceUrl": "https://maplekibun.tistory.com/762",
     "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
   },
@@ -196,29 +240,29 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
       "dex": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "int": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "luk": {
-        "max": 1,
-        "min": 0
-      },
-      "str": {
-        "max": 1,
-        "min": 0
-      },
-      "jump": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "speed": {
-        "max": 2,
-        "min": 0
+        "min": 0,
+        "max": 2
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 이어링",
@@ -230,17 +274,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "avoidability": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       }
     },
     "sourceNameKo": "타임리스 타라곤",
@@ -252,17 +296,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "avoidability": {
-        "max": 3,
-        "min": 1
+        "min": 1,
+        "max": 3
       }
     },
     "sourceNameKo": "타임리스 에버뉴",
@@ -274,21 +318,21 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
       "dex": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "luk": {
-        "max": 1,
-        "min": 0
-      },
-      "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "avoidability": {
-        "max": 3,
-        "min": 1
+        "min": 1,
+        "max": 3
       }
     },
     "sourceNameKo": "타임리스 프린지드",
@@ -300,17 +344,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "avoidability": {
-        "max": 3,
-        "min": 1
+        "min": 1,
+        "max": 3
       }
     },
     "sourceNameKo": "타임리스 부르군트",
@@ -322,17 +366,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "avoidability": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       }
     },
     "sourceNameKo": "리버스 타라곤",
@@ -344,17 +388,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "avoidability": {
-        "max": 3,
-        "min": 1
+        "min": 1,
+        "max": 3
       }
     },
     "sourceNameKo": "리버스 에버뉴",
@@ -366,21 +410,21 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
       "dex": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "luk": {
-        "max": 1,
-        "min": 0
-      },
-      "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "avoidability": {
-        "max": 3,
-        "min": 1
+        "min": 1,
+        "max": 3
       }
     },
     "sourceNameKo": "리버스 프린지드",
@@ -392,20 +436,64 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "avoidability": {
-        "max": 3,
-        "min": 1
+        "min": 1,
+        "max": 3
       }
     },
     "sourceNameKo": "리버스 부르군트",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1052168,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "int": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      },
+      "avoidability": {
+        "min": 1,
+        "max": 2
+      }
+    },
+    "sourceNameKo": "타임리스 미스트블루",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1052169,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "int": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      },
+      "avoidability": {
+        "min": 1,
+        "max": 2
+      }
+    },
+    "sourceNameKo": "리버스 미스트블루",
     "sourceUrl": "https://maplekibun.tistory.com/762",
     "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
   },
@@ -414,21 +502,21 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
-      "jump": {
-        "max": 1,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "speed": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 그라베",
@@ -441,20 +529,20 @@
     "maxLevelUps": 5,
     "statRanges": {
       "int": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "luk": {
-        "max": 1,
-        "min": 0
-      },
-      "jump": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "speed": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 카바티나",
@@ -466,21 +554,21 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
-      "jump": {
-        "max": 1,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "speed": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 론타노",
@@ -492,25 +580,25 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
       "dex": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "luk": {
-        "max": 1,
-        "min": 0
-      },
-      "str": {
-        "max": 1,
-        "min": 0
-      },
-      "jump": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "speed": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 문스티드",
@@ -522,21 +610,21 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
-      "jump": {
-        "max": 1,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "speed": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 파라온",
@@ -548,21 +636,21 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
-      "jump": {
-        "max": 1,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "speed": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 그라베",
@@ -575,20 +663,20 @@
     "maxLevelUps": 3,
     "statRanges": {
       "int": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "luk": {
-        "max": 1,
-        "min": 0
-      },
-      "jump": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "speed": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 카바티나",
@@ -600,21 +688,21 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
-      "jump": {
-        "max": 1,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "speed": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 론타노",
@@ -626,25 +714,25 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
       "dex": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "luk": {
-        "max": 1,
-        "min": 0
-      },
-      "str": {
-        "max": 1,
-        "min": 0
-      },
-      "jump": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "speed": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 문스티드",
@@ -656,21 +744,21 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
-      "jump": {
-        "max": 1,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "speed": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 파라온",
@@ -682,17 +770,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "accuracy": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       }
     },
     "sourceNameKo": "타임리스 베르가못",
@@ -704,17 +792,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "maxHp": {
-        "max": 10,
-        "min": 5
+        "min": 5,
+        "max": 10
       }
     },
     "sourceNameKo": "타임리스 프레스토",
@@ -726,21 +814,21 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
       "dex": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "luk": {
-        "max": 1,
-        "min": 0
-      },
-      "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "maxHp": {
-        "max": 10,
-        "min": 5
+        "min": 5,
+        "max": 10
       }
     },
     "sourceNameKo": "타임리스 루바브",
@@ -752,17 +840,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "maxHp": {
-        "max": 10,
-        "min": 5
+        "min": 5,
+        "max": 10
       }
     },
     "sourceNameKo": "타임리스 차알스톤",
@@ -774,17 +862,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "accuracy": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       }
     },
     "sourceNameKo": "리버스 베르가못",
@@ -796,17 +884,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "maxHp": {
-        "max": 10,
-        "min": 5
+        "min": 5,
+        "max": 10
       }
     },
     "sourceNameKo": "리버스 프레스토",
@@ -818,21 +906,21 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
       "dex": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "luk": {
-        "max": 1,
-        "min": 0
-      },
-      "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "maxHp": {
-        "max": 10,
-        "min": 5
+        "min": 5,
+        "max": 10
       }
     },
     "sourceNameKo": "리버스 루바브",
@@ -844,20 +932,64 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
+      },
+      "dex": {
+        "min": 0,
+        "max": 1
       },
       "maxHp": {
-        "max": 10,
-        "min": 5
+        "min": 5,
+        "max": 10
       }
     },
     "sourceNameKo": "리버스 차알스톤",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1082255,
+    "levelUpKind": "timeless",
+    "maxLevelUps": 5,
+    "statRanges": {
+      "magicAttack": {
+        "min": 0,
+        "max": 1
+      },
+      "int": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "타임리스 헤르모사",
+    "sourceUrl": "https://maplekibun.tistory.com/762",
+    "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
+  },
+  {
+    "itemId": 1082256,
+    "levelUpKind": "reverse",
+    "maxLevelUps": 3,
+    "statRanges": {
+      "magicAttack": {
+        "min": 0,
+        "max": 1
+      },
+      "int": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sourceNameKo": "리버스 헤르모사",
     "sourceUrl": "https://maplekibun.tistory.com/762",
     "sourceNote": "Curated from 기분안기모띠의 메이플 수첩 article: 옛날메이플 메이커 정보 (리버스와 타임리스). Skill bonuses are intentionally excluded."
   },
@@ -866,21 +998,21 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "int": {
-        "max": 1,
-        "min": 0
-      },
-      "luk": {
-        "max": 1,
-        "min": 0
+      "weaponDefense": {
+        "min": 5,
+        "max": 10
       },
       "magicDefense": {
-        "max": 10,
-        "min": 5
+        "min": 5,
+        "max": 10
       },
-      "weaponDefense": {
-        "max": 10,
-        "min": 5
+      "int": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 프렐류드",
@@ -892,17 +1024,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponDefense": {
+        "min": 5,
+        "max": 10
       },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
-      "weaponDefense": {
-        "max": 10,
-        "min": 5
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 카이트실드",
@@ -914,21 +1046,21 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
-      },
-      "luk": {
-        "max": 1,
-        "min": 1
+      "weaponDefense": {
+        "min": 5,
+        "max": 10
       },
       "str": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
-      "weaponDefense": {
-        "max": 10,
-        "min": 5
+      "dex": {
+        "min": 0,
+        "max": 1
+      },
+      "luk": {
+        "min": 1,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 리스트",
@@ -940,29 +1072,29 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
+      "str": {
+        "min": 0,
+        "max": 1
+      },
       "dex": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "int": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "luk": {
-        "max": 1,
-        "min": 0
-      },
-      "str": {
-        "max": 1,
-        "min": 0
-      },
-      "jump": {
-        "max": 1,
-        "min": 0
+        "min": 0,
+        "max": 1
       },
       "speed": {
-        "max": 2,
-        "min": 0
+        "min": 0,
+        "max": 2
+      },
+      "jump": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 문라이트",
@@ -974,17 +1106,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "str": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 엑서큐서너스",
@@ -996,17 +1128,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "str": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 엑서큐서너스",
@@ -1018,17 +1150,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "str": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 버디슈",
@@ -1040,17 +1172,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "str": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 버디슈",
@@ -1062,17 +1194,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "str": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 알라르간도",
@@ -1084,17 +1216,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "str": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 알라르간도",
@@ -1106,17 +1238,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
       "luk": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
       "str": {
-        "max": 1,
-        "min": 0
-      },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 페스카즈",
@@ -1128,17 +1260,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "luk": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 킬릭",
@@ -1150,17 +1282,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
       "luk": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
       "str": {
-        "max": 1,
-        "min": 0
-      },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 페스카즈",
@@ -1172,17 +1304,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "luk": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 킬릭",
@@ -1194,17 +1326,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
+      "magicAttack": {
+        "min": 1,
+        "max": 4
+      },
       "int": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
       "luk": {
-        "max": 1,
-        "min": 0
-      },
-      "magicAttack": {
-        "max": 4,
-        "min": 1
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 엔릴티어",
@@ -1216,17 +1348,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
+      "magicAttack": {
+        "min": 1,
+        "max": 4
+      },
       "int": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
       "luk": {
-        "max": 1,
-        "min": 0
-      },
-      "magicAttack": {
-        "max": 4,
-        "min": 1
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 엔릴티어",
@@ -1238,17 +1370,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
+      "magicAttack": {
+        "min": 1,
+        "max": 4
+      },
       "int": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
       "luk": {
-        "max": 1,
-        "min": 0
-      },
-      "magicAttack": {
-        "max": 4,
-        "min": 1
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 에아스핸드",
@@ -1260,17 +1392,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
+      "magicAttack": {
+        "min": 1,
+        "max": 4
+      },
       "int": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
       "luk": {
-        "max": 1,
-        "min": 0
-      },
-      "magicAttack": {
-        "max": 4,
-        "min": 1
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 에아스핸드",
@@ -1282,17 +1414,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "str": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 니플하임",
@@ -1304,17 +1436,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "str": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 니플하임",
@@ -1326,17 +1458,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "str": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 타바르진",
@@ -1348,17 +1480,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "str": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 타바르진",
@@ -1370,17 +1502,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "str": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 벨로체",
@@ -1392,17 +1524,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "str": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 벨로체",
@@ -1414,17 +1546,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "str": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 알슈피스",
@@ -1436,17 +1568,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "str": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 알슈피스",
@@ -1458,17 +1590,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "str": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 데이스이라에",
@@ -1480,17 +1612,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "str": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 데이스이라에",
@@ -1502,17 +1634,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
       "dex": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
       "str": {
-        "max": 1,
-        "min": 0
-      },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 엔가우",
@@ -1524,17 +1656,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
       "dex": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
       "str": {
-        "max": 1,
-        "min": 0
-      },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 엔가우",
@@ -1546,17 +1678,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
       "dex": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
       "str": {
-        "max": 1,
-        "min": 0
-      },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 블랙뷰티",
@@ -1568,17 +1700,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
       "dex": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
       "str": {
-        "max": 1,
-        "min": 0
-      },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 블랙뷰티",
@@ -1590,17 +1722,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "luk": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 람피온",
@@ -1612,17 +1744,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "luk": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 람피온",
@@ -1634,17 +1766,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "str": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 에퀴녹스",
@@ -1656,17 +1788,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
-      "dex": {
-        "max": 1,
-        "min": 0
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
       },
       "str": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+      "dex": {
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 에퀴녹스",
@@ -1678,17 +1810,17 @@
     "levelUpKind": "timeless",
     "maxLevelUps": 5,
     "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
       "dex": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
       "str": {
-        "max": 1,
-        "min": 0
-      },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "타임리스 블라인드니스",
@@ -1700,17 +1832,17 @@
     "levelUpKind": "reverse",
     "maxLevelUps": 3,
     "statRanges": {
+      "weaponAttack": {
+        "min": 0,
+        "max": 2
+      },
       "dex": {
-        "max": 2,
-        "min": 1
+        "min": 1,
+        "max": 2
       },
       "str": {
-        "max": 1,
-        "min": 0
-      },
-      "weaponAttack": {
-        "max": 2,
-        "min": 0
+        "min": 0,
+        "max": 1
       }
     },
     "sourceNameKo": "리버스 블라인드니스",
