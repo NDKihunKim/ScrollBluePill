@@ -31,3 +31,7 @@ supabase/.temp/
 
 # jetbrains setting folder
 .idea/
+
+# wrangler / Cloudflare
+.wrangler/
+wrangler.jsonc
