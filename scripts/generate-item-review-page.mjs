@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const htmlTemplatePath = resolve('outputs/item-review.template.html');
 const htmlOutputPath = resolve('outputs/item-review.html');
@@ -110,6 +111,14 @@ async function main() {
 		.replace(
 			'/* __SCROLL_DATA_PLACEHOLDER__ */',
 			`window.__SCROLL_DATA__ = ${scrollsJson};`,
+		)
+		.replace(
+			'__SUPABASE_URL__',
+			supabaseUrl,
+		)
+		.replace(
+			'__SUPABASE_ANON_KEY__',
+			supabaseAnonKey ?? '',
 		);
 
 	await mkdir(dirname(htmlOutputPath), { recursive: true });
