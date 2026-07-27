@@ -15,6 +15,7 @@
     "audit:duplicate-items": "node scripts/audit-duplicate-items.mjs",
     "sync:data": "node scripts/sync-data.mjs",
     "build": "npm run sync:data && astro build",
+    "build:ci": "astro build",
     "preview": "astro preview",
     "astro": "astro",
     "seed:items": "node --env-file=.env scripts/seed-item-definitions.mjs",
