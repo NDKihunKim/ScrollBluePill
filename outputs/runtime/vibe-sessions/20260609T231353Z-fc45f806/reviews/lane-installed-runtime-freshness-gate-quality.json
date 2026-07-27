@@ -1,9 +1,0 @@
-{
-  "lane_id": "lane-installed-runtime-freshness-gate",
-  "review_kind": "quality",
-  "passed": true,
-  "governance_scope": "root",
-  "generated_at": "2026-06-09T23:14:00Z",
-  "source_lane_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260609T231353Z-fc45f806/child-lanes/lane-installed-runtime-freshness-gate/lane-receipt.json",
-  "notes": "Code quality review confirms the delegated lane passed its verification contract."
-}

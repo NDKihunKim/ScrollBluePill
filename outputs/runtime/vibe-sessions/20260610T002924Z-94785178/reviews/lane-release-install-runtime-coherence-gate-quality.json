@@ -1,9 +1,0 @@
-{
-  "lane_id": "lane-release-install-runtime-coherence-gate",
-  "review_kind": "quality",
-  "passed": true,
-  "governance_scope": "root",
-  "generated_at": "2026-06-10T00:29:34Z",
-  "source_lane_receipt_path": "/Users/andykim/Desktop/project/ScrollBluePill/outputs/runtime/vibe-sessions/20260610T002924Z-94785178/child-lanes/lane-release-install-runtime-coherence-gate/lane-receipt.json",
-  "notes": "Code quality review confirms the delegated lane passed its verification contract."
-}

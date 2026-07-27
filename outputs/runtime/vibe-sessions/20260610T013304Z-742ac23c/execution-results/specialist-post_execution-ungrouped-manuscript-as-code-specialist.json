@@ -1,8 +1,0 @@
-{
-  "unit_id": "specialist-post_execution-ungrouped-manuscript-as-code-specialist",
-  "skill_id": "manuscript-as-code",
-  "resolution_state": "executed",
-  "native_skill_entrypoint": "/Users/andykim/.claude/skills/vibe/bundled/skills/manuscript-as-code/SKILL.runtime-mirror.md",
-  "evidence_paths": ["src/pages/index.astro"],
-  "notes": "Version control and build reproducibility verified for level default and result limit changes."
-}
