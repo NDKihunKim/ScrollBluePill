@@ -1614,6 +1614,10 @@ const displayResults = (result, targetDeltas) => {
     return;
   }
 
+  // Reset pagination
+  _currentPage = 1;
+  document.querySelector('.decon-pagination-bar')?.remove();
+
   deconResultPlaceholder.hidden = true;
   deconResultContent.hidden = false;
   deconHasActionableResults = false;
@@ -1901,7 +1905,95 @@ const displayResults = (result, targetDeltas) => {
     listContainer.append(card);
   });
 
-  resultFilterController.initialize(result.strategies);
+  resultFilterController.initialize(result.strategies, { onAfterFilter: _applyPagination });
+
+  // Render pagination bar
+  _renderPaginationBar(result.strategies.length);
+  _applyPagination();
+};
+
+// ---- Pagination ----
+const _PAGE_SIZE = 10;
+let _currentPage = 1;
+let _visibleStrategyCount = 0;
+
+const _applyPagination = () => {
+  const cards = document.querySelectorAll('.decon-strategy-card');
+  // Count how many are filter-visible
+  const visibleIndexes = [];
+  cards.forEach((card) => {
+    if (!card.hidden) visibleIndexes.push(card);
+  });
+  _visibleStrategyCount = visibleIndexes.length;
+
+  // Determine which page each visible card belongs to
+  const totalPages = Math.max(1, Math.ceil(_visibleStrategyCount / _PAGE_SIZE));
+  if (_currentPage > totalPages) _currentPage = totalPages;
+
+  const startIdx = (_currentPage - 1) * _PAGE_SIZE;
+  const endIdx = startIdx + _PAGE_SIZE;
+
+  visibleIndexes.forEach((card, idx) => {
+    card.hidden = idx < startIdx || idx >= endIdx;
+  });
+
+  _updatePaginationBar();
+};
+
+const _renderPaginationBar = (totalCount) => {
+  const listContainer = document.querySelector('[data-decon-strategy-list]');
+  if (!(listContainer instanceof HTMLElement)) return;
+
+  // Remove old pagination bar if any
+  listContainer.parentNode?.querySelector('.decon-pagination-bar')?.remove();
+
+  const bar = document.createElement('div');
+  bar.className = 'decon-pagination-bar';
+
+  const prevBtn = document.createElement('button');
+  prevBtn.className = 'decon-page-btn';
+  prevBtn.setAttribute('aria-label', '이전 페이지');
+  prevBtn.textContent = '←';
+  prevBtn.addEventListener('click', () => _goToPage(_currentPage - 1));
+
+  const indicator = document.createElement('span');
+  indicator.className = 'decon-page-indicator';
+
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'decon-page-btn';
+  nextBtn.setAttribute('aria-label', '다음 페이지');
+  nextBtn.textContent = '→';
+  nextBtn.addEventListener('click', () => _goToPage(_currentPage + 1));
+
+  bar.append(prevBtn, indicator, nextBtn);
+  listContainer.after(bar);
+
+  _updatePaginationBar();
+};
+
+const _updatePaginationBar = () => {
+  const bar = document.querySelector('.decon-pagination-bar');
+  if (!(bar instanceof HTMLElement)) return;
+
+  const totalPages = Math.max(1, Math.ceil(_visibleStrategyCount / _PAGE_SIZE));
+  const prevBtn = bar.querySelector('.decon-page-btn:first-child');
+  const nextBtn = bar.querySelector('.decon-page-btn:last-child');
+  const indicator = bar.querySelector('.decon-page-indicator');
+
+  if (prevBtn instanceof HTMLButtonElement) prevBtn.disabled = _currentPage <= 1;
+  if (nextBtn instanceof HTMLButtonElement) nextBtn.disabled = _currentPage >= totalPages;
+  if (indicator instanceof HTMLElement) {
+    indicator.textContent = `${_currentPage} / ${totalPages}`;
+  }
+};
+
+const _goToPage = (page) => {
+  const totalPages = Math.max(1, Math.ceil(_visibleStrategyCount / _PAGE_SIZE));
+  if (page < 1 || page > totalPages) return;
+  _currentPage = page;
+  _applyPagination();
+  // Scroll to top of result panel
+  document.querySelector('[data-decon-result-panel]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
 // ---- Filter ----
@@ -4262,6 +4354,51 @@ aside.panel {
   gap: 12px;
   padding-right: 4px;
   min-width: 0;
+}
+
+.decon-pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 16px 0 4px;
+  border-top: 1px solid var(--line);
+  margin-top: 14px;
+}
+
+.decon-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: background 120ms;
+}
+
+.decon-page-btn:hover:not(:disabled) {
+  background: var(--surface-soft);
+}
+
+.decon-page-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.decon-page-indicator {
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: var(--muted);
+  min-width: 72px;
+  text-align: center;
+  user-select: none;
 }
 
 :global(.decon-strategy-card) {

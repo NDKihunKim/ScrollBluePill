@@ -88,6 +88,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
       if (source === 'scrolls') scrollCountRanges.delete(key);
     }
     applyFilters();
+    _onAfterFilter?.();
     refreshActivePanel();
   };
 
@@ -294,6 +295,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
             minVal.textContent = String(mn);
             maxVal.textContent = String(mx);
             applyFilters();
+            _onAfterFilter?.();
           };
 
           minSlider.addEventListener('input', updateCountRange);
@@ -359,6 +361,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
               maxSlider.value = mx;
               label.textContent = formatLabel(mn, mx);
               applyFilters();
+              _onAfterFilter?.();
             };
 
             minSlider.addEventListener('input', updateDeltaRange);
@@ -428,6 +431,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
           }
         }
         applyFilters();
+        _onAfterFilter?.();
         renderPanel('gems');
       });
 
@@ -444,6 +448,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
           }
         }
         applyFilters();
+        _onAfterFilter?.();
         renderPanel('gems');
       });
 
@@ -693,6 +698,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
         minVal.textContent = String(mn);
         maxVal.textContent = String(mx);
         applyFilters();
+        _onAfterFilter?.();
       };
 
       minSlider.addEventListener('input', updateRange);
@@ -789,6 +795,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
         minVal.textContent = String(mn);
         maxVal.textContent = String(mx);
         applyFilters();
+        _onAfterFilter?.();
       };
 
       minSlider.addEventListener('input', updateRange);
@@ -909,15 +916,23 @@ export function createResultFilterController({ root, secondaryContainer }) {
     hidePanel();
   };
 
-  const initialize = (strategies) => {
+  let _onAfterFilter = null;
+
+  const initialize = (strategies, opts = {}) => {
+    _onAfterFilter = opts.onAfterFilter ?? null;
     model = buildSecondaryFilterModel(strategies);
     selections = createInitialSecondarySelections(model);
     root.querySelectorAll('[data-decon-filter]').forEach((chip) => {
       const source = chip.dataset.deconFilter === 'all' ? null : chip.dataset.deconFilter;
-      chip.addEventListener('click', () => setActiveFilter(source));
+      chip.addEventListener('click', () => {
+        setActiveFilter(source);
+        _onAfterFilter?.();
+      });
     });
     applyFilters();
+    _onAfterFilter?.();
     setActiveFilter(null);
+    _onAfterFilter?.();
   };
 
   return { initialize, reset, setActiveFilter, setSecondaryOption };
