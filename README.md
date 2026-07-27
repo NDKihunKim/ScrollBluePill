@@ -49,20 +49,21 @@ Requires `SUPABASE_URL` and `SUPABASE_ANON_KEY` in `.env`.
 Use these settings:
 
 - Framework preset: `Astro`
-- Build command: `npm run build:ci`
+- Build command: `npm run build`
 - Build output directory: `dist`
 - Environment variables:
   - `SITE_URL=https://scrollbluepill.pages.dev`
-  - `SUPABASE_URL` — your Supabase project URL
-  - `SUPABASE_ANON_KEY` — your Supabase anon key (safe to expose)
 
-The `build:ci` command skips the Supabase data sync and builds directly from
-committed data files in `public/data/`. When you update item or scroll data
-locally, run `npm run sync:data` first, verify the changes, then commit the
-updated JSON files — Cloudflare will pick them up on the next deploy.
+The `sync:data` step in `npm run build` skips gracefully when Supabase
+credentials aren't available (CI), relying on committed data files in
+`public/data/`. When you update item or scroll data locally, run
+`npm run sync:data` first, verify the changes, then commit the updated JSON
+files — Cloudflare will pick them up on the next deploy.
 
-**Do NOT add `SUPABASE_SERVICE_ROLE_KEY` to Cloudflare Pages environment
-variables.** That key should only exist in your local `.env` file.
+**Do NOT add `SUPABASE_URL`, `SUPABASE_ANON_KEY`, or `SUPABASE_SERVICE_ROLE_KEY`
+to Cloudflare Pages environment variables.** The anon key is safe to expose
+but unnecessary for the CI build. The service role key should only exist in
+your local `.env` file.
 
 ---
 

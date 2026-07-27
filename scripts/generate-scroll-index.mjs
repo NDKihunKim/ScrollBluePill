@@ -9,9 +9,8 @@ const overridesPath = resolve('data/scroll-visibility-overrides.json');
 const reportPath = resolve('docs/data-quality/scroll-visibility-report.md');
 
 if (!supabaseUrl || !supabaseAnonKey) {
-	console.error('SUPABASE_URL and SUPABASE_ANON_KEY environment variables are required.');
-	console.error('Copy .env.example to .env and fill in your Supabase project credentials.');
-	process.exit(1);
+	console.log('Skipping scroll index sync — SUPABASE_URL/ANON_KEY not set (using committed data).');
+	process.exit(0);
 }
 
 const PERCENT_PATTERN = /(\d+)%$/;

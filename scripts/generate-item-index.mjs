@@ -10,9 +10,8 @@ const dedupeReportPath = resolve('docs/data-quality/dedupe-resolution-report.md'
 const equipmentKindReportPath = resolve('docs/data-quality/equipment-kind-visibility-report.md');
 
 if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('SUPABASE_URL and SUPABASE_ANON_KEY environment variables are required.');
-    console.error('Copy .env.example to .env and fill in your Supabase project credentials.');
-    process.exit(1);
+	console.log('Skipping item index sync — SUPABASE_URL/ANON_KEY not set (using committed data).');
+	process.exit(0);
 }
 
 const supabaseRestUrl = new URL('/rest/v1/item_definitions', supabaseUrl);
