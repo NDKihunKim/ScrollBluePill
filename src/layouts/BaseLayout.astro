@@ -499,4 +499,26 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
 			order: 1;
 		}
 	}
+
+	/* ── Loading spinner shared by calculator pages ── */
+	.enhancement-placeholder.loading {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+	}
+
+	.enhancement-placeholder.loading::before {
+		content: '';
+		width: 18px;
+		height: 18px;
+		border: 2px solid var(--line);
+		border-top-color: var(--green);
+		border-radius: 50%;
+		animation: sbp-spin 0.6s linear infinite;
+	}
+
+	@keyframes sbp-spin {
+		to { transform: rotate(360deg); }
+	}
 </style>

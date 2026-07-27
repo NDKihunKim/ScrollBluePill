@@ -2137,7 +2137,28 @@ deconAddStatToggle?.addEventListener('click', () => {
 });
 
 // ---- Analyze button ----
-deconAnalyzeBtn?.addEventListener('click', runAnalysis);
+deconAnalyzeBtn?.addEventListener('click', () => {
+	if (deconAnalyzeBtn instanceof HTMLButtonElement && !deconAnalyzeBtn.disabled) {
+		// Show loading state before computation so the browser can paint
+		deconAnalyzeBtn.disabled = true;
+		deconAnalyzeBtn.textContent = '분석 중…';
+		deconResultPlaceholder?.classList.add('loading');
+		if (deconResultPlaceholder instanceof HTMLElement) {
+			deconResultPlaceholder.hidden = false;
+			deconResultPlaceholder.textContent = '전략을 계산하고 있습니다…';
+		}
+		// Yield to the browser so the UI updates before the synchronous computation
+		requestAnimationFrame(() => {
+			requestAnimationFrame(() => {
+				runAnalysis();
+				// Clear loading state
+				deconAnalyzeBtn.textContent = '분석 시작';
+				deconAnalyzeBtn.disabled = false;
+				deconResultPlaceholder?.classList.remove('loading');
+			});
+		});
+	}
+});
 deconScrollSource?.addEventListener('change', () => {
   guardCheckboxMutation(deconScrollSource, guardDeconMutation, () => {
     toggleSourceSub(deconScrollSource, deconScrollRateSub, () => {
@@ -2339,6 +2360,12 @@ syncJobButtons();
 syncItemSearchUrl();
 renderSlots();
 
+// Show loading state while data fetches
+if (itemPlaceholder instanceof HTMLElement) {
+	itemPlaceholder.textContent = '데이터를 불러오는 중…';
+	itemPlaceholder.classList.add('loading');
+}
+
 // Load item index
 fetch('/data/items-gms83-ko.json')
   .then((response) => {
@@ -2358,11 +2385,13 @@ fetch('/data/items-gms83-ko.json')
     renderSlots();
 
     _itemsLoaded = true;
+    itemPlaceholder?.classList.remove('loading');
     _maybeRestoreDeconSession();
   })
   .catch((error) => {
     console.error(error);
     _itemsLoaded = true;
+    itemPlaceholder?.classList.remove('loading');
     _maybeRestoreDeconSession();
   });
 

@@ -1051,6 +1051,12 @@ import { showEvConfirmationDialog } from '../lib/expectedValue/dialogs.mjs';
 	syncJobButtons();
 	syncItemSearchUrl();
 
+	// Show loading state while data fetches
+	if (itemPlaceholder instanceof HTMLElement) {
+		itemPlaceholder.textContent = '데이터를 불러오는 중…';
+		itemPlaceholder.classList.add('loading');
+	}
+
 	fetch('/data/items-gms83-ko.json')
 		.then((response) => {
 			if (!response.ok) {
