@@ -1508,6 +1508,17 @@ const getCheckedTargetKeys = () => {
 const runAnalysis = () => {
   if (!selectedItem) return;
 
+  // Show loading state
+  if (deconAnalyzeBtn instanceof HTMLButtonElement) {
+    deconAnalyzeBtn.disabled = true;
+    deconAnalyzeBtn.textContent = '분석 중…';
+  }
+  deconResultPlaceholder?.classList.add('loading');
+  if (deconResultPlaceholder instanceof HTMLElement) {
+    deconResultPlaceholder.hidden = false;
+    deconResultPlaceholder.textContent = '전략을 계산하고 있습니다…';
+  }
+
   const equipmentKind = selectedItem.equipmentKind;
   const checkedKeys = getCheckedTargetKeys();
 
@@ -1585,6 +1596,13 @@ const runAnalysis = () => {
   displayResults(result, targetDeltas);
   // Cache result for session-state auto-save (back-navigation restoration)
   window.__lastDeconResult = result;
+
+  // Clear loading state
+  if (deconAnalyzeBtn instanceof HTMLButtonElement) {
+    deconAnalyzeBtn.textContent = '분석 시작';
+    deconAnalyzeBtn.disabled = false;
+  }
+  deconResultPlaceholder?.classList.remove('loading');
 };
 
 // ---- Display results ----
@@ -2137,28 +2155,7 @@ deconAddStatToggle?.addEventListener('click', () => {
 });
 
 // ---- Analyze button ----
-deconAnalyzeBtn?.addEventListener('click', () => {
-	if (deconAnalyzeBtn instanceof HTMLButtonElement && !deconAnalyzeBtn.disabled) {
-		// Show loading state before computation so the browser can paint
-		deconAnalyzeBtn.disabled = true;
-		deconAnalyzeBtn.textContent = '분석 중…';
-		deconResultPlaceholder?.classList.add('loading');
-		if (deconResultPlaceholder instanceof HTMLElement) {
-			deconResultPlaceholder.hidden = false;
-			deconResultPlaceholder.textContent = '전략을 계산하고 있습니다…';
-		}
-		// Yield to the browser so the UI updates before the synchronous computation
-		requestAnimationFrame(() => {
-			requestAnimationFrame(() => {
-				runAnalysis();
-				// Clear loading state
-				deconAnalyzeBtn.textContent = '분석 시작';
-				deconAnalyzeBtn.disabled = false;
-				deconResultPlaceholder?.classList.remove('loading');
-			});
-		});
-	}
-});
+deconAnalyzeBtn?.addEventListener('click', runAnalysis);
 deconScrollSource?.addEventListener('change', () => {
   guardCheckboxMutation(deconScrollSource, guardDeconMutation, () => {
     toggleSourceSub(deconScrollSource, deconScrollRateSub, () => {
