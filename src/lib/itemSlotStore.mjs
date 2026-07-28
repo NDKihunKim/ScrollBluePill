@@ -1,3 +1,5 @@
+import { debug } from './debug.mjs';
+
 const STORAGE_PREFIX = 'itemSlots:v1:';
 export const MAX_SLOTS = 4;
 
@@ -32,7 +34,7 @@ export function writeSlots(page, slots) {
   try {
     localStorage.setItem(STORAGE_PREFIX + page, JSON.stringify(slots));
   } catch (e) {
-    console.error('itemSlotStore: failed to write slots', e);
+    debug('itemSlotStore: failed to write slots', e);
   }
 }
 
@@ -124,31 +126,35 @@ export function findMatchingSlot(page, pageState) {
   const slots = readSlots(page);
   const currentCanon = canonicalizePageState(pageState);
   const currentJson = JSON.stringify(currentCanon);
-  console.group('findMatchingSlot');
-  console.log('page:', page);
-  console.log('pageState.itemId:', pageState.itemId);
-  console.log('pageState.deconDeltas:', pageState.deconDeltas);
-  console.log('pageState.deconStatKeys:', pageState.deconStatKeys);
-  console.log('current canonicalized:', currentCanon);
-  console.log('current JSON:', currentJson);
+  if (import.meta.env.DEV) {
+    debug('findMatchingSlot', {
+      page,
+      itemId: pageState.itemId,
+      deconDeltas: pageState.deconDeltas,
+      deconStatKeys: pageState.deconStatKeys,
+      currentCanon,
+      slots: slots.filter(Boolean).map((s, i) => {
+        const savedCanon = canonicalizePageState(s.pageState);
+        return {
+          index: i,
+          itemId: s.item.id,
+          nameKo: s.item.nameKo,
+          savedCanon,
+          match: s.item.id === pageState.itemId && JSON.stringify(savedCanon) === currentJson,
+        };
+      }),
+    });
+  }
   for (let i = 0; i < slots.length; i++) {
     const s = slots[i];
     if (!s) continue;
-    console.log('slot', i, 's.item.id:', s.item.id, 's.item.nameKo:', s.item.nameKo);
     if (s.item.id === pageState.itemId) {
       const savedCanon = canonicalizePageState(s.pageState);
       const savedJson = JSON.stringify(savedCanon);
-      console.log('slot', i, 'saved canonicalized:', savedCanon);
-      console.log('slot', i, 'saved JSON:', savedJson);
-      console.log('slot', i, 'match?', savedJson === currentJson);
       if (savedJson === currentJson) {
-        console.log('=> MATCH slot', i);
-        console.groupEnd();
         return i;
       }
     }
   }
-  console.log('=> NO MATCH');
-  console.groupEnd();
   return -1;
 }

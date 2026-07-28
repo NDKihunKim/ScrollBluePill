@@ -1109,8 +1109,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       // Signal that enhancement data is ready (for decon→EV transfer)
       window.dispatchEvent(new CustomEvent('enhancementDataReady'));
     })
-    .catch((error) => {
-      console.error(error);
+    .catch((_error) => {
       showEnhancementError('주문서 데이터를 불러오지 못했습니다');
     });
 

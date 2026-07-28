@@ -353,6 +353,7 @@ import { requirementRows, statRows, jobKindByRequiredJob, weaponAttackSpeedBySub
 import { getSelectedJobKinds, itemMatchesSelectedJobs } from '../lib/ui/itemSearchHelpers.mjs';
 import { buildEvPageState, checkEvStarState, renderEvSlotBar, showEvSavePicker, confirmReplaceEvSlot, confirmDeleteEvSlot, confirmUnsaveEvSlot } from '../lib/expectedValue/slotBarUI.mjs';
 import { showEvConfirmationDialog } from '../lib/expectedValue/dialogs.mjs';
+import { debug } from '../lib/debug.mjs';
 	const form = document.querySelector('[data-calculator-input]');
 	const itemNameSearch = form?.querySelector('[data-item-name-search]');
 	const itemNameInput = form?.querySelector('[data-item-name-input]');
@@ -1120,8 +1121,7 @@ import { showEvConfirmationDialog } from '../lib/expectedValue/dialogs.mjs';
 				}
 			}
 		})
-		.catch((error) => {
-			console.error(error);
+		.catch((_error) => {
 		});
 
 	import { initEnhancementPanel } from '../lib/enhancementPanel.mjs';
@@ -1284,8 +1284,9 @@ window.__evRefresh = ({ showStale = true } = {}) => {
   }
 
   // ---- Debug payload: structured snapshot of all calculation inputs ----
-	  console.log('=== Expected-Value Debug Payload ===');
-	  console.log(JSON.stringify({
+	  debug('=== Expected-Value Debug Payload ===');
+  if (import.meta.env.DEV) {
+	  debug(JSON.stringify({
 	    _label: 'Expected-Value Debug Payload',
 	    timestamp: new Date().toISOString(),
 	    item: {
@@ -1324,7 +1325,8 @@ window.__evRefresh = ({ showStale = true } = {}) => {
     userStrategy,
     computationMode: canUseExactOutcome(userStrategy) ? 'exact-outcome' : 'threshold',
   }, null, 2));
-		  console.log('=== End Debug Payload ===');
+		  debug('=== End Debug Payload ===');
+  }
 
 	  // Show result panel and hide its placeholder
 	  if (resultPlaceholder instanceof HTMLElement && resultContent instanceof HTMLElement) {
@@ -1360,7 +1362,7 @@ window.__evRefresh = ({ showStale = true } = {}) => {
       probability = 0; // DP engine removed
     }
   } catch (err) {
-    console.error('Expected-value computation failed:', err);
+    debug('Expected-value computation failed:', err);
     evResultUI.showZeroSuccess();
     evResultSummary = null;
     return;
