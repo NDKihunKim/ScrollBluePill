@@ -1965,6 +1965,12 @@ const _renderPaginationBar = () => {
   const bar = document.createElement('div');
   bar.className = 'decon-pagination-bar';
 
+  const firstBtn = document.createElement('button');
+  firstBtn.className = 'decon-page-btn';
+  firstBtn.setAttribute('aria-label', '첫 페이지');
+  firstBtn.textContent = '«';
+  firstBtn.addEventListener('click', () => _goToPage(1));
+
   const prevBtn = document.createElement('button');
   prevBtn.className = 'decon-page-btn';
   prevBtn.setAttribute('aria-label', '이전 페이지');
@@ -1980,7 +1986,13 @@ const _renderPaginationBar = () => {
   nextBtn.textContent = '→';
   nextBtn.addEventListener('click', () => _goToPage(_currentPage + 1));
 
-  bar.append(prevBtn, indicator, nextBtn);
+  const lastBtn = document.createElement('button');
+  lastBtn.className = 'decon-page-btn';
+  lastBtn.setAttribute('aria-label', '마지막 페이지');
+  lastBtn.textContent = '»';
+  lastBtn.addEventListener('click', () => _goToPage(Number.MAX_SAFE_INTEGER));
+
+  bar.append(firstBtn, prevBtn, indicator, nextBtn, lastBtn);
   resultPanel.appendChild(bar);
 
   _updatePaginationBar();
@@ -1991,12 +2003,17 @@ const _updatePaginationBar = () => {
   if (!(bar instanceof HTMLElement)) return;
 
   const totalPages = Math.max(1, Math.ceil(_totalStrategies / _PAGE_SIZE));
-  const prevBtn = bar.querySelector('.decon-page-btn:first-child');
-  const nextBtn = bar.querySelector('.decon-page-btn:last-child');
+  const buttons = bar.querySelectorAll('.decon-page-btn');
+  const firstBtn = buttons[0];
+  const prevBtn = buttons[1];
+  const nextBtn = buttons[2];
+  const lastBtn = buttons[3];
   const indicator = bar.querySelector('.decon-page-indicator');
 
+  if (firstBtn instanceof HTMLButtonElement) firstBtn.disabled = _currentPage <= 1;
   if (prevBtn instanceof HTMLButtonElement) prevBtn.disabled = _currentPage <= 1;
   if (nextBtn instanceof HTMLButtonElement) nextBtn.disabled = _currentPage >= totalPages;
+  if (lastBtn instanceof HTMLButtonElement) lastBtn.disabled = _currentPage >= totalPages;
   if (indicator instanceof HTMLElement) {
     indicator.textContent = `${_currentPage} / ${totalPages}`;
   }
@@ -2004,8 +2021,7 @@ const _updatePaginationBar = () => {
 
 const _goToPage = (page) => {
   const totalPages = Math.max(1, Math.ceil(_totalStrategies / _PAGE_SIZE));
-  if (page < 1 || page > totalPages) return;
-  _currentPage = page;
+  _currentPage = Math.max(1, Math.min(page, totalPages));
   _applyPagination();
   // Scroll to top of result panel
   document.querySelector('[data-decon-result-panel]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
