@@ -932,7 +932,6 @@ export function createResultFilterController({ root, secondaryContainer }) {
     applyFilters();
     _onAfterFilter?.();
     setActiveFilter(null);
-    _onAfterFilter?.();
   };
 
   return { initialize, reset, setActiveFilter, setSecondaryOption };
