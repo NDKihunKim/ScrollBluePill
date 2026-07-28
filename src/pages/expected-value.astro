@@ -352,6 +352,14 @@ import { consumeDeconTransfer, buildEnhancementStateFromStrategy } from '../lib/
 import { requirementRows, statRows, jobKindByRequiredJob, weaponAttackSpeedBySubCategory, formatRequiredJobs, createItemLine, resolveAttackSpeed, formatStatValue, formatRequirementValue } from '../lib/ui/itemCardHelpers.mjs';
 import { getSelectedJobKinds, itemMatchesSelectedJobs } from '../lib/ui/itemSearchHelpers.mjs';
 import { buildEvPageState, checkEvStarState, renderEvSlotBar, showEvSavePicker, confirmReplaceEvSlot, confirmDeleteEvSlot, confirmUnsaveEvSlot } from '../lib/expectedValue/slotBarUI.mjs';
+import {
+  syncJobButtons as _syncJobButtons,
+  hideItemSuggestions as _hideItemSuggestions,
+  syncItemSearchUrl as _syncItemSearchUrl,
+  getManualFilteredItems as _getManualFilteredItems,
+  renderItemSuggestions as _renderItemSuggestions,
+  renderManualItemResults as _renderManualItemResults,
+} from '../lib/itemSearchUI.mjs';
 import { showEvConfirmationDialog } from '../lib/expectedValue/dialogs.mjs';
 import { debug } from '../lib/debug.mjs';
 	const form = document.querySelector('[data-calculator-input]');
@@ -394,15 +402,7 @@ import { debug } from '../lib/debug.mjs';
 	const ITEM_LEVEL_UP_META_UNCHANGED = Symbol('item-level-up-meta-unchanged');
 	let activeItemLevelUpCardMeta = null;
 
-	const syncJobButtons = () => {
-		jobInputs?.forEach((input) => {
-			if (!(input instanceof HTMLInputElement)) {
-				return;
-			}
-
-			input.closest('.choice-button')?.classList.toggle('active', input.checked);
-		});
-	};
+		const syncJobButtons = () => _syncJobButtons(jobInputs);
 
 	const setManualSearchOpen = (isOpen) => {
 			if (!(manualSearchToggle instanceof HTMLButtonElement) || !(manualSearchFields instanceof HTMLElement)) {
@@ -429,25 +429,14 @@ import { debug } from '../lib/debug.mjs';
 			}
 		};
 
-		const syncItemSearchUrl = () => {
-		if (!(itemNameInput instanceof HTMLInputElement) || !(equipmentInput instanceof HTMLInputElement)) {
-			return;
-		}
-
-		const levelRange =
-				levelMinInput instanceof HTMLInputElement && levelMaxInput instanceof HTMLInputElement
-					? normalizeItemLevelRange(levelMinInput.value, levelMaxInput.value)
-					: normalizeItemLevelRange(0, 0);
-			form?.setAttribute(
-				'data-item-search-url',
-				buildItemSearchUrl({
-					searchFor: itemNameInput.value,
-					equipmentKind: equipmentInput.value,
-					requiredLevelMin: levelRange.min,
-					requiredLevelMax: levelRange.max,
-				}),
-		);
-	};
+		const syncItemSearchUrl = () => _syncItemSearchUrl({
+			itemNameInput,
+			equipmentInput,
+			levelMinInput,
+			levelMaxInput,
+			form,
+			buildItemSearchUrl,
+		});
 
 
 	const appendItemLevelUpCardMeta = (meta) => {
@@ -602,15 +591,7 @@ import { debug } from '../lib/debug.mjs';
 			}
 	};
 
-	const hideItemSuggestions = () => {
-		if (itemSuggestions instanceof HTMLElement) {
-			itemSuggestions.hidden = true;
-		}
-
-		if (itemNameInput instanceof HTMLInputElement) {
-			itemNameInput.setAttribute('aria-expanded', 'false');
-		}
-	};
+		const hideItemSuggestions = () => _hideItemSuggestions(itemSuggestions, itemNameInput);
 
 	const selectSuggestedItem = (item, { syncFilters = true } = {}) => {
 			if (!(itemNameInput instanceof HTMLInputElement)) {
@@ -719,138 +700,31 @@ import { debug } from '../lib/debug.mjs';
 		if (evCardWrapper instanceof HTMLElement) evCardWrapper.hidden = false;
 	};
 
-	const getManualFilteredItems = () => {
-			if (!(equipmentInput instanceof HTMLInputElement)) {
-				return [];
-			}
-
-			if (!equipmentInput.value) {
-				return [];
-			}
-
-			const selectedJobs = getSelectedJobKinds(jobInputs);
-			const levelRange =
-				levelMinInput instanceof HTMLInputElement && levelMaxInput instanceof HTMLInputElement
-					? normalizeItemLevelRange(levelMinInput.value, levelMaxInput.value)
-					: normalizeItemLevelRange(0, 0);
-
-			return itemIndex
-				.filter((item) => item.equipmentKind === equipmentInput.value)
-				.filter((item) => item.requiredLevel >= levelRange.min && item.requiredLevel <= levelRange.max)
-				.filter((item) => itemMatchesSelectedJobs(item, selectedJobs))
-				.sort((a, b) => a.requiredLevel - b.requiredLevel || a.nameKo.localeCompare(b.nameKo, 'ko-KR'));
-		};
-
-		const renderManualItemResults = () => {
-			if (!(manualItemResults instanceof HTMLElement)) {
-				return;
-			}
-
-			manualItemResults.replaceChildren();
-
-			const results = getManualFilteredItems();
-			if (results.length === 0) {
-				manualItemResults.hidden = true;
-				return;
-			}
-
-			const MAX_RESULTS = 100;
-			if (results.length > MAX_RESULTS) {
-				const warning = document.createElement('div');
-				warning.className = 'manual-item-overflow-warning';
-				warning.textContent = '검색 결과가 너무 많습니다. 위에 필터들을 더 좁혀주세요.';
-				manualItemResults.append(warning);
-				manualItemResults.hidden = false;
-				return;
-			}
-
-			const list = document.createElement('div');
-			list.className = 'manual-item-list';
-
-			results.forEach((item) => {
-				const option = document.createElement('button');
-				option.type = 'button';
-				option.className = 'manual-item-option';
-				option.dataset.itemId = String(item.id);
-
-				const icon = document.createElement('img');
-				icon.className = 'manual-item-icon';
-				icon.src = buildItemIconUrl(item.id);
-				icon.alt = '';
-				icon.loading = 'lazy';
-
-				const text = document.createElement('span');
-				text.className = 'manual-item-text';
-
-				const name = document.createElement('strong');
-				name.textContent = item.nameKo;
-
-				const meta = document.createElement('span');
-				meta.textContent = item.equipmentKind;
-
-				text.append(name, meta);
-				option.append(icon, text);
-				option.addEventListener('click', () => {
-					selectSuggestedItem(item, { syncFilters: false });
-				});
-				list.append(option);
-			});
-
-			manualItemResults.append(list);
-			manualItemResults.hidden = false;
-		};
-
-		const renderItemSuggestions = () => {
-		if (!(itemNameInput instanceof HTMLInputElement) || !(itemSuggestions instanceof HTMLElement)) {
-			return;
-		}
-
-		// NOTE: Do NOT clear selectedItemIdInput, data-selected-item-id, or the
-		// item preview card here.  The search input text is decoupled from the
-		// committed selected-item state — typing or clearing the search field
-		// must only update the suggestion dropdown, never wipe the active item
-		// or its enhancement data.
-		itemSuggestions.replaceChildren();
-
-		const results = searchKoreanItems(itemNameInput.value, { items: itemIndex });
-		if (results.length === 0) {
-			hideItemSuggestions();
-			return;
-		}
-
-		results.forEach((item) => {
-			const option = document.createElement('button');
-			option.type = 'button';
-			option.className = 'item-suggestion-option';
-			option.setAttribute('role', 'option');
-			option.dataset.itemId = String(item.id);
-
-			const icon = document.createElement('img');
-			icon.className = 'item-suggestion-icon';
-			icon.src = buildItemIconUrl(item.id);
-			icon.alt = '';
-			icon.loading = 'lazy';
-
-			const text = document.createElement('span');
-			text.className = 'item-suggestion-text';
-
-			const name = document.createElement('strong');
-			name.textContent = item.nameKo;
-
-			const meta = document.createElement('span');
-			meta.textContent = item.equipmentKind;
-
-			text.append(name, meta);
-			option.append(icon, text);
-			option.addEventListener('click', () => {
-				selectSuggestedItem(item);
-			});
-			itemSuggestions.append(option);
+		const getManualFilteredItems = () => _getManualFilteredItems({
+			equipmentInput,
+			jobInputs,
+			levelMinInput,
+			levelMaxInput,
+			itemIndex,
+			getSelectedJobKinds,
+			itemMatchesSelectedJobs,
 		});
 
-		itemSuggestions.hidden = false;
-		itemNameInput.setAttribute('aria-expanded', 'true');
-	};
+		const renderManualItemResults = () => _renderManualItemResults({
+			manualItemResults,
+			getFilteredItems: getManualFilteredItems,
+			buildItemIconUrl,
+			onSelectItem: (item, opts) => selectSuggestedItem(item, opts),
+		});
+
+		const renderItemSuggestions = () => _renderItemSuggestions({
+			itemNameInput,
+			itemSuggestions,
+			itemIndex,
+			buildItemIconUrl,
+			searchKoreanItems,
+			onSelectItem: (item) => selectSuggestedItem(item),
+		});
 
 	const setEquipmentOption = (button) => {
 		if (!(equipmentInput instanceof HTMLInputElement) || !(button instanceof HTMLButtonElement)) {
@@ -1082,6 +956,11 @@ import { debug } from '../lib/debug.mjs';
 			renderItemSuggestions();
 			renderEvSlots();
 
+			if (itemPlaceholder instanceof HTMLElement) {
+				itemPlaceholder.classList.remove('loading');
+				itemPlaceholder.textContent = '아이템을 선택해주세요';
+			}
+
 			// Check for incoming strategy transfer from deconstruction page
 			const transferPayload = consumeDeconTransfer();
 			if (transferPayload) {
@@ -1122,6 +1001,10 @@ import { debug } from '../lib/debug.mjs';
 			}
 		})
 		.catch((_error) => {
+			if (itemPlaceholder instanceof HTMLElement) {
+				itemPlaceholder.classList.remove('loading');
+				itemPlaceholder.textContent = '아이템을 선택해주세요';
+			}
 		});
 
 	import { initEnhancementPanel } from '../lib/enhancementPanel.mjs';

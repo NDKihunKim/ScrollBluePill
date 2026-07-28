@@ -56,3 +56,24 @@ export function computeGradeTier(totalStats) {
   // Fallback — should never be reached
   return GRADE_TIERS[0];
 }
+
+/**
+ * Convenience wrapper that computes the grade color for a set of stat
+ * deltas, counting only positive contributions (the deconstruction
+ * page's display convention: deltas represent what the user wants to
+ * add, so negative/zero values don't affect the color).
+ *
+ * @param {Record<string, number>} deltas
+ * @returns {string} CSS color
+ */
+export function computeGradeColor(deltas) {
+  if (!deltas || typeof deltas !== 'object') return GRADE_TIERS[1].color;
+
+  const positiveOnly = {};
+  for (const [key, value] of Object.entries(deltas)) {
+    if (Number.isFinite(value) && value > 0) {
+      positiveOnly[key] = value;
+    }
+  }
+  return computeGradeTier(positiveOnly).color;
+}

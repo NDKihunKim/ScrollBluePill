@@ -347,6 +347,14 @@ import { searchKoreanItems } from '../lib/itemSearch.mjs';
 import { buildItemIconUrl, buildItemSearchUrl } from '../lib/maplestoryIo.mjs';
 import { HP_MP_KEYS, computeItemLevelUpCardMeta } from '../lib/enhancementState.mjs';
 import { enumerateStrategies } from '../lib/deconstruction/engine.mjs';
+import {
+  syncJobButtons as _syncJobButtons,
+  hideItemSuggestions as _hideItemSuggestions,
+  syncItemSearchUrl as _syncItemSearchUrl,
+  getManualFilteredItems as _getManualFilteredItems,
+  renderItemSuggestions as _renderItemSuggestions,
+  renderManualItemResults as _renderManualItemResults,
+} from '../lib/itemSearchUI.mjs';
 import { guardCheckboxMutation } from '../lib/deconstruction/guardedCheckboxMutation.mjs';
 import { GEM_GRADES, GEM_ITEM_IDS, GEM_TYPES, isWeaponKind, computeGemSlotCount, CHAOS_SCROLL_ICON_ID } from '../lib/makerData.mjs';
 import {
@@ -365,7 +373,7 @@ import {
 } from '../lib/deconstruction/resultFilterController.mjs';
 import { readSlots, saveToSlot, clearSlot, findMatchingSlot, MAX_SLOTS } from '../lib/itemSlotStore.mjs';
 import { writeDeconTransfer } from '../lib/deconToEvTransfer.mjs';
-import { saveDeconSession, loadDeconSession, clearDeconSession } from '../lib/deconSessionState.mjs';
+import { saveDeconSession, loadDeconSession, clearDeconSession, saveDeconTransferSession } from '../lib/deconSessionState.mjs';
 import { STAT_PRIORITY, statLabelByKey, CORE_STATS, STAT_ORDER } from '../lib/deconstruction/displayHelpers.mjs';
 import { requirementRows, statRows, jobKindByRequiredJob, weaponAttackSpeedBySubCategory, formatRequiredJobs, createItemLine, resolveAttackSpeed, formatStatValue, formatRequirementValue } from '../lib/ui/itemCardHelpers.mjs';
 import { getSelectedJobKinds, itemMatchesSelectedJobs } from '../lib/ui/itemSearchHelpers.mjs';
@@ -376,6 +384,10 @@ import { buildStimulantBoundsEditor } from '../lib/deconstruction/stimulantBound
 import { buildChaosBoundsEditor } from '../lib/deconstruction/chaosBoundsEditor.mjs';
 import { buildGemPreFilter } from '../lib/deconstruction/gemPreFilterUI.mjs';
 import { buildLevelUpSlotEditors } from '../lib/deconstruction/levelUpSlotEditors.mjs';
+import { computeGradeColor } from '../lib/deconstruction/gradeColor.mjs';
+import { equalizeGroupLabels, rebuildStatEditor as _rebuildStatEditor, populateAddStatList as _populateAddStatList } from '../lib/deconstruction/statEditor.mjs';
+import { createPagination } from '../lib/deconstruction/pagination.mjs';
+import { renderTargetChips as _renderTargetChips, getCheckedTargetKeys as _getCheckedTargetKeys } from '../lib/deconstruction/targetChips.mjs';
 
 // ---- Helpers ----
 
@@ -622,61 +634,19 @@ const updateSourcePanelForItem = (item) => {
 // Source checkbox change handlers are consolidated below with guardCheckboxMutation
 // to ensure accordion panels only toggle after user confirmation when results exist.
 
-const renderTargetChips = () => {
-  if (!(deconTargetChips instanceof HTMLElement)) return;
-  deconTargetChips.replaceChildren();
+const renderTargetChips = () => _renderTargetChips({
+  container: deconTargetChips,
+  selectedItem,
+  deconStatKeys,
+  deconDeltas,
+  STAT_ORDER,
+  CORE_STATS,
+  statLabelByKey,
+  guardCheckboxMutation,
+  guardDeconMutation,
+  updateAnalyzeButton,
+});
 
-  let anyChecked = false;
-
-  // Collect all keys: base item stats + deltas
-  const allKeys = new Set([
-    ...Object.keys(selectedItem?.stats ?? {}),
-    ...deconStatKeys.filter(k => deconDeltas[k] !== 0),
-  ]);
-
-  // Sort by card order
-  const sortedKeys = [...allKeys].sort((a, b) => {
-    const ai = STAT_ORDER.indexOf(a);
-    const bi = STAT_ORDER.indexOf(b);
-    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
-  });
-
-  for (const key of sortedKeys) {
-    if (key === 'attackSpeed' || key === 'upgradeSlots') continue;
-
-    const isCore = CORE_STATS.has(key);
-    const delta = deconDeltas[key] ?? 0;
-
-    // Core: visible if on base item OR has delta
-    // Non-core: visible only if has non-zero delta
-    if (!isCore && delta === 0) continue;
-
-    const label = document.createElement('label');
-    label.className = 'ev-target-chip';
-
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.dataset.deconTargetKey = key;
-    checkbox.checked = delta !== 0; // checked only if stat has a delta
-    if (checkbox.checked) anyChecked = true;
-
-    checkbox.addEventListener('change', () => {
-      guardCheckboxMutation(checkbox, guardDeconMutation, updateAnalyzeButton);
-    });
-
-    const chipLabel = document.createElement('span');
-    chipLabel.className = 'ev-target-chip-label';
-    const displayName = statLabelByKey[key] || key;
-    chipLabel.textContent = delta !== 0
-      ? `${displayName} ${delta > 0 ? '+' : ''}${delta}`
-      : `${displayName} 유지`;
-
-    label.append(checkbox, chipLabel);
-    deconTargetChips.append(label);
-  }
-
-  updateAnalyzeButton();
-};
 // ---- Render item card with deconstruction deltas ----
 const renderTargetItemCard = (item) => {
   if (
@@ -794,182 +764,36 @@ const clearSelectedItemCard = () => {
   if (resetBtn instanceof HTMLElement) resetBtn.hidden = true;
 };
 
-// ---- Item grade color (same thresholds as expected-value calculator) ----
-const computeDeconGrade = () => {
-  let total = 0;
-  for (const [key, value] of Object.entries(deconDeltas)) {
-    if (!Number.isFinite(value) || value <= 0) continue;
-    total += HP_MP_KEYS.has(key) ? Math.round(value / 10) : value;
-  }
-  if (total < 0) return '#9e9e9e';
-  if (total === 0) return '#ffffff';
-  if (total <= 5) return '#ff8c00';
-  if (total <= 22) return '#3366ff';
-  if (total <= 39) return '#9933ff';
-  if (total <= 56) return '#ffd700';
-  if (total <= 73) return '#33cc33';
-  return '#ff3333';
-};
+const computeDeconGrade = () => computeGradeColor(deconDeltas);
 
 // ---- Stat editor ----
 
-const equalizeGroupLabels = (container, labelSelector) => {
-  if (!(container instanceof HTMLElement)) return;
-  const labels = container.querySelectorAll(labelSelector);
-  if (labels.length === 0) return;
+const rebuildStatEditor = () => _rebuildStatEditor({
+  deconStatEditor,
+  deconStatKeys,
+  STAT_ORDER,
+  deconDeltas,
+  statLabelByKey,
+  deconSlotState,
+  selectedItem,
+  setStatDelta,
+  deconBasicStatsSep,
+  populateAddStatList,
+  renderTargetChips,
+  updateTargetCard,
+  checkStarState,
+});
 
-  // Reset all labels to auto so we measure natural widths
-  for (const label of labels) {
-    if (label instanceof HTMLElement) {
-      label.style.minWidth = '';
-    }
-  }
-
-  // Measure
-  let maxWidth = 0;
-  for (const label of labels) {
-    const w = label.getBoundingClientRect().width;
-    if (w > maxWidth) maxWidth = w;
-  }
-
-  // Apply
-  const px = Math.ceil(maxWidth) + 'px';
-  for (const label of labels) {
-    if (label instanceof HTMLElement) {
-      label.style.minWidth = px;
-    }
-  }
-};
-
-const rebuildStatEditor = () => {
-  if (!(deconStatEditor instanceof HTMLElement)) return;
-  deconStatEditor.replaceChildren();
-
-    // Sort keys to match the item card order
-    deconStatKeys.sort((a, b) => {
-      const ai = STAT_ORDER.indexOf(a);
-      const bi = STAT_ORDER.indexOf(b);
-      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
-    });
-
-  for (const k of deconStatKeys) {
-    // Only init delta for newly-added keys; preserve existing edits
-    if (!(k in deconDeltas)) {
-      deconDeltas[k] = 0;
-    }
-
-    const row = document.createElement('div');
-    row.className = 'chaos-stat-row';
-    row.dataset.deconStatKey = k;
-
-    const label = document.createElement('span');
-    label.className = 'chaos-stat-label';
-    label.textContent = statLabelByKey[k] || k;
-
-    const isHpMp = HP_MP_KEYS.has(k);
-    const stepSize = isHpMp ? 10 : 1;
-    const perScrollMax = isHpMp ? 50 : 5;
-    const rangeMax = Math.min(100, deconSlotState.maxSlots * perScrollMax);
-    const baseValue = selectedItem?.stats?.[k] ?? 0;
-    const rangeMin = -baseValue;
-
-    const minBtn = document.createElement('button');
-    minBtn.type = 'button';
-    minBtn.className = 'chaos-stepper-btn chaos-stepper-btn--max';
-    minBtn.textContent = 'MIN';
-    minBtn.addEventListener('click', () => {
-      setStatDelta(k, rangeMin);
-    });
-
-    const decBtn = document.createElement('button');
-    decBtn.type = 'button';
-    decBtn.className = 'chaos-stepper-btn';
-    decBtn.textContent = '-';
-    decBtn.addEventListener('click', () => {
-      setStatDelta(k, Math.max(rangeMin, deconDeltas[k] - stepSize));
-    });
-
-    const valueInput = document.createElement('input');
-    valueInput.type = 'number';
-    valueInput.className = 'chaos-stepper-value';
-    valueInput.dataset.deconStatValue = k;
-    valueInput.value = String(deconDeltas[k] ?? 0);
-    valueInput.addEventListener('input', () => {
-      const raw = parseInt(valueInput.value, 10);
-      if (Number.isFinite(raw)) {
-        const clamped = Math.max(rangeMin, Math.min(rangeMax, raw));
-        setStatDelta(k, clamped);
-        if (clamped !== raw) valueInput.value = String(clamped);
-      }
-    });
-
-    const incBtn = document.createElement('button');
-    incBtn.type = 'button';
-    incBtn.className = 'chaos-stepper-btn';
-    incBtn.textContent = '+';
-    incBtn.addEventListener('click', () => {
-      setStatDelta(k, Math.min(rangeMax, deconDeltas[k] + stepSize));
-    });
-
-    const maxBtn = document.createElement('button');
-    maxBtn.type = 'button';
-    maxBtn.className = 'chaos-stepper-btn chaos-stepper-btn--max';
-    maxBtn.textContent = 'MAX';
-    maxBtn.addEventListener('click', () => {
-      setStatDelta(k, rangeMax);
-    });
-
-    row.append(label, minBtn, decBtn, valueInput, incBtn, maxBtn);
-    deconStatEditor.append(row);
-  }
-
-  // Equalize label widths in the 기본 스탯 group
-  equalizeGroupLabels(deconStatEditor, '.chaos-stat-label');
-  if (deconBasicStatsSep instanceof HTMLElement) deconBasicStatsSep.hidden = false;
-
-  // Populate add-stat menu
-  populateAddStatList();
-  renderTargetChips();
-  updateTargetCard();
-  checkStarState();
-};
-
-const populateAddStatList = () => {
-  if (!(deconAddStatList instanceof HTMLElement)) return;
-  deconAddStatList.replaceChildren();
-
-  const deconStatSet = new Set(deconStatKeys);
-  let hasOptions = false;
-
-  for (const key of STAT_PRIORITY) {
-    if (deconStatSet.has(key)) continue;
-    hasOptions = true;
-
-    const row = document.createElement('button');
-    row.type = 'button';
-    row.className = 'decon-add-stat-option';
-
-    const nameSpan = document.createElement('span');
-    nameSpan.textContent = statLabelByKey[key] || key;
-
-    row.append(nameSpan);
-    row.addEventListener('click', () => guardDeconMutation(() => {
-      deconDeltas[key] = 0;
-      deconStatKeys.push(key);
-      rebuildStatEditor();
-      // Collapse list after selection
-      if (deconAddStatList instanceof HTMLElement) deconAddStatList.hidden = true;
-      if (deconAddStatToggle instanceof HTMLElement) deconAddStatToggle.classList.remove('decon-add-stat-toggle--open');
-    }));
-
-    deconAddStatList.append(row);
-  }
-
-  // Hide toggle if no options remain
-  if (deconAddStatToggle instanceof HTMLElement) {
-    deconAddStatToggle.hidden = !hasOptions;
-  }
-};
+const populateAddStatList = () => _populateAddStatList({
+  deconAddStatList,
+  deconStatKeys,
+  STAT_PRIORITY,
+  statLabelByKey,
+  guardDeconMutation,
+  deconDeltas,
+  rebuildStatEditor,
+  deconAddStatToggle,
+});
 
 const setStatDelta = (key, value, { skipGuard = false } = {}) => {
   const apply = () => {
@@ -1070,12 +894,7 @@ const renderDeconItemLevel = () => {
 };
 
 // ---- Item search handling (adapted from expected-value.astro) ----
-const syncJobButtons = () => {
-  jobInputs?.forEach((input) => {
-    if (!(input instanceof HTMLInputElement)) return;
-    input.closest('.choice-button')?.classList.toggle('active', input.checked);
-  });
-};
+const syncJobButtons = () => _syncJobButtons(jobInputs);
 
 const setManualSearchOpen = (isOpen) => {
   if (!(manualSearchToggle instanceof HTMLButtonElement) || !(manualSearchFields instanceof HTMLElement)) {
@@ -1100,35 +919,16 @@ const toggleEquipmentDropdownOpen = (isOpen) => {
   }
 };
 
-const syncItemSearchUrl = () => {
-  if (!(itemNameInput instanceof HTMLInputElement) || !(equipmentInput instanceof HTMLInputElement)) return;
-  const levelRange =
-    levelMinInput instanceof HTMLInputElement && levelMaxInput instanceof HTMLInputElement
-      ? (() => {
-          const min = parseInt(levelMinInput.value, 10) || 0;
-          const max = parseInt(levelMaxInput.value, 10) || 200;
-          return { min, max };
-        })()
-      : { min: 0, max: 0 };
-  form?.setAttribute(
-    'data-item-search-url',
-    buildItemSearchUrl({
-      searchFor: itemNameInput.value,
-      equipmentKind: equipmentInput.value,
-      requiredLevelMin: levelRange.min,
-      requiredLevelMax: levelRange.max,
-    }),
-  );
-};
+const syncItemSearchUrl = () => _syncItemSearchUrl({
+  itemNameInput,
+  equipmentInput,
+  levelMinInput,
+  levelMaxInput,
+  form,
+  buildItemSearchUrl,
+});
 
-const hideItemSuggestions = () => {
-  if (itemSuggestions instanceof HTMLElement) {
-    itemSuggestions.hidden = true;
-  }
-  if (itemNameInput instanceof HTMLInputElement) {
-    itemNameInput.setAttribute('aria-expanded', 'false');
-  }
-};
+const hideItemSuggestions = () => _hideItemSuggestions(itemSuggestions, itemNameInput);
 
 const hasDeconDraftState = () => (
   selectedItem !== null &&
@@ -1207,47 +1007,14 @@ const selectSuggestedItem = (item, { syncFilters = true } = {}) => {
   commitSuggestedItem(item, { syncFilters });
 };
 
-const renderItemSuggestions = () => {
-  if (!(itemNameInput instanceof HTMLInputElement) || !(itemSuggestions instanceof HTMLElement)) return;
-  itemSuggestions.replaceChildren();
-
-  const results = searchKoreanItems(itemNameInput.value, { items: itemIndex });
-  if (results.length === 0) {
-    hideItemSuggestions();
-    return;
-  }
-
-  results.forEach((item) => {
-    const option = document.createElement('button');
-    option.type = 'button';
-    option.className = 'item-suggestion-option';
-    option.setAttribute('role', 'option');
-    option.dataset.itemId = String(item.id);
-
-    const icon = document.createElement('img');
-    icon.className = 'item-suggestion-icon';
-    icon.src = buildItemIconUrl(item.id);
-    icon.alt = '';
-    icon.loading = 'lazy';
-
-    const text = document.createElement('span');
-    text.className = 'item-suggestion-text';
-    const name = document.createElement('strong');
-    name.textContent = item.nameKo;
-    const meta = document.createElement('span');
-    meta.textContent = item.equipmentKind;
-    text.append(name, meta);
-
-    option.append(icon, text);
-    option.addEventListener('click', () => {
-      selectSuggestedItem(item);
-    });
-    itemSuggestions.append(option);
-  });
-
-  itemSuggestions.hidden = false;
-  itemNameInput.setAttribute('aria-expanded', 'true');
-};
+const renderItemSuggestions = () => _renderItemSuggestions({
+  itemNameInput,
+  itemSuggestions,
+  itemIndex,
+  buildItemIconUrl,
+  searchKoreanItems,
+  onSelectItem: (item) => selectSuggestedItem(item),
+});
 
 const setEquipmentOption = (button) => {
   if (!(equipmentInput instanceof HTMLInputElement) || !(button instanceof HTMLButtonElement)) return;
@@ -1311,73 +1078,22 @@ const syncFiltersToSelectedItem = (item) => {
   }
 };
 
-const getManualFilteredItems = () => {
-  if (!(equipmentInput instanceof HTMLInputElement)) return [];
-  if (!equipmentInput.value) return [];
-  const selectedJobs = getSelectedJobKinds(jobInputs);
-  const levelRange =
-    levelMinInput instanceof HTMLInputElement && levelMaxInput instanceof HTMLInputElement
-      ? (() => {
-          const min = parseInt(levelMinInput.value, 10) || 0;
-          const max = parseInt(levelMaxInput.value, 10) || 200;
-          return { min, max };
-        })()
-      : { min: 0, max: 0 };
-  return itemIndex
-    .filter((item) => item.equipmentKind === equipmentInput.value)
-    .filter((item) => item.requiredLevel >= levelRange.min && item.requiredLevel <= levelRange.max)
-    .filter((item) => itemMatchesSelectedJobs(item, selectedJobs))
-    .sort((a, b) => a.requiredLevel - b.requiredLevel || a.nameKo.localeCompare(b.nameKo, 'ko-KR'));
-};
+const getManualFilteredItems = () => _getManualFilteredItems({
+  equipmentInput,
+  jobInputs,
+  levelMinInput,
+  levelMaxInput,
+  itemIndex,
+  getSelectedJobKinds,
+  itemMatchesSelectedJobs,
+});
 
-const renderManualItemResults = () => {
-  if (!(manualItemResults instanceof HTMLElement)) return;
-  manualItemResults.replaceChildren();
-
-  const results = getManualFilteredItems();
-  if (results.length === 0) {
-    manualItemResults.hidden = true;
-    return;
-  }
-
-  const MAX_RESULTS = 100;
-  if (results.length > MAX_RESULTS) {
-    const warning = document.createElement('div');
-    warning.className = 'manual-item-overflow-warning';
-    warning.textContent = '검색 결과가 너무 많습니다. 위에 필터들을 더 좁혀주세요.';
-    manualItemResults.append(warning);
-    manualItemResults.hidden = false;
-    return;
-  }
-
-  const list = document.createElement('div');
-  list.className = 'manual-item-list';
-  results.forEach((item) => {
-    const option = document.createElement('button');
-    option.type = 'button';
-    option.className = 'manual-item-option';
-    option.dataset.itemId = String(item.id);
-    const icon = document.createElement('img');
-    icon.className = 'manual-item-icon';
-    icon.src = buildItemIconUrl(item.id);
-    icon.alt = '';
-    icon.loading = 'lazy';
-    const text = document.createElement('span');
-    text.className = 'manual-item-text';
-    const name = document.createElement('strong');
-    name.textContent = item.nameKo;
-    const meta = document.createElement('span');
-    meta.textContent = item.equipmentKind;
-    text.append(name, meta);
-    option.append(icon, text);
-    option.addEventListener('click', () => {
-      selectSuggestedItem(item, { syncFilters: false });
-    });
-    list.append(option);
-  });
-  manualItemResults.append(list);
-  manualItemResults.hidden = false;
-};
+const renderManualItemResults = () => _renderManualItemResults({
+  manualItemResults,
+  getFilteredItems: getManualFilteredItems,
+  buildItemIconUrl,
+  onSelectItem: (item, opts) => selectSuggestedItem(item, opts),
+});
 
 // ---- Deconstruction panel activation ----
 const activateDeconEditPanel = (item) => {
@@ -1500,11 +1216,7 @@ if (deconStar instanceof HTMLElement) {
 }
 
 // ---- Analyze click handler ----
-const getCheckedTargetKeys = () => {
-  if (!(deconTargetChips instanceof HTMLElement)) return [];
-  const checkboxes = deconTargetChips.querySelectorAll('input:checked');
-  return [...checkboxes].map(cb => cb.dataset.deconTargetKey).filter(Boolean);
-};
+const getCheckedTargetKeys = () => _getCheckedTargetKeys(deconTargetChips);
 
 const runAnalysis = () => {
   if (!selectedItem) return;
@@ -1618,7 +1330,7 @@ const displayResults = (result, targetDeltas) => {
   }
 
   // Reset pagination
-  _currentPage = 1;
+  pagination.resetPage();
   document.querySelector('.decon-pagination-bar')?.remove();
 
   deconResultPlaceholder.hidden = true;
@@ -1718,34 +1430,28 @@ const displayResults = (result, targetDeltas) => {
       const totalAppliedScrolls = deconSlotState.successfulScrollCount
         + inferFailedScrollCount(deconSlotState);
       writeDeconTransfer(strategy, selectedItem.id, { totalAppliedScrolls });
-
-      // Auto-save deconstruction state for back-navigation restoration
-      saveDeconSession({
-        itemId: selectedItem.id,
-        itemName: itemNameInput instanceof HTMLInputElement ? itemNameInput.value : (selectedItem.nameKo ?? ''),
-        deconDeltas: { ...deconDeltas },
-        deconStatKeys: [...deconStatKeys],
-        successfulScrollCount: deconSlotState.successfulScrollCount,
-        remainingSlots: deconSlotState.remainingSlots,
-        maxSlots: deconSlotState.maxSlots,
+      saveDeconTransferSession({
+        selectedItem,
+        itemNameInput,
+        deconDeltas,
+        deconStatKeys,
+        slotState: deconSlotState,
         totalAppliedScrolls,
         appliedLevelCount: deconAppliedLevelCount,
-        scrollRateFilter: [...deconScrollRateFilter],
-        stimulantBoundsMap: structuredClone(deconStimulantBoundsMap),
-        stimulantEnabledKeys: [...deconStimulantEnabledKeys],
-        chaosBoundsMap: structuredClone(deconChaosBoundsMap),
-        chaosEnabledKeys: [...deconChaosEnabledKeys],
-        gemFilter: deconGemFilter instanceof Set ? [...deconGemFilter] : null,
-        levelUpTotalRanges: structuredClone(deconLevelUpTotalRanges),
-        targetKeys: getCheckedTargetKeys(),
-        sourceChecked: {
-          scrolls: deconScrollSource instanceof HTMLInputElement ? deconScrollSource.checked : false,
-          stimulant: deconStimulantSource instanceof HTMLInputElement ? deconStimulantSource.checked : false,
-          gems: deconGemsSource instanceof HTMLInputElement ? deconGemsSource.checked : false,
-          itemLevelUp: deconItemLevelUpSource instanceof HTMLInputElement ? deconItemLevelUpSource.checked : false,
+        scrollRateFilter: deconScrollRateFilter,
+        stimulantBoundsMap: deconStimulantBoundsMap,
+        stimulantEnabledKeys: deconStimulantEnabledKeys,
+        chaosBoundsMap: deconChaosBoundsMap,
+        chaosEnabledKeys: deconChaosEnabledKeys,
+        gemFilter: deconGemFilter,
+        levelUpTotalRanges: deconLevelUpTotalRanges,
+        getCheckedTargetKeys,
+        sourceInputs: {
+          scrolls: deconScrollSource,
+          stimulant: deconStimulantSource,
+          gems: deconGemsSource,
+          itemLevelUp: deconItemLevelUpSource,
         },
-        result: window.__lastDeconResult ?? null,
-        scrollPosition: window.scrollY,
       });
     };
 
@@ -1908,127 +1614,15 @@ const displayResults = (result, targetDeltas) => {
     listContainer.append(card);
   });
 
-  resultFilterController.initialize(result.strategies, { onAfterFilter: () => _applyPagination(true) });
+  resultFilterController.initialize(result.strategies, { onAfterFilter: () => pagination.applyPagination(true) });
 
   // Render pagination bar
-  _renderPaginationBar();
-  _applyPagination();
+  pagination.renderBar();
+  pagination.applyPagination();
 };
 
 // ---- Pagination ----
-const _PAGE_SIZE = 10;
-let _currentPage = 1;
-let _totalStrategies = 0;
-let _filterHiddenIndices = new Set();
-
-const _applyPagination = (isFilterUpdate = false) => {
-  const cards = [...document.querySelectorAll('.decon-strategy-card')];
-  if (cards.length === 0) return;
-
-  // On filter updates, snapshot which cards the filter hides.
-  // This keeps filter state and pagination state separate, so
-  // page-navigation calls don't re-count already-paginated-hidden cards.
-  if (isFilterUpdate) {
-    _filterHiddenIndices = new Set();
-    cards.forEach((card, i) => {
-      if (card.hidden) _filterHiddenIndices.add(i);
-    });
-  }
-
-  // Count filter-passing cards (total minus filter-hidden)
-  const filterPassingCount = cards.length - _filterHiddenIndices.size;
-  const totalPages = Math.max(1, Math.ceil(filterPassingCount / _PAGE_SIZE));
-  if (_currentPage > totalPages) _currentPage = totalPages;
-
-  const startIdx = (_currentPage - 1) * _PAGE_SIZE;
-  const endIdx = startIdx + _PAGE_SIZE;
-
-  // Apply both filter and pagination visibility
-  let visibleIdx = 0;
-  cards.forEach((card, i) => {
-    if (_filterHiddenIndices.has(i)) {
-      card.hidden = true;
-    } else {
-      card.hidden = visibleIdx < startIdx || visibleIdx >= endIdx;
-      visibleIdx++;
-    }
-  });
-
-  _totalStrategies = filterPassingCount;
-  _updatePaginationBar();
-};
-
-const _renderPaginationBar = () => {
-  const resultPanel = document.querySelector('[data-decon-result-panel]');
-  if (!(resultPanel instanceof HTMLElement)) return;
-
-  // Remove old pagination bar if any
-  resultPanel.querySelector('.decon-pagination-bar')?.remove();
-
-  const bar = document.createElement('div');
-  bar.className = 'decon-pagination-bar';
-
-  const firstBtn = document.createElement('button');
-  firstBtn.className = 'decon-page-btn';
-  firstBtn.setAttribute('aria-label', '첫 페이지');
-  firstBtn.textContent = '«';
-  firstBtn.addEventListener('click', () => _goToPage(1));
-
-  const prevBtn = document.createElement('button');
-  prevBtn.className = 'decon-page-btn';
-  prevBtn.setAttribute('aria-label', '이전 페이지');
-  prevBtn.textContent = '←';
-  prevBtn.addEventListener('click', () => _goToPage(_currentPage - 1));
-
-  const indicator = document.createElement('span');
-  indicator.className = 'decon-page-indicator';
-
-  const nextBtn = document.createElement('button');
-  nextBtn.className = 'decon-page-btn';
-  nextBtn.setAttribute('aria-label', '다음 페이지');
-  nextBtn.textContent = '→';
-  nextBtn.addEventListener('click', () => _goToPage(_currentPage + 1));
-
-  const lastBtn = document.createElement('button');
-  lastBtn.className = 'decon-page-btn';
-  lastBtn.setAttribute('aria-label', '마지막 페이지');
-  lastBtn.textContent = '»';
-  lastBtn.addEventListener('click', () => _goToPage(Number.MAX_SAFE_INTEGER));
-
-  bar.append(firstBtn, prevBtn, indicator, nextBtn, lastBtn);
-  resultPanel.appendChild(bar);
-
-  _updatePaginationBar();
-};
-
-const _updatePaginationBar = () => {
-  const bar = document.querySelector('.decon-pagination-bar');
-  if (!(bar instanceof HTMLElement)) return;
-
-  const totalPages = Math.max(1, Math.ceil(_totalStrategies / _PAGE_SIZE));
-  const buttons = bar.querySelectorAll('.decon-page-btn');
-  const firstBtn = buttons[0];
-  const prevBtn = buttons[1];
-  const nextBtn = buttons[2];
-  const lastBtn = buttons[3];
-  const indicator = bar.querySelector('.decon-page-indicator');
-
-  if (firstBtn instanceof HTMLButtonElement) firstBtn.disabled = _currentPage <= 1;
-  if (prevBtn instanceof HTMLButtonElement) prevBtn.disabled = _currentPage <= 1;
-  if (nextBtn instanceof HTMLButtonElement) nextBtn.disabled = _currentPage >= totalPages;
-  if (lastBtn instanceof HTMLButtonElement) lastBtn.disabled = _currentPage >= totalPages;
-  if (indicator instanceof HTMLElement) {
-    indicator.textContent = `${_currentPage} / ${totalPages}`;
-  }
-};
-
-const _goToPage = (page) => {
-  const totalPages = Math.max(1, Math.ceil(_totalStrategies / _PAGE_SIZE));
-  _currentPage = Math.max(1, Math.min(page, totalPages));
-  _applyPagination();
-  // Scroll to top of result panel
-  document.querySelector('[data-decon-result-panel]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-};
+const pagination = createPagination('[data-decon-result-panel]');
 
 // ---- Filter ----
 
@@ -2508,12 +2102,18 @@ fetch('/data/items-gms83-ko.json')
     renderSlots();
 
     _itemsLoaded = true;
-    itemPlaceholder?.classList.remove('loading');
+    if (itemPlaceholder instanceof HTMLElement) {
+      itemPlaceholder.classList.remove('loading');
+      itemPlaceholder.textContent = '아이템을 선택해주세요';
+    }
     _maybeRestoreDeconSession();
   })
   .catch((_error) => {
     _itemsLoaded = true;
-    itemPlaceholder?.classList.remove('loading');
+    if (itemPlaceholder instanceof HTMLElement) {
+      itemPlaceholder.classList.remove('loading');
+      itemPlaceholder.textContent = '아이템을 선택해주세요';
+    }
     _maybeRestoreDeconSession();
   });
 
