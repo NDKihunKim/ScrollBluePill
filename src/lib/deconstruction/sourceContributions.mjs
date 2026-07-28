@@ -10,7 +10,11 @@ import { addVectors, projectVector, vectorKey } from './statVectors.mjs';
 
 const WEAPON_ONLY_STIM_KEYS = new Set(['weaponAttack', 'magicAttack']);
 
-export function solveStimulantResidual(residual, targetKeys, { isWeapon = true, bounds = null, cleanStats = null } = {}) {
+export function solveStimulantResidual(
+  residual,
+  targetKeys,
+  { isWeapon = true, bounds = null, cleanStats = null } = {},
+) {
   const stats = {};
   let hasNonZero = false;
   for (const key of targetKeys) {
@@ -21,17 +25,23 @@ export function solveStimulantResidual(residual, targetKeys, { isWeapon = true, 
     // When explicit bounds are provided but this key is not in them,
     // the user has not enabled stimulant for this stat → no contribution.
     const keyIsBounded = bounds ? Object.hasOwn(bounds, key) : false;
-    const boundMin = boundRange && Number.isFinite(boundRange.min)
-      ? Math.max(-baseLimit, Math.min(baseLimit, boundRange.min))
-      : keyIsBounded ? 0 : -baseLimit;
+    const boundMin =
+      boundRange && Number.isFinite(boundRange.min)
+        ? Math.max(-baseLimit, Math.min(baseLimit, boundRange.min))
+        : keyIsBounded
+          ? 0
+          : -baseLimit;
     // Stimulant can only affect stats that exist on the clean item with a
     // positive base value — same rule as the stimulant bounds UI.
     const statExistsOnBase = cleanStats && Number.isFinite(cleanStats[key]) && cleanStats[key] > 0;
     if (!statExistsOnBase && value !== 0) return null;
     const effectiveMin = statExistsOnBase ? boundMin : 0;
-    const effectiveMax = boundRange && Number.isFinite(boundRange.max)
-      ? Math.max(-baseLimit, Math.min(baseLimit, boundRange.max))
-      : keyIsBounded ? 0 : baseLimit;
+    const effectiveMax =
+      boundRange && Number.isFinite(boundRange.max)
+        ? Math.max(-baseLimit, Math.min(baseLimit, boundRange.max))
+        : keyIsBounded
+          ? 0
+          : baseLimit;
     // 촉진제 can only affect weaponAttack/magicAttack on weapons
     if (!isWeapon && WEAPON_ONLY_STIM_KEYS.has(key) && value !== 0) return null;
     if (value < effectiveMin || value > effectiveMax || value % step !== 0) return null;
@@ -90,12 +100,14 @@ export function enumerateStimulantContributions({ targetKeys, bounds, cleanStats
       continue;
     }
 
-    const boundMin = boundRange && Number.isFinite(boundRange.min)
-      ? Math.max(-baseLimit, Math.min(baseLimit, boundRange.min))
-      : -baseLimit;
-    const boundMax = boundRange && Number.isFinite(boundRange.max)
-      ? Math.max(-baseLimit, Math.min(baseLimit, boundRange.max))
-      : baseLimit;
+    const boundMin =
+      boundRange && Number.isFinite(boundRange.min)
+        ? Math.max(-baseLimit, Math.min(baseLimit, boundRange.min))
+        : -baseLimit;
+    const boundMax =
+      boundRange && Number.isFinite(boundRange.max)
+        ? Math.max(-baseLimit, Math.min(baseLimit, boundRange.max))
+        : baseLimit;
 
     const count = Math.floor((boundMax - boundMin) / step) + 1;
     totalCombos *= Math.max(1, count);
@@ -189,12 +201,14 @@ export function enumerateItemLevelContributions({
       const totalMax = defRange.max * levelCount;
       const requested = totalRanges?.[key];
       ranges[key] = {
-        min: requested && Number.isFinite(requested.min)
-          ? Math.max(totalMin, Math.min(totalMax, requested.min))
-          : totalMin,
-        max: requested && Number.isFinite(requested.max)
-          ? Math.max(totalMin, Math.min(totalMax, requested.max))
-          : totalMax,
+        min:
+          requested && Number.isFinite(requested.min)
+            ? Math.max(totalMin, Math.min(totalMax, requested.min))
+            : totalMin,
+        max:
+          requested && Number.isFinite(requested.max)
+            ? Math.max(totalMin, Math.min(totalMax, requested.max))
+            : totalMax,
       };
       if (ranges[key].min > ranges[key].max) {
         ranges[key] = { min: ranges[key].max, max: ranges[key].min };
@@ -205,7 +219,9 @@ export function enumerateItemLevelContributions({
       .map((stats) => ({ levelCount, stats }));
   }
 
-  const remainingLevels = maxLevelUps - (Number.isFinite(appliedLevelCount) ? Math.max(0, Math.trunc(appliedLevelCount)) : 0);
+  const remainingLevels =
+    maxLevelUps -
+    (Number.isFinite(appliedLevelCount) ? Math.max(0, Math.trunc(appliedLevelCount)) : 0);
   if (remainingLevels <= 0) return [];
 
   const defaultRanges = levelUpDefinition.statRanges ?? {};
@@ -221,12 +237,14 @@ export function enumerateItemLevelContributions({
       for (const key of targetKeys) {
         const defRange = defaultRanges[key] ?? { min: 0, max: 0 };
         effectiveRanges[key] = {
-          min: slotRanges[key] && Number.isFinite(slotRanges[key].min)
-            ? Math.max(defRange.min, Math.min(defRange.max, slotRanges[key].min))
-            : defRange.min,
-          max: slotRanges[key] && Number.isFinite(slotRanges[key].max)
-            ? Math.max(defRange.min, Math.min(defRange.max, slotRanges[key].max))
-            : defRange.max,
+          min:
+            slotRanges[key] && Number.isFinite(slotRanges[key].min)
+              ? Math.max(defRange.min, Math.min(defRange.max, slotRanges[key].min))
+              : defRange.min,
+          max:
+            slotRanges[key] && Number.isFinite(slotRanges[key].max)
+              ? Math.max(defRange.min, Math.min(defRange.max, slotRanges[key].max))
+              : defRange.max,
         };
       }
     }
@@ -283,9 +301,10 @@ function buildGemOutcomeOptions({ equipmentKind, cleanStats, targetKeys, gemFilt
         continue;
       }
       const gradeKey = ['low', 'mid', 'high'][gradeIndex];
-      const table = gem.key === 'blackAmethyst'
-        ? BLACK_AMETHYST_TABLES[gradeKey]
-        : DARK_CRYSTAL_TABLES[gradeKey];
+      const table =
+        gem.key === 'blackAmethyst'
+          ? BLACK_AMETHYST_TABLES[gradeKey]
+          : DARK_CRYSTAL_TABLES[gradeKey];
       const keys = gem.variableKeys.filter(
         (key) => targetKeys.includes(key) && Number.isFinite(cleanStats[key]),
       );
@@ -303,10 +322,11 @@ function buildGemOutcomeOptions({ equipmentKind, cleanStats, targetKeys, gemFilt
 }
 
 function compareGemEntries(left, right) {
-  const key = (entry) => entry.gems
-    .map((gem) => `${gem.gemKey}:${gem.gradeIndex}:${JSON.stringify(gem.stats)}`)
-    .sort()
-    .join('|');
+  const key = (entry) =>
+    entry.gems
+      .map((gem) => `${gem.gemKey}:${gem.gradeIndex}:${JSON.stringify(gem.stats)}`)
+      .sort()
+      .join('|');
   return key(left).localeCompare(key(right));
 }
 
@@ -325,7 +345,10 @@ export function enumerateGemContributions({
 
   function visit(startIndex, gems, stats) {
     if (gems.length > 0 && withinBounds(stats, bounds, targetKeys)) {
-      const key = `${gems.map((gem) => `${gem.gemKey}:${gem.gradeIndex}:${vectorKey(gem.stats, targetKeys)}`).sort().join('|')}::${vectorKey(stats, targetKeys)}`;
+      const key = `${gems
+        .map((gem) => `${gem.gemKey}:${gem.gradeIndex}:${vectorKey(gem.stats, targetKeys)}`)
+        .sort()
+        .join('|')}::${vectorKey(stats, targetKeys)}`;
       if (!seen.has(key)) {
         seen.add(key);
         results.push({ gems: gems.map((gem) => ({ ...gem })), stats: { ...stats } });

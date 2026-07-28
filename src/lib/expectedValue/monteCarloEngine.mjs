@@ -24,9 +24,9 @@ export function computeGeometricPercentiles(p) {
   if (p >= 1.0) return { p50: 1, p75: 1, p90: 1, p95: 1 };
   if (p <= 0) return { p50: Infinity, p75: Infinity, p90: Infinity, p95: Infinity };
   return {
-    p50: computeAttemptsForPercentile(p, 0.50),
+    p50: computeAttemptsForPercentile(p, 0.5),
     p75: computeAttemptsForPercentile(p, 0.75),
-    p90: computeAttemptsForPercentile(p, 0.90),
+    p90: computeAttemptsForPercentile(p, 0.9),
     p95: computeAttemptsForPercentile(p, 0.95),
   };
 }

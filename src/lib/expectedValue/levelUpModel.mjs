@@ -10,24 +10,24 @@ import { normalizeItemLevelUpRange } from '../itemLevelUpData.mjs';
  * @returns {Object<string, number>}
  */
 export function rollLevelUpStats(ranges, rng) {
-	const result = {};
+  const result = {};
 
-	for (const [statKey, range] of Object.entries(ranges)) {
-		const normalized = normalizeItemLevelUpRange(range);
-		if (!normalized) {
-			continue;
-		}
+  for (const [statKey, range] of Object.entries(ranges)) {
+    const normalized = normalizeItemLevelUpRange(range);
+    if (!normalized) {
+      continue;
+    }
 
-		const { min, max } = normalized;
-		const count = max - min + 1;
-		const roll = Math.floor(rng() * count) + min;
+    const { min, max } = normalized;
+    const count = max - min + 1;
+    const roll = Math.floor(rng() * count) + min;
 
-		if (roll !== 0) {
-			result[statKey] = roll;
-		}
-	}
+    if (roll !== 0) {
+      result[statKey] = roll;
+    }
+  }
 
-	return result;
+  return result;
 }
 
 /**
@@ -40,19 +40,19 @@ export function rollLevelUpStats(ranges, rng) {
  * @returns {Object<string, number>}
  */
 export function rollAllLevelUps(ranges, levelCount, rng) {
-	if (levelCount === 0) {
-		return {};
-	}
+  if (levelCount === 0) {
+    return {};
+  }
 
-	const totals = {};
+  const totals = {};
 
-	for (let i = 0; i < levelCount; i++) {
-		const levelRoll = rollLevelUpStats(ranges, rng);
+  for (let i = 0; i < levelCount; i++) {
+    const levelRoll = rollLevelUpStats(ranges, rng);
 
-		for (const [statKey, value] of Object.entries(levelRoll)) {
-			totals[statKey] = (totals[statKey] ?? 0) + value;
-		}
-	}
+    for (const [statKey, value] of Object.entries(levelRoll)) {
+      totals[statKey] = (totals[statKey] ?? 0) + value;
+    }
+  }
 
-	return totals;
+  return totals;
 }

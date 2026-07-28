@@ -13,17 +13,22 @@ export const MATERIAL_MODE_MANUAL = 'manual';
 export const MATERIAL_MODE_PROBABILITY = 'probability';
 
 function normalizeMaterialMode(mode) {
-  return mode === MATERIAL_MODE_PROBABILITY
-    ? MATERIAL_MODE_PROBABILITY
-    : MATERIAL_MODE_MANUAL;
+  return mode === MATERIAL_MODE_PROBABILITY ? MATERIAL_MODE_PROBABILITY : MATERIAL_MODE_MANUAL;
 }
 
 export function createItemLevelUpSlots(levelUpDefinition = null) {
-  const slotCount = Number.isInteger(levelUpDefinition?.maxLevelUps) ? levelUpDefinition.maxLevelUps : 0;
+  const slotCount = Number.isInteger(levelUpDefinition?.maxLevelUps)
+    ? levelUpDefinition.maxLevelUps
+    : 0;
   return new Array(slotCount).fill(null);
 }
 
-export function createEnhancementState(upgradeSlots, requiredLevel, levelUpDefinition = null, requiredJobs = []) {
+export function createEnhancementState(
+  upgradeSlots,
+  requiredLevel,
+  levelUpDefinition = null,
+  requiredJobs = [],
+) {
   const scrollState = _createScrollState(upgradeSlots);
   const gemSlotCount = computeGemSlotCount(requiredLevel, requiredJobs);
   const gemSlots = new Array(gemSlotCount).fill(null);
@@ -32,7 +37,16 @@ export function createEnhancementState(upgradeSlots, requiredLevel, levelUpDefin
   const itemLevelUpSlots = createItemLevelUpSlots(levelUpDefinition);
   const itemLevelUpSlotCount = itemLevelUpSlots.length;
 
-  return { scrollState, gemSlots, gemSlotCount, makerActive, stimulantSlot, itemLevelUpSlots, itemLevelUpSlotCount, itemLevelUpMode: MATERIAL_MODE_MANUAL };
+  return {
+    scrollState,
+    gemSlots,
+    gemSlotCount,
+    makerActive,
+    stimulantSlot,
+    itemLevelUpSlots,
+    itemLevelUpSlotCount,
+    itemLevelUpMode: MATERIAL_MODE_MANUAL,
+  };
 }
 
 export function activateMaker(state) {
@@ -135,7 +149,14 @@ export function applyGem(state, slotIndex, gemKey, gradeIndex) {
   return true;
 }
 
-export function applyVariableGem(state, slotIndex, gemKey, stats, mode = MATERIAL_MODE_MANUAL, gradeIndex = 0) {
+export function applyVariableGem(
+  state,
+  slotIndex,
+  gemKey,
+  stats,
+  mode = MATERIAL_MODE_MANUAL,
+  gradeIndex = 0,
+) {
   if (slotIndex < 0 || slotIndex >= state.gemSlotCount) {
     return false;
   }
@@ -180,7 +201,6 @@ export function resetGems(state) {
   }
   clearStimulant(state);
 }
-
 
 export function isGemSlotAvailable(state, gemKey) {
   for (let i = 0; i < state.gemSlots.length; i++) {

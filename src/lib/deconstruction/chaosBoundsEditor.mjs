@@ -142,17 +142,20 @@ export function buildChaosBoundsEditor({
       const savedBounds = boundsMap[savedKey]
         ? { min: boundsMap[savedKey].min, max: boundsMap[savedKey].max }
         : { min: 0, max: defaultLimit };
-      guardMutation(() => {
-        boundsMap[savedKey] = { min: mn, max: mx };
-        minVal.textContent = String(mn);
-        maxVal.textContent = String(mx);
-        if (onStateChange) onStateChange();
-      }, () => {
-        minSlider.value = savedBounds.min;
-        maxSlider.value = savedBounds.max;
-        minVal.textContent = String(savedBounds.min);
-        maxVal.textContent = String(savedBounds.max);
-      });
+      guardMutation(
+        () => {
+          boundsMap[savedKey] = { min: mn, max: mx };
+          minVal.textContent = String(mn);
+          maxVal.textContent = String(mx);
+          if (onStateChange) onStateChange();
+        },
+        () => {
+          minSlider.value = savedBounds.min;
+          maxSlider.value = savedBounds.max;
+          minVal.textContent = String(savedBounds.min);
+          maxVal.textContent = String(savedBounds.max);
+        },
+      );
     });
     maxSlider.addEventListener('change', () => {
       // minSlider change handler already handles both sliders

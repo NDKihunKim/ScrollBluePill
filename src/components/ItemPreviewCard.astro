@@ -33,22 +33,24 @@ const {
 
 {
   !item ? (
-    <p class="enhancement-placeholder" data-item-placeholder>{placeholder}</p>
+    <p class="enhancement-placeholder" data-item-placeholder>
+      {placeholder}
+    </p>
   ) : (
     <div class="selected-item-card">
       <h3 data-selected-item-name style={gradeColor ? `color: ${gradeColor}` : ''}>
-        {item.nameKo}{appliedCount && appliedCount > 0 ? ` (+${appliedCount})` : ''}
+        {item.nameKo}
+        {appliedCount && appliedCount > 0 ? ` (+${appliedCount})` : ''}
       </h3>
       <div class="selected-item-top">
         <div class="selected-item-icon-frame">
           <img data-selected-item-icon alt="" loading="lazy" />
         </div>
-        <div class="selected-item-requirements" data-selected-item-requirements>
-        </div>
+        <div class="selected-item-requirements" data-selected-item-requirements />
       </div>
-      <div class="selected-item-jobs" data-selected-item-jobs></div>
-      <div class="selected-item-divider"></div>
-      <div class="selected-item-stats" data-selected-item-stats></div>
+      <div class="selected-item-jobs" data-selected-item-jobs />
+      <div class="selected-item-divider" />
+      <div class="selected-item-stats" data-selected-item-stats />
     </div>
   )
 }

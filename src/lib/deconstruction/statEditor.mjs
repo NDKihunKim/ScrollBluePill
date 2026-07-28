@@ -193,14 +193,17 @@ export function populateAddStatList({
     nameSpan.textContent = statLabelByKey[key] || key;
 
     row.append(nameSpan);
-    row.addEventListener('click', () => guardDeconMutation(() => {
-      deconDeltas[key] = 0;
-      deconStatKeys.push(key);
-      rebuildStatEditor();
-      // Collapse list after selection
-      if (deconAddStatList instanceof HTMLElement) deconAddStatList.hidden = true;
-      if (deconAddStatToggle instanceof HTMLElement) deconAddStatToggle.classList.remove('decon-add-stat-toggle--open');
-    }));
+    row.addEventListener('click', () =>
+      guardDeconMutation(() => {
+        deconDeltas[key] = 0;
+        deconStatKeys.push(key);
+        rebuildStatEditor();
+        // Collapse list after selection
+        if (deconAddStatList instanceof HTMLElement) deconAddStatList.hidden = true;
+        if (deconAddStatToggle instanceof HTMLElement)
+          deconAddStatToggle.classList.remove('decon-add-stat-toggle--open');
+      }),
+    );
 
     deconAddStatList.append(row);
   }

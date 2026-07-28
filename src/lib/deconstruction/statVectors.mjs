@@ -3,11 +3,15 @@ export function projectVector(stats, targetKeys) {
 }
 
 export function addVectors(left, right, targetKeys) {
-  return Object.fromEntries(targetKeys.map((key) => [key, (left?.[key] || 0) + (right?.[key] || 0)]));
+  return Object.fromEntries(
+    targetKeys.map((key) => [key, (left?.[key] || 0) + (right?.[key] || 0)]),
+  );
 }
 
 export function subtractVectors(left, right, targetKeys) {
-  return Object.fromEntries(targetKeys.map((key) => [key, (left?.[key] || 0) - (right?.[key] || 0)]));
+  return Object.fromEntries(
+    targetKeys.map((key) => [key, (left?.[key] || 0) - (right?.[key] || 0)]),
+  );
 }
 
 export function isExactVector(left, right, targetKeys) {

@@ -116,7 +116,8 @@ export function saveDeconTransferSession({
 }) {
   saveDeconSession({
     itemId: selectedItem.id,
-    itemName: itemNameInput instanceof HTMLInputElement ? itemNameInput.value : (selectedItem.nameKo ?? ''),
+    itemName:
+      itemNameInput instanceof HTMLInputElement ? itemNameInput.value : (selectedItem.nameKo ?? ''),
     deconDeltas: { ...deconDeltas },
     deconStatKeys: [...deconStatKeys],
     successfulScrollCount: slotState.successfulScrollCount,
@@ -133,10 +134,15 @@ export function saveDeconTransferSession({
     levelUpTotalRanges: structuredClone(levelUpTotalRanges),
     targetKeys: getCheckedTargetKeys(),
     sourceChecked: {
-      scrolls: sourceInputs.scrolls instanceof HTMLInputElement ? sourceInputs.scrolls.checked : false,
-      stimulant: sourceInputs.stimulant instanceof HTMLInputElement ? sourceInputs.stimulant.checked : false,
+      scrolls:
+        sourceInputs.scrolls instanceof HTMLInputElement ? sourceInputs.scrolls.checked : false,
+      stimulant:
+        sourceInputs.stimulant instanceof HTMLInputElement ? sourceInputs.stimulant.checked : false,
       gems: sourceInputs.gems instanceof HTMLInputElement ? sourceInputs.gems.checked : false,
-      itemLevelUp: sourceInputs.itemLevelUp instanceof HTMLInputElement ? sourceInputs.itemLevelUp.checked : false,
+      itemLevelUp:
+        sourceInputs.itemLevelUp instanceof HTMLInputElement
+          ? sourceInputs.itemLevelUp.checked
+          : false,
     },
     result: window.__lastDeconResult ?? null,
     scrollPosition: window.scrollY,

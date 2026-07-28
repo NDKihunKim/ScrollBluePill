@@ -5,7 +5,13 @@ import {
   getVisibleStrategyIndexes,
 } from './resultFilters.mjs';
 import { buildItemIconUrl } from '../maplestoryIo.mjs';
-import { GEM_GRADES, GEM_ITEM_IDS, getGemTypeByKey, statLabelByKey, STAT_KEY_RANK } from '../makerData.mjs';
+import {
+  GEM_GRADES,
+  GEM_ITEM_IDS,
+  getGemTypeByKey,
+  statLabelByKey,
+  STAT_KEY_RANK,
+} from '../makerData.mjs';
 import { HP_MP_KEYS } from '../enhancementState.mjs';
 import { formatScrollStatLine } from '../scrollState.mjs';
 
@@ -46,13 +52,16 @@ export function createResultFilterController({ root, secondaryContainer }) {
     const hasLevelRanges = itemLevelUpRanges.size > 0;
     const hasCountRanges = scrollCountRanges.size > 0;
     const hasChaosRanges = chaosDeltaRanges.size > 0;
-    const visibleIndexes = new Set(getVisibleStrategyIndexes(
-      model, selections,
-      hasStimRanges ? stimulantRanges : null,
-      hasLevelRanges ? itemLevelUpRanges : null,
-      hasCountRanges ? scrollCountRanges : null,
-      hasChaosRanges ? chaosDeltaRanges : null,
-    ));
+    const visibleIndexes = new Set(
+      getVisibleStrategyIndexes(
+        model,
+        selections,
+        hasStimRanges ? stimulantRanges : null,
+        hasLevelRanges ? itemLevelUpRanges : null,
+        hasCountRanges ? scrollCountRanges : null,
+        hasChaosRanges ? chaosDeltaRanges : null,
+      ),
+    );
     let visibleCount = 0;
     root.querySelectorAll('.decon-strategy-card').forEach((card) => {
       const strategyIndex = Number.parseInt(card.dataset.strategyIndex ?? '', 10);
@@ -94,8 +103,9 @@ export function createResultFilterController({ root, secondaryContainer }) {
 
   const renderScrollStatFilters = (options) => {
     // Collect unique stat keys from all scroll options, sorted by STAT_KEY_RANK priority
-    const statKeys = [...new Set(options.flatMap((o) => o.statKeys ?? []))]
-      .sort((a, b) => (STAT_KEY_RANK[a] ?? 999) - (STAT_KEY_RANK[b] ?? 999));
+    const statKeys = [...new Set(options.flatMap((o) => o.statKeys ?? []))].sort(
+      (a, b) => (STAT_KEY_RANK[a] ?? 999) - (STAT_KEY_RANK[b] ?? 999),
+    );
 
     if (statKeys.length === 0) return;
 
@@ -145,9 +155,10 @@ export function createResultFilterController({ root, secondaryContainer }) {
     renderScrollStatFilters(options);
 
     // Filter scrolls by active stat filter
-    const visibleOptions = activeScrollStatFilter === 'all'
-      ? options
-      : options.filter((o) => (o.statKeys ?? []).includes(activeScrollStatFilter));
+    const visibleOptions =
+      activeScrollStatFilter === 'all'
+        ? options
+        : options.filter((o) => (o.statKeys ?? []).includes(activeScrollStatFilter));
 
     const list = document.createElement('div');
     list.className = 'decon-secondary-scroll-list';
@@ -156,7 +167,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
     const maxCounts = new Map();
     if (model) {
       for (const entry of model.entries) {
-        for (const [scrollKey, count] of (entry.scrollCounts ?? [])) {
+        for (const [scrollKey, count] of entry.scrollCounts ?? []) {
           const prev = maxCounts.get(scrollKey) ?? 0;
           if (count > prev) maxCounts.set(scrollKey, count);
         }
@@ -220,7 +231,9 @@ export function createResultFilterController({ root, secondaryContainer }) {
       icon.src = buildItemIconUrl(option.iconId);
       icon.alt = option.label;
       icon.loading = 'lazy';
-      icon.addEventListener('error', () => { icon.hidden = true; });
+      icon.addEventListener('error', () => {
+        icon.hidden = true;
+      });
 
       const textBlock = document.createElement('span');
       textBlock.className = 'decon-secondary-scroll-text';
@@ -301,8 +314,12 @@ export function createResultFilterController({ root, secondaryContainer }) {
           minSlider.addEventListener('input', updateCountRange);
           maxSlider.addEventListener('input', updateCountRange);
 
-          sliderWrap.addEventListener('click', (e) => { e.stopPropagation(); });
-          sliderWrap.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
+          sliderWrap.addEventListener('click', (e) => {
+            e.stopPropagation();
+          });
+          sliderWrap.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+          });
 
           const dualRange = document.createElement('span');
           dualRange.className = 'dual-range';
@@ -334,8 +351,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
 
             const label = document.createElement('span');
             label.className = 'decon-secondary-scroll-stat';
-            const formatLabel = (mn, mx) =>
-              `${statLabelByKey[statKey] ?? statKey}: ${mn} ~ ${mx}`;
+            const formatLabel = (mn, mx) => `${statLabelByKey[statKey] ?? statKey}: ${mn} ~ ${mx}`;
             label.textContent = formatLabel(curMin, curMax);
 
             const minSlider = document.createElement('input');
@@ -374,8 +390,12 @@ export function createResultFilterController({ root, secondaryContainer }) {
             chaosWrap.append(rowS);
           }
 
-          chaosWrap.addEventListener('click', (e) => { e.stopPropagation(); });
-          chaosWrap.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
+          chaosWrap.addEventListener('click', (e) => {
+            e.stopPropagation();
+          });
+          chaosWrap.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+          });
           row.append(chaosWrap);
         }
       }
@@ -478,7 +498,9 @@ export function createResultFilterController({ root, secondaryContainer }) {
         icon.src = buildItemIconUrl(cat.iconId);
         icon.alt = cat.nameKo;
         icon.loading = 'lazy';
-        icon.addEventListener('error', () => { icon.hidden = true; });
+        icon.addEventListener('error', () => {
+          icon.hidden = true;
+        });
 
         const name = document.createElement('span');
         name.textContent = cat.nameKo;
@@ -524,7 +546,9 @@ export function createResultFilterController({ root, secondaryContainer }) {
       icon.src = buildItemIconUrl(cat.iconId);
       icon.alt = cat.nameKo;
       icon.loading = 'lazy';
-      icon.addEventListener('error', () => { icon.hidden = true; });
+      icon.addEventListener('error', () => {
+        icon.hidden = true;
+      });
 
       const name = document.createElement('span');
       name.className = 'decon-gem-name';
@@ -548,14 +572,17 @@ export function createResultFilterController({ root, secondaryContainer }) {
           row.style.cursor = 'not-allowed';
         }
 
-        const gradeKey = gradeOpt.gradeIndex === 0 ? 'low' : gradeOpt.gradeIndex === 1 ? 'mid' : 'high';
+        const gradeKey =
+          gradeOpt.gradeIndex === 0 ? 'low' : gradeOpt.gradeIndex === 1 ? 'mid' : 'high';
         const gradeIconId = GEM_ITEM_IDS[cat.gemKey]?.[gradeKey] ?? 0;
         if (gradeIconId) {
           const gradeIcon = document.createElement('img');
           gradeIcon.src = buildItemIconUrl(gradeIconId);
           gradeIcon.alt = GEM_GRADES[gradeOpt.gradeIndex] ?? '';
           gradeIcon.loading = 'lazy';
-          gradeIcon.addEventListener('error', () => { gradeIcon.hidden = true; });
+          gradeIcon.addEventListener('error', () => {
+            gradeIcon.hidden = true;
+          });
           row.append(gradeIcon);
         }
 

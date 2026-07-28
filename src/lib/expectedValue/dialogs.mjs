@@ -2,7 +2,14 @@
 
 import { CONFIRM_TEXT, CONFIRM_BUTTON_TEXT, CANCEL_BUTTON_TEXT } from './expectedValuePanel.mjs';
 
-export function showEvConfirmationDialog(onConfirm, { message = CONFIRM_TEXT, confirmLabel = CONFIRM_BUTTON_TEXT, cancelLabel = CANCEL_BUTTON_TEXT } = {}) {
+export function showEvConfirmationDialog(
+  onConfirm,
+  {
+    message = CONFIRM_TEXT,
+    confirmLabel = CONFIRM_BUTTON_TEXT,
+    cancelLabel = CANCEL_BUTTON_TEXT,
+  } = {},
+) {
   const overlay = document.createElement('div');
   overlay.className = 'ev-confirm-overlay';
 

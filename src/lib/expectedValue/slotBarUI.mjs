@@ -27,7 +27,14 @@ export function checkEvStarState({ evStar, buildPageState, findMatchingSlot }) {
   }
 }
 
-export function renderEvSlotBar({ evSlotBar, readSlots, MAX_SLOTS, buildItemIconUrl, onLoadSlot, onDeleteSlot }) {
+export function renderEvSlotBar({
+  evSlotBar,
+  readSlots,
+  MAX_SLOTS,
+  buildItemIconUrl,
+  onLoadSlot,
+  onDeleteSlot,
+}) {
   if (!(evSlotBar instanceof globalThis.HTMLElement)) return;
   const slots = readSlots('expectedValue');
   evSlotBar.replaceChildren();
@@ -47,14 +54,24 @@ export function renderEvSlotBar({ evSlotBar, readSlots, MAX_SLOTS, buildItemIcon
       xBtn.type = 'button';
       xBtn.className = 'item-slot-x';
       xBtn.textContent = '×';
-      xBtn.addEventListener('click', (e) => { e.stopPropagation(); onDeleteSlot(i); });
+      xBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onDeleteSlot(i);
+      });
       box.append(xBtn);
     }
     evSlotBar.append(box);
   }
 }
 
-export function showEvSavePicker({ buildPageState, readSlots, saveToSlot, MAX_SLOTS, buildItemIconUrl, onSlotChanged }) {
+export function showEvSavePicker({
+  buildPageState,
+  readSlots,
+  saveToSlot,
+  MAX_SLOTS,
+  buildItemIconUrl,
+  onSlotChanged,
+}) {
   const evState = globalThis.__evState?.();
   const selectedItem = evState?.selectedBaseItem;
   if (!selectedItem) return;
@@ -78,7 +95,9 @@ export function showEvSavePicker({ buildPageState, readSlots, saveToSlot, MAX_SL
   for (let i = 0; i < MAX_SLOTS; i++) {
     const s = slots[i];
     const cell = document.createElement('div');
-    cell.className = s ? 'slot-picker-slot slot-picker-slot--filled' : 'slot-picker-slot slot-picker-slot--empty';
+    cell.className = s
+      ? 'slot-picker-slot slot-picker-slot--filled'
+      : 'slot-picker-slot slot-picker-slot--empty';
     if (s) {
       const icon = document.createElement('img');
       icon.src = buildItemIconUrl(s.item.iconId);
@@ -90,7 +109,15 @@ export function showEvSavePicker({ buildPageState, readSlots, saveToSlot, MAX_SL
       cell.append(name);
       cell.addEventListener('click', () => {
         overlay.remove();
-        confirmReplaceEvSlot({ slotIndex: i, newState: state, buildPageState, readSlots, saveToSlot, buildItemIconUrl, onSlotChanged });
+        confirmReplaceEvSlot({
+          slotIndex: i,
+          newState: state,
+          buildPageState,
+          readSlots,
+          saveToSlot,
+          buildItemIconUrl,
+          onSlotChanged,
+        });
       });
     } else {
       cell.textContent = '빈 슬롯';
@@ -115,7 +142,15 @@ export function showEvSavePicker({ buildPageState, readSlots, saveToSlot, MAX_SL
   document.body.append(overlay);
 }
 
-export function confirmReplaceEvSlot({ slotIndex, newState, buildPageState, readSlots, saveToSlot, buildItemIconUrl, onSlotChanged }) {
+export function confirmReplaceEvSlot({
+  slotIndex,
+  newState,
+  buildPageState,
+  readSlots,
+  saveToSlot,
+  buildItemIconUrl,
+  onSlotChanged,
+}) {
   const evState = globalThis.__evState?.();
   const selectedItem = evState?.selectedBaseItem;
   if (!selectedItem) return;
@@ -185,7 +220,13 @@ export function confirmReplaceEvSlot({ slotIndex, newState, buildPageState, read
   document.body.append(overlay);
 }
 
-export function confirmDeleteEvSlot({ slotIndex, readSlots, clearSlot, buildItemIconUrl, onSlotChanged }) {
+export function confirmDeleteEvSlot({
+  slotIndex,
+  readSlots,
+  clearSlot,
+  buildItemIconUrl,
+  onSlotChanged,
+}) {
   const slots = readSlots('expectedValue');
   const s = slots[slotIndex];
   if (!s) return;
@@ -232,7 +273,14 @@ export function confirmDeleteEvSlot({ slotIndex, readSlots, clearSlot, buildItem
   document.body.append(overlay);
 }
 
-export function confirmUnsaveEvSlot({ buildPageState, findMatchingSlot, readSlots, clearSlot, buildItemIconUrl, onSlotChanged }) {
+export function confirmUnsaveEvSlot({
+  buildPageState,
+  findMatchingSlot,
+  readSlots,
+  clearSlot,
+  buildItemIconUrl,
+  onSlotChanged,
+}) {
   const state = buildPageState();
   if (!state) return;
   const slotIndex = findMatchingSlot('expectedValue', state);

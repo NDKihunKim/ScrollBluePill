@@ -27,10 +27,10 @@ const MAX_STRATEGIES = 5000;
 export function pruneUselessScrolls(scrolls, checkedStats) {
   if (!Array.isArray(scrolls)) return [];
 
-  const statKeys = Object.keys(checkedStats).filter(k => k !== 'grade' && checkedStats[k]);
+  const statKeys = Object.keys(checkedStats).filter((k) => k !== 'grade' && checkedStats[k]);
   const gradeChecked = checkedStats?.grade === true;
 
-  return scrolls.filter(scroll => {
+  return scrolls.filter((scroll) => {
     // Scrolls with no stats are always removed
     if (!scroll.stats || Object.keys(scroll.stats).length === 0) {
       return false;
@@ -47,7 +47,7 @@ export function pruneUselessScrolls(scrolls, checkedStats) {
     }
 
     const scrollStatKeys = Object.keys(scroll.stats);
-    return scrollStatKeys.some(statKey => statKeys.includes(statKey));
+    return scrollStatKeys.some((statKey) => statKeys.includes(statKey));
   });
 }
 
@@ -143,7 +143,7 @@ export function generateMakerCandidates(gemSlotCount, equipmentKind) {
   const isWeapon = isWeaponKind(equipmentKind);
 
   // Filter gems by weaponOnly restriction
-  const availableGems = GEM_TYPES.filter(gem => {
+  const availableGems = GEM_TYPES.filter((gem) => {
     if (gem.weaponOnly && !isWeapon) return false;
     return true;
   });
@@ -247,7 +247,7 @@ export function generateStrategyCandidates(options) {
   } else {
     const raw = generateMakerCandidates(gemSlotCount, equipmentKind);
     // Filter out null entries from each configuration for strategy storage
-    makerCandidates = raw.map(config => config.filter(slot => slot !== null));
+    makerCandidates = raw.map((config) => config.filter((slot) => slot !== null));
   }
 
   // 3. Generate scroll candidates

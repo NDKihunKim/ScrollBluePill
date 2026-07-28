@@ -44,7 +44,8 @@ export function syncItemSearchUrl({
   form,
   buildItemSearchUrl,
 }) {
-  if (!(itemNameInput instanceof HTMLInputElement) || !(equipmentInput instanceof HTMLInputElement)) return;
+  if (!(itemNameInput instanceof HTMLInputElement) || !(equipmentInput instanceof HTMLInputElement))
+    return;
 
   const levelRange =
     levelMinInput instanceof HTMLInputElement && levelMaxInput instanceof HTMLInputElement
@@ -107,7 +108,8 @@ export function renderItemSuggestions({
   searchKoreanItems,
   onSelectItem,
 }) {
-  if (!(itemNameInput instanceof HTMLInputElement) || !(itemSuggestions instanceof HTMLElement)) return;
+  if (!(itemNameInput instanceof HTMLInputElement) || !(itemSuggestions instanceof HTMLElement))
+    return;
 
   itemSuggestions.replaceChildren();
 

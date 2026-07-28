@@ -1,5 +1,17 @@
 import { formatScrollStatLine, statLabelByKey, clearSlot } from './scrollState.mjs';
-import { createEnhancementState, applyScroll, revertToSlot, resetState, computeAccumulatedStats, computeStatBreakdown, computeItemLevelUpCardMeta, computeAppliedScrollCount, computeRemainingSlots, computeGradeColor, HP_MP_KEYS } from './enhancementState.mjs';
+import {
+  createEnhancementState,
+  applyScroll,
+  revertToSlot,
+  resetState,
+  computeAccumulatedStats,
+  computeStatBreakdown,
+  computeItemLevelUpCardMeta,
+  computeAppliedScrollCount,
+  computeRemainingSlots,
+  computeGradeColor,
+  HP_MP_KEYS,
+} from './enhancementState.mjs';
 import { initMakerPanel } from './makerPanel.mjs';
 import { initItemLevelUpPanel } from './itemLevelUpPanel.mjs';
 import { buildItemIconUrl } from './maplestoryIo.mjs';
@@ -9,7 +21,9 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   const enhancementPanel = document.querySelector('[data-enhancement-panel]');
   const enhancementDormant = enhancementPanel?.querySelector('[data-enhancement-dormant]');
   const enhancementActive = enhancementPanel?.querySelector('[data-enhancement-active]');
-  const enhancementEquipmentKind = enhancementPanel?.querySelector('[data-enhancement-equipment-kind]');
+  const enhancementEquipmentKind = enhancementPanel?.querySelector(
+    '[data-enhancement-equipment-kind]',
+  );
   const slotCheckpointRow = enhancementPanel?.querySelector('[data-slot-checkpoint-row]');
   const scrollDetailPopup = enhancementPanel?.querySelector('[data-scroll-detail-popup]');
   const scrollDetailName = enhancementPanel?.querySelector('[data-scroll-detail-name]');
@@ -19,7 +33,9 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   const scrollStatFilters = enhancementPanel?.querySelector('[data-scroll-stat-filters]');
   const enhancementMessage = enhancementPanel?.querySelector('[data-enhancement-message]');
   const enhancementSummary = enhancementPanel?.querySelector('[data-enhancement-summary]');
-  const enhancementSummaryStats = enhancementPanel?.querySelector('[data-enhancement-summary-stats]');
+  const enhancementSummaryStats = enhancementPanel?.querySelector(
+    '[data-enhancement-summary-stats]',
+  );
   const scrollSection = enhancementPanel?.querySelector('.enhancement-scroll-section');
   const makerSection = enhancementPanel?.querySelector('[data-maker-section]');
   const makerToggle = enhancementPanel?.querySelector('[data-maker-toggle]');
@@ -27,8 +43,12 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   const makerGemSlots = enhancementPanel?.querySelector('[data-maker-gem-slots]');
   const makerStimulantSlot = enhancementPanel?.querySelector('[data-maker-stimulant-slot]');
   const makerStimulantEditor = enhancementPanel?.querySelector('[data-maker-stimulant-editor]');
-  const makerStimulantEditorLabel = enhancementPanel?.querySelector('[data-maker-stimulant-editor-label]');
-  const makerStimulantEditorGrid = enhancementPanel?.querySelector('[data-maker-stimulant-editor-grid]');
+  const makerStimulantEditorLabel = enhancementPanel?.querySelector(
+    '[data-maker-stimulant-editor-label]',
+  );
+  const makerStimulantEditorGrid = enhancementPanel?.querySelector(
+    '[data-maker-stimulant-editor-grid]',
+  );
   const makerPicker = enhancementPanel?.querySelector('[data-maker-picker]');
   const makerPickerLabel = enhancementPanel?.querySelector('[data-maker-picker-label]');
   const makerPickerGrid = enhancementPanel?.querySelector('[data-maker-picker-grid]');
@@ -107,14 +127,16 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   };
 
   // Chaos scroll state
-  let chaosStepperValues = new Map();   // statKey → number (-5..5)
-  let activeChaosScroll = null;          // the chaos scroll definition currently expanded
-  let activeChaosOptionEl = null;        // the DOM element of the expanded scroll option
+  let chaosStepperValues = new Map(); // statKey → number (-5..5)
+  let activeChaosScroll = null; // the chaos scroll definition currently expanded
+  let activeChaosOptionEl = null; // the DOM element of the expanded scroll option
 
   const showEnhancementDormant = () => {
-    if (!(enhancementPanel instanceof HTMLElement) ||
-        !(enhancementDormant instanceof HTMLElement) ||
-        !(enhancementActive instanceof HTMLElement)) {
+    if (
+      !(enhancementPanel instanceof HTMLElement) ||
+      !(enhancementDormant instanceof HTMLElement) ||
+      !(enhancementActive instanceof HTMLElement)
+    ) {
       return;
     }
 
@@ -127,9 +149,11 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   };
 
   const showEnhancementError = (message) => {
-    if (!(enhancementPanel instanceof HTMLElement) ||
-        !(enhancementDormant instanceof HTMLElement) ||
-        !(enhancementActive instanceof HTMLElement)) {
+    if (
+      !(enhancementPanel instanceof HTMLElement) ||
+      !(enhancementDormant instanceof HTMLElement) ||
+      !(enhancementActive instanceof HTMLElement)
+    ) {
       return;
     }
 
@@ -260,10 +284,13 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   };
 
   const renderEnhancementSummary = () => {
-    if (!(enhancementSummary instanceof HTMLElement) ||
-        !(enhancementSummaryStats instanceof HTMLElement) ||
-        !(scrollSection instanceof HTMLElement) ||
-        !enhancementState || !selectedBaseItem) {
+    if (
+      !(enhancementSummary instanceof HTMLElement) ||
+      !(enhancementSummaryStats instanceof HTMLElement) ||
+      !(scrollSection instanceof HTMLElement) ||
+      !enhancementState ||
+      !selectedBaseItem
+    ) {
       return;
     }
 
@@ -321,9 +348,11 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   };
 
   const showScrollDetail = (scroll) => {
-    if (!(scrollDetailPopup instanceof HTMLElement) ||
-        !(scrollDetailName instanceof HTMLElement) ||
-        !(scrollDetailStat instanceof HTMLElement)) {
+    if (
+      !(scrollDetailPopup instanceof HTMLElement) ||
+      !(scrollDetailName instanceof HTMLElement) ||
+      !(scrollDetailStat instanceof HTMLElement)
+    ) {
       return;
     }
 
@@ -370,9 +399,9 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
 
     scrollStatFilters.replaceChildren();
 
-    const visibleStatKeys = [...new Set(
-      available.flatMap((scroll) => getPositiveScrollStatKeys(scroll)),
-    )].sort((a, b) => getStatPriority(a) - getStatPriority(b) || a.localeCompare(b, 'ko-KR'));
+    const visibleStatKeys = [
+      ...new Set(available.flatMap((scroll) => getPositiveScrollStatKeys(scroll))),
+    ].sort((a, b) => getStatPriority(a) - getStatPriority(b) || a.localeCompare(b, 'ko-KR'));
 
     const filterKeys = ['all', ...visibleStatKeys];
     if (activeScrollStatFilter !== 'all' && !visibleStatKeys.includes(activeScrollStatFilter)) {
@@ -604,26 +633,27 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     const scrolls = scrollsByEquipmentKind.get(item.equipmentKind) ?? [];
 
     // Phase 1: filter by item-specific targeting
-    const eligible = scrolls.filter(scroll => {
+    const eligible = scrolls.filter((scroll) => {
       if (scroll.targetItemId == null) return true;
       return scroll.targetItemId === item.id;
     });
 
     // Phase 2: filter out scrolls that have reached their max application count
-    const available = eligible.filter(scroll => {
+    const available = eligible.filter((scroll) => {
       if (scroll.maxApplications == null) return true;
-      const applied = enhancementState.scrollState.slots.filter(s => s?.id === scroll.id).length;
+      const applied = enhancementState.scrollState.slots.filter((s) => s?.id === scroll.id).length;
       return applied < scroll.maxApplications;
     });
 
     renderScrollStatFilters(available);
 
-    const visible = activeScrollStatFilter === 'all'
-      ? available
-      : available.filter((scroll) => {
-        const scrollStats = new Set(getPositiveScrollStatKeys(scroll));
-        return scrollStats.has(activeScrollStatFilter);
-      });
+    const visible =
+      activeScrollStatFilter === 'all'
+        ? available
+        : available.filter((scroll) => {
+            const scrollStats = new Set(getPositiveScrollStatKeys(scroll));
+            return scrollStats.has(activeScrollStatFilter);
+          });
 
     if (available.length === 0) {
       enhancementMessage.textContent = '이 장비 종류에 해당하는 주문서가 없습니다';
@@ -807,16 +837,29 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     const remaining = computeRemainingSlots(enhancementState);
     const appliedCount = computeAppliedScrollCount(enhancementState);
     currentGradeColor = computeGradeColor(enhancementState);
-    const itemLevelUpMeta = computeItemLevelUpCardMeta(enhancementState, selectedItemLevelUpDefinition);
+    const itemLevelUpMeta = computeItemLevelUpCardMeta(
+      enhancementState,
+      selectedItemLevelUpDefinition,
+    );
 
-    renderEnhancedItemCard(selectedBaseItem, accumulatedStats, remaining, appliedCount, currentGradeColor, statBreakdown, itemLevelUpMeta);
+    renderEnhancedItemCard(
+      selectedBaseItem,
+      accumulatedStats,
+      remaining,
+      appliedCount,
+      currentGradeColor,
+      statBreakdown,
+      itemLevelUpMeta,
+    );
   };
 
   const activatePanel2 = (item) => {
-    if (!(enhancementPanel instanceof HTMLElement) ||
-        !(enhancementDormant instanceof HTMLElement) ||
-        !(enhancementActive instanceof HTMLElement) ||
-        !(enhancementEquipmentKind instanceof HTMLElement)) {
+    if (
+      !(enhancementPanel instanceof HTMLElement) ||
+      !(enhancementDormant instanceof HTMLElement) ||
+      !(enhancementActive instanceof HTMLElement) ||
+      !(enhancementEquipmentKind instanceof HTMLElement)
+    ) {
       return;
     }
 
@@ -843,7 +886,12 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     const itemLevelUpDefinition = supportsItemLevelUp(levelUpDefinition) ? levelUpDefinition : null;
     selectedBaseItem = item;
     selectedItemLevelUpDefinition = itemLevelUpDefinition;
-    enhancementState = createEnhancementState(upgradeSlots, item.requiredLevel ?? 0, itemLevelUpDefinition, item.requiredJobs ?? []);
+    enhancementState = createEnhancementState(
+      upgradeSlots,
+      item.requiredLevel ?? 0,
+      itemLevelUpDefinition,
+      item.requiredJobs ?? [],
+    );
     collapseChaosPanel();
     chaosStepperValues = new Map();
     activeScrollStatFilter = 'all';
@@ -865,60 +913,62 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     notifyEv();
   };
 
-	  const restoreEnhancementState = (storedState, item) => {
-	    if (!(enhancementPanel instanceof HTMLElement) ||
-	        !(enhancementDormant instanceof HTMLElement) ||
-	        !(enhancementActive instanceof HTMLElement) ||
-	        !(enhancementEquipmentKind instanceof HTMLElement)) {
-	      return;
-	    }
+  const restoreEnhancementState = (storedState, item) => {
+    if (
+      !(enhancementPanel instanceof HTMLElement) ||
+      !(enhancementDormant instanceof HTMLElement) ||
+      !(enhancementActive instanceof HTMLElement) ||
+      !(enhancementEquipmentKind instanceof HTMLElement)
+    ) {
+      return;
+    }
 
-	    const upgradeSlots = item.stats?.upgradeSlots ?? 0;
+    const upgradeSlots = item.stats?.upgradeSlots ?? 0;
 
-	    if (upgradeSlots <= 0 || !Number.isFinite(upgradeSlots)) {
-	      enhancementPanel.hidden = false;
-	      enhancementDormant.hidden = true;
-	      enhancementActive.hidden = true;
+    if (upgradeSlots <= 0 || !Number.isFinite(upgradeSlots)) {
+      enhancementPanel.hidden = false;
+      enhancementDormant.hidden = true;
+      enhancementActive.hidden = true;
 
-	      if (enhancementMessage instanceof HTMLElement) {
-	        enhancementMessage.textContent = '강화 불가능한 아이템입니다';
-	        enhancementMessage.hidden = false;
-	      }
-	      makerPanel.deactivate();
-	      itemLevelUpPanel.deactivate();
-	      if (resetButton instanceof HTMLElement) {
-	        resetButton.hidden = true;
-	      }
-	      return;
-	    }
+      if (enhancementMessage instanceof HTMLElement) {
+        enhancementMessage.textContent = '강화 불가능한 아이템입니다';
+        enhancementMessage.hidden = false;
+      }
+      makerPanel.deactivate();
+      itemLevelUpPanel.deactivate();
+      if (resetButton instanceof HTMLElement) {
+        resetButton.hidden = true;
+      }
+      return;
+    }
 
-	    const levelUpDefinition = itemLevelUpByItemId.get(item.id) ?? null;
-	    const itemLevelUpDefinition = supportsItemLevelUp(levelUpDefinition) ? levelUpDefinition : null;
-	    selectedBaseItem = item;
-	    selectedItemLevelUpDefinition = itemLevelUpDefinition;
+    const levelUpDefinition = itemLevelUpByItemId.get(item.id) ?? null;
+    const itemLevelUpDefinition = supportsItemLevelUp(levelUpDefinition) ? levelUpDefinition : null;
+    selectedBaseItem = item;
+    selectedItemLevelUpDefinition = itemLevelUpDefinition;
 
-	    // Use the saved enhancement state instead of creating a fresh one
-	    enhancementState = storedState;
-	    collapseChaosPanel();
-	    chaosStepperValues = new Map();
-	    activeScrollStatFilter = 'all';
+    // Use the saved enhancement state instead of creating a fresh one
+    enhancementState = storedState;
+    collapseChaosPanel();
+    chaosStepperValues = new Map();
+    activeScrollStatFilter = 'all';
 
-	    enhancementPanel.hidden = false;
-	    enhancementDormant.hidden = true;
-	    enhancementActive.hidden = false;
-	    enhancementEquipmentKind.textContent = item.equipmentKind;
-	    if (resetButton instanceof HTMLElement) {
-	      resetButton.hidden = false;
-	    }
+    enhancementPanel.hidden = false;
+    enhancementDormant.hidden = true;
+    enhancementActive.hidden = false;
+    enhancementEquipmentKind.textContent = item.equipmentKind;
+    if (resetButton instanceof HTMLElement) {
+      resetButton.hidden = false;
+    }
 
-	    hideScrollDetail();
-	    renderSlotRow();
-	    renderScrollList(item);
-	    makerPanel.activate(enhancementState, item);
-	    itemLevelUpPanel.activate(enhancementState, item, itemLevelUpDefinition);
-	    refreshEnhancedCard();
-	    notifyEv();
-	  };
+    hideScrollDetail();
+    renderSlotRow();
+    renderScrollList(item);
+    makerPanel.activate(enhancementState, item);
+    itemLevelUpPanel.activate(enhancementState, item, itemLevelUpDefinition);
+    refreshEnhancedCard();
+    notifyEv();
+  };
 
   resetButton?.addEventListener('click', () => {
     if (!enhancementState || !selectedBaseItem) {
@@ -988,7 +1038,10 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       return best;
     };
 
-    const stemName = (n) => String(n ?? '').replace(/(\d+)%$/, '').trimEnd();
+    const stemName = (n) =>
+      String(n ?? '')
+        .replace(/(\d+)%$/, '')
+        .trimEnd();
 
     const percentPattern = /(\d+)%$/;
     const extractPercent = (name) => {
@@ -1021,10 +1074,11 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
     }
     const sortPriority = (s) => stemBestPriority.get(stemName(s.nameKo)) ?? 99;
 
-    nonChaos.sort((a, b) =>
-      sortPriority(a) - sortPriority(b) ||
-      stemName(a.nameKo).localeCompare(stemName(b.nameKo), 'ko-KR') ||
-      extractPercent(b.nameKo) - extractPercent(a.nameKo),
+    nonChaos.sort(
+      (a, b) =>
+        sortPriority(a) - sortPriority(b) ||
+        stemName(a.nameKo).localeCompare(stemName(b.nameKo), 'ko-KR') ||
+        extractPercent(b.nameKo) - extractPercent(a.nameKo),
     );
 
     // Replace list contents: sorted non-chaos, then chaos at end
@@ -1037,17 +1091,21 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       if (!r.ok) throw new Error(`Unable to load scroll index: ${r.status}`);
       return r.json();
     }),
-    fetch('/data/scroll-overrides.local.json').then((r) => {
-      if (!r.ok) {
-        // Overrides file is optional — 404 is fine
-        return [];
-      }
-      return r.json();
-    }).catch(() => []),
-    fetch('/data/item-level-ups-gms83-ko.json').then((r) => {
-      if (!r.ok) return [];
-      return r.json();
-    }).catch(() => []),
+    fetch('/data/scroll-overrides.local.json')
+      .then((r) => {
+        if (!r.ok) {
+          // Overrides file is optional — 404 is fine
+          return [];
+        }
+        return r.json();
+      })
+      .catch(() => []),
+    fetch('/data/item-level-ups-gms83-ko.json')
+      .then((r) => {
+        if (!r.ok) return [];
+        return r.json();
+      })
+      .catch(() => []),
   ])
     .then(([scrolls, overrides, itemLevelUps]) => {
       scrollIndex = Array.isArray(scrolls) ? scrolls : [];

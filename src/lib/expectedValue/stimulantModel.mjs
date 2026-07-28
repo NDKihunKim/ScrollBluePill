@@ -32,10 +32,10 @@ export const STIMULANT_SUCCESS_RATE = 0.9;
  * Combined probabilities sum to ~100% (within rounding).
  */
 export const STIMULANT_OUTCOME_TABLE = [
-	{ delta: 0, probability: 0.200 },
-	{ delta: 1, probability: 0.352 }, // 17.6% × 2 branches
-	{ delta: 2, probability: 0.242 }, // 12.1% × 2 branches
-	{ delta: 3, probability: 0.128 }, //  6.4% × 2 branches
-	{ delta: 4, probability: 0.054 }, //  2.7% × 2 branches
-	{ delta: 5, probability: 0.022 }, //  1.1% × 2 branches
+  { delta: 0, probability: 0.2 },
+  { delta: 1, probability: 0.352 }, // 17.6% × 2 branches
+  { delta: 2, probability: 0.242 }, // 12.1% × 2 branches
+  { delta: 3, probability: 0.128 }, //  6.4% × 2 branches
+  { delta: 4, probability: 0.054 }, //  2.7% × 2 branches
+  { delta: 5, probability: 0.022 }, //  1.1% × 2 branches
 ];

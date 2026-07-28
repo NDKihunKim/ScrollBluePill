@@ -1,10 +1,5 @@
-import {
-  ALL_TARGET_STAT_KEYS,
-} from './targetExtraction.mjs';
-import {
-  computeAttemptsForPercentile,
-  computeCumulativeProbability,
-} from './monteCarloEngine.mjs';
+import { ALL_TARGET_STAT_KEYS } from './targetExtraction.mjs';
+import { computeAttemptsForPercentile, computeCumulativeProbability } from './monteCarloEngine.mjs';
 import { formatKoreanNumber, parseKoreanNumber } from '../formatKoreanNumber.mjs';
 
 export {};
@@ -35,10 +30,7 @@ function parseTrialInput(raw) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 100000;
 }
 
-import {
-  formatProbability,
-  createResultSummary,
-} from './resultFormatter.mjs';
+import { formatProbability, createResultSummary } from './resultFormatter.mjs';
 import { renderAttemptChart } from './chartRenderer.mjs';
 
 export const PLACEHOLDER_TEXT = '강화 목표를 설정한 뒤 기대값 계산을 눌러주세요.';
@@ -76,9 +68,7 @@ export function computeTopPercentForCount(successProbability, count) {
   const parsedCount = parseInt(count, 10);
   if (!Number.isFinite(parsedCount) || parsedCount < 0) return '';
 
-  return formatPercentInputValue(
-    computeCumulativeProbability(successProbability, parsedCount),
-  );
+  return formatPercentInputValue(computeCumulativeProbability(successProbability, parsedCount));
 }
 
 export function computeCountForTopPercent(successProbability, topPercent, preferredCount) {

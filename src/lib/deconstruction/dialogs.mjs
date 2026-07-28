@@ -4,7 +4,13 @@
  * Generic confirmation overlay. Creates its own DOM, appends to body.
  * Removes itself on confirm or cancel.
  */
-export function showDeconConfirmDialog({ message, confirmLabel = '확인', cancelLabel = '취소', onConfirm, onCancel } = {}) {
+export function showDeconConfirmDialog({
+  message,
+  confirmLabel = '확인',
+  cancelLabel = '취소',
+  onConfirm,
+  onCancel,
+} = {}) {
   const overlay = document.createElement('div');
   overlay.className = 'decon-confirm-overlay';
 
@@ -62,7 +68,15 @@ export function showDeconItemChangeDialog(onConfirm) {
  * Slot save picker overlay — lets the user pick which slot to save into.
  * Calls onSlotChanged() after any save, replace, or delete.
  */
-export function showDeconSavePicker({ selectedItem, buildPageState, readSlots, saveToSlot, MAX_SLOTS, buildItemIconUrl, onSlotChanged }) {
+export function showDeconSavePicker({
+  selectedItem,
+  buildPageState,
+  readSlots,
+  saveToSlot,
+  MAX_SLOTS,
+  buildItemIconUrl,
+  onSlotChanged,
+}) {
   if (!selectedItem) return;
   const state = buildPageState();
   if (!state) return;
@@ -84,7 +98,9 @@ export function showDeconSavePicker({ selectedItem, buildPageState, readSlots, s
   for (let i = 0; i < MAX_SLOTS; i++) {
     const s = slots[i];
     const cell = document.createElement('div');
-    cell.className = s ? 'slot-picker-slot slot-picker-slot--filled' : 'slot-picker-slot slot-picker-slot--empty';
+    cell.className = s
+      ? 'slot-picker-slot slot-picker-slot--filled'
+      : 'slot-picker-slot slot-picker-slot--empty';
     if (s) {
       const icon = document.createElement('img');
       icon.src = buildItemIconUrl(s.item.iconId);
@@ -96,7 +112,15 @@ export function showDeconSavePicker({ selectedItem, buildPageState, readSlots, s
       cell.append(name);
       cell.addEventListener('click', () => {
         overlay.remove();
-        confirmReplaceDeconSlot({ slotIndex: i, newState: state, selectedItem, readSlots, saveToSlot, buildItemIconUrl, onSlotChanged });
+        confirmReplaceDeconSlot({
+          slotIndex: i,
+          newState: state,
+          selectedItem,
+          readSlots,
+          saveToSlot,
+          buildItemIconUrl,
+          onSlotChanged,
+        });
       });
     } else {
       cell.textContent = '빈 슬롯';
@@ -122,7 +146,15 @@ export function showDeconSavePicker({ selectedItem, buildPageState, readSlots, s
 }
 
 /** Confirm-and-replace for an occupied slot. */
-export function confirmReplaceDeconSlot({ slotIndex, newState, selectedItem, readSlots, saveToSlot, buildItemIconUrl, onSlotChanged }) {
+export function confirmReplaceDeconSlot({
+  slotIndex,
+  newState,
+  selectedItem,
+  readSlots,
+  saveToSlot,
+  buildItemIconUrl,
+  onSlotChanged,
+}) {
   const slots = readSlots('deconstruction');
   const existing = slots[slotIndex];
   if (!existing) return;
@@ -190,7 +222,13 @@ export function confirmReplaceDeconSlot({ slotIndex, newState, selectedItem, rea
 }
 
 /** Confirm-and-delete for an occupied slot. */
-export function confirmDeleteDeconSlot({ slotIndex, readSlots, clearSlot, buildItemIconUrl, onSlotChanged }) {
+export function confirmDeleteDeconSlot({
+  slotIndex,
+  readSlots,
+  clearSlot,
+  buildItemIconUrl,
+  onSlotChanged,
+}) {
   const slots = readSlots('deconstruction');
   const s = slots[slotIndex];
   if (!s) return;
@@ -238,7 +276,14 @@ export function confirmDeleteDeconSlot({ slotIndex, readSlots, clearSlot, buildI
 }
 
 /** Confirm unsave when the current state matches a saved slot. */
-export function confirmUnsaveDeconSlot({ buildPageState, findMatchingSlot, readSlots, clearSlot, buildItemIconUrl, onSlotChanged }) {
+export function confirmUnsaveDeconSlot({
+  buildPageState,
+  findMatchingSlot,
+  readSlots,
+  clearSlot,
+  buildItemIconUrl,
+  onSlotChanged,
+}) {
   const state = buildPageState();
   if (!state) return;
   const slotIndex = findMatchingSlot('deconstruction', state);

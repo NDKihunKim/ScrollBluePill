@@ -37,48 +37,52 @@ export function buildGemPreFilter({
   selectAllBtn.type = 'button';
   selectAllBtn.className = 'decon-gem-action-btn';
   selectAllBtn.textContent = '전체 선택';
-  selectAllBtn.addEventListener('click', () => guardMutation(() => {
-    if (currentGradeGem) {
-      for (let gi = 0; gi < GEM_GRADES.length; gi++) {
-        gemFilter.add(`${currentGradeGem.key}:${gi}`);
-      }
-      renderGrades(currentGradeGem);
-      if (onStateChange) onStateChange();
-    } else {
-      for (const g of GEM_TYPES) {
-        if (g.weaponOnly && !isWeaponKind(equipmentKind)) continue;
+  selectAllBtn.addEventListener('click', () =>
+    guardMutation(() => {
+      if (currentGradeGem) {
         for (let gi = 0; gi < GEM_GRADES.length; gi++) {
-          gemFilter.add(`${g.key}:${gi}`);
+          gemFilter.add(`${currentGradeGem.key}:${gi}`);
         }
+        renderGrades(currentGradeGem);
+        if (onStateChange) onStateChange();
+      } else {
+        for (const g of GEM_TYPES) {
+          if (g.weaponOnly && !isWeaponKind(equipmentKind)) continue;
+          for (let gi = 0; gi < GEM_GRADES.length; gi++) {
+            gemFilter.add(`${g.key}:${gi}`);
+          }
+        }
+        renderCategories();
+        if (onStateChange) onStateChange();
       }
-      renderCategories();
-      if (onStateChange) onStateChange();
-    }
-  }));
+    }),
+  );
   actions.append(selectAllBtn);
 
   const deselectAllBtn = document.createElement('button');
   deselectAllBtn.type = 'button';
   deselectAllBtn.className = 'decon-gem-action-btn';
   deselectAllBtn.textContent = '전체 해제';
-  deselectAllBtn.addEventListener('click', () => guardMutation(() => {
-    if (currentGradeGem) {
-      for (let gi = 0; gi < GEM_GRADES.length; gi++) {
-        gemFilter.delete(`${currentGradeGem.key}:${gi}`);
-      }
-      if (onStateChange) onStateChange();
-      renderGrades(currentGradeGem);
-    } else {
-      for (const g of GEM_TYPES) {
-        if (g.weaponOnly && !isWeaponKind(equipmentKind)) continue;
+  deselectAllBtn.addEventListener('click', () =>
+    guardMutation(() => {
+      if (currentGradeGem) {
         for (let gi = 0; gi < GEM_GRADES.length; gi++) {
-          gemFilter.delete(`${g.key}:${gi}`);
+          gemFilter.delete(`${currentGradeGem.key}:${gi}`);
         }
+        if (onStateChange) onStateChange();
+        renderGrades(currentGradeGem);
+      } else {
+        for (const g of GEM_TYPES) {
+          if (g.weaponOnly && !isWeaponKind(equipmentKind)) continue;
+          for (let gi = 0; gi < GEM_GRADES.length; gi++) {
+            gemFilter.delete(`${g.key}:${gi}`);
+          }
+        }
+        if (onStateChange) onStateChange();
+        renderCategories();
       }
-      if (onStateChange) onStateChange();
-      renderCategories();
-    }
-  }));
+    }),
+  );
   actions.append(deselectAllBtn);
 
   topRow.append(actions);

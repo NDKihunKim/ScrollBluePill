@@ -68,7 +68,13 @@ function getChaosRange(statKey) {
  *   any key not in this set.  Pass null to skip this check.
  * @returns {boolean}
  */
-function canChaosFillResidual(residual, chaosCount, targetKeys, chaosStatBounds, existingStatKeys = null) {
+function canChaosFillResidual(
+  residual,
+  chaosCount,
+  targetKeys,
+  chaosStatBounds,
+  existingStatKeys = null,
+) {
   if (chaosCount <= 0) {
     return targetKeys.every((k) => (residual[k] || 0) === 0);
   }
@@ -93,12 +99,18 @@ function canChaosFillResidual(residual, chaosCount, targetKeys, chaosStatBounds,
 
     const bounds = chaosStatBounds?.[key];
     const keyIsBounded = chaosStatBounds ? Object.hasOwn(chaosStatBounds, key) : false;
-    const min = bounds && Number.isFinite(bounds.min)
-      ? Math.max(defaultRange.min, bounds.min)
-      : keyIsBounded ? 0 : defaultRange.min;
-    const max = bounds && Number.isFinite(bounds.max)
-      ? Math.min(defaultRange.max, bounds.max)
-      : keyIsBounded ? 0 : defaultRange.max;
+    const min =
+      bounds && Number.isFinite(bounds.min)
+        ? Math.max(defaultRange.min, bounds.min)
+        : keyIsBounded
+          ? 0
+          : defaultRange.min;
+    const max =
+      bounds && Number.isFinite(bounds.max)
+        ? Math.min(defaultRange.max, bounds.max)
+        : keyIsBounded
+          ? 0
+          : defaultRange.max;
 
     const minPossible = chaosCount * min;
     const maxPossible = chaosCount * max;
@@ -129,7 +141,6 @@ function buildAggregateChaosEntry({ representativeScroll, count, totalStats }) {
   };
 }
 
-
 /**
  * Generate all exact-count scroll states that could contribute to the target.
  * Each scroll state has { scrolls, stats } where scrolls is an array of applied
@@ -159,18 +170,14 @@ function* enumerateExactCountScrollStates({
 
   // Filter scrolls to those touching at least one checked key.
   // Chaos scrolls always pass — they can affect any stat.
-  const relevantScrolls = allScrolls.filter((s) =>
-    isChaosScroll(s) || targetKeys.some((k) => (s.stats?.[k] || 0) !== 0),
+  const relevantScrolls = allScrolls.filter(
+    (s) => isChaosScroll(s) || targetKeys.some((k) => (s.stats?.[k] || 0) !== 0),
   );
   if (relevantScrolls.length === 0) return [];
 
-  const fixedScrolls = relevantScrolls
-    .filter((s) => !isChaosScroll(s))
-    .sort((a, b) => a.id - b.id);
+  const fixedScrolls = relevantScrolls.filter((s) => !isChaosScroll(s)).sort((a, b) => a.id - b.id);
 
-  const chaosScrolls = relevantScrolls
-    .filter((s) => isChaosScroll(s))
-    .sort((a, b) => a.id - b.id);
+  const chaosScrolls = relevantScrolls.filter((s) => isChaosScroll(s)).sort((a, b) => a.id - b.id);
 
   const hasChaosAvailable = chaosScrolls.length > 0;
 
@@ -210,9 +217,9 @@ function* enumerateExactCountScrollStates({
         const statExistsOnClean =
           cleanStats && Number.isFinite(cleanStats[key]) && cleanStats[key] > 0;
         const statAlreadyAdded = (currentStats[key] || 0) !== 0;
-        const canBeAddedByFixed = fixedScrolls.slice(fixedIdx).some(
-          (s) => (s.stats?.[key] || 0) !== 0,
-        );
+        const canBeAddedByFixed = fixedScrolls
+          .slice(fixedIdx)
+          .some((s) => (s.stats?.[key] || 0) !== 0);
         if (statExistsOnClean || statAlreadyAdded || canBeAddedByFixed) {
           minPerApp = Math.min(minPerApp, chaosMins[key]);
           maxPerApp = Math.max(maxPerApp, chaosMaxs[key]);
@@ -252,10 +259,21 @@ function* enumerateExactCountScrollStates({
         fullResidual[k] = (targetDeltas[k] ?? 0) - (currentStats[k] || 0);
       }
 
-      if (canChaosFillResidual(fullResidual, remainingSlots, targetKeys, chaosStatBounds,
-          new Set(targetKeys.filter((k) =>
-            (cleanStats && Number.isFinite(cleanStats[k]) && cleanStats[k] > 0)
-            || (currentStats[k] || 0) !== 0)))) {
+      if (
+        canChaosFillResidual(
+          fullResidual,
+          remainingSlots,
+          targetKeys,
+          chaosStatBounds,
+          new Set(
+            targetKeys.filter(
+              (k) =>
+                (cleanStats && Number.isFinite(cleanStats[k]) && cleanStats[k] > 0) ||
+                (currentStats[k] || 0) !== 0,
+            ),
+          ),
+        )
+      ) {
         // When chaos bounds are provided, only include bounded keys in the
         // aggregate chaos entry and the allStats sum. Non-bounded keys were
         // skipped by canChaosFillResidual and must be filled by other sources.
@@ -347,10 +365,11 @@ function strategyCanonicalKey({ scrolls, stimulant, gems, itemLevelUp }, targetK
 
   const stimPart = stimulant ? `stim:${vectorKey(stimulant.stats, targetKeys)}` : 'stim:none';
 
-  const gemPart = gems
-    .map((g) => `${g.gemKey}:${g.gradeIndex}:${vectorKey(g.stats, targetKeys)}`)
-    .sort()
-    .join('|') || 'gems:none';
+  const gemPart =
+    gems
+      .map((g) => `${g.gemKey}:${g.gradeIndex}:${vectorKey(g.stats, targetKeys)}`)
+      .sort()
+      .join('|') || 'gems:none';
 
   const levelPart = itemLevelUp
     ? `level:${itemLevelUp.levelCount}:${vectorKey(itemLevelUp.stats, targetKeys)}`
@@ -362,7 +381,15 @@ function strategyCanonicalKey({ scrolls, stimulant, gems, itemLevelUp }, targetK
 /**
  * Build a strategy result object.
  */
-function buildResult({ scrolls, stimulant, gems, itemLevelUp, priorityRank, targetKeys, appliedLevelStats: applyApplied }) {
+function buildResult({
+  scrolls,
+  stimulant,
+  gems,
+  itemLevelUp,
+  priorityRank,
+  targetKeys,
+  appliedLevelStats: applyApplied,
+}) {
   const appliedLevelCount = applyApplied?.levelCount ?? 0;
   const appliedStats = applyApplied?.stats ?? {};
 
@@ -543,8 +570,8 @@ export function enumerateStrategies({
   // contribution the solver will later enforce via solveStimulantResidual.
   const stimulantBounds = {};
   const gemBounds = {};
-  const hasUserStimulantBounds = stimulantStatBounds != null
-    && Object.keys(stimulantStatBounds).length > 0;
+  const hasUserStimulantBounds =
+    stimulantStatBounds != null && Object.keys(stimulantStatBounds).length > 0;
   for (const k of targetKeys) {
     const limit = HP_MP_KEYS.has(k) ? 50 : 5;
     const statExistsOnBase = cleanStats && Number.isFinite(cleanStats[k]) && cleanStats[k] > 0;
@@ -561,17 +588,15 @@ export function enumerateStrategies({
       stimulantBounds[k] = { min: 0, max: 0 };
     } else {
       // No user bounds — use default full range.
-      stimulantBounds[k] = statExistsOnBase
-        ? { min: -limit, max: limit }
-        : { min: 0, max: 0 };
+      stimulantBounds[k] = statExistsOnBase ? { min: -limit, max: limit } : { min: 0, max: 0 };
     }
     gemBounds[k] = { min: -Infinity, max: Infinity };
   }
 
   // When the user has fixated stimulant minimums (min > 0 for any key),
   // stimulant is mandatory — scrolls-only results must be suppressed.
-  const stimulantHasMandatoryMin = hasUserStimulantBounds
-    && Object.values(stimulantStatBounds).some(b => b.min > 0);
+  const stimulantHasMandatoryMin =
+    hasUserStimulantBounds && Object.values(stimulantStatBounds).some((b) => b.min > 0);
   const itemBounds = {};
   for (const k of targetKeys) {
     itemBounds[k] = { min: -Infinity, max: Infinity };
@@ -631,13 +656,23 @@ export function enumerateStrategies({
       // Determine which stat keys exist before chaos is applied on this entry.
       // A key "exists" if it is present on the clean item OR if it was added
       // by fixed scrolls (the non-chaos portion of the scroll state).
-      const existingKeys = new Set(targetKeys.filter((k) =>
-        (cleanStats && Number.isFinite(cleanStats[k]) && cleanStats[k] > 0)
-        || (scrollState.stats[k] || 0) - (s.stats[k] || 0) !== 0,
-      ));
+      const existingKeys = new Set(
+        targetKeys.filter(
+          (k) =>
+            (cleanStats && Number.isFinite(cleanStats[k]) && cleanStats[k] > 0) ||
+            (scrollState.stats[k] || 0) - (s.stats[k] || 0) !== 0,
+        ),
+      );
 
-      if (!canChaosFillResidual(reducedStats, s.aggregateCount, targetKeys,
-          chaosStatBounds, existingKeys)) {
+      if (
+        !canChaosFillResidual(
+          reducedStats,
+          s.aggregateCount,
+          targetKeys,
+          chaosStatBounds,
+          existingKeys,
+        )
+      ) {
         feasible = false;
       }
 
@@ -648,7 +683,10 @@ export function enumerateStrategies({
     return newScrolls;
   }
 
-  function computeCorrectionBounds(targetKeys, { includeStimulant, includeGems, includeItemLevelUp }) {
+  function computeCorrectionBounds(
+    targetKeys,
+    { includeStimulant, includeGems, includeItemLevelUp },
+  ) {
     const bounds = {};
     for (const key of targetKeys) {
       let min = 0;
@@ -693,19 +731,20 @@ export function enumerateStrategies({
   const stimulantOpts = { isWeapon: equipmentIsWeapon, cleanStats };
 
   // Generate exact-count scroll states against the effective (post-applied-stats) target
-  const effectiveScrollStates = normalizedAllowedSources.scrolls && normCount > 0
-    ? enumerateExactCountScrollStates({
-        scrolls,
-        targetKeys,
-        targetDeltas: effectiveTargetDeltas,
-        successfulScrollCount: normCount,
-        correctionBounds,
-        chaosStatBounds,
-        cleanStats,
-      })
-    : (normCount === 0
-      ? [{ scrolls: [], stats: Object.fromEntries(targetKeys.map((k) => [k, 0])) }]
-      : []);
+  const effectiveScrollStates =
+    normalizedAllowedSources.scrolls && normCount > 0
+      ? enumerateExactCountScrollStates({
+          scrolls,
+          targetKeys,
+          targetDeltas: effectiveTargetDeltas,
+          successfulScrollCount: normCount,
+          correctionBounds,
+          chaosStatBounds,
+          cleanStats,
+        })
+      : normCount === 0
+        ? [{ scrolls: [], stats: Object.fromEntries(targetKeys.map((k) => [k, 0])) }]
+        : [];
 
   let effectiveScrollStatesSeen = 0;
 
@@ -737,9 +776,13 @@ export function enumerateStrategies({
       const remainingTarget = subtractVectors(effectiveTargetDeltas, ilc.stats, targetKeys);
 
       // ── Stimulant-first (level-up path): try stimulant before scrolls ──
-      if (normalizedAllowedSources.stimulant && normalizedAllowedSources.scrolls
-          && normCount > 0 && stimulantStatBounds != null
-          && Object.keys(stimulantStatBounds).length > 0) {
+      if (
+        normalizedAllowedSources.stimulant &&
+        normalizedAllowedSources.scrolls &&
+        normCount > 0 &&
+        stimulantStatBounds != null &&
+        Object.keys(stimulantStatBounds).length > 0
+      ) {
         const stimContributions = enumerateStimulantContributions({
           targetKeys,
           bounds: stimulantStatBounds,
@@ -780,19 +823,20 @@ export function enumerateStrategies({
         }
       }
 
-      const scrollStates = normalizedAllowedSources.scrolls && normCount > 0
-        ? enumerateExactCountScrollStates({
-            scrolls,
-            targetKeys,
-            targetDeltas: remainingTarget,
-            successfulScrollCount: normCount,
-            correctionBounds: scrollCorrectionBounds,
-            chaosStatBounds,
-            cleanStats,
-          })
-        : (normCount === 0
-          ? [{ scrolls: [], stats: Object.fromEntries(targetKeys.map((k) => [k, 0])) }]
-          : []);
+      const scrollStates =
+        normalizedAllowedSources.scrolls && normCount > 0
+          ? enumerateExactCountScrollStates({
+              scrolls,
+              targetKeys,
+              targetDeltas: remainingTarget,
+              successfulScrollCount: normCount,
+              correctionBounds: scrollCorrectionBounds,
+              chaosStatBounds,
+              cleanStats,
+            })
+          : normCount === 0
+            ? [{ scrolls: [], stats: Object.fromEntries(targetKeys.map((k) => [k, 0])) }]
+            : [];
       for (const ss of scrollStates) {
         if (tooManyResults) break;
         const residual = subtractVectors(remainingTarget, ss.stats, targetKeys);
@@ -801,9 +845,11 @@ export function enumerateStrategies({
         // Suppressed when stimulant has mandatory minimums — the user
         // explicitly configured stimulant to contribute, so a stimulant-free
         // result would be misleading.
-        if (normalizedAllowedSources.scrolls
-            && !stimulantHasMandatoryMin
-            && isExactVector(ss.stats, remainingTarget, targetKeys)) {
+        if (
+          normalizedAllowedSources.scrolls &&
+          !stimulantHasMandatoryMin &&
+          isExactVector(ss.stats, remainingTarget, targetKeys)
+        ) {
           addResult({
             scrolls: ss.scrolls,
             stimulant: null,
@@ -815,7 +861,10 @@ export function enumerateStrategies({
 
         // Tier B (1): scroll + stimulant
         if (normalizedAllowedSources.stimulant && !tooManyResults) {
-          const stimStats = solveStimulantResidual(residual, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
+          const stimStats = solveStimulantResidual(residual, targetKeys, {
+            ...stimulantOpts,
+            bounds: stimulantStatBounds,
+          });
           if (stimStats) {
             addResult({
               scrolls: ss.scrolls,
@@ -855,12 +904,18 @@ export function enumerateStrategies({
         }
 
         // Tier D (4): scroll + stimulant + gems
-        if (normalizedAllowedSources.stimulant && normalizedAllowedSources.gems
-          && !tooManyResults) {
+        if (
+          normalizedAllowedSources.stimulant &&
+          normalizedAllowedSources.gems &&
+          !tooManyResults
+        ) {
           for (const gc of gemContributions) {
             if (tooManyResults) break;
             const afterGems = subtractVectors(residual, gc.stats, targetKeys);
-            const stimStats = solveStimulantResidual(afterGems, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
+            const stimStats = solveStimulantResidual(afterGems, targetKeys, {
+              ...stimulantOpts,
+              bounds: stimulantStatBounds,
+            });
             if (stimStats) {
               addResult({
                 scrolls: ss.scrolls,
@@ -879,9 +934,16 @@ export function enumerateStrategies({
                   swapScrollTotal[k] = (swapScrollTotal[k] || 0) + (s.stats[k] || 0);
                 }
               }
-              const postSwapResidual = subtractVectors(remainingTarget, swapScrollTotal, targetKeys);
+              const postSwapResidual = subtractVectors(
+                remainingTarget,
+                swapScrollTotal,
+                targetKeys,
+              );
               const postSwapAfterGems = subtractVectors(postSwapResidual, gc.stats, targetKeys);
-              const swapStimStats = solveStimulantResidual(postSwapAfterGems, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
+              const swapStimStats = solveStimulantResidual(postSwapAfterGems, targetKeys, {
+                ...stimulantOpts,
+                bounds: stimulantStatBounds,
+              });
               if (swapStimStats) {
                 addResult({
                   scrolls: swappedScrolls,
@@ -907,9 +969,13 @@ export function enumerateStrategies({
     // rejects the strategy.
     // Only activates when the user has configured explicit stimulant bounds —
     // without them the solver falls back to the existing residual-fill path.
-    if (normalizedAllowedSources.stimulant && normalizedAllowedSources.scrolls
-        && normCount > 0 && stimulantStatBounds != null
-        && Object.keys(stimulantStatBounds).length > 0) {
+    if (
+      normalizedAllowedSources.stimulant &&
+      normalizedAllowedSources.scrolls &&
+      normCount > 0 &&
+      stimulantStatBounds != null &&
+      Object.keys(stimulantStatBounds).length > 0
+    ) {
       const stimContributions = enumerateStimulantContributions({
         targetKeys,
         bounds: stimulantStatBounds,
@@ -965,9 +1031,11 @@ export function enumerateStrategies({
       // Suppressed when stimulant has mandatory minimums — the user
       // explicitly configured stimulant to contribute, so a stimulant-free
       // result would be misleading.
-      if (normalizedAllowedSources.scrolls
-          && !stimulantHasMandatoryMin
-          && isExactVector(ss.stats, effectiveTargetDeltas, targetKeys)) {
+      if (
+        normalizedAllowedSources.scrolls &&
+        !stimulantHasMandatoryMin &&
+        isExactVector(ss.stats, effectiveTargetDeltas, targetKeys)
+      ) {
         addResult({
           scrolls: ss.scrolls,
           stimulant: null,
@@ -979,7 +1047,10 @@ export function enumerateStrategies({
 
       // Tier 1: scroll + stimulant
       if (normalizedAllowedSources.stimulant && !tooManyResults) {
-        const stimStats = solveStimulantResidual(residual, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
+        const stimStats = solveStimulantResidual(residual, targetKeys, {
+          ...stimulantOpts,
+          bounds: stimulantStatBounds,
+        });
         if (stimStats) {
           addResult({
             scrolls: ss.scrolls,
@@ -1038,13 +1109,15 @@ export function enumerateStrategies({
       }
 
       // Tier 4: scroll + stimulant + gems
-      if (normalizedAllowedSources.stimulant && normalizedAllowedSources.gems
-        && !tooManyResults) {
+      if (normalizedAllowedSources.stimulant && normalizedAllowedSources.gems && !tooManyResults) {
         for (const gc of gemContributions) {
           if (tooManyResults) break;
           // Exact match: gems from residual, stimulant fills remainder
           const afterGems = subtractVectors(residual, gc.stats, targetKeys);
-          const stimStats = solveStimulantResidual(afterGems, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
+          const stimStats = solveStimulantResidual(afterGems, targetKeys, {
+            ...stimulantOpts,
+            bounds: stimulantStatBounds,
+          });
           if (stimStats) {
             addResult({
               scrolls: ss.scrolls,
@@ -1066,9 +1139,13 @@ export function enumerateStrategies({
             }
             const afterSwap = subtractVectors(
               subtractVectors(effectiveTargetDeltas, swapScrollTotal, targetKeys),
-              gc.stats, targetKeys,
+              gc.stats,
+              targetKeys,
             );
-            const swapStimStats = solveStimulantResidual(afterSwap, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
+            const swapStimStats = solveStimulantResidual(afterSwap, targetKeys, {
+              ...stimulantOpts,
+              bounds: stimulantStatBounds,
+            });
             if (swapStimStats) {
               addResult({
                 scrolls: swappedScrolls,
@@ -1083,12 +1160,18 @@ export function enumerateStrategies({
       }
 
       // Tier 5: scroll + stimulant + itemLevelUp
-      if (normalizedAllowedSources.stimulant && normalizedAllowedSources.itemLevelUp
-        && !tooManyResults) {
+      if (
+        normalizedAllowedSources.stimulant &&
+        normalizedAllowedSources.itemLevelUp &&
+        !tooManyResults
+      ) {
         for (const ilc of itemLevelContributions) {
           if (tooManyResults) break;
           const afterLevel = subtractVectors(residual, ilc.stats, targetKeys);
-          const stimStats = solveStimulantResidual(afterLevel, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
+          const stimStats = solveStimulantResidual(afterLevel, targetKeys, {
+            ...stimulantOpts,
+            bounds: stimulantStatBounds,
+          });
           if (stimStats) {
             addResult({
               scrolls: ss.scrolls,
@@ -1102,8 +1185,11 @@ export function enumerateStrategies({
       }
 
       // Tier 6: scroll + gems + itemLevelUp
-      if (normalizedAllowedSources.gems && normalizedAllowedSources.itemLevelUp
-        && !tooManyResults) {
+      if (
+        normalizedAllowedSources.gems &&
+        normalizedAllowedSources.itemLevelUp &&
+        !tooManyResults
+      ) {
         for (const gc of gemContributions) {
           if (tooManyResults) break;
           for (const ilc of itemLevelContributions) {
@@ -1123,14 +1209,25 @@ export function enumerateStrategies({
       }
 
       // Tier 7: scroll + stimulant + gems + itemLevelUp
-      if (normalizedAllowedSources.stimulant && normalizedAllowedSources.gems
-        && normalizedAllowedSources.itemLevelUp && !tooManyResults) {
+      if (
+        normalizedAllowedSources.stimulant &&
+        normalizedAllowedSources.gems &&
+        normalizedAllowedSources.itemLevelUp &&
+        !tooManyResults
+      ) {
         for (const gc of gemContributions) {
           if (tooManyResults) break;
           for (const ilc of itemLevelContributions) {
             if (tooManyResults) break;
-            const afterBoth = subtractVectors(residual, addVectors(gc.stats, ilc.stats, targetKeys), targetKeys);
-            const stimStats = solveStimulantResidual(afterBoth, targetKeys, { ...stimulantOpts, bounds: stimulantStatBounds });
+            const afterBoth = subtractVectors(
+              residual,
+              addVectors(gc.stats, ilc.stats, targetKeys),
+              targetKeys,
+            );
+            const stimStats = solveStimulantResidual(afterBoth, targetKeys, {
+              ...stimulantOpts,
+              bounds: stimulantStatBounds,
+            });
             if (stimStats) {
               addResult({
                 scrolls: ss.scrolls,
@@ -1168,12 +1265,10 @@ export function enumerateStrategies({
     if (aUniqueScrolls !== bUniqueScrolls) return aUniqueScrolls - bUniqueScrolls;
 
     // 4. Lower gem grades (max grade used determines complexity)
-    const aMaxGrade = (a.gems ?? []).length > 0
-      ? Math.max(...a.gems.map((g) => g.gradeIndex ?? 0))
-      : -1;
-    const bMaxGrade = (b.gems ?? []).length > 0
-      ? Math.max(...b.gems.map((g) => g.gradeIndex ?? 0))
-      : -1;
+    const aMaxGrade =
+      (a.gems ?? []).length > 0 ? Math.max(...a.gems.map((g) => g.gradeIndex ?? 0)) : -1;
+    const bMaxGrade =
+      (b.gems ?? []).length > 0 ? Math.max(...b.gems.map((g) => g.gradeIndex ?? 0)) : -1;
     if (aMaxGrade !== bMaxGrade) return aMaxGrade - bMaxGrade;
 
     return 0;

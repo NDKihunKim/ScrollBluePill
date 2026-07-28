@@ -7,25 +7,25 @@ import { rollChaosStatDelta } from './chaosModel.mjs';
  */
 export const BLACK_AMETHYST_TABLES = {
   low: [
-    { value: -1, probability: 0.30 },
-    { value: 0,  probability: 0.40 },
-    { value: 1,  probability: 0.30 },
+    { value: -1, probability: 0.3 },
+    { value: 0, probability: 0.4 },
+    { value: 1, probability: 0.3 },
   ],
   mid: [
     { value: -2, probability: 0.12 },
     { value: -1, probability: 0.22 },
-    { value: 0,  probability: 0.32 },
-    { value: 1,  probability: 0.22 },
-    { value: 2,  probability: 0.12 },
+    { value: 0, probability: 0.32 },
+    { value: 1, probability: 0.22 },
+    { value: 2, probability: 0.12 },
   ],
   high: [
     { value: -3, probability: 0.05 },
-    { value: -2, probability: 0.10 },
-    { value: -1, probability: 0.20 },
-    { value: 0,  probability: 0.30 },
-    { value: 1,  probability: 0.20 },
-    { value: 2,  probability: 0.10 },
-    { value: 3,  probability: 0.05 },
+    { value: -2, probability: 0.1 },
+    { value: -1, probability: 0.2 },
+    { value: 0, probability: 0.3 },
+    { value: 1, probability: 0.2 },
+    { value: 2, probability: 0.1 },
+    { value: 3, probability: 0.05 },
   ],
 };
 
@@ -37,37 +37,47 @@ export const DARK_CRYSTAL_TABLES = {
   low: [
     { value: -2, probability: 0.08 },
     { value: -1, probability: 0.22 },
-    { value: 0,  probability: 0.40 },
-    { value: 1,  probability: 0.22 },
-    { value: 2,  probability: 0.08 },
+    { value: 0, probability: 0.4 },
+    { value: 1, probability: 0.22 },
+    { value: 2, probability: 0.08 },
   ],
   mid: [
     { value: -3, probability: 0.05 },
-    { value: -2, probability: 0.10 },
-    { value: -1, probability: 0.20 },
-    { value: 0,  probability: 0.30 },
-    { value: 1,  probability: 0.20 },
-    { value: 2,  probability: 0.10 },
-    { value: 3,  probability: 0.05 },
+    { value: -2, probability: 0.1 },
+    { value: -1, probability: 0.2 },
+    { value: 0, probability: 0.3 },
+    { value: 1, probability: 0.2 },
+    { value: 2, probability: 0.1 },
+    { value: 3, probability: 0.05 },
   ],
   high: [
     { value: -5, probability: 0.0494 },
     { value: -4, probability: 0.0297 },
     { value: -3, probability: 0.0365 },
-    { value: -2, probability: 0.0800 },
-    { value: -1, probability: 0.1370 },
-    { value: 0,  probability: 0.1838 },
-    { value: 1,  probability: 0.1931 },
-    { value: 2,  probability: 0.1587 },
-    { value: 3,  probability: 0.1021 },
-    { value: 4,  probability: 0.0198 },
-    { value: 5,  probability: 0.0099 },
+    { value: -2, probability: 0.08 },
+    { value: -1, probability: 0.137 },
+    { value: 0, probability: 0.1838 },
+    { value: 1, probability: 0.1931 },
+    { value: 2, probability: 0.1587 },
+    { value: 3, probability: 0.1021 },
+    { value: 4, probability: 0.0198 },
+    { value: 5, probability: 0.0099 },
   ],
 };
 
 const FIXED_GEM_KEYS = new Set([
-  'diamond', 'sapphire', 'strCrystal', 'dexCrystal', 'intCrystal', 'lukCrystal',
-  'garnet', 'opal', 'amethyst', 'aquamarine', 'topaz', 'emerald',
+  'diamond',
+  'sapphire',
+  'strCrystal',
+  'dexCrystal',
+  'intCrystal',
+  'lukCrystal',
+  'garnet',
+  'opal',
+  'amethyst',
+  'aquamarine',
+  'topaz',
+  'emerald',
 ]);
 
 const RANDOM_GEM_KEYS = new Set(['blackAmethyst', 'darkCrystal']);
@@ -207,7 +217,7 @@ export function computeGemContribution(gemKey, grade, cleanStats, rng) {
     const gradeKey = typeof grade === 'number' ? GRADE_INDEX_TO_KEY[grade] : grade;
     if (!gradeKey) return null;
     const allKeys = ['weaponAttack', 'magicAttack'];
-    const statKeys = allKeys.filter(k => Number.isFinite(cleanStats[k]));
+    const statKeys = allKeys.filter((k) => Number.isFinite(cleanStats[k]));
     return rollBlackAmethystStats(gradeKey, statKeys, rng);
   }
 

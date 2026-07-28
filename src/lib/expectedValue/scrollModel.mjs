@@ -8,18 +8,18 @@ export const SCROLL_PERCENT_PATTERN = /(\d+)%/;
  * @returns {number} success rate 0–1
  */
 export function parseScrollSuccessRate(nameKo) {
-	if (nameKo == null || typeof nameKo !== 'string') {
-		return 1.0;
-	}
+  if (nameKo == null || typeof nameKo !== 'string') {
+    return 1.0;
+  }
 
-	const match = nameKo.match(SCROLL_PERCENT_PATTERN);
+  const match = nameKo.match(SCROLL_PERCENT_PATTERN);
 
-	if (!match) {
-		return 1.0;
-	}
+  if (!match) {
+    return 1.0;
+  }
 
-	const percent = parseInt(match[1], 10);
-	const rate = percent / 100;
+  const percent = parseInt(match[1], 10);
+  const rate = percent / 100;
 
-	return Math.max(0, Math.min(1, rate));
+  return Math.max(0, Math.min(1, rate));
 }

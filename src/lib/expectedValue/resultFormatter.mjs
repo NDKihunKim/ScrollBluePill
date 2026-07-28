@@ -1,17 +1,21 @@
-import { computeGeometricPercentiles, computeExpectedAttempts, computeAttemptsForPercentile } from './monteCarloEngine.mjs';
+import {
+  computeGeometricPercentiles,
+  computeExpectedAttempts,
+  computeAttemptsForPercentile,
+} from './monteCarloEngine.mjs';
 
 /** @type {Record<string, string>} */
 const SUPERSCRIPT_MAP = {
-  '0': '⁰',
-  '1': '¹',
-  '2': '²',
-  '3': '³',
-  '4': '⁴',
-  '5': '⁵',
-  '6': '⁶',
-  '7': '⁷',
-  '8': '⁸',
-  '9': '⁹',
+  0: '⁰',
+  1: '¹',
+  2: '²',
+  3: '³',
+  4: '⁴',
+  5: '⁵',
+  6: '⁶',
+  7: '⁷',
+  8: '⁸',
+  9: '⁹',
   '-': '⁻',
 };
 

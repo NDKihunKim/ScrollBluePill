@@ -43,7 +43,7 @@ export function renderTargetChips({
   // Collect all keys: base item stats + deltas
   const allKeys = new Set([
     ...Object.keys(selectedItem?.stats ?? {}),
-    ...deconStatKeys.filter(k => deconDeltas[k] !== 0),
+    ...deconStatKeys.filter((k) => deconDeltas[k] !== 0),
   ]);
 
   // Sort by card order
@@ -78,9 +78,8 @@ export function renderTargetChips({
     const chipLabel = document.createElement('span');
     chipLabel.className = 'ev-target-chip-label';
     const displayName = statLabelByKey[key] || key;
-    chipLabel.textContent = delta !== 0
-      ? `${displayName} ${delta > 0 ? '+' : ''}${delta}`
-      : `${displayName} 유지`;
+    chipLabel.textContent =
+      delta !== 0 ? `${displayName} ${delta > 0 ? '+' : ''}${delta}` : `${displayName} 유지`;
 
     label.append(checkbox, chipLabel);
     container.append(label);
@@ -98,5 +97,5 @@ export function renderTargetChips({
 export function getCheckedTargetKeys(container) {
   if (!(container instanceof HTMLElement)) return [];
   const checkboxes = container.querySelectorAll('input:checked');
-  return [...checkboxes].map(cb => cb.dataset.deconTargetKey).filter(Boolean);
+  return [...checkboxes].map((cb) => cb.dataset.deconTargetKey).filter(Boolean);
 }

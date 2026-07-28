@@ -2,9 +2,9 @@
 import { site } from '../lib/site';
 
 type Props = {
-	title: string;
-	description: string;
-	canonicalPath?: string;
+  title: string;
+  description: string;
+  canonicalPath?: string;
 };
 
 const { title, description, canonicalPath = Astro.url.pathname } = Astro.props;
@@ -14,495 +14,502 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
 
 <!doctype html>
 <html lang="ko" data-theme="bright">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
-		<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
-		<link rel="icon" href="/favicon.ico" />
-		<link rel="apple-touch-icon" sizes="48x48" href="/favicon-48.png" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="generator" content={Astro.generator} />
-		<title>{pageTitle}</title>
-		<meta name="description" content={description} />
-		<link rel="canonical" href={canonical} />
-		<meta property="og:type" content="website" />
-		<meta property="og:locale" content="ko_KR" />
-		<meta property="og:site_name" content={site.name} />
-		<meta property="og:title" content={pageTitle} />
-		<meta property="og:description" content={description} />
-		<meta property="og:url" content={canonical} />
-		<script is:inline>
-			try {
-				const savedTheme = localStorage.getItem('scrollbluepill-theme');
-				if (savedTheme === 'bright' || savedTheme === 'dark') {
-					document.documentElement.dataset.theme = savedTheme;
-				}
-			} catch {
-				document.documentElement.dataset.theme = 'bright';
-			}
-		</script>
-	</head>
-	<body>
-		<header class="site-header">
-			<a class="brand" href="/" aria-label={`${site.name} 홈`}>
-				<span class="brand-mark">S</span>
-				<span>{site.name}</span>
-			</a>
-			<div class="site-actions">
-				<button
-					class="theme-toggle"
-					type="button"
-					aria-label="어두운 모드로 전환"
-					aria-pressed="false"
-					data-theme-toggle
-				>
-					<span aria-hidden="true" data-theme-icon>☀</span>
-					<span data-theme-label>밝은 모드</span>
-				</button>
-				<nav aria-label="주요 메뉴">
-					{
-						site.nav.map((item) => (
-							<a href={item.href} class={Astro.url.pathname === item.href ? 'active' : ''}>
-								{item.label}
-							</a>
-						))
-					}
-				</nav>
-			</div>
-		</header>
-		<main>
-			<slot />
-		</main>
-		<footer class="site-footer">
-			<div>
-				<strong>{site.name}</strong>
-				<p>게임 내 데이터는 버전과 서버 기준에 따라 달라질 수 있습니다.</p>
-			</div>
-			<div class="footer-links">
-				<a href="/privacy/">개인정보처리방침</a>
-				<a href="/terms/">이용약관</a>
-				<a href="/contact/">문의</a>
-			</div>
-		</footer>
-		<script is:inline>
-			const themeToggle = document.querySelector('[data-theme-toggle]');
-			const themeIcon = document.querySelector('[data-theme-icon]');
-			const themeLabel = document.querySelector('[data-theme-label]');
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="48x48" href="/favicon-48.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <script is:inline>
+      try {
+        const savedTheme = localStorage.getItem('scrollbluepill-theme');
+        if (savedTheme === 'bright' || savedTheme === 'dark') {
+          document.documentElement.dataset.theme = savedTheme;
+        }
+      } catch {
+        document.documentElement.dataset.theme = 'bright';
+      }
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label={`${site.name} 홈`}>
+        <span class="brand-mark">S</span>
+        <span>{site.name}</span>
+      </a>
+      <div class="site-actions">
+        <button
+          class="theme-toggle"
+          type="button"
+          aria-label="어두운 모드로 전환"
+          aria-pressed="false"
+          data-theme-toggle
+        >
+          <span aria-hidden="true" data-theme-icon>☀</span>
+          <span data-theme-label>밝은 모드</span>
+        </button>
+        <nav aria-label="주요 메뉴">
+          {
+            site.nav.map((item) => (
+              <a href={item.href} class={Astro.url.pathname === item.href ? 'active' : ''}>
+                {item.label}
+              </a>
+            ))
+          }
+        </nav>
+      </div>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div>
+        <strong>{site.name}</strong>
+        <p>게임 내 데이터는 버전과 서버 기준에 따라 달라질 수 있습니다.</p>
+      </div>
+      <div class="footer-links">
+        <a href="/privacy/">개인정보처리방침</a>
+        <a href="/terms/">이용약관</a>
+        <a href="/contact/">문의</a>
+      </div>
+    </footer>
+    <script is:inline>
+      const themeToggle = document.querySelector('[data-theme-toggle]');
+      const themeIcon = document.querySelector('[data-theme-icon]');
+      const themeLabel = document.querySelector('[data-theme-label]');
 
-			const setTheme = (theme) => {
-				const nextTheme = theme === 'dark' ? 'dark' : 'bright';
-				document.documentElement.dataset.theme = nextTheme;
+      const setTheme = (theme) => {
+        const nextTheme = theme === 'dark' ? 'dark' : 'bright';
+        document.documentElement.dataset.theme = nextTheme;
 
-				try {
-					localStorage.setItem('scrollbluepill-theme', nextTheme);
-				} catch {
-					/* Theme still works for this page load when storage is unavailable. */
-				}
+        try {
+          localStorage.setItem('scrollbluepill-theme', nextTheme);
+        } catch {
+          /* Theme still works for this page load when storage is unavailable. */
+        }
 
-				if (themeToggle instanceof HTMLButtonElement) {
-					const isDark = nextTheme === 'dark';
-					themeToggle.setAttribute('aria-pressed', String(isDark));
-					themeToggle.setAttribute(
-						'aria-label',
-						isDark ? '밝은 모드로 전환' : '어두운 모드로 전환',
-					);
-				}
+        if (themeToggle instanceof HTMLButtonElement) {
+          const isDark = nextTheme === 'dark';
+          themeToggle.setAttribute('aria-pressed', String(isDark));
+          themeToggle.setAttribute(
+            'aria-label',
+            isDark ? '밝은 모드로 전환' : '어두운 모드로 전환',
+          );
+        }
 
-				if (themeIcon instanceof HTMLElement) {
-					themeIcon.textContent = nextTheme === 'dark' ? '◐' : '☀';
-				}
+        if (themeIcon instanceof HTMLElement) {
+          themeIcon.textContent = nextTheme === 'dark' ? '◐' : '☀';
+        }
 
-				if (themeLabel instanceof HTMLElement) {
-					themeLabel.textContent = nextTheme === 'dark' ? '어두운 모드' : '밝은 모드';
-				}
-			};
+        if (themeLabel instanceof HTMLElement) {
+          themeLabel.textContent = nextTheme === 'dark' ? '어두운 모드' : '밝은 모드';
+        }
+      };
 
-			setTheme(document.documentElement.dataset.theme);
-			themeToggle?.addEventListener('click', () => {
-				setTheme(document.documentElement.dataset.theme === 'dark' ? 'bright' : 'dark');
-			});
-		</script>
-	</body>
+      setTheme(document.documentElement.dataset.theme);
+      themeToggle?.addEventListener('click', () => {
+        setTheme(document.documentElement.dataset.theme === 'dark' ? 'bright' : 'dark');
+      });
+    </script>
+  </body>
 </html>
 
 <style is:global>
-	:root {
-		color-scheme: light;
-		--brand-dark: #018FC7;
-		--bg: #f1f9fc;
-		--surface: #ffffff;
-		--surface-soft: #f7fcfe;
-		--ink: #20231f;
-		--muted: #5a6870;
-		--line: #cfe6ef;
-		--green: var(--brand-dark);
-		--blue: var(--brand-dark);
-		--header-bg: rgb(241 249 252 / 92%);
-		--nav-hover: #dff2f8;
-		--secondary-bg: #ffffff;
-		--shadow: 0 12px 30px rgb(1 143 199 / 12%);
-		--header-offset: 70px;
-		font-family:
-			Inter, Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-	}
+  :root {
+    color-scheme: light;
+    --brand-dark: #018fc7;
+    --bg: #f1f9fc;
+    --surface: #ffffff;
+    --surface-soft: #f7fcfe;
+    --ink: #20231f;
+    --muted: #5a6870;
+    --line: #cfe6ef;
+    --green: var(--brand-dark);
+    --blue: var(--brand-dark);
+    --header-bg: rgb(241 249 252 / 92%);
+    --nav-hover: #dff2f8;
+    --secondary-bg: #ffffff;
+    --shadow: 0 12px 30px rgb(1 143 199 / 12%);
+    --header-offset: 70px;
+    font-family:
+      Inter,
+      Pretendard,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      sans-serif;
+  }
 
-	:root[data-theme='dark'] {
-		color-scheme: dark;
-		--bg: #071e29;
-		--surface: #0f2f3d;
-		--surface-soft: #123b4d;
-		--ink: #f5fbfd;
-		--muted: #a8c5d0;
-		--line: #285365;
-		--header-bg: rgb(7 30 41 / 92%);
-		--nav-hover: #16465a;
-		--secondary-bg: #123b4d;
-		--shadow: 0 12px 30px rgb(0 0 0 / 24%);
-	}
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+    --bg: #071e29;
+    --surface: #0f2f3d;
+    --surface-soft: #123b4d;
+    --ink: #f5fbfd;
+    --muted: #a8c5d0;
+    --line: #285365;
+    --header-bg: rgb(7 30 41 / 92%);
+    --nav-hover: #16465a;
+    --secondary-bg: #123b4d;
+    --shadow: 0 12px 30px rgb(0 0 0 / 24%);
+  }
 
-	* {
-		box-sizing: border-box;
-	}
+  * {
+    box-sizing: border-box;
+  }
 
-	body {
-		margin: 0;
-		background: var(--bg);
-		color: var(--ink);
-		line-height: 1.6;
-	}
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+  }
 
-	a {
-		color: inherit;
-		text-decoration: none;
-	}
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 
-	button,
-	input,
-	select {
-		font: inherit;
-	}
+  button,
+  input,
+  select {
+    font: inherit;
+  }
 
-	.site-header {
-		position: sticky;
-		top: 0;
-		z-index: 10;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 24px;
-		padding: 14px clamp(16px, 4vw, 56px);
-		border-bottom: 1px solid var(--line);
-		background: var(--header-bg);
-		backdrop-filter: blur(12px);
-	}
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 14px clamp(16px, 4vw, 56px);
+    border-bottom: 1px solid var(--line);
+    background: var(--header-bg);
+    backdrop-filter: blur(12px);
+  }
 
-	.brand {
-		display: inline-flex;
-		align-items: center;
-		gap: 10px;
-		font-weight: 800;
-		white-space: nowrap;
-	}
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
 
-	.brand-mark {
-		display: grid;
-		width: 32px;
-		height: 32px;
-		place-items: center;
-		border-radius: 8px;
-		background: var(--green);
-		color: white;
-	}
+  .brand-mark {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--green);
+    color: white;
+  }
 
-	.site-actions {
-		display: flex;
-		align-items: center;
-		justify-content: flex-end;
-		gap: 8px;
-	}
+  .site-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
 
-	nav {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: flex-end;
-		gap: 6px;
-	}
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+  }
 
-	nav a,
-	.footer-links a {
-		border-radius: 8px;
-		color: var(--muted);
-		font-size: 0.95rem;
-		font-weight: 650;
-	}
+  nav a,
+  .footer-links a {
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 0.95rem;
+    font-weight: 650;
+  }
 
-	nav a {
-		padding: 8px 10px;
-	}
+  nav a {
+    padding: 8px 10px;
+  }
 
-	nav a.active,
-	nav a:hover,
-	.footer-links a:hover {
-		color: var(--ink);
-		background: var(--nav-hover);
-	}
+  nav a.active,
+  nav a:hover,
+  .footer-links a:hover {
+    color: var(--ink);
+    background: var(--nav-hover);
+  }
 
-	.theme-toggle {
-		gap: 6px;
-		min-height: 38px;
-		border: 1px solid var(--line);
-		background: var(--surface);
-		color: var(--ink);
-		padding: 7px 10px;
-		white-space: nowrap;
-	}
+  .theme-toggle {
+    gap: 6px;
+    min-height: 38px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    padding: 7px 10px;
+    white-space: nowrap;
+  }
 
-	.theme-toggle:hover {
-		background: var(--nav-hover);
-	}
+  .theme-toggle:hover {
+    background: var(--nav-hover);
+  }
 
-	main {
-		min-height: 72vh;
-		font-size: 0.94rem;
-	}
+  main {
+    min-height: 72vh;
+    font-size: 0.94rem;
+  }
 
-	.band {
-		padding: clamp(22px, 4vw, 56px) clamp(14px, 3vw, 44px);
-	}
+  .band {
+    padding: clamp(22px, 4vw, 56px) clamp(14px, 3vw, 44px);
+  }
 
-	.container {
-		width: min(1180px, 100%);
-		margin: 0 auto;
-	}
+  .container {
+    width: min(1180px, 100%);
+    margin: 0 auto;
+  }
 
-	.eyebrow {
-		margin: 0 0 8px;
-		color: var(--green);
-		font-size: 0.9rem;
-		font-weight: 800;
-	}
+  .eyebrow {
+    margin: 0 0 8px;
+    color: var(--green);
+    font-size: 0.9rem;
+    font-weight: 800;
+  }
 
-	h1,
-	h2,
-	h3,
-	p {
-		margin-top: 0;
-	}
+  h1,
+  h2,
+  h3,
+  p {
+    margin-top: 0;
+  }
 
-	h1 {
-		max-width: 760px;
-		margin-bottom: 10px;
-		font-size: clamp(1.8rem, 3.4vw, 3.4rem);
-		line-height: 1.08;
-		letter-spacing: 0;
-	}
+  h1 {
+    max-width: 760px;
+    margin-bottom: 10px;
+    font-size: clamp(1.8rem, 3.4vw, 3.4rem);
+    line-height: 1.08;
+    letter-spacing: 0;
+  }
 
-	h2 {
-		margin-bottom: 12px;
-		font-size: clamp(1.25rem, 2vw, 1.75rem);
-		line-height: 1.2;
-	}
+  h2 {
+    margin-bottom: 12px;
+    font-size: clamp(1.25rem, 2vw, 1.75rem);
+    line-height: 1.2;
+  }
 
-	.lede {
-		max-width: 780px;
-		color: var(--muted);
-		font-size: clamp(0.96rem, 1.3vw, 1.05rem);
-	}
+  .lede {
+    max-width: 780px;
+    color: var(--muted);
+    font-size: clamp(0.96rem, 1.3vw, 1.05rem);
+  }
 
-	.grid {
-		display: grid;
-		gap: 14px;
-	}
+  .grid {
+    display: grid;
+    gap: 14px;
+  }
 
-	.grid.two {
-		grid-template-columns: minmax(0, 550px) 315px;
-		justify-content: center;
-	}
+  .grid.two {
+    grid-template-columns: minmax(0, 550px) 315px;
+    justify-content: center;
+  }
 
-	.grid.two > * {
-		min-width: 0;
-	}
+  .grid.two > * {
+    min-width: 0;
+  }
 
-	.grid.three {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-	}
+  .grid.three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 
-	.card,
-	.panel {
-		border: 1px solid var(--line);
-		border-radius: 8px;
-		background: var(--surface);
-		box-shadow: var(--shadow);
-	}
+  .card,
+  .panel {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
 
-	.card {
-		padding: 16px;
-	}
+  .card {
+    padding: 16px;
+  }
 
-	.panel {
-		padding: clamp(14px, 2.4vw, 22px);
-	}
+  .panel {
+    padding: clamp(14px, 2.4vw, 22px);
+  }
 
-	.field-grid {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 14px;
-	}
+  .field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
 
-	label {
-		display: grid;
-		gap: 6px;
-		color: var(--muted);
-		font-size: 0.92rem;
-		font-weight: 700;
-	}
+  label {
+    display: grid;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
 
-	input,
-	select {
-		width: 100%;
-		min-height: 40px;
-		border: 1px solid var(--line);
-		border-radius: 8px;
-		background: var(--surface-soft);
-		color: var(--ink);
-		padding: 8px 10px;
-	}
+  input,
+  select {
+    width: 100%;
+    min-height: 40px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-soft);
+    color: var(--ink);
+    padding: 8px 10px;
+  }
 
-	input:disabled,
-	select:disabled,
-	button:disabled {
-		cursor: not-allowed;
-		opacity: 0.64;
-	}
+  input:disabled,
+  select:disabled,
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.64;
+  }
 
-	.button-row {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 10px;
-		margin-top: 18px;
-	}
+  .button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+  }
 
-	button,
-	.button {
-		display: inline-flex;
-		min-height: 40px;
-		align-items: center;
-		justify-content: center;
-		border: 0;
-		border-radius: 8px;
-		background: var(--green);
-		color: white;
-		padding: 8px 12px;
-		font-weight: 800;
-	}
+  button,
+  .button {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: var(--green);
+    color: white;
+    padding: 8px 12px;
+    font-weight: 800;
+  }
 
-	.button.secondary {
-		border: 1px solid var(--line);
-		background: var(--secondary-bg);
-		color: var(--ink);
-	}
+  .button.secondary {
+    border: 1px solid var(--line);
+    background: var(--secondary-bg);
+    color: var(--ink);
+  }
 
-	.metric {
-		display: grid;
-		gap: 4px;
-		padding: 16px;
-		border: 1px solid var(--line);
-		border-radius: 8px;
-		background: var(--surface-soft);
-	}
+  .metric {
+    display: grid;
+    gap: 4px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-soft);
+  }
 
-	.metric span {
-		color: var(--muted);
-		font-size: 0.88rem;
-		font-weight: 700;
-	}
+  .metric span {
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 700;
+  }
 
-	.metric strong {
-		font-size: 1.35rem;
-	}
+  .metric strong {
+    font-size: 1.35rem;
+  }
 
-	.prose {
-		max-width: 800px;
-	}
+  .prose {
+    max-width: 800px;
+  }
 
-	.prose a {
-		color: var(--blue);
-		text-decoration: underline;
-		text-underline-offset: 3px;
-	}
+  .prose a {
+    color: var(--blue);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
 
-	.site-footer {
-		display: flex;
-		align-items: flex-start;
-		justify-content: space-between;
-		gap: 24px;
-		padding: 28px clamp(16px, 4vw, 56px);
-		border-top: 1px solid var(--line);
-		color: var(--muted);
-	}
+  .site-footer {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 28px clamp(16px, 4vw, 56px);
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+  }
 
-	.site-footer p {
-		margin: 4px 0 0;
-	}
+  .site-footer p {
+    margin: 4px 0 0;
+  }
 
-	.footer-links {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: flex-end;
-		gap: 8px;
-	}
+  .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+  }
 
-	.footer-links a {
-		padding: 6px 8px;
-	}
+  .footer-links a {
+    padding: 6px 8px;
+  }
 
-	@media (max-width: 760px) {
-		.site-header,
-		.site-footer {
-			display: grid;
-			justify-content: stretch;
-		}
+  @media (max-width: 760px) {
+    .site-header,
+    .site-footer {
+      display: grid;
+      justify-content: stretch;
+    }
 
-		nav,
-		.site-actions,
-		.footer-links {
-			justify-content: flex-start;
-		}
+    nav,
+    .site-actions,
+    .footer-links {
+      justify-content: flex-start;
+    }
 
-		.grid.two,
-		.grid.three,
-		.field-grid {
-			grid-template-columns: 1fr;
-		}
+    .grid.two,
+    .grid.three,
+    .field-grid {
+      grid-template-columns: 1fr;
+    }
 
-		/* Item Preview panel moves to top when side-by-side layout stacks */
-		.grid.two > .left-stack {
-			order: 2;
-		}
-		.grid.two > aside.panel {
-			order: 1;
-		}
-	}
+    /* Item Preview panel moves to top when side-by-side layout stacks */
+    .grid.two > .left-stack {
+      order: 2;
+    }
+    .grid.two > aside.panel {
+      order: 1;
+    }
+  }
 
-	/* ── Loading spinner shared by calculator pages ── */
-	.enhancement-placeholder.loading {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 10px;
-	}
+  /* ── Loading spinner shared by calculator pages ── */
+  .enhancement-placeholder.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
 
-	.enhancement-placeholder.loading::before {
-		content: '';
-		width: 18px;
-		height: 18px;
-		border: 2px solid var(--line);
-		border-top-color: var(--green);
-		border-radius: 50%;
-		animation: sbp-spin 0.6s linear infinite;
-	}
+  .enhancement-placeholder.loading::before {
+    content: '';
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--line);
+    border-top-color: var(--green);
+    border-radius: 50%;
+    animation: sbp-spin 0.6s linear infinite;
+  }
 
-	@keyframes sbp-spin {
-		to { transform: rotate(360deg); }
-	}
+  @keyframes sbp-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 </style>

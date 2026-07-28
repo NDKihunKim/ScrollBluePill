@@ -1,16 +1,17 @@
-export const CORE_STAT_KEYS = new Set([
-  'weaponAttack', 'magicAttack', 'str', 'dex', 'int', 'luk',
-]);
+export const CORE_STAT_KEYS = new Set(['weaponAttack', 'magicAttack', 'str', 'dex', 'int', 'luk']);
 
 export const ADVANCED_STAT_KEYS = new Set([
-  'maxHp', 'maxMp', 'weaponDefense', 'magicDefense',
-  'accuracy', 'avoidability', 'speed', 'jump',
+  'maxHp',
+  'maxMp',
+  'weaponDefense',
+  'magicDefense',
+  'accuracy',
+  'avoidability',
+  'speed',
+  'jump',
 ]);
 
-export const ALL_TARGET_STAT_KEYS = new Set([
-  ...CORE_STAT_KEYS,
-  ...ADVANCED_STAT_KEYS,
-]);
+export const ALL_TARGET_STAT_KEYS = new Set([...CORE_STAT_KEYS, ...ADVANCED_STAT_KEYS]);
 
 /**
  * Compute enhancement gains from clean base stats to preview (enhanced) stats.

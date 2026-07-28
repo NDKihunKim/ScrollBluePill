@@ -8,14 +8,14 @@ import { HP_MP_KEYS } from '../enhancementState.mjs';
  * with HP/MP values divided by 10) to a color name.
  */
 export const GRADE_TIERS = [
-  { key: 'gray',   name: '회색',   color: '#9e9e9e', min: -Infinity, max: -1 },
-  { key: 'white',  name: '하얀색', color: '#ffffff', min: 0,         max: 0 },
-  { key: 'orange', name: '주황색', color: '#ff8c00', min: 1,         max: 5 },
-  { key: 'blue',   name: '파란색', color: '#3366ff', min: 6,         max: 22 },
-  { key: 'purple', name: '보라색', color: '#9933ff', min: 23,        max: 39 },
-  { key: 'yellow', name: '노란색', color: '#ffd700', min: 40,        max: 56 },
-  { key: 'green',  name: '초록색', color: '#33cc33', min: 57,        max: 73 },
-  { key: 'red',    name: '빨간색', color: '#ff3333', min: 74,        max: Infinity },
+  { key: 'gray', name: '회색', color: '#9e9e9e', min: -Infinity, max: -1 },
+  { key: 'white', name: '하얀색', color: '#ffffff', min: 0, max: 0 },
+  { key: 'orange', name: '주황색', color: '#ff8c00', min: 1, max: 5 },
+  { key: 'blue', name: '파란색', color: '#3366ff', min: 6, max: 22 },
+  { key: 'purple', name: '보라색', color: '#9933ff', min: 23, max: 39 },
+  { key: 'yellow', name: '노란색', color: '#ffd700', min: 40, max: 56 },
+  { key: 'green', name: '초록색', color: '#33cc33', min: 57, max: 73 },
+  { key: 'red', name: '빨간색', color: '#ff3333', min: 74, max: Infinity },
 ];
 
 /**

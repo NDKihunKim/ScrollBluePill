@@ -11,7 +11,11 @@ export function buildLevelUpSlotEditors({
   guardMutation,
   onStateChange,
 }) {
-  if (!(container instanceof globalThis.HTMLElement) || !(labelEl instanceof globalThis.HTMLElement)) return;
+  if (
+    !(container instanceof globalThis.HTMLElement) ||
+    !(labelEl instanceof globalThis.HTMLElement)
+  )
+    return;
   container.replaceChildren();
   if (!selectedItem) return;
 
@@ -99,15 +103,18 @@ export function buildLevelUpSlotEditors({
       const savedBounds = levelUpTotalRanges[key]
         ? { ...levelUpTotalRanges[key] }
         : { min: 0, max: 0 };
-      guardMutation(() => {
-        levelUpTotalRanges[key] = { ...levelUpTotalRanges[key], min: clamped };
-        minSlider.value = clamped;
-        minVal.textContent = String(clamped);
-        if (onStateChange) onStateChange();
-      }, () => {
-        minSlider.value = savedBounds.min;
-        minVal.textContent = String(savedBounds.min);
-      });
+      guardMutation(
+        () => {
+          levelUpTotalRanges[key] = { ...levelUpTotalRanges[key], min: clamped };
+          minSlider.value = clamped;
+          minVal.textContent = String(clamped);
+          if (onStateChange) onStateChange();
+        },
+        () => {
+          minSlider.value = savedBounds.min;
+          minVal.textContent = String(savedBounds.min);
+        },
+      );
     });
 
     maxSlider.addEventListener('input', () => {
@@ -122,15 +129,18 @@ export function buildLevelUpSlotEditors({
       const savedBounds = levelUpTotalRanges[key]
         ? { ...levelUpTotalRanges[key] }
         : { min: 0, max: 0 };
-      guardMutation(() => {
-        levelUpTotalRanges[key] = { ...levelUpTotalRanges[key], max: clamped };
-        maxSlider.value = clamped;
-        maxVal.textContent = String(clamped);
-        if (onStateChange) onStateChange();
-      }, () => {
-        maxSlider.value = savedBounds.max;
-        maxVal.textContent = String(savedBounds.max);
-      });
+      guardMutation(
+        () => {
+          levelUpTotalRanges[key] = { ...levelUpTotalRanges[key], max: clamped };
+          maxSlider.value = clamped;
+          maxVal.textContent = String(clamped);
+          if (onStateChange) onStateChange();
+        },
+        () => {
+          maxSlider.value = savedBounds.max;
+          maxVal.textContent = String(savedBounds.max);
+        },
+      );
     });
 
     row.append(dualWrap, minVal, sep, maxVal);

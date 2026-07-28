@@ -4,7 +4,13 @@
  * Build the page state object for slot save/compare.
  * Reads current item + stat configuration.
  */
-export function buildDeconPageState({ selectedItem, deconStatKeys, deconDeltas, deconSlotState, deconAppliedLevelCount }) {
+export function buildDeconPageState({
+  selectedItem,
+  deconStatKeys,
+  deconDeltas,
+  deconSlotState,
+  deconAppliedLevelCount,
+}) {
   if (!selectedItem) return null;
   // Strip zero entries — rebuildStatEditor seeds missing keys as 0,
   // which would otherwise break slot match after load
@@ -50,7 +56,14 @@ export function checkDeconStarState({ selectedItem, deconStar, buildPageState, f
  * Calls onLoadSlot(slotIndex) when a filled slot is clicked,
  * and onDeleteSlot(slotIndex, callback) when the × button is clicked.
  */
-export function renderDeconSlotBar({ deconSlotBar, readSlots, MAX_SLOTS, buildItemIconUrl, onLoadSlot, onDeleteSlot }) {
+export function renderDeconSlotBar({
+  deconSlotBar,
+  readSlots,
+  MAX_SLOTS,
+  buildItemIconUrl,
+  onLoadSlot,
+  onDeleteSlot,
+}) {
   if (!(deconSlotBar instanceof globalThis.HTMLElement)) return;
   const slots = readSlots('deconstruction');
   deconSlotBar.replaceChildren();
@@ -70,7 +83,10 @@ export function renderDeconSlotBar({ deconSlotBar, readSlots, MAX_SLOTS, buildIt
       xBtn.type = 'button';
       xBtn.className = 'item-slot-x';
       xBtn.textContent = '×';
-      xBtn.addEventListener('click', (e) => { e.stopPropagation(); onDeleteSlot(i); });
+      xBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onDeleteSlot(i);
+      });
       box.append(xBtn);
     }
     deconSlotBar.append(box);

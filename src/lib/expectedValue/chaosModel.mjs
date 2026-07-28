@@ -5,14 +5,14 @@ export const CHAOS_SUCCESS_RATE = 0.6; // 60% success rate for 혼돈의 주문�
 export const CHAOS_HPMP_MULTIPLIER = 10;
 
 export const CHAOS_OUTCOME_TABLE = [
-  { delta: 5,  probability: 0.0099 },
-  { delta: 4,  probability: 0.0198 },
-  { delta: 3,  probability: 0.1021 },
-  { delta: 2,  probability: 0.1587 },
-  { delta: 1,  probability: 0.1931 },
-  { delta: 0,  probability: 0.1838 },
-  { delta: -1, probability: 0.1370 },
-  { delta: -2, probability: 0.0800 },
+  { delta: 5, probability: 0.0099 },
+  { delta: 4, probability: 0.0198 },
+  { delta: 3, probability: 0.1021 },
+  { delta: 2, probability: 0.1587 },
+  { delta: 1, probability: 0.1931 },
+  { delta: 0, probability: 0.1838 },
+  { delta: -1, probability: 0.137 },
+  { delta: -2, probability: 0.08 },
   { delta: -3, probability: 0.0365 },
   { delta: -4, probability: 0.0297 },
   { delta: -5, probability: 0.0494 },

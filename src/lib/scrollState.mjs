@@ -30,7 +30,7 @@ export function applyScroll(state, scroll) {
 
   // Reject if this scroll has a max-application limit and it's been reached
   if (scroll.maxApplications != null) {
-    const alreadyApplied = state.slots.filter(s => s?.id === scroll.id).length;
+    const alreadyApplied = state.slots.filter((s) => s?.id === scroll.id).length;
     if (alreadyApplied >= scroll.maxApplications) {
       return false;
     }
@@ -187,12 +187,12 @@ export function computeGradeColor(state) {
     }
   }
 
-  if (totalAddedConstants < 0) return '#9e9e9e';   // Gray  — 하품
-  if (totalAddedConstants === 0) return '#ffffff';  // White — 중품
-  if (totalAddedConstants <= 5) return '#ff8c00';   // Orange — 중상품
-  if (totalAddedConstants <= 22) return '#3366ff';  // Blue — 상품
-  if (totalAddedConstants <= 39) return '#9933ff';  // Purple — 최상품
-  if (totalAddedConstants <= 56) return '#ffd700';  // Yellow — 프리미엄 클래스
-  if (totalAddedConstants <= 73) return '#33cc33';  // Green — 엑셀런트 클래스
-  return '#ff3333';                                   // Red — 스페셜 클래스
+  if (totalAddedConstants < 0) return '#9e9e9e'; // Gray  — 하품
+  if (totalAddedConstants === 0) return '#ffffff'; // White — 중품
+  if (totalAddedConstants <= 5) return '#ff8c00'; // Orange — 중상품
+  if (totalAddedConstants <= 22) return '#3366ff'; // Blue — 상품
+  if (totalAddedConstants <= 39) return '#9933ff'; // Purple — 최상품
+  if (totalAddedConstants <= 56) return '#ffd700'; // Yellow — 프리미엄 클래스
+  if (totalAddedConstants <= 73) return '#33cc33'; // Green — 엑셀런트 클래스
+  return '#ff3333'; // Red — 스페셜 클래스
 }

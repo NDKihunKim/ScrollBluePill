@@ -1,0 +1,10 @@
+dist/
+node_modules/
+.astro/
+outputs/
+test-results/
+supabase/
+*.json
+*.seed.*
+pnpm-lock.yaml
+package-lock.json

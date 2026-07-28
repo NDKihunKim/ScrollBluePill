@@ -9,10 +9,7 @@ function normalizeCount(value) {
 
 function normalizeState(state) {
   const maxSlots = normalizeCount(state?.maxSlots);
-  const successfulScrollCount = Math.min(
-    normalizeCount(state?.successfulScrollCount),
-    maxSlots,
-  );
+  const successfulScrollCount = Math.min(normalizeCount(state?.successfulScrollCount), maxSlots);
   const remainingSlots = Math.min(
     normalizeCount(state?.remainingSlots),
     maxSlots - successfulScrollCount,
@@ -38,10 +35,7 @@ export function setSuccessfulScrollCount(state, value) {
   return {
     ...current,
     successfulScrollCount,
-    remainingSlots: Math.min(
-      current.remainingSlots,
-      current.maxSlots - successfulScrollCount,
-    ),
+    remainingSlots: Math.min(current.remainingSlots, current.maxSlots - successfulScrollCount),
   };
 }
 

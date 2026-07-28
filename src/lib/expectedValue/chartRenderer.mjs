@@ -24,9 +24,9 @@ function selectNonOverlappingXAxisTicks(ctx, percentiles, paddingLeft, plotWidth
   const selected = [];
 
   for (const tick of prioritized) {
-    const overlaps = selected.some((existing) =>
-      tick.left < existing.right + X_TICK_MIN_GAP &&
-      tick.right + X_TICK_MIN_GAP > existing.left
+    const overlaps = selected.some(
+      (existing) =>
+        tick.left < existing.right + X_TICK_MIN_GAP && tick.right + X_TICK_MIN_GAP > existing.left,
     );
     if (!overlaps) selected.push(tick);
   }
@@ -103,12 +103,8 @@ export function renderAttemptChart(canvas, chartData, _p95) {
   ctx.fillRect(0, 0, width, height);
 
   // --- Data ranges ---
-  const maxPercentile = chartData.length > 0
-    ? chartData[chartData.length - 1].percentile
-    : 99;
-  const maxAttempts = chartData.length > 0
-    ? Math.max(...chartData.map((d) => d.attempts), 1)
-    : 10;
+  const maxPercentile = chartData.length > 0 ? chartData[chartData.length - 1].percentile : 99;
+  const maxAttempts = chartData.length > 0 ? Math.max(...chartData.map((d) => d.attempts), 1) : 10;
 
   // --- Horizontal grid lines (attempt counts) ---
   ctx.strokeStyle = colors.grid;
@@ -138,23 +134,14 @@ export function renderAttemptChart(canvas, chartData, _p95) {
 
   const xTickPercentiles = [0, 25, 50, 75, 90, 95, 99];
   const visibleXTickPercentiles = xTickPercentiles.filter((pct) => pct <= maxPercentile);
-  const xTicks = selectNonOverlappingXAxisTicks(
-    ctx,
-    visibleXTickPercentiles,
-    padding.left,
-    plotW,
-  );
+  const xTicks = selectNonOverlappingXAxisTicks(ctx, visibleXTickPercentiles, padding.left, plotW);
   for (const tick of xTicks) {
     ctx.fillText(tick.label, tick.x, height - padding.bottom + 24);
   }
 
   // --- X-axis title ---
   ctx.font = '12px sans-serif';
-  ctx.fillText(
-    '누적 확률',
-    padding.left + plotW / 2,
-    height - padding.bottom + 8,
-  );
+  ctx.fillText('누적 확률', padding.left + plotW / 2, height - padding.bottom + 8);
 
   // --- Y-axis title ---
   ctx.save();
@@ -195,10 +182,7 @@ export function renderAttemptChart(canvas, chartData, _p95) {
   }
 
   // Close path back to bottom
-  ctx.lineTo(
-    padding.left + (maxPercentile / 100) * plotW,
-    padding.top + plotH,
-  );
+  ctx.lineTo(padding.left + (maxPercentile / 100) * plotW, padding.top + plotH);
   ctx.closePath();
   ctx.fill();
 

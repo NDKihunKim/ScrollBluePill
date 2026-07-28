@@ -1,5 +1,25 @@
-import { GEM_GRADES, GEM_ITEM_IDS, GEM_STAT_COLORS, getVisibleGemTypes, getGemTypeByKey, statLabelByKey } from './makerData.mjs';
-import { activateMaker, applyGem, applyVariableGem, revertGemSlot, applyStimulant, clearStimulant, computeAccumulatedStats, computeStatBreakdown, computeGradeColor, computeAppliedScrollCount, computeRemainingSlots, HP_MP_KEYS } from './enhancementState.mjs';
+import {
+  GEM_GRADES,
+  GEM_ITEM_IDS,
+  GEM_STAT_COLORS,
+  getVisibleGemTypes,
+  getGemTypeByKey,
+  statLabelByKey,
+} from './makerData.mjs';
+import {
+  activateMaker,
+  applyGem,
+  applyVariableGem,
+  revertGemSlot,
+  applyStimulant,
+  clearStimulant,
+  computeAccumulatedStats,
+  computeStatBreakdown,
+  computeGradeColor,
+  computeAppliedScrollCount,
+  computeRemainingSlots,
+  HP_MP_KEYS,
+} from './enhancementState.mjs';
 import { buildItemIconUrl } from './maplestoryIo.mjs';
 
 function createGemIconElement(gemKey, stat, iconId) {
@@ -19,7 +39,6 @@ function createGemIconElement(gemKey, stat, iconId) {
   placeholder.textContent = label.slice(0, 2);
   return placeholder;
 }
-
 
 export function initMakerPanel({
   makerSection,
@@ -81,7 +100,14 @@ export function initMakerPanel({
     const appliedCount = computeAppliedScrollCount(enhancementState);
     const gradeColor = computeGradeColor(enhancementState);
 
-    renderEnhancedItemCard(selectedBaseItem, accumulatedStats, remaining, appliedCount, gradeColor, statBreakdown);
+    renderEnhancedItemCard(
+      selectedBaseItem,
+      accumulatedStats,
+      remaining,
+      appliedCount,
+      gradeColor,
+      statBreakdown,
+    );
   };
 
   const getStimulantStatKeys = () => {
@@ -104,10 +130,13 @@ export function initMakerPanel({
   };
 
   const renderVariableGemInputPanel = (gem, gradeIndex = 0) => {
-    if (!(makerPicker instanceof HTMLElement) ||
-        !(makerPickerGrid instanceof HTMLElement) ||
-        !(makerPickerLabel instanceof HTMLElement) ||
-        !enhancementState || !selectedBaseItem) {
+    if (
+      !(makerPicker instanceof HTMLElement) ||
+      !(makerPickerGrid instanceof HTMLElement) ||
+      !(makerPickerLabel instanceof HTMLElement) ||
+      !enhancementState ||
+      !selectedBaseItem
+    ) {
       return;
     }
 
@@ -116,7 +145,9 @@ export function initMakerPanel({
     let currentIsProbability = existingMode === 'probability';
 
     const cleanStats = selectedBaseItem.stats ?? {};
-    const statKeys = (gem.variableKeys ?? []).filter((k) => Number.isFinite(cleanStats[k]) && cleanStats[k] > 0);
+    const statKeys = (gem.variableKeys ?? []).filter(
+      (k) => Number.isFinite(cleanStats[k]) && cleanStats[k] > 0,
+    );
 
     makerPickerLabel.textContent = `${gem.nameKo} 스탯 입력`;
     makerPickerGrid.replaceChildren();
@@ -126,8 +157,16 @@ export function initMakerPanel({
 
     const isDark = gem.key === 'darkCrystal';
     const gradeAbsLimit = isDark
-      ? (gradeIndex === 2 ? 5 : gradeIndex === 1 ? 3 : 2)
-      : (gradeIndex === 2 ? 3 : gradeIndex === 1 ? 2 : 1);
+      ? gradeIndex === 2
+        ? 5
+        : gradeIndex === 1
+          ? 3
+          : 2
+      : gradeIndex === 2
+        ? 3
+        : gradeIndex === 1
+          ? 2
+          : 1;
     const limit = gem.variableLimit ?? 5;
     const existingStats = existingSlot?.stats ?? {};
 
@@ -218,7 +257,14 @@ export function initMakerPanel({
       }
       const currentMode = currentIsProbability ? 'probability' : 'manual';
       requestMutation(() => {
-        const ok = applyVariableGem(enhancementState, editingSlotIndex, gem.key, stats, currentMode, gradeIndex);
+        const ok = applyVariableGem(
+          enhancementState,
+          editingSlotIndex,
+          gem.key,
+          stats,
+          currentMode,
+          gradeIndex,
+        );
         if (!ok) return;
 
         pendingGemKey = null;
@@ -226,7 +272,10 @@ export function initMakerPanel({
         let nextEmpty = -1;
         for (let i = 0; i < enhancementState.gemSlotCount; i++) {
           const s = i < enhancementState.gemSlots.length ? enhancementState.gemSlots[i] : null;
-          if (!s) { nextEmpty = i; break; }
+          if (!s) {
+            nextEmpty = i;
+            break;
+          }
         }
 
         renderGemSlots();
@@ -287,10 +336,12 @@ export function initMakerPanel({
   };
 
   const renderStimulantInputPanel = () => {
-    if (!(makerStimulantEditor instanceof HTMLElement) ||
-        !(makerStimulantEditorGrid instanceof HTMLElement) ||
-        !(makerStimulantEditorLabel instanceof HTMLElement) ||
-        !enhancementState) {
+    if (
+      !(makerStimulantEditor instanceof HTMLElement) ||
+      !(makerStimulantEditorGrid instanceof HTMLElement) ||
+      !(makerStimulantEditorLabel instanceof HTMLElement) ||
+      !enhancementState
+    ) {
       return;
     }
 
@@ -480,7 +531,6 @@ export function initMakerPanel({
     makerStimulantEditorGrid.append(stimulantErrorEl, toggleRow);
   };
 
-
   const renderStimulantSlot = () => {
     if (!(makerStimulantSlot instanceof HTMLElement)) return;
 
@@ -550,8 +600,7 @@ export function initMakerPanel({
   };
 
   const hasMakerContributions = () =>
-    enhancementState?.gemSlots?.some((s) => s !== null) ||
-    enhancementState?.stimulantSlot !== null;
+    enhancementState?.gemSlots?.some((s) => s !== null) || enhancementState?.stimulantSlot !== null;
 
   const updateMakerToggleLabel = () => {
     if (!(makerToggle instanceof HTMLElement)) return;
@@ -610,13 +659,13 @@ export function initMakerPanel({
             const gradeLabel = document.createElement('span');
             gradeLabel.className = 'maker-gem-slot-grade';
             const gradeName = GEM_GRADES[gradeIdx] ?? GEM_GRADES[0];
-            gradeLabel.textContent = statParts.length > 0
-              ? `${gradeName} (${statParts.join(' ')})`
-              : gradeName;
+            gradeLabel.textContent =
+              statParts.length > 0 ? `${gradeName} (${statParts.join(' ')})` : gradeName;
 
             box.append(img, nameSpan, gradeLabel);
           } else {
-            const gradeKey = gemSlot.gradeIndex === 2 ? 'high' : gemSlot.gradeIndex === 1 ? 'mid' : 'low';
+            const gradeKey =
+              gemSlot.gradeIndex === 2 ? 'high' : gemSlot.gradeIndex === 1 ? 'mid' : 'low';
             const iconId = GEM_ITEM_IDS[gem.key]?.[gradeKey] ?? 0;
 
             const img = createGemIconElement(gem.key, gem.stat, iconId);
@@ -657,7 +706,6 @@ export function initMakerPanel({
           }
         });
         box.append(xBtn);
-
       }
 
       if (!isDisabled || gemSlot) {
@@ -686,10 +734,13 @@ export function initMakerPanel({
   };
 
   const renderStep1Picker = () => {
-    if (!(makerPicker instanceof HTMLElement) ||
-        !(makerPickerGrid instanceof HTMLElement) ||
-        !(makerPickerLabel instanceof HTMLElement) ||
-        !enhancementState || !selectedBaseItem) {
+    if (
+      !(makerPicker instanceof HTMLElement) ||
+      !(makerPickerGrid instanceof HTMLElement) ||
+      !(makerPickerLabel instanceof HTMLElement) ||
+      !enhancementState ||
+      !selectedBaseItem
+    ) {
       return;
     }
 
@@ -699,11 +750,13 @@ export function initMakerPanel({
     makerPicker.hidden = false;
     if (makerPickerBack instanceof HTMLElement) makerPickerBack.hidden = true;
 
-    const usedKeys = enhancementState.gemSlots
-      .filter((s) => s !== null)
-      .map((s) => s.gemKey);
+    const usedKeys = enhancementState.gemSlots.filter((s) => s !== null).map((s) => s.gemKey);
 
-    const visibleGems = getVisibleGemTypes(selectedBaseItem.equipmentKind, usedKeys, selectedBaseItem.stats ?? {});
+    const visibleGems = getVisibleGemTypes(
+      selectedBaseItem.equipmentKind,
+      usedKeys,
+      selectedBaseItem.stats ?? {},
+    );
 
     visibleGems.forEach((gem) => {
       const item = document.createElement('button');
@@ -750,9 +803,11 @@ export function initMakerPanel({
   };
 
   const renderStep2Picker = () => {
-    if (!(makerPicker instanceof HTMLElement) ||
-        !(makerPickerGrid instanceof HTMLElement) ||
-        !(makerPickerLabel instanceof HTMLElement)) {
+    if (
+      !(makerPicker instanceof HTMLElement) ||
+      !(makerPickerGrid instanceof HTMLElement) ||
+      !(makerPickerLabel instanceof HTMLElement)
+    ) {
       return;
     }
 
@@ -799,7 +854,10 @@ export function initMakerPanel({
           let nextEmpty = -1;
           for (let i = 0; i < enhancementState.gemSlotCount; i++) {
             const s = i < enhancementState.gemSlots.length ? enhancementState.gemSlots[i] : null;
-            if (!s) { nextEmpty = i; break; }
+            if (!s) {
+              nextEmpty = i;
+              break;
+            }
           }
 
           renderGemSlots();
@@ -822,9 +880,11 @@ export function initMakerPanel({
   };
 
   const renderVariableGemGradePicker = (gem) => {
-    if (!(makerPicker instanceof HTMLElement) ||
-        !(makerPickerGrid instanceof HTMLElement) ||
-        !(makerPickerLabel instanceof HTMLElement)) {
+    if (
+      !(makerPicker instanceof HTMLElement) ||
+      !(makerPickerGrid instanceof HTMLElement) ||
+      !(makerPickerLabel instanceof HTMLElement)
+    ) {
       return;
     }
 
@@ -889,9 +949,11 @@ export function initMakerPanel({
   }
 
   const setupMakerToggle = () => {
-    if (!(makerToggle instanceof HTMLElement) ||
-        !(makerGemArea instanceof HTMLElement) ||
-        !(makerSection instanceof HTMLElement)) {
+    if (
+      !(makerToggle instanceof HTMLElement) ||
+      !(makerGemArea instanceof HTMLElement) ||
+      !(makerSection instanceof HTMLElement)
+    ) {
       return;
     }
 

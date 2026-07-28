@@ -44,7 +44,9 @@ function generateTransferId() {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
       return crypto.randomUUID();
     }
-  } catch { /* fall through */ }
+  } catch {
+    /* fall through */
+  }
   // Fallback: timestamp + random
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -138,14 +140,10 @@ export function serializeDeconStrategy(strategy, itemId, { totalAppliedScrolls }
         nameKo: s.nameKo,
         stats: { ...s.stats },
         behavior_type: s.behavior_type ?? 'fixed',
-        ...(s.isAggregate
-          ? { isAggregate: true, aggregateCount: s.aggregateCount }
-          : {}),
+        ...(s.isAggregate ? { isAggregate: true, aggregateCount: s.aggregateCount } : {}),
       })),
       totalAppliedScrolls: totalApplied,
-      stimulant: strategy.stimulant
-        ? { stats: { ...strategy.stimulant.stats } }
-        : null,
+      stimulant: strategy.stimulant ? { stats: { ...strategy.stimulant.stats } } : null,
       gems: (strategy.gems ?? []).map((g) => ({
         gemKey: g.gemKey,
         nameKo: g.nameKo,
@@ -301,10 +299,7 @@ export function buildEnhancementStateFromStrategy(strategy, item, levelUpDefinit
   }
 
   // ── Gem slots ──────────────────────────────────────────────────────
-  const gemSlotCount = computeGemSlotCount(
-    item.requiredLevel ?? 0,
-    item.requiredJobs ?? [],
-  );
+  const gemSlotCount = computeGemSlotCount(item.requiredLevel ?? 0, item.requiredJobs ?? []);
   const gemSlots = new Array(gemSlotCount).fill(null);
   const hasGems = strategy.gems && strategy.gems.length > 0;
   if (hasGems) {
@@ -332,7 +327,7 @@ export function buildEnhancementStateFromStrategy(strategy, item, levelUpDefinit
   const maxLevelUps =
     levelUpDefinition && Number.isInteger(levelUpDefinition.maxLevelUps)
       ? levelUpDefinition.maxLevelUps
-      : strategy.itemLevelUp?.levelCount ?? 0;
+      : (strategy.itemLevelUp?.levelCount ?? 0);
   const itemLevelUpSlots = new Array(maxLevelUps).fill(null);
 
   if (strategy.itemLevelUp) {
