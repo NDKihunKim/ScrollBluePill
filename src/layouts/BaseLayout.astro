@@ -122,6 +122,23 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
         setTheme(document.documentElement.dataset.theme === 'dark' ? 'bright' : 'dark');
       });
     </script>
+    <script>
+      import { trackError } from '../lib/beacon.mjs';
+
+      window.onerror = (msg, source, lineno, colno, error) =>
+        trackError(msg, source, lineno, colno, error);
+
+      window.onunhandledrejection = (event) => {
+        const reason = event?.reason;
+        trackError(
+          reason?.message ?? String(reason ?? 'unhandled rejection'),
+          '',
+          0,
+          0,
+          reason instanceof Error ? reason : undefined,
+        );
+      };
+    </script>
   </body>
 </html>
 

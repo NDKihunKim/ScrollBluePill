@@ -1,0 +1,14 @@
+---
+// Health-check endpoint for uptime monitoring.
+// Returns JSON so uptime monitors (UptimeRobot, Better Stack, etc.) can
+// confirm the site is serving static content correctly.
+export const prerender = true;
+
+const status = {
+  status: 'ok',
+  timestamp: new Date().toISOString(),
+  site: 'scrollbluepill',
+};
+---
+
+{JSON.stringify(status)}

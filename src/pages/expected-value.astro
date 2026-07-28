@@ -463,6 +463,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   } from '../lib/itemSearchUI.mjs';
   import { showEvConfirmationDialog } from '../lib/expectedValue/dialogs.mjs';
   import { debug } from '../lib/debug.mjs';
+  import { trackEvent } from '../lib/beacon.mjs';
   const form = document.querySelector('[data-calculator-input]');
   const itemNameSearch = form?.querySelector('[data-item-name-search]');
   const itemNameInput = form?.querySelector('[data-item-name-input]');
@@ -1425,6 +1426,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       });
       evResultUI.update(resultSummary);
       evResultSummary = resultSummary;
+
+      trackEvent('ev_computation', {
+        probability,
+        mode: canUseExactOutcome(userStrategy) ? 'exact-outcome' : 'threshold',
+      });
     }
   };
   // Calculation is triggered from the 계산 시작 button inside the calc panel.

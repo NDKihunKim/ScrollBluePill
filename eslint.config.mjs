@@ -33,6 +33,7 @@ export default [
         document: 'readonly',
         console: 'readonly',
         fetch: 'readonly',
+        navigator: 'readonly',
         localStorage: 'readonly',
         sessionStorage: 'readonly',
         HTMLInputElement: 'readonly',

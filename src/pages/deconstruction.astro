@@ -509,6 +509,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     renderDeconSlotBar,
   } from '../lib/deconstruction/slotBarUI.mjs';
   import { debug } from '../lib/debug.mjs';
+  import { trackEvent } from '../lib/beacon.mjs';
   import { buildStimulantBoundsEditor } from '../lib/deconstruction/stimulantBoundsEditor.mjs';
   import { buildChaosBoundsEditor } from '../lib/deconstruction/chaosBoundsEditor.mjs';
   import { buildGemPreFilter } from '../lib/deconstruction/gemPreFilterUI.mjs';
@@ -1604,6 +1605,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       deconAnalyzeBtn.disabled = false;
     }
     deconResultPlaceholder?.classList.remove('loading');
+
+    trackEvent('deconstruction_analysis', {
+      strategyCount: result.strategies?.length ?? 0,
+      sourceTypes: result.sourceTypes?.join(',') ?? '',
+    });
   };
 
   // ---- Display results ----
