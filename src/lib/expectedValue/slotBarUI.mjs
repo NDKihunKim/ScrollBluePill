@@ -138,12 +138,32 @@ export function confirmReplaceEvSlot({ slotIndex, newState, buildPageState, read
 
   const existingCard = document.createElement('div');
   existingCard.className = 'replace-confirm-card';
-  existingCard.innerHTML = '<h4>기존 저장</h4><img src="' + buildItemIconUrl(existing.item.iconId) + '" alt=""><div class="item-name">' + existing.item.nameKo + '</div>';
+  const existingH4 = document.createElement('h4');
+  existingH4.textContent = '기존 저장';
+  existingCard.append(existingH4);
+  const existingImg = document.createElement('img');
+  existingImg.src = buildItemIconUrl(existing.item.iconId);
+  existingImg.alt = existing.item.nameKo;
+  existingCard.append(existingImg);
+  const existingName = document.createElement('div');
+  existingName.className = 'item-name';
+  existingName.textContent = existing.item.nameKo;
+  existingCard.append(existingName);
   cards.append(existingCard);
 
   const newCard = document.createElement('div');
   newCard.className = 'replace-confirm-card';
-  newCard.innerHTML = '<h4>새로 저장</h4><img src="' + buildItemIconUrl(selectedItem.id) + '" alt=""><div class="item-name">' + selectedItem.nameKo + '</div>';
+  const newH4 = document.createElement('h4');
+  newH4.textContent = '새로 저장';
+  newCard.append(newH4);
+  const newImg = document.createElement('img');
+  newImg.src = buildItemIconUrl(selectedItem.id);
+  newImg.alt = selectedItem.nameKo;
+  newCard.append(newImg);
+  const newName = document.createElement('div');
+  newName.className = 'item-name';
+  newName.textContent = selectedItem.nameKo;
+  newCard.append(newName);
   cards.append(newCard);
   dialog.append(cards);
 
@@ -181,7 +201,14 @@ export function confirmDeleteEvSlot({ slotIndex, readSlots, clearSlot, buildItem
 
   const card = document.createElement('div');
   card.className = 'replace-confirm-card';
-  card.innerHTML = '<img src="' + buildItemIconUrl(s.item.iconId) + '" alt=""><div class="item-name">' + s.item.nameKo + '</div>';
+  const cardImg = document.createElement('img');
+  cardImg.src = buildItemIconUrl(s.item.iconId);
+  cardImg.alt = s.item.nameKo;
+  card.append(cardImg);
+  const cardName = document.createElement('div');
+  cardName.className = 'item-name';
+  cardName.textContent = s.item.nameKo;
+  card.append(cardName);
   dialog.append(card);
 
   const buttons = document.createElement('div');
@@ -225,7 +252,14 @@ export function confirmUnsaveEvSlot({ buildPageState, findMatchingSlot, readSlot
 
   const card = document.createElement('div');
   card.className = 'replace-confirm-card';
-  card.innerHTML = '<img src="' + buildItemIconUrl(s.item.iconId) + '" alt=""><div class="item-name">' + s.item.nameKo + '</div>';
+  const cardImg = document.createElement('img');
+  cardImg.src = buildItemIconUrl(s.item.iconId);
+  cardImg.alt = s.item.nameKo;
+  card.append(cardImg);
+  const cardName = document.createElement('div');
+  cardName.className = 'item-name';
+  cardName.textContent = s.item.nameKo;
+  card.append(cardName);
   dialog.append(card);
 
   const buttons = document.createElement('div');
