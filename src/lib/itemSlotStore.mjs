@@ -126,7 +126,7 @@ export function findMatchingSlot(page, pageState) {
   const slots = readSlots(page);
   const currentCanon = canonicalizePageState(pageState);
   const currentJson = JSON.stringify(currentCanon);
-  if (import.meta.env.DEV) {
+  if (import.meta.env?.DEV) {
     debug('findMatchingSlot', {
       page,
       itemId: pageState.itemId,

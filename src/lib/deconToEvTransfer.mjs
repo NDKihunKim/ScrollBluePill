@@ -334,10 +334,25 @@ export function buildEnhancementStateFromStrategy(strategy, item, levelUpDefinit
     const il = strategy.itemLevelUp;
     const appliedCount = il.appliedLevelCount ?? 0;
 
-    // Fill pre-applied slots with their specific stats
-    if (il.appliedStats) {
+    // Distribute aggregate applied stats evenly across pre-applied slots.
+    // The deconstruction engine accumulates all applied level-up stats into a
+    // single aggregate, so each slot gets its proportional share via integer
+    // division with remainder (same pattern as chaos even-distribution).
+    if (il.appliedStats && appliedCount > 0) {
+      const perSlotStats = [];
+      for (let i = 0; i < appliedCount; i++) {
+        perSlotStats.push({});
+      }
+      for (const [key, total] of Object.entries(il.appliedStats)) {
+        const base = Math.trunc(total / appliedCount);
+        const remainder = total - base * appliedCount;
+        for (let i = 0; i < appliedCount; i++) {
+          const extra = i < Math.abs(remainder) ? Math.sign(remainder) : 0;
+          perSlotStats[i][key] = base + extra;
+        }
+      }
       for (let i = 0; i < appliedCount && i < maxLevelUps; i++) {
-        itemLevelUpSlots[i] = { stats: { ...il.appliedStats } };
+        itemLevelUpSlots[i] = { stats: perSlotStats[i] };
       }
     }
 

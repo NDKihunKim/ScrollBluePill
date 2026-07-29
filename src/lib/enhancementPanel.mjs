@@ -1067,7 +1067,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       if (!r.ok) throw new Error(`Unable to load scroll index: ${r.status}`);
       return r.json();
     }),
-    fetch('/data/scroll-overrides.local.json')
+    fetch('/data/scroll-overrides.json')
       .then((r) => {
         if (!r.ok) {
           // Overrides file is optional — 404 is fine

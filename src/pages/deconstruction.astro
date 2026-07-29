@@ -512,7 +512,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     renderDeconSlotBar,
   } from '../lib/deconstruction/slotBarUI.mjs';
   import { debug } from '../lib/debug.mjs';
-  import { trackEvent } from '../lib/beacon.mjs';
+  import { trackEvent, trackError } from '../lib/beacon.mjs';
   import { buildStimulantBoundsEditor } from '../lib/deconstruction/stimulantBoundsEditor.mjs';
   import { buildChaosBoundsEditor } from '../lib/deconstruction/chaosBoundsEditor.mjs';
   import { buildGemPreFilter } from '../lib/deconstruction/gemPreFilterUI.mjs';
@@ -1629,44 +1629,54 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       debug('=== End Debug Payload ===');
     }
 
-    const result = enumerateStrategies({
-      targetDeltas,
-      targetKeys: checkedKeys,
-      successfulScrollCount: deconSlotState.successfulScrollCount,
-      equipmentKind,
-      allowedSources: getAllowedSources(),
-      requiredLevel: selectedItem.requiredLevel ?? 0,
-      requiredJobs: selectedItem.requiredJobs ?? [],
-      cleanStats: selectedItem.stats ?? {},
-      scrollsByEquipmentKind,
-      levelUpDefinition: levelUpDef ?? null,
-      scrollRateFilter: deconScrollRateFilter.size > 0 ? deconScrollRateFilter : null,
-      stimulantStatBounds:
-        Object.keys(deconStimulantBoundsMap).length > 0 ? deconStimulantBoundsMap : null,
-      chaosStatBounds: Object.keys(deconChaosBoundsMap).length > 0 ? deconChaosBoundsMap : null,
-      gemFilter: deconGemFilter,
-      levelUpExactLevelCount: appliedCount,
-      levelUpTotalStatRanges:
-        appliedCount > 0 && Object.keys(deconLevelUpTotalRanges).length > 0
-          ? deconLevelUpTotalRanges
-          : null,
-    });
+    try {
+      const result = enumerateStrategies({
+        targetDeltas,
+        targetKeys: checkedKeys,
+        successfulScrollCount: deconSlotState.successfulScrollCount,
+        equipmentKind,
+        allowedSources: getAllowedSources(),
+        requiredLevel: selectedItem.requiredLevel ?? 0,
+        requiredJobs: selectedItem.requiredJobs ?? [],
+        cleanStats: selectedItem.stats ?? {},
+        scrollsByEquipmentKind,
+        levelUpDefinition: levelUpDef ?? null,
+        scrollRateFilter: deconScrollRateFilter.size > 0 ? deconScrollRateFilter : null,
+        stimulantStatBounds:
+          Object.keys(deconStimulantBoundsMap).length > 0 ? deconStimulantBoundsMap : null,
+        chaosStatBounds: Object.keys(deconChaosBoundsMap).length > 0 ? deconChaosBoundsMap : null,
+        gemFilter: deconGemFilter,
+        levelUpExactLevelCount: appliedCount,
+        levelUpTotalStatRanges:
+          appliedCount > 0 && Object.keys(deconLevelUpTotalRanges).length > 0
+            ? deconLevelUpTotalRanges
+            : null,
+      });
 
-    displayResults(result, targetDeltas);
-    // Cache result for session-state auto-save (back-navigation restoration)
-    window.__lastDeconResult = result;
+      displayResults(result, targetDeltas);
+      // Cache result for session-state auto-save (back-navigation restoration)
+      window.__lastDeconResult = result;
 
-    // Clear loading state
-    if (deconAnalyzeBtn instanceof HTMLButtonElement) {
-      deconAnalyzeBtn.textContent = '분석 시작';
-      deconAnalyzeBtn.disabled = false;
+      trackEvent('deconstruction_analysis', {
+        strategyCount: result.strategies?.length ?? 0,
+        sourceTypes: result.sourceTypes?.join(',') ?? '',
+      });
+    } catch (err) {
+      if (deconResultPlaceholder instanceof HTMLElement) {
+        deconResultPlaceholder.textContent = '스탯 편집 후 분석 시작을 눌러주세요';
+        deconResultPlaceholder.classList.remove('loading');
+        deconResultPlaceholder.hidden = false;
+      }
+      if (deconResultContent instanceof HTMLElement) deconResultContent.hidden = true;
+      trackError(err?.message ?? 'runAnalysis failed', 'deconstruction.astro', 0, 0, err);
+    } finally {
+      // Clear loading state
+      if (deconAnalyzeBtn instanceof HTMLButtonElement) {
+        deconAnalyzeBtn.textContent = '분석 시작';
+        deconAnalyzeBtn.disabled = false;
+      }
+      deconResultPlaceholder?.classList.remove('loading');
     }
-    deconResultPlaceholder?.classList.remove('loading');
-
-    trackEvent('deconstruction_analysis', {
-      strategyCount: result.strategies?.length ?? 0,
-      sourceTypes: result.sourceTypes?.join(',') ?? '',
-    });
   };
 
   // ---- Display results ----
@@ -2340,9 +2350,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   // ---- Reset button ----
   document.querySelector('[data-enhancement-reset]')?.addEventListener('click', () => {
     showResetConfirmDialog(() => {
-      deconDeltas = {};
+      clearDeconCalculationState(selectedItem);
       resetAllowedSources();
-      deconSlotState = createDeconstructionSlotState(selectedItem?.stats?.upgradeSlots ?? 0);
       renderDeconSlotState();
       if (deconStatEditor instanceof HTMLElement) {
         deconStatEditor.replaceChildren();
@@ -2386,7 +2395,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     // 1. Restore item selection — commitSuggestedItem calls
     //    activateDeconEditPanel internally which sets up the panel
     //    with item defaults (slot state, stat keys, source config).
-    selectedItem = item;
+    //    Let commitSuggestedItem handle itemChanged naturally;
+    //    saved state overrides run below and restore the actual values.
     commitSuggestedItem(item, { syncFilters: false });
     // Restore source checkboxes from saved session (instead of resetAllowedSources
     // which would wipe the user's calc config).  The build editors preserve
@@ -2596,6 +2606,37 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       _scrollsLoaded = true;
       _maybeRestoreDeconSession();
     });
+
+  // Auto-save draft on tab close / back navigation so state survives
+  // leaving the page without clicking "기대값 계산으로 보내기".
+  addEventListener('pagehide', () => {
+    if (!selectedItem) return;
+    const totalScrolls =
+      deconSlotState.successfulScrollCount + inferFailedScrollCount(deconSlotState);
+    saveDeconTransferSession({
+      selectedItem,
+      itemNameInput,
+      deconDeltas,
+      deconStatKeys,
+      slotState: deconSlotState,
+      totalAppliedScrolls: totalScrolls,
+      appliedLevelCount: deconAppliedLevelCount,
+      scrollRateFilter: deconScrollRateFilter,
+      stimulantBoundsMap: deconStimulantBoundsMap,
+      stimulantEnabledKeys: deconStimulantEnabledKeys,
+      chaosBoundsMap: deconChaosBoundsMap,
+      chaosEnabledKeys: deconChaosEnabledKeys,
+      gemFilter: deconGemFilter,
+      levelUpTotalRanges: deconLevelUpTotalRanges,
+      getCheckedTargetKeys,
+      sourceInputs: {
+        scrolls: deconScrollSource,
+        stimulant: deconStimulantSource,
+        gems: deconGemsSource,
+        itemLevelUp: deconItemLevelUpSource,
+      },
+    });
+  });
 </script>
 
 <style>

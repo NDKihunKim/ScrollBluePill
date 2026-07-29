@@ -957,7 +957,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
           itemNameInput,
           itemSuggestions,
           findItemById: (id) => itemIndex.find((i) => i.id === id),
-          onSelectItem: selectItem,
+          onSelectItem: (item) => selectSuggestedItem(item),
         })
       ) {
         return;
@@ -1305,6 +1305,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   window.__evOpenCalcPanel = openCalcPanel;
 
   /** Run the actual EV calculation and display results. */
+  let _evComputing = false;
+
   const runEvCalculation = (
     checkedStats,
     cleanStats,
@@ -1312,6 +1314,16 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     enhancementState,
     selectedBaseItem,
   ) => {
+    if (_evComputing) return;
+    _evComputing = true;
+
+    const startBtn = document.querySelector('.ev-start-btn');
+    if (startBtn instanceof HTMLButtonElement) {
+      startBtn.disabled = true;
+      startBtn.textContent = '계산 중…';
+    }
+
+    try {
     // Build the scroll sequence from the user's enhancement state
     const scrollSequence = enhancementState.scrollState.slots.filter((s) => s !== null);
     const makerChoices = enhancementState.gemSlots
@@ -1440,9 +1452,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       }
     } catch (err) {
       debug('Expected-value computation failed:', err);
-      evResultUI.showZeroSuccess();
-      evResultSummary = null;
-      return;
+      probability = 0;
     }
 
     if (probability <= 0) {
@@ -1461,6 +1471,14 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
         probability,
         mode: canUseExactOutcome(userStrategy) ? 'exact-outcome' : 'threshold',
       });
+    }
+    } finally {
+      _evComputing = false;
+      const btn = document.querySelector('.ev-start-btn');
+      if (btn instanceof HTMLButtonElement) {
+        btn.disabled = false;
+        btn.textContent = '계산 시작';
+      }
     }
   };
   // Calculation is triggered from the 계산 시작 button inside the calc panel.

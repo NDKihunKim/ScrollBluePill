@@ -11,7 +11,7 @@
  *   pagination.applyPagination(true); // called after filter changes
  */
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 
 /**
  * Creates a pagination controller bound to a result panel.
@@ -39,6 +39,12 @@ export function createPagination(containerSelector) {
   function _updateBar() {
     const bar = document.querySelector('.decon-pagination-bar');
     if (!(bar instanceof HTMLElement)) return;
+
+    if (_totalStrategies === 0) {
+      bar.hidden = true;
+      return;
+    }
+    bar.hidden = false;
 
     const totalPages = Math.max(1, Math.ceil(_totalStrategies / PAGE_SIZE));
     const buttons = bar.querySelectorAll('.decon-page-btn');
@@ -133,6 +139,7 @@ export function createPagination(containerSelector) {
     lastBtn.addEventListener('click', () => _goToPage(Number.MAX_SAFE_INTEGER));
 
     bar.append(firstBtn, prevBtn, indicator, nextBtn, lastBtn);
+    if (_totalStrategies === 0) bar.hidden = true;
     resultPanel.appendChild(bar);
 
     _updateBar();
