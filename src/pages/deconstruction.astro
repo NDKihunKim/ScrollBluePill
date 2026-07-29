@@ -696,7 +696,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     }
     showResetConfirmDialog(() => {
       deconHasActionableResults = false;
-      if (deconResultPlaceholder instanceof HTMLElement) deconResultPlaceholder.hidden = false;
+      if (deconResultPlaceholder instanceof HTMLElement) {
+        deconResultPlaceholder.hidden = false;
+        deconResultPlaceholder.textContent = '스탯 편집 후 분석 시작을 눌러주세요';
+        deconResultPlaceholder.classList.remove('loading');
+      }
       if (deconResultContent instanceof HTMLElement) deconResultContent.hidden = true;
       fn();
     }, onCancel);
@@ -985,6 +989,34 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     }
   };
 
+  const showSlotRequiredWarning = () => {
+    if (deconSourceMessage instanceof HTMLElement) {
+      deconSourceMessage.hidden = false;
+      deconSourceMessage.textContent = '남은 주문서 슬롯을 설정해주세요';
+      deconSourceMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    const slotRow = document.querySelector('.decon-slot-row');
+    if (slotRow instanceof HTMLElement) {
+      slotRow.classList.add('decon-slot-row--highlight');
+      slotRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  const clearSlotRequiredWarning = () => {
+    const slotRow = document.querySelector('.decon-slot-row');
+    if (slotRow instanceof HTMLElement) {
+      slotRow.classList.remove('decon-slot-row--highlight');
+    }
+    // Only clear the message if it's the slot warning, not a different validation
+    if (
+      deconSourceMessage instanceof HTMLElement &&
+      deconSourceMessage.textContent === '남은 주문서 슬롯을 설정해주세요'
+    ) {
+      deconSourceMessage.hidden = true;
+      deconSourceMessage.textContent = '';
+    }
+  };
+
   const updateAnalyzeButton = () => {
     const checkedCount = deconTargetChips?.querySelectorAll('input:checked').length ?? 0;
     const sourceValidationMessage = getSourceValidationMessage(
@@ -1072,6 +1104,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     }
     if (deconSlotValue instanceof HTMLElement) {
       deconSlotValue.textContent = String(deconSlotState.remainingSlots);
+    }
+    // Clear slot-required highlight once the user configures remaining slots
+    if (deconSlotState.remainingSlots !== deconSlotState.maxSlots) {
+      clearSlotRequiredWarning();
     }
     updateTargetCard();
     updateAnalyzeButton();
@@ -1342,7 +1378,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     if (deconCalcPlaceholder instanceof HTMLElement) deconCalcPlaceholder.hidden = true;
     if (deconCalcContent instanceof HTMLElement) deconCalcContent.hidden = false;
     deconHasActionableResults = false;
-    if (deconResultPlaceholder instanceof HTMLElement) deconResultPlaceholder.hidden = false;
+    if (deconResultPlaceholder instanceof HTMLElement) {
+      deconResultPlaceholder.hidden = false;
+      deconResultPlaceholder.textContent = '스탯 편집 후 분석 시작을 눌러주세요';
+      deconResultPlaceholder.classList.remove('loading');
+    }
     if (deconResultContent instanceof HTMLElement) deconResultContent.hidden = true;
     renderTargetChips();
 
@@ -1947,7 +1987,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   };
 
   // ---- Pagination ----
-  const pagination = createPagination('[data-decon-result-panel]');
+  const pagination = createPagination('[data-decon-result-content]');
 
   // ---- Filter ----
 
@@ -2248,6 +2288,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   // ---- Analyze button ----
   deconAnalyzeBtn?.addEventListener('click', runAnalysis);
   deconScrollSource?.addEventListener('change', () => {
+    if (deconScrollSource.checked && deconSlotState.remainingSlots === deconSlotState.maxSlots) {
+      deconScrollSource.checked = false;
+      showSlotRequiredWarning();
+      return;
+    }
     guardCheckboxMutation(deconScrollSource, guardDeconMutation, () => {
       toggleSourceSub(deconScrollSource, deconScrollRateSub, () => {
         deconScrollRateFilter = new Set(['100', '60', '10']);
@@ -2262,6 +2307,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   });
 
   deconStimulantSource?.addEventListener('change', () => {
+    if (deconStimulantSource.checked && deconSlotState.remainingSlots === deconSlotState.maxSlots) {
+      deconStimulantSource.checked = false;
+      showSlotRequiredWarning();
+      return;
+    }
     guardCheckboxMutation(deconStimulantSource, guardDeconMutation, () => {
       toggleSourceSub(deconStimulantSource, deconStimulantBounds, () => {
         buildStimulantBounds();
@@ -2271,6 +2321,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   });
 
   deconGemsSource?.addEventListener('change', () => {
+    if (deconGemsSource.checked && deconSlotState.remainingSlots === deconSlotState.maxSlots) {
+      deconGemsSource.checked = false;
+      showSlotRequiredWarning();
+      return;
+    }
     guardCheckboxMutation(deconGemsSource, guardDeconMutation, () => {
       toggleSourceSub(deconGemsSource, deconGemSub, () => {
         deconGemFilter = null;
@@ -2284,6 +2339,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   });
 
   deconItemLevelUpSource?.addEventListener('change', () => {
+    if (deconItemLevelUpSource.checked && deconSlotState.remainingSlots === deconSlotState.maxSlots) {
+      deconItemLevelUpSource.checked = false;
+      showSlotRequiredWarning();
+      return;
+    }
     guardCheckboxMutation(deconItemLevelUpSource, guardDeconMutation, () => {
       toggleSourceSub(deconItemLevelUpSource, deconLevelSlotRanges, () => {
         buildLevelUpEditors();
@@ -2319,7 +2379,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       if (selectedItem) {
         activateDeconEditPanel(selectedItem);
       }
-      if (deconResultPlaceholder instanceof HTMLElement) deconResultPlaceholder.hidden = false;
+      if (deconResultPlaceholder instanceof HTMLElement) {
+        deconResultPlaceholder.hidden = false;
+        deconResultPlaceholder.textContent = '스탯 편집 후 분석 시작을 눌러주세요';
+        deconResultPlaceholder.classList.remove('loading');
+      }
       if (deconResultContent instanceof HTMLElement) deconResultContent.hidden = true;
       deconHasActionableResults = false;
     });
@@ -3247,6 +3311,12 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   .decon-slot-row {
     margin-bottom: 10px;
   }
+
+  :global(.decon-slot-row--highlight) {
+    outline: 2px solid #d6453d;
+    outline-offset: 4px;
+    border-radius: 6px;
+  }
   .decon-level-row {
     margin-bottom: 10px;
   }
@@ -3576,8 +3646,12 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   }
   .decon-source-message {
     margin: 0 0 8px;
-    color: #d6453d;
-    font-size: 0.76rem;
+    padding: 8px 12px;
+    color: #a01a1a;
+    background: #fdf0ef;
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    font-size: 0.82rem;
     font-weight: 650;
     line-height: 1.35;
   }
