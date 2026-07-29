@@ -65,6 +65,14 @@ to Cloudflare Pages environment variables.** The anon key is safe to expose
 but unnecessary for the CI build. The service role key should only exist in
 your local `.env` file.
 
+## License
+
+ScrollBluePill is proprietary software. All rights reserved.
+
+This source code is provided for reference purposes only. No permission is
+granted to use, copy, modify, merge, publish, distribute, sublicense, or sell
+copies of this software. See [LICENSE](./LICENSE).
+
 ---
 
 Test commit to verify author configuration.
