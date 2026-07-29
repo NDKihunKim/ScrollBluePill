@@ -15,6 +15,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     </div>
   </section>
 
+  <div class="sr-only" aria-live="polite" data-live-region></div>
+
   <section class="band">
     <div class="container grid two">
       <div class="left-stack">
@@ -440,6 +442,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     getManualFilteredItems as _getManualFilteredItems,
     renderItemSuggestions as _renderItemSuggestions,
     renderManualItemResults as _renderManualItemResults,
+    handleSuggestionKeydown as _handleSuggestionKeydown,
   } from '../lib/itemSearchUI.mjs';
   import { guardCheckboxMutation } from '../lib/deconstruction/guardedCheckboxMutation.mjs';
   import {
@@ -654,6 +657,14 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       defaults[key] = { min: range.min, max: range.max };
     }
     return defaults;
+  };
+
+  const liveRegion = document.querySelector('[data-live-region]');
+  const announce = (msg) => {
+    if (liveRegion instanceof HTMLElement) {
+      liveRegion.textContent = '';
+      requestAnimationFrame(() => { liveRegion.textContent = msg; });
+    }
   };
 
   // ---- State ----
@@ -1188,6 +1199,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       syncFiltersToSelectedItem(item);
     }
     selectedItem = item;
+    announce(`${item.nameKo} 선택됨`);
     if (itemChanged) resetAllowedSources();
     updateLevelUpSourceEligibility();
     updateSourcePanelForItem(item);
@@ -1212,7 +1224,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     commitSuggestedItem(item, { syncFilters });
   };
 
-  const renderItemSuggestions = () =>
+  const renderItemSuggestions = () => {
     _renderItemSuggestions({
       itemNameInput,
       itemSuggestions,
@@ -1221,6 +1233,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       searchKoreanItems,
       onSelectItem: (item) => selectSuggestedItem(item),
     });
+    if (itemSuggestions instanceof HTMLElement && !itemSuggestions.hidden) {
+      const count = itemSuggestions.querySelectorAll('[role="option"]').length;
+      announce(`검색 결과 ${count}개`);
+    }
+  };
 
   const setEquipmentOption = (button) => {
     if (!(equipmentInput instanceof HTMLInputElement) || !(button instanceof HTMLButtonElement))
@@ -1628,6 +1645,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     deconResultPlaceholder.hidden = true;
     deconResultContent.hidden = false;
     deconHasActionableResults = false;
+    announce('분석이 완료되었습니다. 결과를 확인하세요.');
     deconResultContent.querySelector('.decon-summary')?.remove();
 
     const filterChipsContainer = document.querySelector('[data-decon-filter-chips]');
@@ -1971,8 +1989,20 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   });
 
   itemNameInput?.addEventListener('keydown', (event) => {
-    if (event instanceof KeyboardEvent && event.key === 'Escape') {
-      hideItemSuggestions();
+    if (event instanceof KeyboardEvent) {
+      if (
+        _handleSuggestionKeydown(event, {
+          itemNameInput,
+          itemSuggestions,
+          findItemById: (id) => itemIndex.find((i) => i.id === id),
+          onSelectItem: (item) => selectSuggestedItem(item),
+        })
+      ) {
+        return;
+      }
+      if (event.key === 'Escape') {
+        hideItemSuggestions();
+      }
     }
   });
 
@@ -2642,7 +2672,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   :global(.manual-item-option:hover),
   :global(.manual-item-option:focus-visible) {
     border-color: var(--green);
-    outline: none;
+    outline: 2px solid var(--green);
+    outline-offset: 2px;
   }
 
   :global(.manual-item-icon) {
@@ -2739,9 +2770,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   }
 
   .item-suggestion-menu :global(.item-suggestion-option:hover),
-  .item-suggestion-menu :global(.item-suggestion-option:focus-visible) {
+  .item-suggestion-menu :global(.item-suggestion-option:focus-visible),
+  .item-suggestion-menu :global(.item-suggestion-option--focused) {
     border-color: var(--green);
-    outline: none;
+    outline: 2px solid var(--green);
+    outline-offset: 2px;
   }
 
   .item-suggestion-menu :global(.item-suggestion-icon) {
@@ -2862,7 +2895,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   :global(.selected-item-line--item-level) {
     min-height: 16px;
     line-height: 16px;
-    color: #c28b39;
+    color: #e0a84c;
   }
 
   :global(.selected-item-line strong) {
@@ -2895,7 +2928,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   }
 
   :global(.job-chip--inactive) {
-    color: #888;
+    color: #b0b0b0;
   }
 
   .field-header {
@@ -3177,7 +3210,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   :global(.chaos-stepper-btn:focus-visible) {
     border-color: var(--green);
     background: var(--surface-soft);
-    outline: none;
+    outline: 2px solid var(--green);
+    outline-offset: 2px;
   }
 
   :global(.chaos-stepper-value) {
@@ -3570,7 +3604,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   .ev-start-btn:hover,
   .ev-start-btn:focus-visible {
     opacity: 0.85;
-    outline: none;
+    outline: 2px solid var(--green);
+    outline-offset: 2px;
   }
 
   .ev-start-btn:disabled {
@@ -4486,15 +4521,13 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     border-color: var(--green);
   }
 
-  :global(.decon-confirm-overlay) {
-    position: fixed;
-    inset: 0;
+  :global(dialog.decon-confirm-dialog) {
+    border: none;
+    margin: auto;
+  }
+
+  :global(dialog.decon-confirm-dialog)::backdrop {
     background: rgba(0, 0, 0, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    isolation: isolate;
   }
 
   :global(.decon-confirm-dialog) {
@@ -4767,16 +4800,14 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     display: none;
   }
 
-  /* Slot picker overlay */
-  :global(.slot-picker-overlay) {
-    position: fixed;
-    inset: 0;
+  /* Slot picker dialog */
+  :global(dialog.slot-picker-dialog) {
+    border: none;
+    margin: auto;
+  }
+
+  :global(dialog.slot-picker-dialog)::backdrop {
     background: rgba(0, 0, 0, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1001;
-    isolation: isolate;
   }
 
   :global(.slot-picker-dialog) {

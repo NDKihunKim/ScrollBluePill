@@ -10,11 +10,12 @@ export function showEvConfirmationDialog(
     cancelLabel = CANCEL_BUTTON_TEXT,
   } = {},
 ) {
-  const overlay = document.createElement('div');
-  overlay.className = 'ev-confirm-overlay';
+  const returnEl = document.activeElement;
 
-  const dialog = document.createElement('div');
+  const dialog = document.createElement('dialog');
   dialog.className = 'ev-confirm-dialog';
+  dialog.setAttribute('role', 'alertdialog');
+  dialog.setAttribute('aria-label', message);
 
   const msg = document.createElement('p');
   msg.textContent = message;
@@ -25,18 +26,22 @@ export function showEvConfirmationDialog(
   const confirmBtn = document.createElement('button');
   confirmBtn.textContent = confirmLabel;
   confirmBtn.addEventListener('click', () => {
-    overlay.remove();
+    dialog.close();
+    dialog.remove();
+    if (returnEl instanceof HTMLElement) returnEl.focus();
     onConfirm();
   });
 
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = cancelLabel;
   cancelBtn.addEventListener('click', () => {
-    overlay.remove();
+    dialog.close();
+    dialog.remove();
+    if (returnEl instanceof HTMLElement) returnEl.focus();
   });
 
   buttonRow.append(confirmBtn, cancelBtn);
   dialog.append(msg, buttonRow);
-  overlay.append(dialog);
-  document.body.append(overlay);
+  document.body.append(dialog);
+  dialog.showModal();
 }

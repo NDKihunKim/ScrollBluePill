@@ -1,8 +1,30 @@
 // ---- Confirmation + slot save dialogs for deconstruction page ----
 
 /**
- * Generic confirmation overlay. Creates its own DOM, appends to body.
- * Removes itself on confirm or cancel.
+ * Create a native <dialog> element as the base for all dialogs.
+ * @param {string} className - CSS class for the dialog
+ * @param {string} ariaLabel - Accessible label
+ * @returns {{ dialog: HTMLDialogElement, returnEl: Element | null }}
+ */
+function createDialog(className, ariaLabel) {
+  const returnEl = document.activeElement;
+  const dialog = document.createElement('dialog');
+  dialog.className = className;
+  dialog.setAttribute('aria-label', ariaLabel);
+  return { dialog, returnEl };
+}
+
+/**
+ * Dismiss a dialog: close, remove from DOM, and restore focus.
+ */
+function dismissDialog(dialog, returnEl) {
+  dialog.close();
+  dialog.remove();
+  if (returnEl instanceof HTMLElement) returnEl.focus();
+}
+
+/**
+ * Generic confirmation dialog using native <dialog>.
  */
 export function showDeconConfirmDialog({
   message,
@@ -11,11 +33,7 @@ export function showDeconConfirmDialog({
   onConfirm,
   onCancel,
 } = {}) {
-  const overlay = document.createElement('div');
-  overlay.className = 'decon-confirm-overlay';
-
-  const dialog = document.createElement('div');
-  dialog.className = 'decon-confirm-dialog';
+  const { dialog, returnEl } = createDialog('decon-confirm-dialog', message);
 
   const msg = document.createElement('p');
   msg.textContent = message;
@@ -26,21 +44,21 @@ export function showDeconConfirmDialog({
   const confirmBtn = document.createElement('button');
   confirmBtn.textContent = confirmLabel;
   confirmBtn.addEventListener('click', () => {
-    overlay.remove();
+    dismissDialog(dialog, returnEl);
     if (onConfirm) onConfirm();
   });
 
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = cancelLabel;
   cancelBtn.addEventListener('click', () => {
-    overlay.remove();
+    dismissDialog(dialog, returnEl);
     if (onCancel) onCancel();
   });
 
   buttonRow.append(confirmBtn, cancelBtn);
   dialog.append(msg, buttonRow);
-  overlay.append(dialog);
-  document.body.append(overlay);
+  document.body.append(dialog);
+  dialog.showModal();
 }
 
 /** Shortcut for the "reset all" confirmation. */
@@ -65,7 +83,7 @@ export function showDeconItemChangeDialog(onConfirm) {
 }
 
 /**
- * Slot save picker overlay — lets the user pick which slot to save into.
+ * Slot save picker dialog — lets the user pick which slot to save into.
  * Calls onSlotChanged() after any save, replace, or delete.
  */
 export function showDeconSavePicker({
@@ -82,11 +100,7 @@ export function showDeconSavePicker({
   if (!state) return;
 
   const slots = readSlots('deconstruction');
-  const overlay = document.createElement('div');
-  overlay.className = 'slot-picker-overlay';
-
-  const dialog = document.createElement('div');
-  dialog.className = 'slot-picker-dialog';
+  const { dialog, returnEl } = createDialog('slot-picker-dialog', '저장할 슬롯 선택');
 
   const title = document.createElement('h3');
   title.textContent = '저장할 슬롯 선택';
@@ -98,10 +112,13 @@ export function showDeconSavePicker({
   for (let i = 0; i < MAX_SLOTS; i++) {
     const s = slots[i];
     const cell = document.createElement('div');
+    cell.setAttribute('role', 'button');
+    cell.setAttribute('tabindex', '0');
     cell.className = s
       ? 'slot-picker-slot slot-picker-slot--filled'
       : 'slot-picker-slot slot-picker-slot--empty';
     if (s) {
+      cell.setAttribute('aria-label', `${s.item.nameKo} - 덮어쓰기`);
       const icon = document.createElement('img');
       icon.src = buildItemIconUrl(s.item.iconId);
       icon.alt = s.item.nameKo;
@@ -111,7 +128,7 @@ export function showDeconSavePicker({
       name.textContent = s.item.nameKo;
       cell.append(name);
       cell.addEventListener('click', () => {
-        overlay.remove();
+        dismissDialog(dialog, returnEl);
         confirmReplaceDeconSlot({
           slotIndex: i,
           newState: state,
@@ -123,13 +140,20 @@ export function showDeconSavePicker({
         });
       });
     } else {
+      cell.setAttribute('aria-label', '빈 슬롯에 저장');
       cell.textContent = '빈 슬롯';
       cell.addEventListener('click', () => {
         saveToSlot('deconstruction', i, selectedItem, state);
-        overlay.remove();
+        dismissDialog(dialog, returnEl);
         if (onSlotChanged) onSlotChanged();
       });
     }
+    cell.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        cell.click();
+      }
+    });
     grid.append(cell);
   }
   dialog.append(grid);
@@ -138,11 +162,11 @@ export function showDeconSavePicker({
   closeBtn.type = 'button';
   closeBtn.className = 'slot-picker-close';
   closeBtn.textContent = '취소';
-  closeBtn.addEventListener('click', () => overlay.remove());
+  closeBtn.addEventListener('click', () => dismissDialog(dialog, returnEl));
   dialog.append(closeBtn);
 
-  overlay.append(dialog);
-  document.body.append(overlay);
+  document.body.append(dialog);
+  dialog.showModal();
 }
 
 /** Confirm-and-replace for an occupied slot. */
@@ -159,10 +183,10 @@ export function confirmReplaceDeconSlot({
   const existing = slots[slotIndex];
   if (!existing) return;
 
-  const overlay = document.createElement('div');
-  overlay.className = 'decon-confirm-overlay';
-  const dialog = document.createElement('div');
-  dialog.className = 'decon-confirm-dialog';
+  const { dialog, returnEl } = createDialog(
+    'decon-confirm-dialog',
+    '기존 저장된 아이템을 덮어쓰시겠습니까?',
+  );
   dialog.style.maxWidth = '500px';
 
   const msg = document.createElement('p');
@@ -209,16 +233,17 @@ export function confirmReplaceDeconSlot({
   confirmBtn.textContent = '덮어쓰기';
   confirmBtn.addEventListener('click', () => {
     saveToSlot('deconstruction', slotIndex, selectedItem, newState);
-    overlay.remove();
+    dismissDialog(dialog, returnEl);
     if (onSlotChanged) onSlotChanged();
   });
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = '취소';
-  cancelBtn.addEventListener('click', () => overlay.remove());
+  cancelBtn.addEventListener('click', () => dismissDialog(dialog, returnEl));
   buttons.append(confirmBtn, cancelBtn);
   dialog.append(buttons);
-  overlay.append(dialog);
-  document.body.append(overlay);
+
+  document.body.append(dialog);
+  dialog.showModal();
 }
 
 /** Confirm-and-delete for an occupied slot. */
@@ -233,10 +258,10 @@ export function confirmDeleteDeconSlot({
   const s = slots[slotIndex];
   if (!s) return;
 
-  const overlay = document.createElement('div');
-  overlay.className = 'decon-confirm-overlay';
-  const dialog = document.createElement('div');
-  dialog.className = 'decon-confirm-dialog';
+  const { dialog, returnEl } = createDialog(
+    'decon-confirm-dialog',
+    '저장된 아이템을 삭제하시겠습니까?',
+  );
 
   const msg = document.createElement('p');
   msg.textContent = '저장된 아이템을 삭제하시겠습니까?';
@@ -263,16 +288,17 @@ export function confirmDeleteDeconSlot({
   confirmBtn.style.color = '#fff';
   confirmBtn.addEventListener('click', () => {
     clearSlot('deconstruction', slotIndex);
-    overlay.remove();
+    dismissDialog(dialog, returnEl);
     if (onSlotChanged) onSlotChanged();
   });
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = '취소';
-  cancelBtn.addEventListener('click', () => overlay.remove());
+  cancelBtn.addEventListener('click', () => dismissDialog(dialog, returnEl));
   buttons.append(confirmBtn, cancelBtn);
   dialog.append(buttons);
-  overlay.append(dialog);
-  document.body.append(overlay);
+
+  document.body.append(dialog);
+  dialog.showModal();
 }
 
 /** Confirm unsave when the current state matches a saved slot. */
@@ -292,10 +318,10 @@ export function confirmUnsaveDeconSlot({
   const s = slots[slotIndex];
   if (!s) return;
 
-  const overlay = document.createElement('div');
-  overlay.className = 'decon-confirm-overlay';
-  const dialog = document.createElement('div');
-  dialog.className = 'decon-confirm-dialog';
+  const { dialog, returnEl } = createDialog(
+    'decon-confirm-dialog',
+    '이 설정은 슬롯에 저장되어 있습니다. 저장을 해제하시겠습니까?',
+  );
 
   const msg = document.createElement('p');
   msg.textContent = '이 설정은 슬롯에 저장되어 있습니다. 저장을 해제하시겠습니까?';
@@ -322,14 +348,15 @@ export function confirmUnsaveDeconSlot({
   confirmBtn.style.color = '#fff';
   confirmBtn.addEventListener('click', () => {
     clearSlot('deconstruction', slotIndex);
-    overlay.remove();
+    dismissDialog(dialog, returnEl);
     if (onSlotChanged) onSlotChanged();
   });
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = '취소';
-  cancelBtn.addEventListener('click', () => overlay.remove());
+  cancelBtn.addEventListener('click', () => dismissDialog(dialog, returnEl));
   buttons.append(confirmBtn, cancelBtn);
   dialog.append(buttons);
-  overlay.append(dialog);
-  document.body.append(overlay);
+
+  document.body.append(dialog);
+  dialog.showModal();
 }

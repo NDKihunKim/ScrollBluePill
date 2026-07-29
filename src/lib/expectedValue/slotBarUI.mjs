@@ -1,5 +1,28 @@
 // ---- Slot bar UI helpers for expected-value page ----
 
+/**
+ * Create a native <dialog> element as the base for all dialogs.
+ * @param {string} className - CSS class for the dialog
+ * @param {string} ariaLabel - Accessible label
+ * @returns {{ dialog: HTMLDialogElement, returnEl: Element | null }}
+ */
+function createDialog(className, ariaLabel) {
+  const returnEl = document.activeElement;
+  const dialog = document.createElement('dialog');
+  dialog.className = className;
+  dialog.setAttribute('aria-label', ariaLabel);
+  return { dialog, returnEl };
+}
+
+/**
+ * Dismiss a dialog: close, remove from DOM, and restore focus.
+ */
+function dismissDialog(dialog, returnEl) {
+  dialog.close();
+  dialog.remove();
+  if (returnEl instanceof HTMLElement) returnEl.focus();
+}
+
 export function buildEvPageState() {
   const evState = globalThis.__evState?.();
   if (!evState?.selectedBaseItem) return null;
@@ -42,13 +65,22 @@ export function renderEvSlotBar({
     const s = slots[i];
     const box = document.createElement('div');
     box.className = s ? 'item-slot item-slot--filled' : 'item-slot item-slot--empty';
+    box.setAttribute('role', 'button');
+    box.setAttribute('tabindex', '0');
     if (s) {
+      box.setAttribute('aria-label', s.item.nameKo);
       const icon = document.createElement('img');
       icon.src = buildItemIconUrl(s.item.iconId);
       icon.alt = s.item.nameKo;
       box.append(icon);
       box.title = s.item.nameKo;
       box.addEventListener('click', () => onLoadSlot(i));
+      box.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onLoadSlot(i);
+        }
+      });
 
       const xBtn = document.createElement('button');
       xBtn.type = 'button';
@@ -79,11 +111,7 @@ export function showEvSavePicker({
   if (!state) return;
 
   const slots = readSlots('expectedValue');
-  const overlay = document.createElement('div');
-  overlay.className = 'slot-picker-overlay';
-
-  const dialog = document.createElement('div');
-  dialog.className = 'slot-picker-dialog';
+  const { dialog, returnEl } = createDialog('slot-picker-dialog', '저장할 슬롯 선택');
 
   const title = document.createElement('h3');
   title.textContent = '저장할 슬롯 선택';
@@ -95,10 +123,13 @@ export function showEvSavePicker({
   for (let i = 0; i < MAX_SLOTS; i++) {
     const s = slots[i];
     const cell = document.createElement('div');
+    cell.setAttribute('role', 'button');
+    cell.setAttribute('tabindex', '0');
     cell.className = s
       ? 'slot-picker-slot slot-picker-slot--filled'
       : 'slot-picker-slot slot-picker-slot--empty';
     if (s) {
+      cell.setAttribute('aria-label', `${s.item.nameKo} - 덮어쓰기`);
       const icon = document.createElement('img');
       icon.src = buildItemIconUrl(s.item.iconId);
       icon.alt = s.item.nameKo;
@@ -108,7 +139,7 @@ export function showEvSavePicker({
       name.textContent = s.item.nameKo;
       cell.append(name);
       cell.addEventListener('click', () => {
-        overlay.remove();
+        dismissDialog(dialog, returnEl);
         confirmReplaceEvSlot({
           slotIndex: i,
           newState: state,
@@ -120,13 +151,20 @@ export function showEvSavePicker({
         });
       });
     } else {
+      cell.setAttribute('aria-label', '빈 슬롯에 저장');
       cell.textContent = '빈 슬롯';
       cell.addEventListener('click', () => {
         saveToSlot('expectedValue', i, selectedItem, state);
-        overlay.remove();
+        dismissDialog(dialog, returnEl);
         if (onSlotChanged) onSlotChanged();
       });
     }
+    cell.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        cell.click();
+      }
+    });
     grid.append(cell);
   }
   dialog.append(grid);
@@ -135,11 +173,11 @@ export function showEvSavePicker({
   closeBtn.type = 'button';
   closeBtn.className = 'slot-picker-close';
   closeBtn.textContent = '취소';
-  closeBtn.addEventListener('click', () => overlay.remove());
+  closeBtn.addEventListener('click', () => dismissDialog(dialog, returnEl));
   dialog.append(closeBtn);
 
-  overlay.append(dialog);
-  document.body.append(overlay);
+  document.body.append(dialog);
+  dialog.showModal();
 }
 
 export function confirmReplaceEvSlot({
@@ -158,10 +196,10 @@ export function confirmReplaceEvSlot({
   const existing = slots[slotIndex];
   if (!existing) return;
 
-  const overlay = document.createElement('div');
-  overlay.className = 'ev-confirm-overlay';
-  const dialog = document.createElement('div');
-  dialog.className = 'ev-confirm-dialog';
+  const { dialog, returnEl } = createDialog(
+    'ev-confirm-dialog',
+    '기존 저장된 아이템을 덮어쓰시겠습니까?',
+  );
   dialog.style.maxWidth = '500px';
 
   const msg = document.createElement('p');
@@ -208,16 +246,17 @@ export function confirmReplaceEvSlot({
   confirmBtn.textContent = '덮어쓰기';
   confirmBtn.addEventListener('click', () => {
     saveToSlot('expectedValue', slotIndex, selectedItem, newState);
-    overlay.remove();
+    dismissDialog(dialog, returnEl);
     if (onSlotChanged) onSlotChanged();
   });
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = '취소';
-  cancelBtn.addEventListener('click', () => overlay.remove());
+  cancelBtn.addEventListener('click', () => dismissDialog(dialog, returnEl));
   buttons.append(confirmBtn, cancelBtn);
   dialog.append(buttons);
-  overlay.append(dialog);
-  document.body.append(overlay);
+
+  document.body.append(dialog);
+  dialog.showModal();
 }
 
 export function confirmDeleteEvSlot({
@@ -231,10 +270,10 @@ export function confirmDeleteEvSlot({
   const s = slots[slotIndex];
   if (!s) return;
 
-  const overlay = document.createElement('div');
-  overlay.className = 'ev-confirm-overlay';
-  const dialog = document.createElement('div');
-  dialog.className = 'ev-confirm-dialog';
+  const { dialog, returnEl } = createDialog(
+    'ev-confirm-dialog',
+    '저장된 아이템을 삭제하시겠습니까?',
+  );
 
   const msg = document.createElement('p');
   msg.textContent = '저장된 아이템을 삭제하시겠습니까?';
@@ -261,16 +300,17 @@ export function confirmDeleteEvSlot({
   confirmBtn.style.color = '#fff';
   confirmBtn.addEventListener('click', () => {
     clearSlot('expectedValue', slotIndex);
-    overlay.remove();
+    dismissDialog(dialog, returnEl);
     if (onSlotChanged) onSlotChanged();
   });
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = '취소';
-  cancelBtn.addEventListener('click', () => overlay.remove());
+  cancelBtn.addEventListener('click', () => dismissDialog(dialog, returnEl));
   buttons.append(confirmBtn, cancelBtn);
   dialog.append(buttons);
-  overlay.append(dialog);
-  document.body.append(overlay);
+
+  document.body.append(dialog);
+  dialog.showModal();
 }
 
 export function confirmUnsaveEvSlot({
@@ -289,10 +329,10 @@ export function confirmUnsaveEvSlot({
   const s = slots[slotIndex];
   if (!s) return;
 
-  const overlay = document.createElement('div');
-  overlay.className = 'ev-confirm-overlay';
-  const dialog = document.createElement('div');
-  dialog.className = 'ev-confirm-dialog';
+  const { dialog, returnEl } = createDialog(
+    'ev-confirm-dialog',
+    '이 설정은 슬롯에 저장되어 있습니다. 저장을 해제하시겠습니까?',
+  );
 
   const msg = document.createElement('p');
   msg.textContent = '이 설정은 슬롯에 저장되어 있습니다. 저장을 해제하시겠습니까?';
@@ -319,14 +359,15 @@ export function confirmUnsaveEvSlot({
   confirmBtn.style.color = '#fff';
   confirmBtn.addEventListener('click', () => {
     clearSlot('expectedValue', slotIndex);
-    overlay.remove();
+    dismissDialog(dialog, returnEl);
     if (onSlotChanged) onSlotChanged();
   });
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = '취소';
-  cancelBtn.addEventListener('click', () => overlay.remove());
+  cancelBtn.addEventListener('click', () => dismissDialog(dialog, returnEl));
   buttons.append(confirmBtn, cancelBtn);
   dialog.append(buttons);
-  overlay.append(dialog);
-  document.body.append(overlay);
+
+  document.body.append(dialog);
+  dialog.showModal();
 }

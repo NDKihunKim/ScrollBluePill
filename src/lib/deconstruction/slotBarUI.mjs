@@ -71,13 +71,22 @@ export function renderDeconSlotBar({
     const s = slots[i];
     const box = document.createElement('div');
     box.className = s ? 'item-slot item-slot--filled' : 'item-slot item-slot--empty';
+    box.setAttribute('role', 'button');
+    box.setAttribute('tabindex', '0');
     if (s) {
+      box.setAttribute('aria-label', s.item.nameKo);
       const icon = document.createElement('img');
       icon.src = buildItemIconUrl(s.item.iconId);
       icon.alt = s.item.nameKo;
       box.append(icon);
       box.title = s.item.nameKo;
       box.addEventListener('click', () => onLoadSlot(i));
+      box.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onLoadSlot(i);
+        }
+      });
 
       const xBtn = document.createElement('button');
       xBtn.type = 'button';

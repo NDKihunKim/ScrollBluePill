@@ -16,6 +16,7 @@ import { initMakerPanel } from './makerPanel.mjs';
 import { initItemLevelUpPanel } from './itemLevelUpPanel.mjs';
 import { buildItemIconUrl } from './maplestoryIo.mjs';
 import { CHAOS_SCROLL_ICON_ID } from './makerData.mjs';
+import { showEvConfirmationDialog } from './expectedValue/dialogs.mjs';
 
 export function initEnhancementPanel(renderEnhancedItemCard) {
   const enhancementPanel = document.querySelector('[data-enhancement-panel]');
@@ -975,24 +976,7 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       return;
     }
 
-    // Confirmation dialog
-    const overlay = document.createElement('div');
-    overlay.className = 'ev-confirm-overlay';
-
-    const dialog = document.createElement('div');
-    dialog.className = 'ev-confirm-dialog';
-
-    const msg = document.createElement('p');
-    msg.textContent = '모든 강화 설정과 계산 결과가 초기화됩니다. 계속하시겠습니까?';
-
-    const buttonRow = document.createElement('div');
-    buttonRow.className = 'ev-confirm-buttons';
-
-    const confirmBtn = document.createElement('button');
-    confirmBtn.textContent = '초기화';
-    confirmBtn.addEventListener('click', () => {
-      overlay.remove();
-
+    showEvConfirmationDialog(() => {
       resetState(enhancementState);
       collapseChaosPanel();
       chaosStepperValues = new Map();
@@ -1013,18 +997,10 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       if (typeof window.__evOpenCalcPanel === 'function') {
         window.__evOpenCalcPanel();
       }
+    }, {
+      message: '모든 강화 설정과 계산 결과가 초기화됩니다. 계속하시겠습니까?',
+      confirmLabel: '초기화',
     });
-
-    const cancelBtn = document.createElement('button');
-    cancelBtn.textContent = '취소';
-    cancelBtn.addEventListener('click', () => {
-      overlay.remove();
-    });
-
-    buttonRow.append(confirmBtn, cancelBtn);
-    dialog.append(msg, buttonRow);
-    overlay.append(dialog);
-    document.body.append(overlay);
   });
 
   const sortScrollList = (list) => {

@@ -43,6 +43,7 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
     </script>
   </head>
   <body>
+    <a href="#main-content" class="skip-link">콘텐츠로 건너뛰기</a>
     <header class="site-header">
       <a class="brand" href="/" aria-label={`${site.name} 홈`}>
         <span class="brand-mark">S</span>
@@ -70,7 +71,7 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
         </nav>
       </div>
     </header>
-    <main>
+    <main id="main-content">
       <slot />
     </main>
     <footer class="site-footer">
@@ -166,6 +167,37 @@ const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
       BlinkMacSystemFont,
       'Segoe UI',
       sans-serif;
+  }
+
+  .skip-link {
+    position: absolute;
+    top: -100%;
+    left: 8px;
+    z-index: 10000;
+    padding: 8px 16px;
+    background: var(--ink);
+    color: var(--bg);
+    font-weight: 700;
+    border-radius: 0 0 8px 8px;
+    text-decoration: none;
+  }
+
+  .skip-link:focus-visible {
+    top: 0;
+    outline: 2px solid var(--green);
+    outline-offset: 2px;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   :root[data-theme='dark'] {
