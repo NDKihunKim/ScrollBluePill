@@ -2307,11 +2307,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   });
 
   deconStimulantSource?.addEventListener('change', () => {
-    if (deconStimulantSource.checked && deconSlotState.remainingSlots === deconSlotState.maxSlots) {
-      deconStimulantSource.checked = false;
-      showSlotRequiredWarning();
-      return;
-    }
     guardCheckboxMutation(deconStimulantSource, guardDeconMutation, () => {
       toggleSourceSub(deconStimulantSource, deconStimulantBounds, () => {
         buildStimulantBounds();
@@ -2321,11 +2316,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   });
 
   deconGemsSource?.addEventListener('change', () => {
-    if (deconGemsSource.checked && deconSlotState.remainingSlots === deconSlotState.maxSlots) {
-      deconGemsSource.checked = false;
-      showSlotRequiredWarning();
-      return;
-    }
     guardCheckboxMutation(deconGemsSource, guardDeconMutation, () => {
       toggleSourceSub(deconGemsSource, deconGemSub, () => {
         deconGemFilter = null;
@@ -2339,11 +2329,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   });
 
   deconItemLevelUpSource?.addEventListener('change', () => {
-    if (deconItemLevelUpSource.checked && deconSlotState.remainingSlots === deconSlotState.maxSlots) {
-      deconItemLevelUpSource.checked = false;
-      showSlotRequiredWarning();
-      return;
-    }
     guardCheckboxMutation(deconItemLevelUpSource, guardDeconMutation, () => {
       toggleSourceSub(deconItemLevelUpSource, deconLevelSlotRanges, () => {
         buildLevelUpEditors();
@@ -3646,12 +3631,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   }
   .decon-source-message {
     margin: 0 0 8px;
-    padding: 8px 12px;
-    color: #a01a1a;
-    background: #fdf0ef;
-    border: 1px solid #f5c6cb;
-    border-radius: 6px;
-    font-size: 0.82rem;
+    color: #d6453d;
+    font-size: 0.76rem;
     font-weight: 650;
     line-height: 1.35;
   }
