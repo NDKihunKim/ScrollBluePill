@@ -23,8 +23,8 @@ function dismissDialog(dialog, returnEl) {
   if (returnEl instanceof HTMLElement) returnEl.focus();
 }
 
-export function buildEvPageState() {
-  const evState = globalThis.__evState?.();
+export function buildEvPageState(getEvState) {
+  const evState = (typeof getEvState === 'function' ? getEvState() : globalThis.__evState?.());
   if (!evState?.selectedBaseItem) return null;
   return {
     itemId: evState.selectedBaseItem.id,

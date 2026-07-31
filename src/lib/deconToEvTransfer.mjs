@@ -143,17 +143,24 @@ export function serializeDeconStrategy(strategy, itemId, { totalAppliedScrolls }
         ...(s.isAggregate ? { isAggregate: true, aggregateCount: s.aggregateCount } : {}),
       })),
       totalAppliedScrolls: totalApplied,
-      stimulant: strategy.stimulant ? { stats: { ...strategy.stimulant.stats } } : null,
+      stimulant: strategy.stimulant
+        ? {
+            stats: { ...strategy.stimulant.stats },
+            ...(strategy.stimulant.mode != null ? { mode: strategy.stimulant.mode } : {}),
+          }
+        : null,
       gems: (strategy.gems ?? []).map((g) => ({
         gemKey: g.gemKey,
         nameKo: g.nameKo,
         gradeIndex: g.gradeIndex,
         stats: { ...g.stats },
+        ...(g.mode != null ? { mode: g.mode } : {}),
       })),
       itemLevelUp: strategy.itemLevelUp
         ? {
             levelCount: strategy.itemLevelUp.levelCount,
             stats: { ...strategy.itemLevelUp.stats },
+            ...(strategy.itemLevelUp.mode != null ? { mode: strategy.itemLevelUp.mode } : {}),
             ...(strategy.itemLevelUp.appliedLevelCount != null
               ? {
                   appliedLevelCount: strategy.itemLevelUp.appliedLevelCount,
@@ -206,7 +213,7 @@ export function consumeDeconTransfer() {
     if (!raw) return null;
 
     const payload = JSON.parse(raw);
-    if (!payload || payload.v !== 1 || !Number.isInteger(payload.itemId)) {
+    if (!payload || !payload.v || payload.v < 1 || !Number.isInteger(payload.itemId)) {
       return null;
     }
 
@@ -309,7 +316,7 @@ export function buildEnhancementStateFromStrategy(strategy, item, levelUpDefinit
         gemKey: gem.gemKey,
         gradeIndex: gem.gradeIndex,
         stats: { ...gem.stats },
-        mode: 'manual',
+        mode: gem.mode ?? 'manual',
       };
     }
   }
@@ -320,7 +327,7 @@ export function buildEnhancementStateFromStrategy(strategy, item, levelUpDefinit
 
   // ── Stimulant slot ─────────────────────────────────────────────────
   const stimulantSlot = hasStimulant
-    ? { stats: { ...strategy.stimulant.stats }, mode: 'manual' }
+    ? { stats: { ...strategy.stimulant.stats }, mode: strategy.stimulant.mode ?? 'manual' }
     : null;
 
   // ── Item level-up slots ────────────────────────────────────────────
@@ -371,6 +378,6 @@ export function buildEnhancementStateFromStrategy(strategy, item, levelUpDefinit
     stimulantSlot,
     itemLevelUpSlots,
     itemLevelUpSlotCount: maxLevelUps,
-    itemLevelUpMode: 'manual',
+    itemLevelUpMode: strategy.itemLevelUp?.mode ?? 'manual',
   };
 }

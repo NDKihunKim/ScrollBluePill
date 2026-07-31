@@ -12,6 +12,10 @@
 /** sessionStorage key for the auto-save payload. */
 const SESSION_KEY = 'deconSession:v1';
 
+/** Separate key for the heavy result payload — isolated so quota
+ *  overflow in the result does not kill the lightweight draft state. */
+const RESULT_KEY = 'deconResult:v1';
+
 /**
  * Save the full deconstruction page state to sessionStorage.
  *
@@ -43,7 +47,7 @@ export function loadDeconSession() {
     if (!raw) return null;
 
     const payload = JSON.parse(raw);
-    if (!payload || payload.v !== 1) {
+    if (!payload || !payload.v || payload.v < 1) {
       sessionStorage.removeItem(SESSION_KEY);
       return null;
     }
@@ -66,6 +70,38 @@ export function loadDeconSession() {
 export function clearDeconSession() {
   try {
     sessionStorage.removeItem(SESSION_KEY);
+  } catch {
+    // best effort
+  }
+}
+
+/**
+ * Read the saved deconstruction result from sessionStorage (separate key).
+ * Does NOT consume the entry.
+ * @returns {object|null} The parsed result object, or null if absent or invalid
+ */
+export function loadDeconResult() {
+  try {
+    const raw = sessionStorage.getItem(RESULT_KEY);
+    if (!raw) return null;
+    const payload = JSON.parse(raw);
+    if (!payload || !payload.v || payload.v < 1) {
+      sessionStorage.removeItem(RESULT_KEY);
+      return null;
+    }
+    return payload.result ?? null;
+  } catch {
+    try { sessionStorage.removeItem(RESULT_KEY); } catch { /* best effort */ }
+    return null;
+  }
+}
+
+/**
+ * Remove the saved deconstruction result from sessionStorage.
+ */
+export function clearDeconResult() {
+  try {
+    sessionStorage.removeItem(RESULT_KEY);
   } catch {
     // best effort
   }
@@ -144,7 +180,18 @@ export function saveDeconTransferSession({
           ? sourceInputs.itemLevelUp.checked
           : false,
     },
-    result: window.__lastDeconResult ?? null,
     scrollPosition: window.scrollY,
   });
+
+  // Save the heavy result payload to a separate key — best-effort only.
+  // If the result exceeds the sessionStorage quota, the lightweight draft
+  // state (saved above) is unaffected.
+  const result = window.__lastDeconResult;
+  if (result) {
+    try {
+      sessionStorage.setItem(RESULT_KEY, JSON.stringify({ v: 1, result }));
+    } catch {
+      // quota exceeded — draft state already saved, silently ok
+    }
+  }
 }

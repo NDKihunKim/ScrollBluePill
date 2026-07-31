@@ -18,7 +18,16 @@ import { buildItemIconUrl } from './maplestoryIo.mjs';
 import { CHAOS_SCROLL_ICON_ID } from './makerData.mjs';
 import { showEvConfirmationDialog } from './expectedValue/dialogs.mjs';
 
-export function initEnhancementPanel(renderEnhancedItemCard) {
+/**
+ * @param {function} renderEnhancedItemCard
+ * @param {object} host — callbacks provided by the page (explicit contract
+ *   instead of window.__ev* lookups)
+ * @param {function} host.guardMutation
+ * @param {function} host.clear
+ * @param {function} host.openCalcPanel
+ * @param {function} [host.refresh]
+ */
+export function initEnhancementPanel(renderEnhancedItemCard, host = {}) {
   const enhancementPanel = document.querySelector('[data-enhancement-panel]');
   const enhancementDormant = enhancementPanel?.querySelector('[data-enhancement-dormant]');
   const enhancementActive = enhancementPanel?.querySelector('[data-enhancement-active]');
@@ -61,8 +70,8 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
   const itemLevelUpEditor = enhancementPanel?.querySelector('[data-item-level-up-editor]');
 
   const requestEnhancementMutation = (mutation) => {
-    if (typeof window.__evGuardEnhancementMutation === 'function') {
-      window.__evGuardEnhancementMutation(mutation);
+    if (typeof host.guardMutation === 'function') {
+      host.guardMutation(mutation);
       return;
     }
     mutation();
@@ -989,13 +998,13 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
       notifyEv();
 
       // Clear EV results panel
-      if (typeof window.__evClear === 'function') {
-        window.__evClear();
+      if (typeof host.clear === 'function') {
+        host.clear();
       }
 
       // Re-render calc panel target selection for the reset state
-      if (typeof window.__evOpenCalcPanel === 'function') {
-        window.__evOpenCalcPanel();
+      if (typeof host.openCalcPanel === 'function') {
+        host.openCalcPanel();
       }
     }, {
       message: '모든 강화 설정과 계산 결과가 초기화됩니다. 계속하시겠습니까?',
@@ -1168,8 +1177,8 @@ export function initEnhancementPanel(renderEnhancedItemCard) {
    */
   const notifyEv = () => {
     currentGradeColor = computeGradeColor(enhancementState);
-    if (typeof window.__evRefresh === 'function') {
-      window.__evRefresh();
+    if (typeof host.refresh === 'function') {
+      host.refresh();
     }
   };
 

@@ -158,70 +158,35 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
                   </div>
                   <div class="input-row field-block level-range-block">
                     <span class="field-label">아이템 요구 레벨</span>
-                    <div class="level-range-control">
-                      <span class="level-stepper">
-                        <button
-                          type="button"
-                          class="step-button"
-                          data-level-bound="min"
-                          data-level-step="-5"
-                          aria-label="최소 요구 레벨 5 감소"
-                        >
-                          -5
-                        </button>
-                        <input
-                          type="number"
-                          name="requiredLevelMin"
-                          value="0"
-                          min="0"
-                          step="5"
-                          inputmode="numeric"
-                          aria-label="최소 요구 레벨"
-                          data-level-input
-                          data-level-min-input
-                        />
-                        <button
-                          type="button"
-                          class="step-button"
-                          data-level-bound="min"
-                          data-level-step="5"
-                          aria-label="최소 요구 레벨 5 증가"
-                        >
-                          +5
-                        </button>
+                    <div class="level-range-control" data-level-range-slider>
+                      <input
+                        type="number"
+                        name="requiredLevelMin"
+                        value="0"
+                        min="0"
+                        max="200"
+                        step="5"
+                        inputmode="numeric"
+                        aria-label="최소 요구 레벨"
+                        data-level-input
+                        data-level-min-input
+                      />
+                      <span class="dual-range">
+                        <input type="range" min="0" max="200" step="5" value="0" aria-label="최소 요구 레벨" />
+                        <input type="range" min="0" max="200" step="5" value="200" aria-label="최대 요구 레벨" />
                       </span>
-                      <span class="level-range-separator" aria-hidden="true">-</span>
-                      <span class="level-stepper">
-                        <button
-                          type="button"
-                          class="step-button"
-                          data-level-bound="max"
-                          data-level-step="-5"
-                          aria-label="최대 요구 레벨 5 감소"
-                        >
-                          -5
-                        </button>
-                        <input
-                          type="number"
-                          name="requiredLevelMax"
-                          value="200"
-                          min="0"
-                          step="5"
-                          inputmode="numeric"
-                          aria-label="최대 요구 레벨"
-                          data-level-input
-                          data-level-max-input
-                        />
-                        <button
-                          type="button"
-                          class="step-button"
-                          data-level-bound="max"
-                          data-level-step="5"
-                          aria-label="최대 요구 레벨 5 증가"
-                        >
-                          +5
-                        </button>
-                      </span>
+                      <input
+                        type="number"
+                        name="requiredLevelMax"
+                        value="200"
+                        min="0"
+                        max="200"
+                        step="5"
+                        inputmode="numeric"
+                        aria-label="최대 요구 레벨"
+                        data-level-input
+                        data-level-max-input
+                      />
                     </div>
                   </div>
                   <div class="manual-item-results" data-manual-item-results hidden></div>
@@ -398,6 +363,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
       <aside class="panel" aria-label="아이템 미리보기">
         <h2>아이템 미리보기</h2>
+        <p class="slot-bar-label">저장 슬롯</p>
         <div class="item-slot-bar" data-decon-slot-bar></div>
         <p class="enhancement-placeholder" data-item-placeholder>아이템을 선택해주세요</p>
         <div data-selected-item-card-wrapper style="position:relative;">
@@ -513,6 +479,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   } from '../lib/deconstruction/slotBarUI.mjs';
   import { debug } from '../lib/debug.mjs';
   import { trackEvent, trackError } from '../lib/beacon.mjs';
+  import { initLevelRangeSlider } from '../lib/levelRangeSlider.mjs';
   import { buildStimulantBoundsEditor } from '../lib/deconstruction/stimulantBoundsEditor.mjs';
   import { buildChaosBoundsEditor } from '../lib/deconstruction/chaosBoundsEditor.mjs';
   import { buildGemPreFilter } from '../lib/deconstruction/gemPreFilterUI.mjs';
@@ -565,6 +532,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   const levelMaxInput = form?.querySelector('[data-level-max-input]');
   const stepButtons = form?.querySelectorAll('[data-level-step]');
   const equipmentInput = form?.querySelector('[data-equipment-kind]');
+
+  // Init dual-range slider for level range
+  const levelRangeSlider = document.querySelector('[data-level-range-slider]');
+  if (levelRangeSlider instanceof HTMLElement) initLevelRangeSlider(levelRangeSlider);
   const equipmentDropdown = form?.querySelector('[data-equipment-dropdown]');
   const equipmentTrigger = form?.querySelector('[data-equipment-trigger]');
   const equipmentTriggerLabel = form?.querySelector('[data-equipment-trigger-label]');
@@ -1562,6 +1533,15 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       deconResultPlaceholder.textContent = '전략을 계산하고 있습니다…';
     }
 
+    // Safety timeout: if computation hangs, restore the button after 30s
+    const safetyTimer = setTimeout(() => {
+      if (deconAnalyzeBtn instanceof HTMLButtonElement) {
+        deconAnalyzeBtn.textContent = '분석 시작';
+        deconAnalyzeBtn.disabled = false;
+      }
+      deconResultPlaceholder?.classList.remove('loading');
+    }, 10_000);
+
     const equipmentKind = selectedItem.equipmentKind;
     const checkedKeys = getCheckedTargetKeys();
 
@@ -1670,6 +1650,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       if (deconResultContent instanceof HTMLElement) deconResultContent.hidden = true;
       trackError(err?.message ?? 'runAnalysis failed', 'deconstruction.astro', 0, 0, err);
     } finally {
+      clearTimeout(safetyTimer);
       // Clear loading state
       if (deconAnalyzeBtn instanceof HTMLButtonElement) {
         deconAnalyzeBtn.textContent = '분석 시작';
@@ -2074,7 +2055,14 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       )
         return;
       const activeMode = form?.querySelector('.segment.active');
-      if (!activeMode) return;
+      if (!activeMode) {
+        const seg = form?.querySelector('.segmented-control');
+        if (seg instanceof HTMLElement) {
+          seg.classList.add('segmented-control--hint');
+          seg.addEventListener('animationend', () => seg.classList.remove('segmented-control--hint'), { once: true });
+        }
+        return;
+      }
       const willOpen = equipmentMenu.hidden;
       equipmentMenu.hidden = !willOpen;
       equipmentTrigger.setAttribute('aria-expanded', String(willOpen));
@@ -2691,27 +2679,26 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     background: var(--surface-soft);
   }
 
-  .level-stepper {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: 6px;
-  }
-
   .level-range-control {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-columns: 60px minmax(0, 1fr) 60px;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
   }
 
-  .level-stepper input {
+  .level-range-control input[type='number'] {
+    width: 100%;
     min-width: 0;
     text-align: center;
   }
 
-  .level-range-separator {
-    color: var(--muted);
-    font-weight: 800;
+  .level-range-control input[type='number']::-webkit-inner-spin-button,
+  .level-range-control input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .level-range-control input[type='number'] {
+    -moz-appearance: textfield;
   }
 
   :global(.manual-item-results) {
@@ -2732,6 +2719,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     font-size: 0.88rem;
     font-weight: 600;
     line-height: 1.4;
+  }
+  :root[data-theme='dark'] :global(.manual-item-overflow-warning) {
+    border-color: #a68c00;
+    background: #332e00;
+    color: #ffe066;
   }
 
   :global(.manual-item-list) {
@@ -2798,6 +2790,15 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   .step-button {
     width: 42px;
     padding: 8px 0;
+    border: 1px solid var(--line);
+    background: var(--surface-soft);
+    color: var(--ink);
+    min-height: auto;
+  }
+
+  .step-button:hover {
+    border-color: rgb(1 143 199 / 35%);
+    background: rgb(1 143 199 / 22%);
   }
 
   .job-options {
@@ -3040,6 +3041,14 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   .segmented-control {
     display: inline-flex;
     gap: 6px;
+  }
+
+  .segmented-control--hint {
+    animation: seg-hint-glow 0.6s ease-in-out 3;
+  }
+  @keyframes seg-hint-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgb(1 143 199 / 0%); }
+    50%      { box-shadow: 0 0 0 4px rgb(1 143 199 / 55%); }
   }
 
   .small-button,
@@ -4375,9 +4384,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   :global(.dual-range input[type='range']) {
     position: absolute;
     top: 0;
-    /* 9px inset on each side keeps the 14px thumbs (+ 2px border)
-     inside the container when at 0% / 100%.  overflow:hidden on
-     the parent would otherwise slice them in half at the extremes. */
     left: 9px;
     width: calc(100% - 18px);
     height: 100%;
@@ -4386,6 +4392,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     appearance: none;
     background: transparent;
     border: none;
+    border-radius: 0;
     outline: none;
     box-shadow: none;
     pointer-events: none;
@@ -4756,11 +4763,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     }
 
     .level-range-control {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .level-range-separator {
-      text-align: center;
+      grid-template-columns: 52px minmax(0, 1fr) 52px;
     }
 
     aside.panel {
@@ -4771,6 +4774,13 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     }
   }
   /* Item save slots */
+  .slot-bar-label {
+    margin: 0 0 4px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 650;
+  }
+
   :global(.item-slot-bar) {
     display: flex;
     gap: 8px;

@@ -32,6 +32,7 @@ export function showDeconConfirmDialog({
   cancelLabel = '취소',
   onConfirm,
   onCancel,
+  destructive = false,
 } = {}) {
   const { dialog, returnEl } = createDialog('decon-confirm-dialog', message);
 
@@ -43,6 +44,11 @@ export function showDeconConfirmDialog({
 
   const confirmBtn = document.createElement('button');
   confirmBtn.textContent = confirmLabel;
+  if (destructive) {
+    confirmBtn.style.background = '#e74c3c';
+    confirmBtn.style.borderColor = '#e74c3c';
+    confirmBtn.style.color = '#fff';
+  }
   confirmBtn.addEventListener('click', () => {
     dismissDialog(dialog, returnEl);
     if (onConfirm) onConfirm();
@@ -67,6 +73,7 @@ export function showResetConfirmDialog(onConfirm, onCancel) {
     message: '모든 계산 설정과 분석 결과를 초기화합니다. 계속하시겠습니까?',
     confirmLabel: '초기화',
     cancelLabel: '취소',
+    destructive: true,
     onConfirm,
     onCancel,
   });
@@ -78,6 +85,7 @@ export function showDeconItemChangeDialog(onConfirm) {
     message: '아이템을 변경하면 현재 스탯 편집과 분석 결과가 초기화됩니다. 계속하시겠습니까?',
     confirmLabel: '변경',
     cancelLabel: '취소',
+    destructive: true,
     onConfirm,
   });
 }
