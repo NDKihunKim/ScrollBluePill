@@ -242,6 +242,7 @@ export function consumeDeconTransfer() {
 
     return payload;
   } catch {
+    try { localStorage.removeItem(DECON_TO_EV_KEY); } catch { /* ignore */ }
     return null;
   }
 }

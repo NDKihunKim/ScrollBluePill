@@ -43,11 +43,11 @@ import {
 
 describe('itemSlotStore', () => {
 
-  test('readSlots returns 4 nulls for empty storage', () => {
+  test('readSlots returns MAX_SLOTS nulls for empty storage', () => {
     _local.clear();
     const slots = readSlots('deconstruction');
-    assert.equal(slots.length, 4);
-    assert.deepEqual(slots, [null, null, null, null]);
+    assert.equal(slots.length, 5);
+    assert.deepEqual(slots, [null, null, null, null, null]);
   });
 
   test('saveToSlot and readSlots round-trip', () => {
@@ -70,7 +70,7 @@ describe('itemSlotStore', () => {
   test('saveToSlot rejects out-of-bounds indices', () => {
     const item = { id: 1, nameKo: 'X', equipmentKind: '장갑', requiredLevel: 30 };
     assert.equal(saveToSlot('deconstruction', -1, item, {}), false);
-    assert.equal(saveToSlot('deconstruction', 4, item, {}), false);
+    assert.equal(saveToSlot('deconstruction', 5, item, {}), false);
   });
 
   test('findMatchingSlot locates saved state', () => {
@@ -92,13 +92,13 @@ describe('itemSlotStore', () => {
 
   test('readSlots handles malformed JSON gracefully', () => {
     _local.set('itemSlots:v1:deconstruction', '{bad json');
-    assert.deepEqual(readSlots('deconstruction'), [null, null, null, null]);
+    assert.deepEqual(readSlots('deconstruction'), [null, null, null, null, null]);
   });
 
   test('readSlots normalizes shorter arrays', () => {
     _local.set('itemSlots:v1:deconstruction', JSON.stringify([{ item: { id: 1 }, savedAt: '', pageState: {} }]));
     const slots = readSlots('deconstruction');
-    assert.equal(slots.length, 4);
+    assert.equal(slots.length, 5);
     assert.ok(slots[0]);
     assert.equal(slots[1], null);
   });

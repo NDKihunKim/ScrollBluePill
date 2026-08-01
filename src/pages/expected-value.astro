@@ -305,8 +305,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       <aside class="panel" aria-label="계산 결과">
         <h2>아이템 미리보기</h2>
         <p class="slot-bar-label">저장 슬롯</p>
-        <div class="item-slot-bar" data-ev-slot-bar></div>
-        <p class="enhancement-placeholder" data-item-placeholder>아이템을 선택해주세요</p>
+        <div class="item-slot-bar slot-bar--loading" data-ev-slot-bar></div>
+        <p class="enhancement-placeholder loading" data-item-placeholder>데이터를 불러오는 중…</p>
         <div data-selected-item-card-wrapper style="position:relative;" hidden>
           <button type="button" class="item-card-star" data-ev-star hidden title="슬롯에 저장"
             >☆</button
@@ -1069,12 +1069,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   syncJobButtons();
   syncItemSearchUrl();
 
-  // Show loading state while data fetches
-  if (itemPlaceholder instanceof HTMLElement) {
-    itemPlaceholder.textContent = '데이터를 불러오는 중…';
-    itemPlaceholder.classList.add('loading');
-  }
-
   fetch('/data/items-gms83-ko.json')
     .then((response) => {
       if (!response.ok) {
@@ -1104,6 +1098,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
         itemPlaceholder.classList.remove('loading');
         itemPlaceholder.textContent = '아이템을 선택해주세요';
       }
+      evSlotBar?.classList.remove('slot-bar--loading');
 
       // Check for incoming strategy transfer from deconstruction page
       const transferPayload = consumeDeconTransfer();
@@ -1126,7 +1121,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
             if (typeof window.__evOpenCalcPanel === 'function') {
               window.__evOpenCalcPanel();
               setTimeout(() => {
-                document.querySelector('.ev-start-btn')?.click();
+                document.querySelector('[data-ev-calc-start]')?.click();
                 // Auto-scroll to results after calculation renders
                 requestAnimationFrame(() => {
                   requestAnimationFrame(() => {
@@ -1149,6 +1144,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
         itemPlaceholder.classList.remove('loading');
         itemPlaceholder.textContent = '아이템을 선택해주세요';
       }
+      evSlotBar?.classList.remove('slot-bar--loading');
     });
 
   import { initEnhancementPanel } from '../lib/enhancementPanel.mjs';
@@ -1177,7 +1173,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     if (typeof window.__evOpenCalcPanel === 'function') {
       window.__evOpenCalcPanel();
       setTimeout(() => {
-        document.querySelector('.ev-start-btn')?.click();
+        document.querySelector('[data-ev-calc-start]')?.click();
         // Auto-scroll to results after calculation renders
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
@@ -1312,7 +1308,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     if (_evComputing) return;
     _evComputing = true;
 
-    const startBtn = document.querySelector('.ev-start-btn');
+    const startBtn = document.querySelector('[data-ev-calc-start]');
     if (startBtn instanceof HTMLButtonElement) {
       startBtn.disabled = true;
       startBtn.textContent = '계산 중…';
@@ -1479,7 +1475,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     } finally {
       clearTimeout(safetyTimer);
       _evComputing = false;
-      const btn = document.querySelector('.ev-start-btn');
+      const btn = document.querySelector('[data-ev-calc-start]');
       if (btn instanceof HTMLButtonElement) {
         btn.disabled = false;
         btn.textContent = '계산 시작';
@@ -2437,6 +2433,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     flex-direction: column;
     gap: 14px;
     min-width: 0;
+    overflow-x: hidden;
   }
 
   aside.panel {
@@ -3443,7 +3440,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   }
   :global(.ev-confirm-dialog p) {
     margin: 0 0 16px;
-    font-size: 14px;
+    font-size: 0.88rem;
   }
   :global(.ev-confirm-buttons) {
     display: flex;
@@ -3483,12 +3480,23 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
   :global(.item-slot-bar) {
     display: flex;
+    justify-content: center;
     gap: 8px;
     margin-bottom: 10px;
   }
 
   :global(.item-slot-bar[hidden]) {
     display: none;
+  }
+
+  /* Pulse animation for empty slots while page initializes */
+  @keyframes slot-bar-pulse {
+    0%, 100% { opacity: 0.35; }
+    50% { opacity: 0.65; }
+  }
+
+  :global(.item-slot-bar.slot-bar--loading .item-slot--empty) {
+    animation: slot-bar-pulse 1.5s ease-in-out infinite;
   }
 
   :global(.item-slot) {

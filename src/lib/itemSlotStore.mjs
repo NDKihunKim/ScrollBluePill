@@ -1,7 +1,7 @@
 import { debug } from './debug.mjs';
 
 const STORAGE_PREFIX = 'itemSlots:v1:';
-export const MAX_SLOTS = 4;
+export const MAX_SLOTS = 5;
 
 /**
  * Read all slots for a page from localStorage.
