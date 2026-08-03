@@ -35,6 +35,7 @@ import { renderAttemptChart } from './chartRenderer.mjs';
 
 export const PLACEHOLDER_TEXT = '강화 목표를 설정한 뒤 기대값 계산을 눌러주세요.';
 export const NO_STRATEGY_TEXT = '현재 지원되는 방법으로는 목표 아이템을 만들 수 없습니다.';
+const THRESHOLD_UNSUPPORTED_TEXT = '아직 지원하지 않는 조합입니다';
 export const STALE_LABEL = '설정 변경됨 · 다시 계산 필요';
 export const CONFIRM_TEXT = '계산 결과가 초기화됩니다. 변경하시겠습니까?';
 export const CONFIRM_BUTTON_TEXT = '변경하기';
@@ -354,6 +355,15 @@ export function createResultUI() {
     staleLabel.hidden = true;
   }
 
+  /** Shows a message when threshold-mode computation is not yet supported. */
+  function showThresholdUnsupported() {
+    equipmentCountText.textContent = THRESHOLD_UNSUPPORTED_TEXT;
+    helpButton.hidden = true;
+    percentInput.value = '';
+    countInput.value = '';
+    staleLabel.hidden = true;
+  }
+
   /**
    * Shows a zero-success message (exact probability = 0).
    */
@@ -387,6 +397,7 @@ export function createResultUI() {
     showStale,
     hideStale,
     showNoStrategy,
+    showThresholdUnsupported,
     showZeroSuccess,
     rechart,
   };

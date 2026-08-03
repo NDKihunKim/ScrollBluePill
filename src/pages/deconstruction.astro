@@ -4878,6 +4878,20 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     transform: scale(1.12);
   }
 
+  @media (max-width: 360px) {
+    :global(.item-slot) {
+      width: 40px;
+      height: 40px;
+    }
+    :global(.item-slot img) {
+      width: 26px;
+      height: 26px;
+    }
+    :global(.item-slot-bar) {
+      gap: 4px;
+    }
+  }
+
   :global(.item-card-star) {
     position: absolute;
     top: 6px;

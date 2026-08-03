@@ -1437,7 +1437,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     try {
       if (!hasEnhancements) {
         probability = 1.0;
-      } else if (canUseExactOutcome(userStrategy)) {
+      } else if (!canUseExactOutcome(userStrategy)) {
+        evResultUI.showThresholdUnsupported();
+        evResultSummary = null;
+        return;
+      } else {
         // Exact-outcome mode: probability that every scroll produces
         // EXACTLY its user-specified stats. Direct multiplication — no DP.
         const stimulantStats = userStrategy.useStimulant
@@ -1447,12 +1451,12 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
           statFilter,
           stimulantStats,
         });
-      } else {
-        probability = 0; // DP engine removed
       }
     } catch (err) {
       debug('Expected-value computation failed:', err);
-      probability = 0;
+      evResultUI.showZeroSuccess();
+      evResultSummary = null;
+      return;
     }
 
     if (probability <= 0) {
@@ -3577,6 +3581,20 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     background: #e74c3c;
     color: #fff;
     transform: scale(1.12);
+  }
+
+  @media (max-width: 360px) {
+    :global(.item-slot) {
+      width: 40px;
+      height: 40px;
+    }
+    :global(.item-slot img) {
+      width: 26px;
+      height: 26px;
+    }
+    :global(.item-slot-bar) {
+      gap: 4px;
+    }
   }
 
   :global(.item-card-star) {

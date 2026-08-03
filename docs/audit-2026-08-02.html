@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ScrollBluePill — Third Comprehensive Audit</title>
+<style>
+  :root {
+    --bg: #f8f9fa;
+    --surface: #fff;
+    --ink: #1a1a2e;
+    --muted: #5a6870;
+    --line: #e2e8f0;
+    --red: #d6453d;
+    --orange: #d97706;
+    --blue: #2563eb;
+    --green: #059669;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Inter, Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    padding: 40px 20px;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 1.8rem; margin-bottom: 4px; }
+  h2 { font-size: 1.3rem; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--line); }
+  h3 { font-size: 1rem; margin: 24px 0 8px; }
+  .meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 32px; }
+  .finding {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .finding h4 { font-size: 1rem; margin-bottom: 4px; }
+  .severity {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-right: 8px;
+  }
+  .severity-high { background: #fdf0ef; color: var(--red); }
+  .severity-medium { background: #fff8e6; color: var(--orange); }
+  .severity-low { background: #e8f0fe; color: var(--blue); }
+  .source { color: var(--muted); font-size: 0.78rem; }
+  .detail { margin-top: 8px; font-size: 0.92rem; }
+  .detail p { margin-bottom: 6px; }
+  .detail strong { font-weight: 650; }
+  ul, ol { margin: 8px 0 0 20px; }
+  li { margin-bottom: 4px; font-size: 0.92rem; }
+  .section-header { margin-top: 40px; }
+  .top5 {
+    background: var(--surface);
+    border: 2px solid var(--green);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-top: 32px;
+  }
+  .top5 h2 { margin-top: 0; border: none; color: var(--green); }
+  .top5 ol { font-size: 1rem; }
+  .top5 li { margin-bottom: 10px; }
+  @media (max-width: 600px) { body { padding: 20px 12px; } .finding { padding: 16px; } }
+
+  .finding { position: relative; transition: opacity 0.25s; }
+  .finding-check {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    width: 22px;
+    height: 22px;
+    accent-color: var(--green);
+    cursor: pointer;
+    transform: scale(1.3);
+  }
+  .finding--done { opacity: 0.5; }
+  .finding--done h4 { text-decoration: line-through; text-decoration-color: var(--green); }
+  .finding-copy {
+    position: absolute;
+    top: 16px;
+    right: 52px;
+    width: 26px;
+    height: 26px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+    transition: background 0.15s;
+  }
+  .finding-copy:hover { background: #eef2ff; }
+  .finding-copy:active { background: #dde4ff; }
+  code { font-size: 0.85em; background: #f1f5f9; padding: 1px 5px; border-radius: 3px; }
+  .tag { display:inline-block; font-size:0.68rem; padding:1px 6px; border-radius:3px; margin-right:4px; background:#f1f5f9; color:var(--muted); }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>ScrollBluePill — Third Comprehensive Audit</h1>
+<p class="meta">2026-08-02 · Six investigation angles: bug/correctness, UI/UX friction, state-model &amp; lifecycle, code quality &amp; maintainability, performance, accessibility · 4 parallel deep-read agents + manual review, ~76 source files</p>
+
+<!-- HIGH -->
+<h2 class="section-header">HIGH SEVERITY — Fix Now</h2>
+
+<div class="finding">
+  <h4><span class="severity severity-high">high</span> EV page returns "성공 확률: 0%" for all threshold-mode strategies</h4>
+  <p class="source"><span class="tag">bug</span> Source: Bug #1, Code #1</p>
+  <div class="detail">
+    <p><strong>What:</strong> <code>runEvCalculation</code> in <code>expected-value.astro:1451</code> sets <code>probability = 0; // DP engine removed</code> whenever <code>canUseExactOutcome(userStrategy)</code> is false. This triggers on item level-up in probability mode, random gems (blackAmethyst/darkCrystal), or chaos scrolls without explicit per-stat deltas — all normal usage paths. The result UI shows "성공 확률: 0%" with zero explanation.</p>
+    <p><strong>Reproduction:</strong> EV page → select item → apply chaos scroll → 계산 시작 → "성공 확률: 0%".</p>
+    <p><strong>Fix:</strong> Either re-add the DP/threshold engine, or detect <code>!canUseExactOutcome(...)</code> up front and show "이 조합은 아직 계산을 지원하지 않습니다" instead of a fake 0%.</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-high">high</span> Deconstruction result restoration is dead code — back-navigation loses analysis</h4>
+  <p class="source"><span class="tag">state</span> Source: State #1, State #1H2</p>
+  <div class="detail">
+    <p><strong>What:</strong> <code>saveDeconTransferSession</code> writes the heavy result to a separate <code>RESULT_KEY</code> in sessionStorage. <code>loadDeconResult</code>/<code>clearDeconResult</code> are exported but <strong>never imported or called anywhere</strong>. <code>tryRestoreDeconSession</code> checks <code>saved.result</code> — but the draft payload never includes a <code>result</code> field. The entire "restore results on back-navigation" feature is unreachable. Users lose their analysis on browser Back.</p>
+    <p><strong>Fix:</strong> Call <code>loadDeconResult()</code> inside <code>tryRestoreDeconSession</code> and pass its return value as <code>saved.result</code>. Clean up <code>RESULT_KEY</code> after restore.</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-high">high</span> <code>__lastDeconResult</code> never cleared — stale results survive reset and corrupt session saves</h4>
+  <p class="source"><span class="tag">state</span> Source: State #2, State #1H2</p>
+  <div class="detail">
+    <p><strong>What:</strong> <code>window.__lastDeconResult</code> is set on every successful <code>runAnalysis</code> but never cleared — not in <code>clearDeconCalculationState</code>, not in the reset handler, not in <code>guardDeconMutation</code>. The <code>pagehide</code> handler saves it to RESULT_KEY unconditionally. Analyze item A → change to B → navigate away → B's draft saved with A's stale result.</p>
+    <p><strong>Fix:</strong> Null <code>window.__lastDeconResult</code> in every path that clears <code>deconHasActionableResults</code>: reset, item change, and clear-calculation.</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-high">high</span> Empty scroll-rate filter converted to null, silently enables ALL scrolls</h4>
+  <p class="source"><span class="tag">bug</span> Source: Bug #2, Engine</p>
+  <div class="detail">
+    <p><strong>What:</strong> <code>deconstruction.astro:1624</code> converts an empty rate-filter Set to <code>null</code>: <code>deconScrollRateFilter.size > 0 ? deconScrollRateFilter : null</code>. The engine treats <code>null</code> as "no filter" and uses every scroll, including chaos. <code>filterScrollsByRate</code> already handles empty sets correctly (<code>return []</code>).</p>
+    <p><strong>Reproduction:</strong> Uncheck all 4 rate chips (100/60/10/chaos) → 분석 시작 → results appear using scrolls the user explicitly deselected.</p>
+    <p><strong>Fix:</strong> Pass the Set through unconditionally.</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-high">high</span> <code>itemLevelUpPanel.deactivate()</code> throws TypeError — selecting 0-slot item crashes the EV panel</h4>
+  <p class="source"><span class="tag">bug</span> Source: Bug #3, Code #1</p>
+  <div class="detail">
+    <p><strong>What:</strong> <code>deactivate()</code> at <code>itemLevelUpPanel.mjs:369</code> nulls <code>enhancementState</code>, then line 386 reads <code>enhancementState.itemLevelUpSlotCount</code> → guaranteed <code>TypeError</code>. Called when selecting an item with <code>upgradeSlots &lt;= 0</code> on the EV page. The error kills the handler; the reset-button-hide path never completes. Leftover from the slot-count 4→5 centering fix.</p>
+    <p><strong>Fix:</strong> Read <code>enhancementState.itemLevelUpSlotCount</code> before nulling it, or delete lines 384–387 (the centering toggle is already done in <code>renderSlots()</code>).</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-high">high</span> No focus indicators on all dual-range sliders — keyboard users get zero visible focus</h4>
+  <p class="source"><span class="tag">a11y</span> Source: UI/UX #1</p>
+  <div class="detail">
+    <p><strong>What:</strong> <code>deconstruction.astro:4391</code> and <code>:4011</code> and <code>expected-value.astro:1681</code> all set <code>outline: none</code> on <code>input[type='range']</code> with no <code>:focus-visible</code> replacement. Keyboard users tabbing to any range slider (level range, stimulant bounds, chaos stats, scroll-count) get zero visible indication of focus.</p>
+    <p><strong>Fix:</strong> <code>input[type='range']:focus-visible { outline: 2px solid var(--green); outline-offset: 4px; }</code></p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-high">high</span> Result filter chips clipped and unreachable on mobile ≤480px</h4>
+  <p class="source"><span class="tag">ux</span> Source: UI/UX #2</p>
+  <div class="detail">
+    <p><strong>What:</strong> <code>.decon-filter-chips</code> uses <code>display: inline-flex</code> with <code>overflow: hidden</code>, chips are <code>white-space: nowrap</code>. All 6–7 chips total ~465px; at ≤480px viewport the rightmost chips (색상 등급) are cut off with no way to scroll or reach them. The grade filter is completely inaccessible on phones.</p>
+    <p><strong>Fix:</strong> <code>flex-wrap: wrap</code> or <code>overflow-x: auto</code>.</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-high">high</span> Up to 10,000 strategy cards built into DOM then pagination hides all but 5</h4>
+  <p class="source"><span class="tag">perf</span> Source: Perf #1, Code #2</p>
+  <div class="detail">
+    <p><strong>What:</strong> <code>deconstruction.astro:1743</code> renders all strategies via <code>result.strategies.forEach(...)</code> with no slicing. <code>MAX_DISPLAY_STRATEGIES = 10000</code>. Each card contains icon <code>&lt;img&gt;</code> elements and scroll tables. All 10k subtrees are constructed, then pagination hides 9,995 of them. Initial render delay and memory pressure are unnecessary.</p>
+    <p><strong>Fix:</strong> Render only the first page (5 cards) on initial display; build the rest lazily or paginate before DOM construction.</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-high">high</span> Unthrottled O(10k) DOM mutation on every slider tick</h4>
+  <p class="source"><span class="tag">perf</span> Source: Perf #2, Code #3</p>
+  <div class="detail">
+    <p><strong>What:</strong> <code>resultFilterController.applyFilters()</code> runs on every <code>input</code> event of every dual-range slider (~60/s while dragging). Each tick: iterates ALL model entries × 5 sources, <code>querySelectorAll</code>s all 10k cards, <strong>un-hides pagination-hidden cards</strong> (<code>card.hidden = !visible</code>), then <code>pagination.applyPagination(true)</code> re-hides them — another full 10k mutation pass. ~20k hidden-attribute toggles + 3 full DOM scans per drag tick.</p>
+    <p><strong>Fix:</strong> Throttle to <code>change</code> events or rAF, and make the filter pass pagination-aware so it doesn't touch pagination-hidden cards.</p>
+  </div>
+</div>
+
+<!-- MEDIUM -->
+<h2>MEDIUM SEVERITY — Fix Soon</h2>
+
+<div class="finding">
+  <h4><span class="severity severity-medium">medium</span> Engine DFS prunes valid scroll + negative-stimulant strategies</h4>
+  <p class="source"><span class="tag">bug</span> Source: Bug #4, Engine M1</p>
+  <div class="detail">
+    <p><strong>What:</strong> <code>engine.mjs:312–319</code> caps <code>maxUses</code> for a scroll based on <code>floor(remaining / delta)</code> when delta > 0, forbidding any scroll whose per-stat delta exceeds the remaining target. But <code>canReachTarget</code> explicitly models overshoot absorbed by negative corrections from stimulant bounds (min −5). E.g. target STR +5, +10 scroll, stimulant −5: <code>floor(5/10) = 0</code> → scroll skipped → the valid 1×scroll + stim(−5) strategy is never generated.</p>
+    <p><strong>Fix:</strong> Remove the <code>maxUses</code> cap and rely on <code>canReachTarget</code> for pruning, or only cap when <code>correctionBounds</code> cannot go negative for the key.</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-medium">medium</span> Chaos/level-up HP/MP ignore ×10 granularity — impossible strategies displayed as valid</h4>
+  <p class="source"><span class="tag">bug</span> Source: Bug #5, Engine M3</p>
+  <div class="detail">
+    <p><strong>What:</strong> HP/MP deltas are always multiples of 10 (enforced in the EV probability engine and UI steppers). But <code>canChaosFillResidual</code> only does range checking with no modulo-10 check, and <code>enumerateRangeVectors</code> enumerates every integer. The decon page can display strategies like "+35 maxHp from chaos" or a level-up total of 25 from 2×(10..20) — impossible in the actual game. These transfer to EV and compute 0% probability.</p>
+    <p><strong>Fix:</strong> Enforce <code>value % step === 0</code> (step 10 for HP/MP) in <code>canChaosFillResidual</code> and in the level-up total-range enumeration.</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-medium">medium</span> EV computation errors swallowed and shown as "성공 확률: 0%"</h4>
+  <p class="source"><span class="tag">bug</span> Source: Bug #6, State M5</p>
+  <div class="detail">
+    <p><strong>What:</strong> The entire EV computation body is inside a single try/catch whose catch only does <code>debug(...); probability = 0;</code>. Any shape mismatch in a restored/saved enhancement state (old save missing <code>itemLevelUpSlots</code> or <code>scrollState</code>) yields "성공 확률: 0%" with no error surfaced. No user-visible error path exists.</p>
+    <p><strong>Fix:</strong> Catch separately and show an explicit error message via the existing placeholder machinery. Also call <code>trackError</code>.</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-medium">medium</span> Transfer dedup recorded before payload applied — failed transfers lost forever</h4>
+  <p class="source"><span class="tag">state</span> Source: State #3, State M1</p>
+  <div class="detail">
+    <p><strong>What:</strong> <code>consumeDeconTransfer</code> writes <code>APPLIED_KEY</code> (sessionStorage) <strong>before</strong> the caller applies the payload. If <code>itemById.get(transferPayload.itemId)</code> is missing or <code>buildEnhancementStateFromStrategy</code> throws, the payload is dropped but marked as applied. A refresh in the same tab deduplicates it and never retries.</p>
+    <p><strong>Fix:</strong> Record <code>APPLIED_KEY</code> only after successful application — move the dedup write to after <code>__evSetState</code> succeeds.</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-medium">medium</span> <code>restoreEnhancementState</code> trusts localStorage with no validation — malformed saves crash the panel</h4>
+  <p class="source"><span class="tag">state</span> Source: State #4, State M2</p>
+  <div class="detail">
+    <p><strong>What:</strong> Enhancement state from localStorage (user-editable, possibly from older app version) is assigned wholesale without revalidation. <code>renderSlotRow</code> dereferences <code>enhancementState.scrollState.slotCount</code> with no guard; <code>runEvCalculation</code> calls <code>itemLevelUpSlots.some(...)</code> — both throw if the shape is wrong. No clamping of saved <code>slotCount</code> against the item's current <code>upgradeSlots</code>.</p>
+    <p><strong>Fix:</strong> Normalize the stored state: coerce arrays, clamp <code>slotCount</code> to the item's <code>upgradeSlots</code>, early-return on malformed shape.</p>
+  </div>
+</div>
+
+<div class="following">
+  <h4><span class="severity severity-medium">medium</span> Undefined CSS variables <code>--panel</code> and <code>--text</code> silently invalidate rules</h4>
+  <p class="source"><span class="tag">css</span> Source: UI/UX #3</p>
+  <div class="detail">
+    <p><strong>What:</strong> <code>deconstruction.astro:4353</code> uses <code>var(--panel)</code> — never defined anywhere → <code>.decon-secondary-stimulant-row</code> has no background. <code>deconstruction.astro:3871</code> uses <code>var(--text)</code> — never defined → silently inherits by accident.</p>
+    <p><strong>Fix:</strong> Replace <code>--panel</code> with <code>var(--surface-soft)</code> and <code>--text</code> with <code>var(--ink)</code>.</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-medium">medium</span> <code>--header-offset: 70px</code> but mobile header is ~106px — scroll targets land under the header</h4>
+  <p class="source"><span class="tag">ux</span> Source: UI/UX #4</p>
+  <div class="detail">
+    <p><strong>What:</strong> At ≤760px the header stacks brand + actions + nav wrapping (~106px), but <code>--header-offset</code> stays at 70px. EV page anchor jumps and deconstruction <code>scrollIntoView</code> targets land partially under the header on mobile.</p>
+    <p><strong>Fix:</strong> Increase <code>--header-offset</code> inside the <code>@media (max-width: 760px)</code> block.</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-medium">medium</span> No <code>prefers-reduced-motion</code> anywhere — animations run for all users</h4>
+  <p class="source"><span class="tag">a11y</span> Source: UI/UX #5</p>
+  <div class="detail">
+    <p><strong>What:</strong> Zero matches for <code>prefers-reduced-motion</code> in the entire codebase. The spinner, infinite <code>slot-bar-pulse</code>, <code>seg-hint-glow</code>, and every CSS transition run for vestibular-sensitive users.</p>
+    <p><strong>Fix:</strong> One global media query in <code>BaseLayout.astro</code> disabling or shortening animations.</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-medium">medium</span> Hardcoded brand blue ~40× and 4 different danger reds — no CSS variable consistency</h4>
+  <p class="source"><span class="tag">css</span> Source: UI/UX #6</p>
+  <div class="detail">
+    <p><strong>What:</strong> <code>rgb(1 143 199 / …)</code> appears ~40 times for hover/active/focus states. Four reds used for the same "danger" meaning: <code>#e74c3c</code>, <code>#c84a3f</code>, <code>#d6453d</code>, <code>#c0392b</code>. Branded blue-on-white button text contrast is ~3.6:1 — fails WCAG AA.</p>
+    <p><strong>Fix:</strong> Define <code>--danger</code> and <code>--brand</code> variables; unify the reds.</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-medium">medium</span> <code>STAT_KEY_RANK</code> defined twice with <strong>different orderings</strong></h4>
+  <p class="source"><span class="tag">code</span> Source: Code #4</p>
+  <div class="detail">
+    <p><strong>What:</strong> <code>makerData.mjs:10</code> ranks maxHp=10/maxMp=11, but <code>enhancementPanel.mjs:122</code> ranks them 6/7. Same labels sort differently depending on which map a panel imports — causing subtle visual inconsistency in stat ordering between pages.</p>
+    <p><strong>Fix:</strong> Single source of truth in <code>makerData.mjs</code>; delete the duplicate.</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-medium">medium</span> <code>statLabelByKey</code> ×3, grade thresholds ×3, stepper-row builder ×4 — massive duplication</h4>
+  <p class="source"><span class="tag">code</span> Source: Code #5, Code #1C</p>
+  <div class="detail">
+    <p><strong>What:</strong> <code>statLabelByKey</code> is byte-identical in 3 files. Grade thresholds (5/22/39/56/73) copied in 3 files. The MIN/−/value/+/MAX stepper row is built 4× with ~60 lines each (~240 lines of near-identical code). <code>chaosBoundsEditor.mjs</code> and <code>stimulantBoundsEditor.mjs</code> are ~95% identical (~130 lines each). <code>renderStimulantPanel</code> vs <code>renderItemLevelUpPanel</code> are ~90% identical. The <code>engine.mjs</code> tier ladder is copy-pasted for the level-up vs non-level-up path (~250 lines).</p>
+    <p><strong>Fix:</strong> Consolidate constants into <code>makerData.mjs</code>. Extract shared stepper builder and dual-range slider builder into utility modules.</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-medium">medium</span> ~1,500 lines of CSS duplicated between the two calculator pages — 4 drifted locations</h4>
+  <p class="source"><span class="tag">code</span> Source: Code #6, UI/UX #7</p>
+  <div class="detail">
+    <p><strong>What:</strong> Both pages reimplement <code>.item-search-*</code>, <code>.manual-item-*</code>, <code>.selected-item-card</code>, <code>.dual-range</code>, <code>.item-slot-bar</code>, <code>.slot-picker-*</code>, dialog styles, and tooltips. Already drifted in 4 places: <code>.chaos-stepper-value</code> width differs, <code>.ev-target-chip</code> missing hover on EV page, <code>.item-slot-x</code> min-width missing on EV, <code>.calculator-panel</code> has different overflow/scroll properties per page.</p>
+    <p><strong>Fix:</strong> Extract shared CSS into a single <code>&lt;style is:global&gt;</code> block imported by both pages.</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-medium">medium</span> No item search debounce — full 880KB item index scanned per keystroke</h4>
+  <p class="source"><span class="tag">perf</span> Source: Perf #3</p>
+  <div class="detail">
+    <p><strong>What:</strong> <code>itemNameInput 'input'</code> event calls <code>renderItemSuggestions</code> → <code>searchKoreanItems</code> on every keystroke. Each call does a full linear scan of the 880KB item JSON (thousands of items). No debounce or throttle.</p>
+    <p><strong>Fix:</strong> Add ~150ms debounce on the input handler.</p>
+  </div>
+</div>
+
+<!-- LOW -->
+<h2>LOW SEVERITY — Polish</h2>
+
+<div class="finding">
+  <h4><span class="severity severity-low">low</span> Stepper rows overflow/squish below ~345px viewport</h4>
+  <p class="source"><span class="tag">ux</span> Source: UI/UX #8</p>
+  <div class="detail"><p>The MIN/−/value/+/MAX row needs ~292px; available width at 320px (after band + panel padding) is ~264px. Buttons squish below their content. Allow wrapping or reduce label width at ≤380px.</p></div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-low">low</span> 28px stepper buttons and 12px slot delete buttons below 44px touch target</h4>
+  <p class="source"><span class="tag">ux</span> Source: UI/UX #9</p>
+  <div class="detail"><p>All <code>.chaos-stepper-btn</code> (28×28), <code>.item-slot-x</code>/<code>.slot-box-x</code> (12×12, hover-only reveal) fail WCAG 2.5.5. The delete buttons are also invisible on touch devices (no hover). Raise to 24px+ and show on <code>:focus-visible</code>/<code>:focus-within</code>.</p></div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-low">low</span> Dark-mode contrast failures with no overrides</h4>
+  <p class="source"><span class="tag">ux</span> Source: UI/UX #10</p>
+  <div class="detail"><p><code>.selected-item-reset</code> #c84a3f ≈ 2.6:1, <code>.decon-source-message</code> #d6453d ≈ 2.7:1, <code>.ev-stale-label</code> #d97706 ≈ 3.7:1. Add <code>:root[data-theme='dark']</code> overrides (e.g. matching the <code>.maker-stimulant-error</code> pattern).</p></div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-low">low</span> Star save button has no accessible name (☆/★ text only)</h4>
+  <p class="source"><span class="tag">a11y</span> Source: A11y #1</p>
+  <div class="detail"><p><code>deconstruction.astro:370</code>, <code>expected-value.astro:311</code>: button text is ☆/★ with only a <code>title</code> attribute. Screen readers announce the star glyph, not "save." Add <code>aria-label="슬롯에 저장"</code>.</p></div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-low">low</span> Dialog Escape handler missing — native close leaves element in DOM, focus lost</h4>
+  <p class="source"><span class="tag">a11y</span> Source: A11y #2</p>
+  <div class="detail"><p><code>showDeconConfirmDialog</code> and <code>showEvConfirmationDialog</code> have no <code>cancel</code> event listener. Pressing Escape closes the native <code>&lt;dialog&gt;</code> but never calls <code>remove()</code> or restores focus. Repeated dismissals accumulate closed dialogs in the DOM.</p></div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-low">low</span> Chaos help "?" tooltip not keyboard accessible</h4>
+  <p class="source"><span class="tag">a11y</span> Source: A11y #3</p>
+  <div class="detail"><p>The "?" icon in <code>deconstruction.astro:296–301</code> is a <code>&lt;span&gt;</code> with hover-only tooltip, no <code>tabindex</code> or <code>aria-label</code>. The maker panel's equivalent help icons correctly have <code>tabindex="0"</code> + <code>aria-label</code>.</p></div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-low">low</span> Stat editor inputs and dual-range sliders have no associated labels</h4>
+  <p class="source"><span class="tag">a11y</span> Source: A11y #4</p>
+  <div class="detail"><p><code>statEditor.mjs:117–129</code> creates <code>&lt;input type="number"&gt;</code> with the label as a sibling <code>&lt;span&gt;</code> — no <code>for</code>/<code>id</code> or <code>aria-label</code>. Same for sliders in <code>levelUpSlotEditors.mjs</code>, <code>chaosBoundsEditor.mjs</code>, <code>stimulantBoundsEditor.mjs</code>.</p></div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-low">low</span> Chart canvas has no accessible alternative</h4>
+  <p class="source"><span class="tag">a11y</span> Source: A11y #5</p>
+  <div class="detail"><p>The inverse-CDF chart in <code>expectedValuePanel.mjs:188–190</code> is a pure canvas with no <code>aria-label</code> or fallback text. Screen reader users get "graphic" with no content description.</p></div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-low">low</span> <code>alert()</code> for missing saved items — blocking native dialog</h4>
+  <p class="source"><span class="tag">ux</span> Source: A11y #6</p>
+  <div class="detail"><p><code>deconstruction.astro:1416</code> and <code>expected-value.astro:1497</code> use <code>alert()</code> when a saved slot's item is not in the current dataset. Use the existing live-region announcement instead.</p></div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-low">low</span> Dead code: <code>probabilityEngine.ts</code>, <code>models.ts</code>, <code>CalculatorLayout.astro</code>, Monte Carlo remnants</h4>
+  <p class="source"><span class="tag">code</span> Source: Code #7</p>
+  <div class="detail">
+    <p><strong>What:</strong> <code>probabilityEngine.ts</code> is a stub (<code>throw new Error('Not implemented')</code>), <code>models.ts</code> only used by it. <code>CalculatorLayout.astro</code> imported by no page. Monte Carlo remnants: <code>strategyOptimizer.mjs</code> (entire module dead), <code>makerModel.mjs</code> <code>computeGemContribution</code>/<code>roll*Stats</code> chains (only call each other), <code>levelUpModel.mjs</code> <code>rollAllLevelUps</code> (nothing calls it), <code>chaosModel.mjs</code> <code>filterPositiveStats</code>/<code>applyChaosToStats</code>. <code>targetExtraction.mjs</code> <code>getDefaultCheckedStats</code>/<code>extractTargetConditions</code> never called. Unused imports scattered across modules.</p>
+    <p><strong>Fix:</strong> Delete dead files and orphaned exports; removes ~700 lines with zero risk.</p>
+  </div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-low">low</span> EV page has no draft persistence — full state lost on refresh</h4>
+  <p class="source"><span class="tag">state</span> Source: State #5, State L4</p>
+  <div class="detail"><p>Deconstruction auto-saves drafts on <code>pagehide</code>; the EV page loses its entire enhancement state + results on refresh/back-navigation (only the 5 manual slots survive). Asymmetry between the two tools.</p></div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-low">low</span> Validation-failed transfer payloads never cleaned from localStorage</h4>
+  <p class="source"><span class="tag">state</span> Source: State #6, State M3</p>
+  <div class="detail"><p>Parse errors remove the corrupt key, but validation failures (<code>!payload.v || v &lt; 1</code>) return null without removal. A bad payload is re-parsed on every EV page load forever. Add <code>localStorage.removeItem(DECON_TO_EV_KEY)</code> in the validation-failure branch too.</p></div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-low">low</span> <code>createScrollState</code>/<code>rebuildSlotState</code> throw on non-integer <code>upgradeSlots</code></h4>
+  <p class="source"><span class="tag">bug</span> Source: State #7, State L2</p>
+  <div class="detail"><p><code>new Array(5.5)</code> throws <code>RangeError</code>. These functions guard <code>Number.isFinite</code> but not integer-ness. A fractional value in item data breaks the entire enhancement panel. <code>Math.floor(...)</code> in all three slot-count constructors.</p></div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-low">low</span> Safety timeout comments say "30s" but value is 10,000ms</h4>
+  <p class="source"><span class="tag">code</span> Source: Code #8</p>
+  <div class="detail"><p><code>deconstruction.astro:1536</code> and <code>expected-value.astro:1317</code> comments say "after 30s" but the actual timeout is <code>10_000</code> (10s). Clarify the comment or adjust the value.</p></div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-low">low</span> EV stimulant model vs decon stimulant bounds disagree on negative values</h4>
+  <p class="source"><span class="tag">bug</span> Source: Bug #7, State L4</p>
+  <div class="detail"><p>Deconstruction allows negative stimulant bounds (default min −5) and generates negative-stimulant strategies. The EV stimulant model only has positive outcomes and the editor rejects negatives in probability mode. A transferred negative-stimulant strategy computes 0% on the EV page with no explanation.</p></div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-low">low</span> EV→decon transfer flattens per-slot level-up structure into one slot</h4>
+  <p class="source"><span class="tag">bug</span> Source: Bug #8, State L1</p>
+  <div class="detail"><p>Deconstruction strategies carry level-ups as <code>{ levelCount: N, stats: &lt;total&gt; }</code>. <code>buildEnhancementStateFromStrategy</code> places the entire N-level total into <code>itemLevelUpSlots[0]</code>, showing "1 applied level-up" containing N levels' worth of stats. Display misleading; probability calc unaffected (manual-mode excluded).</p></div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-low">low</span> Inter/Pretendard font-family declared but font files never loaded</h4>
+  <p class="source"><span class="tag">ux</span> Source: UI/UX #11</p>
+  <div class="detail"><p><code>BaseLayout.astro:163–169</code> declares <code>Inter, Pretendard, -apple-system…</code> but there are no <code>@font-face</code> declarations or font files anywhere. Latin+Korean silently render in the OS fallback, so typography differs per platform.</p></div>
+</div>
+
+<div class="finding">
+  <h4><span class="severity severity-low">low</span> Unused CSS: <code>.decon-source-chip-grid</code>, <code>.decon-confirm-overlay</code></h4>
+  <p class="source"><span class="tag">css</span> Source: Code #9</p>
+  <div class="detail"><p>CSS rules exist for selectors that no markup or JS ever creates. Dead CSS that adds to the bundle.</p></div>
+</div>
+
+<!-- TOP 5 -->
+<div class="top5">
+<h2>Top 5 Most Impactful Fixes</h2>
+<ol>
+  <li><strong>Fix EV 0% probability bug</strong> — detect threshold-mode strategies up front and show an explicit "not yet supported" message instead of a fake 0%.</li>
+  <li><strong>Wire up deconstruction result restoration</strong> — call <code>loadDeconResult()</code> in <code>tryRestoreDeconSession</code> so back-navigation actually restores analysis results.</li>
+  <li><strong>Render only Page 1 of strategy cards + debounce slider filtering</strong> — kills the 10k-card DOM build and the ~20k toggle-per-drag-tick jank.</li>
+  <li><strong>Fix empty scroll-rate filter → null</strong> — pass the Set through unconditionally so deselecting all rate chips actually filters to nothing.</li>
+  <li><strong>Add focus indicators to all dual-range sliders</strong> — one CSS rule, fixes keyboard navigation for every slider on both pages.</li>
+</ol>
+</div>
+
+<script>
+(function() {
+  const STORAGE_KEY = 'sbp-audit-2026-08-02-checked';
+  let checked = new Set();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) checked = new Set(JSON.parse(raw));
+  } catch {}
+
+  const container = document.querySelector('.container');
+  const findings = container.querySelectorAll('.finding');
+
+  findings.forEach((f, i) => {
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.className = 'finding-check';
+    cb.title = 'Mark as resolved';
+    if (checked.has(i)) {
+      cb.checked = true;
+      f.classList.add('finding--done');
+    }
+    cb.addEventListener('change', () => {
+      if (cb.checked) { checked.add(i); f.classList.add('finding--done'); }
+      else { checked.delete(i); f.classList.remove('finding--done'); }
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...checked])); } catch {}
+    });
+    f.append(cb);
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'finding-copy';
+    copyBtn.setAttribute('aria-label', 'Copy finding');
+    copyBtn.textContent = '📋';
+    copyBtn.title = 'Copy finding';
+    copyBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const title = f.querySelector('h4')?.textContent?.trim() || '';
+      const source = f.querySelector('.source');
+      const sourceText = source ? source.textContent.trim() : '';
+      const detailItems = f.querySelectorAll('.detail p');
+      let body;
+      if (detailItems.length) {
+        body = Array.from(detailItems).map(p => p.textContent.trim()).join('\n\n');
+      } else {
+        body = f.querySelector('.detail')?.textContent.trim() || '';
+      }
+      const text = `${title}\n${sourceText}\n\n${body}`;
+      navigator.clipboard.writeText(text).then(() => {
+        copyBtn.textContent = '✓';
+        setTimeout(() => { copyBtn.textContent = '📋'; }, 1500);
+      }).catch(() => {});
+    });
+    f.append(copyBtn);
+  });
+})();
+</script>
+
+</body>
+</html>
