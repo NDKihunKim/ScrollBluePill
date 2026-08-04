@@ -444,6 +444,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     loadDeconSession,
     clearDeconSession,
     saveDeconTransferSession,
+    loadDeconResult,
+    clearDeconResult,
   } from '../lib/deconSessionState.mjs';
   import {
     STAT_PRIORITY,
@@ -667,6 +669,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     }
     showResetConfirmDialog(() => {
       deconHasActionableResults = false;
+      window.__lastDeconResult = null;
       if (deconResultPlaceholder instanceof HTMLElement) {
         deconResultPlaceholder.hidden = false;
         deconResultPlaceholder.textContent = '스탯 편집 후 분석 시작을 눌러주세요';
@@ -1169,6 +1172,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     deconDeltas = {};
     deconStatKeys = [];
     deconHasActionableResults = false;
+    window.__lastDeconResult = null;
     deconSlotState = createDeconstructionSlotState(item?.stats?.upgradeSlots ?? 0);
     deconAppliedLevelCount = 0;
     deconScrollRateFilter = new Set(['100', '60', '10']);
@@ -1621,7 +1625,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
         cleanStats: selectedItem.stats ?? {},
         scrollsByEquipmentKind,
         levelUpDefinition: levelUpDef ?? null,
-        scrollRateFilter: deconScrollRateFilter.size > 0 ? deconScrollRateFilter : null,
+        scrollRateFilter: deconScrollRateFilter,
         stimulantStatBounds:
           Object.keys(deconStimulantBoundsMap).length > 0 ? deconStimulantBoundsMap : null,
         chaosStatBounds: Object.keys(deconChaosBoundsMap).length > 0 ? deconChaosBoundsMap : null,
@@ -1740,6 +1744,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     filterEmpty.hidden = true;
     listContainer.append(filterEmpty);
 
+    // ponytail: renders ALL strategies into DOM, then pagination hides all but 5.
+    // Fine for typical 5–50 results. If pathological 10k-result analyses become
+    // common, page-aware rendering or virtual scrolling would be needed.
     result.strategies.forEach((strategy, strategyIndex) => {
       const card = document.createElement('div');
       card.className = 'decon-strategy-card';
@@ -2478,12 +2485,14 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     }
 
     // 4. Restore results if available
-    if (saved.result && saved.result.strategies?.length > 0) {
+    const deconResult = saved.result ?? loadDeconResult();
+    clearDeconResult();
+    if (deconResult && deconResult.strategies?.length > 0) {
       const targetDeltas = {};
       for (const key of saved.targetKeys ?? []) {
         targetDeltas[key] = saved.deconDeltas?.[key] ?? 0;
       }
-      displayResults(saved.result, targetDeltas);
+      displayResults(deconResult, targetDeltas);
     }
 
     // 5. Restore scroll position (after layout settles)
@@ -3716,9 +3725,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
   :global(.decon-filter-chips) {
     display: inline-flex;
+    flex-wrap: wrap;
     border: 1px solid var(--line);
     border-radius: 7px;
-    overflow: hidden;
     margin-bottom: 10px;
   }
 
@@ -4057,6 +4066,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     pointer-events: auto;
     cursor: pointer;
   }
+  :global(.decon-chaos-dual-range input[type='range']:focus-visible) {
+    outline: 2px solid var(--green);
+    outline-offset: 4px;
+  }
 
   :global(.decon-secondary-scroll-icon) {
     width: 24px;
@@ -4394,6 +4407,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     pointer-events: none;
     margin: 0;
     padding: 0;
+  }
+  :global(.dual-range input[type='range']:focus-visible) {
+    outline: 2px solid var(--green);
+    outline-offset: 4px;
   }
   /* Shared track */
   :global(.dual-range input[type='range'])::-webkit-slider-runnable-track {

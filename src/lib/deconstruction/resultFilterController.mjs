@@ -46,6 +46,16 @@ export function createResultFilterController({ root, secondaryContainer }) {
     });
   };
 
+  let _filterRafId = null;
+  const scheduleFilters = () => {
+    if (_filterRafId !== null) return;
+    _filterRafId = requestAnimationFrame(() => {
+      _filterRafId = null;
+      applyFilters();
+      _onAfterFilter?.();
+    });
+  };
+
   const applyFilters = () => {
     if (!model) return 0;
     const hasStimRanges = stimulantRanges.size > 0;
@@ -307,8 +317,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
             maxSlider.value = mx;
             minVal.textContent = String(mn);
             maxVal.textContent = String(mx);
-            applyFilters();
-            _onAfterFilter?.();
+            scheduleFilters();
           };
 
           minSlider.addEventListener('input', updateCountRange);
@@ -376,8 +385,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
               minSlider.value = mn;
               maxSlider.value = mx;
               label.textContent = formatLabel(mn, mx);
-              applyFilters();
-              _onAfterFilter?.();
+              scheduleFilters();
             };
 
             minSlider.addEventListener('input', updateDeltaRange);
@@ -724,8 +732,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
         maxSlider.value = mx;
         minVal.textContent = String(mn);
         maxVal.textContent = String(mx);
-        applyFilters();
-        _onAfterFilter?.();
+        scheduleFilters();
       };
 
       minSlider.addEventListener('input', updateRange);
@@ -821,8 +828,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
         maxSlider.value = mx;
         minVal.textContent = String(mn);
         maxVal.textContent = String(mx);
-        applyFilters();
-        _onAfterFilter?.();
+        scheduleFilters();
       };
 
       minSlider.addEventListener('input', updateRange);

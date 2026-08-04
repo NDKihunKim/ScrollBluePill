@@ -381,10 +381,6 @@ export function initItemLevelUpPanel({
       }
       if (area instanceof HTMLElement) area.hidden = true;
       if (slots instanceof HTMLElement) slots.replaceChildren();
-      slots.classList.toggle(
-        'item-level-up-slots--centered',
-        enhancementState.itemLevelUpSlotCount === 5,
-      );
     },
   };
 }

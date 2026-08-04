@@ -1,5 +1,5 @@
 import { ALL_TARGET_STAT_KEYS } from './targetExtraction.mjs';
-import { computeAttemptsForPercentile, computeCumulativeProbability } from './monteCarloEngine.mjs';
+import { computeAttemptsForPercentile, computeCumulativeProbability } from './geometricMath.mjs';
 import { formatKoreanNumber, parseKoreanNumber } from '../formatKoreanNumber.mjs';
 
 export {};

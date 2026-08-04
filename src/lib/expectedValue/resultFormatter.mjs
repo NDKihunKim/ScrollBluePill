@@ -2,7 +2,7 @@ import {
   computeGeometricPercentiles,
   computeExpectedAttempts,
   computeAttemptsForPercentile,
-} from './monteCarloEngine.mjs';
+} from './geometricMath.mjs';
 
 /** @type {Record<string, string>} */
 const SUPERSCRIPT_MAP = {
@@ -63,8 +63,7 @@ export function formatProbability(p) {
 /**
  * Creates a complete result summary for display, including chart data.
  *
- * All results are exact (no more Monte Carlo path), so isExact and
- * trialCount parameters have been removed.
+ * All results are computed via the exact-outcome product path.
  *
  * @param {object} params
  * @param {number} params.successProbability - The probability of success [0, 1]

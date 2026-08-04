@@ -5,10 +5,6 @@
  * needed to achieve at least one success, given a per-trial success
  * probability p. All values are rounded up (Math.ceil) to whole
  * clean-item attempts.
- *
- * Previously this file also contained the Monte Carlo simulation runner.
- * That code has been removed in favor of the unified exact DP engine at
- * exactEngine.mjs. Only the geometric math layer remains here.
  */
 
 export const GEOMETRIC_PERCENTILE_KEYS = ['p50', 'p75', 'p90', 'p95'];
