@@ -205,6 +205,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
             <p class="decon-stat-group-title">기본 스탯</p>
             <div class="decon-stat-editor" data-decon-stat-editor></div>
             <hr class="decon-stat-group-sep" data-decon-basic-stats-sep hidden />
+            <div class="decon-item-info-group" data-decon-item-info-group>
             <p class="decon-stat-group-title" data-decon-item-info-title hidden>아이템 정보</p>
             <div class="chaos-stat-row decon-success-row" data-decon-success-row>
               <span class="chaos-stat-label">주문서 성공 횟수</span>
@@ -237,6 +238,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
                 class="chaos-stepper-btn chaos-stepper-btn--max"
                 data-decon-slot-max>MAX</button
               >
+            </div>
             </div>
             <div class="chaos-stat-row decon-level-row" data-decon-level-row hidden>
               <span class="chaos-stat-label">아이템 레벨</span>
@@ -969,17 +971,17 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       deconSourceMessage.textContent = '남은 주문서 슬롯을 설정해주세요';
       deconSourceMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-    const slotRow = document.querySelector('.decon-slot-row');
-    if (slotRow instanceof HTMLElement) {
-      slotRow.classList.add('decon-slot-row--highlight');
-      slotRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const group = document.querySelector('[data-decon-item-info-group]');
+    if (group instanceof HTMLElement) {
+      group.classList.add('decon-item-info-group--highlight');
+      group.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
 
   const clearSlotRequiredWarning = () => {
-    const slotRow = document.querySelector('.decon-slot-row');
-    if (slotRow instanceof HTMLElement) {
-      slotRow.classList.remove('decon-slot-row--highlight');
+    const group = document.querySelector('[data-decon-item-info-group]');
+    if (group instanceof HTMLElement) {
+      group.classList.remove('decon-item-info-group--highlight');
     }
     // Only clear the message if it's the slot warning, not a different validation
     if (
@@ -3352,7 +3354,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     margin-bottom: 10px;
   }
 
-  :global(.decon-slot-row--highlight) {
+  :global(.decon-item-info-group--highlight) {
     outline: 2px solid #d6453d;
     outline-offset: 4px;
     border-radius: 6px;

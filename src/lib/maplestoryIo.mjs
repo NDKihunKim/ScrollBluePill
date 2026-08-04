@@ -193,6 +193,8 @@ const ICON_ID_OVERRIDES = {
   1052169: 1052156, // Reverse Mistblue
   1082255: 1082240, // Timeless Hermosa
   1082256: 1082240, // Reverse Hermosa
+  // Scrolls whose item ID doesn't exist in the MapleStory.io icon API
+  2040827: 2040826, // 장갑 체력 주문서 60% → 장갑 공격력 60% icon
 };
 
 const ICON_VERSION_OVERRIDES = {
