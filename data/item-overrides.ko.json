@@ -67,5 +67,26 @@
       "attackSpeed": 5,
       "upgradeSlots": 7
     }
+  },
+  "1492020": {
+    "stats": { "weaponAttack": 37, "upgradeSlots": 7, "attackSpeed": 5 }
+  },
+  "1492021": {
+    "stats": { "weaponAttack": 43, "upgradeSlots": 7, "attackSpeed": 5 }
+  },
+  "1492022": {
+    "stats": { "weaponAttack": 60, "upgradeSlots": 7, "attackSpeed": 5 }
+  },
+  "1492023": {
+    "stats": { "weaponAttack": 84, "upgradeSlots": 7, "attackSpeed": 5 }
+  },
+  "1492024": {
+    "stats": { "weaponAttack": 78, "upgradeSlots": 7, "attackSpeed": 5 }
+  },
+  "1492025": {
+    "stats": { "weaponAttack": 82, "upgradeSlots": 7, "attackSpeed": 5 }
+  },
+  "1492026": {
+    "stats": { "weaponAttack": 31, "upgradeSlots": 7, "attackSpeed": 5 }
   }
 }

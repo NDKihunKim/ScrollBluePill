@@ -261,6 +261,18 @@ async function main() {
 
     // Apply visibility overrides (unchanged logic)
     const visibilityResult = applyVisibilityOverrides(rawIndex, visibilityOverrides);
+
+    // Merge item stat overrides from item-overrides.ko.json
+    const itemOverridesPath = resolve('data/item-overrides.ko.json');
+    const itemOverrides = JSON.parse(await readFile(itemOverridesPath, 'utf8'));
+    for (const item of visibilityResult.items) {
+      const override = itemOverrides[String(item.id)];
+      if (override) {
+        if (override.stats) item.stats = { ...item.stats, ...override.stats };
+        if (override.requirements) item.requirements = { ...item.requirements, ...override.requirements };
+      }
+    }
+
     const { items: index, resolutions } = dedupeItems(visibilityResult.items);
 
     const koreanNamedCount = index.filter((item) => /[가-힣]/.test(item.nameKo)).length;

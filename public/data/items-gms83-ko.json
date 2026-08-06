@@ -47624,7 +47624,9 @@
     ],
     "requirements": {},
     "stats": {
-      "attackSpeed": 5
+      "attackSpeed": 5,
+      "weaponAttack": 37,
+      "upgradeSlots": 7
     },
     "aliases": []
   },
@@ -47639,7 +47641,9 @@
     ],
     "requirements": {},
     "stats": {
-      "attackSpeed": 5
+      "attackSpeed": 5,
+      "weaponAttack": 43,
+      "upgradeSlots": 7
     },
     "aliases": []
   },
@@ -47654,7 +47658,9 @@
     ],
     "requirements": {},
     "stats": {
-      "attackSpeed": 5
+      "attackSpeed": 5,
+      "weaponAttack": 60,
+      "upgradeSlots": 7
     },
     "aliases": []
   },
@@ -47669,7 +47675,9 @@
     ],
     "requirements": {},
     "stats": {
-      "attackSpeed": 5
+      "attackSpeed": 5,
+      "weaponAttack": 84,
+      "upgradeSlots": 7
     },
     "aliases": []
   },
@@ -47689,7 +47697,9 @@
       "str": 0
     },
     "stats": {
-      "attackSpeed": 5
+      "attackSpeed": 5,
+      "weaponAttack": 78,
+      "upgradeSlots": 7
     },
     "aliases": []
   },
@@ -47704,7 +47714,9 @@
     ],
     "requirements": {},
     "stats": {
-      "attackSpeed": 5
+      "attackSpeed": 5,
+      "weaponAttack": 82,
+      "upgradeSlots": 7
     },
     "aliases": []
   },
@@ -47719,7 +47731,9 @@
     ],
     "requirements": {},
     "stats": {
-      "attackSpeed": 5
+      "attackSpeed": 5,
+      "weaponAttack": 31,
+      "upgradeSlots": 7
     },
     "aliases": []
   },
