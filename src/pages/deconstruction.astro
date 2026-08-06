@@ -785,13 +785,14 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
         window.__lastScreenshotItem = matchedItem;
         commitSuggestedItem(matchedItem, { syncFilters: false });
 
-        // Apply parsed stats as deconDeltas
+        // Apply parsed stats as deconDeltas (deltas = target - base)
         const parsedStats = parseResult.stats;
         const hasStats = Object.keys(parsedStats).length > 0;
 
         if (hasStats) {
           for (const [key, value] of Object.entries(parsedStats)) {
-            deconDeltas[key] = value;
+            const base = selectedItem?.stats?.[key] ?? 0;
+            deconDeltas[key] = value - base;
             if (!deconStatKeys.includes(key)) {
               deconStatKeys.push(key);
             }
