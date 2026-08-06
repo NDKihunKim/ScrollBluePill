@@ -31,17 +31,41 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
           <div class="item-search-fields">
             <div class="input-row field-block item-name-search" data-item-name-search>
               <label class="field-label" for="item-name-input">아이템 이름</label>
-              <input
-                id="item-name-input"
-                type="search"
-                name="itemName"
-                placeholder="예: 노가다 목장갑, 노목"
-                autocomplete="off"
-                aria-autocomplete="list"
-                aria-controls="item-suggestion-list"
-                aria-expanded="false"
-                data-item-name-input
-              />
+              <div class="item-search-input-row">
+                <input
+                  id="item-name-input"
+                  type="search"
+                  name="itemName"
+                  placeholder="예: 노가다 목장갑, 노목 — 스크린샷을 붙여넣으세요 (Ctrl+V)"
+                  autocomplete="off"
+                  aria-autocomplete="list"
+                  aria-controls="item-suggestion-list"
+                  aria-expanded="false"
+                  data-item-name-input
+                />
+                <button
+                  type="button"
+                  class="item-search-camera-btn"
+                  data-camera-btn
+                  title="스크린샷 업로드"
+                  aria-label="스크린샷 업로드"
+                >📷</button>
+                <button
+                  type="button"
+                  class="item-search-clear-btn"
+                  data-clear-screenshot-btn
+                  title="스크린샷 데이터 제거"
+                  aria-label="스크린샷 데이터 제거"
+                  hidden
+                >✕</button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  class="sr-only"
+                  data-screenshot-input
+                />
+              </div>
+              <p class="item-screenshot-feedback" data-screenshot-feedback hidden></p>
               <input type="hidden" name="itemId" data-selected-item-id />
               <div
                 id="item-suggestion-list"
@@ -5117,5 +5141,83 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
   :global(.decon-secondary-stimulant-row--disabled) :global(.decon-secondary-stimulant-stat) {
     color: var(--ink-muted, #888);
+  }
+
+  .item-search-input-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1px solid var(--border, #444);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg, #161618);
+    transition: border-color 0.2s;
+  }
+
+  .item-search-input-row:focus-within {
+    border-color: var(--accent, #6c8cff);
+  }
+
+  .item-search-input-row #item-name-input {
+    border: none;
+    flex: 1;
+    margin: 0;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .item-search-input-row--processing {
+    border-color: var(--accent, #6c8cff);
+  }
+
+  .item-search-input-row--success {
+    border-color: #5ebb5e;
+  }
+
+  .item-search-input-row--error {
+    border-color: #e05555;
+  }
+
+  .item-search-camera-btn,
+  .item-search-clear-btn {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    border: none;
+    border-left: 1px solid var(--border, #444);
+    background: none;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--fg-muted, #999);
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .item-search-camera-btn:hover,
+  .item-search-clear-btn:hover {
+    color: var(--fg, #ddd);
+    background: var(--surface-hover, #2a2a30);
+  }
+
+  .item-search-camera-btn:active,
+  .item-search-clear-btn:active {
+    background: var(--surface-active, #333);
+  }
+
+  .item-screenshot-feedback {
+    margin: 4px 0 0 0;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .item-screenshot-feedback--processing {
+    color: var(--accent, #6c8cff);
+  }
+
+  .item-screenshot-feedback--success {
+    color: #5ebb5e;
+  }
+
+  .item-screenshot-feedback--error {
+    color: #e05555;
   }
 </style>
