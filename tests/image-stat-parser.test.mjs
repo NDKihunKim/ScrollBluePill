@@ -32,6 +32,16 @@ describe('extractItemName', () => {
     const text = '무스펠 투구 최대 HP : +15\nSTR : +5';
     assert.strictEqual(extractItemName(text), '무스펠 투구');
   });
+
+  it('strips enhancement level notation (+N)', () => {
+    const text = '드래곤 퍼플 슬리브 (+6)\nREQLEV:110\nLUK:7';
+    assert.strictEqual(extractItemName(text), '드래곤 퍼플 슬리브');
+  });
+
+  it('strips (+N) even when OCR misreads the item name', () => {
+    const text = '드래곤 퍼플 슬레브 (+6)\nREQLEV:110\n공격력 : 66';
+    assert.strictEqual(extractItemName(text), '드래곤 퍼플 슬레브');
+  });
 });
 
 describe('parseStats', () => {
@@ -108,5 +118,35 @@ describe('parseStats', () => {
     const text = '이동속도 : +10\n점프력 : +5';
     const stats = parseStats(text);
     assert.deepStrictEqual(stats, { speed: 10, jump: 5 });
+  });
+
+  it('ignores REQ-prefixed requirement lines', () => {
+    const text = 'REQSTR:0\nREQDEX:150\nREQINT:0\nREQLUK:320\nLUK:7\nSTR : +3';
+    const stats = parseStats(text);
+    // Only standalone LUK:7 and STR:+3 should be parsed
+    // REQSTR (contains STR but not at word start) must be ignored
+    assert.deepStrictEqual(stats, { luk: 7, str: 3 });
+  });
+
+  it('parses a realistic MapleStory item tooltip', () => {
+    const text = `드래곤 퍼플 슬리브 (+6)
+REQLEV:110
+REQSTR:0
+REQDEX:150
+REQINT:0
+REQLUK:320
+공격속도 : 빠름
+LUK:7
+공격력 : 66
+명중률 : 6
+회피율 : 7
+업그레이드 가능 횟수 : 0`;
+    const stats = parseStats(text);
+    assert.deepStrictEqual(stats, {
+      luk: 7,
+      weaponAttack: 66,
+      accuracy: 6,
+      avoidability: 7,
+    });
   });
 });

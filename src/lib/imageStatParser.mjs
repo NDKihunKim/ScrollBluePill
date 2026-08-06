@@ -38,10 +38,14 @@ export function extractItemName(rawText) {
   const lines = rawText.split('\n').filter(Boolean);
   if (lines.length === 0) return '';
   const firstLine = lines[0].trim();
-  const cleaned = firstLine.replace(
-    /\s*(STR|DEX|INT|LUK|공격력|마력|최대\s*HP|최대\s*MP|물리방어력|마법방어력|명중률|회피율|이동속도|점프력)\s*:?\s*\+?\d+.*$/i,
-    ''
-  ).trim();
+  // Strip stat suffixes, enhancement level notation (+N), and trailing garbage
+  const cleaned = firstLine
+    .replace(/\(\+\d+\)/g, '') // enhancement level e.g. "드래곤 퍼플 슬리브 (+6)"
+    .replace(
+      /\s*(STR|DEX|INT|LUK|공격력|마력|최대\s*HP|최대\s*MP|물리방어력|마법방어력|명중률|회피율|이동속도|점프력)\s*:?\s*\+?\d+.*$/i,
+      ''
+    )
+    .trim();
   return cleaned;
 }
 
@@ -56,11 +60,13 @@ export function parseStats(rawText) {
   const stats = {};
   const lines = rawText.split('\n');
 
+  // ponytail: English labels anchored at word start to avoid matching
+  // REQDEX/REQSTR/REQINT/REQLUK requirement lines as stat bonuses.
   const patterns = [
-    { regex: /STR\s*:?\s*\+?(\d+)/i,                     key: 'str' },
-    { regex: /DEX\s*:?\s*\+?(\d+)/i,                     key: 'dex' },
-    { regex: /INT\s*:?\s*\+?(\d+)/i,                     key: 'int' },
-    { regex: /LUK\s*:?\s*\+?(\d+)/i,                     key: 'luk' },
+    { regex: /(?:^|\s)STR\s*:?\s*\+?(\d+)/i,            key: 'str' },
+    { regex: /(?:^|\s)DEX\s*:?\s*\+?(\d+)/i,            key: 'dex' },
+    { regex: /(?:^|\s)INT\s*:?\s*\+?(\d+)/i,            key: 'int' },
+    { regex: /(?:^|\s)LUK\s*:?\s*\+?(\d+)/i,            key: 'luk' },
     { regex: /공격력\s*:?\s*\+?(\d+)/,                    key: 'weaponAttack' },
     { regex: /마력\s*:?\s*\+?(\d+)/,                      key: 'magicAttack' },
     { regex: /최대\s*HP\s*:?\s*\+?(\d+)/i,               key: 'maxHp' },
@@ -108,6 +114,18 @@ export async function parseScreenshot(blob) {
  */
 export function matchItem(itemName, itemIndex) {
   if (!itemName) return null;
+
   const results = searchKoreanItems(itemName, { items: itemIndex, limit: 1 });
-  return results.length > 0 ? results[0] : null;
+  if (results.length > 0) return results[0];
+
+  // ponytail: fallback — strip trailing chars one at a time to tolerate
+  // single-character OCR errors (e.g. 슬리브→슬레브). Stops at 3 chars.
+  let query = itemName.replace(/\s+/g, '').toLocaleLowerCase('ko-KR');
+  while (query.length >= 3) {
+    query = query.slice(0, -1);
+    const retry = searchKoreanItems(query, { items: itemIndex, limit: 1 });
+    if (retry.length > 0) return retry[0];
+  }
+
+  return null;
 }
