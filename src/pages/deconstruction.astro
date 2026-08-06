@@ -800,6 +800,18 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
           rebuildStatEditor();
         }
 
+        // Apply slot info from screenshot
+        const enhanceLevel = parseResult.enhancementLevel ?? 0;
+        const remainingSlots = parseResult.remainingSlots ?? 0;
+        if (enhanceLevel > 0 || remainingSlots > 0) {
+          deconSlotState = setSuccessfulScrollCount(deconSlotState, enhanceLevel);
+          deconSlotState = setRemainingSlotCount(
+            deconSlotState,
+            Math.min(remainingSlots, deconSlotState.maxSlots),
+          );
+          renderDeconSlotState();
+        }
+
         setScreenshotUIState('success');
         trackEvent('screenshot_ocr_success', {
           itemId: matchedItem.id,

@@ -95,17 +95,36 @@ export function parseStats(rawText) {
   return stats;
 }
 
+// ── Slot info extraction ────────────────────────────────────────
+
+/**
+ * Extract enhancement level from (+N) on the name line,
+ * and remaining upgrade slots from 업그레이드 가능 횟수.
+ * Returns { enhancementLevel: number, remainingSlots: number }.
+ */
+export function parseSlotInfo(rawText) {
+  const firstLine = rawText.split('\n')[0] ?? '';
+  const enhanceMatch = firstLine.match(/\(\+(\d+)\)/);
+  const enhancementLevel = enhanceMatch ? parseInt(enhanceMatch[1], 10) : 0;
+
+  const slotsMatch = rawText.match(/업그레이드\s*가능\s*횟수\s*:\s*(\d+)/);
+  const remainingSlots = slotsMatch ? parseInt(slotsMatch[1], 10) : 0;
+
+  return { enhancementLevel, remainingSlots };
+}
+
 // ── Combined pipeline ───────────────────────────────────────────
 
 /**
- * Full pipeline: OCR → extract item name → parse stats.
- * Returns { itemName: string, stats: Record<string, number>, confidence: number }.
+ * Full pipeline: OCR → extract item name → parse stats → parse slot info.
+ * Returns { itemName, stats, confidence, enhancementLevel, remainingSlots }.
  */
 export async function parseScreenshot(blob) {
   const { text, confidence } = await ocrImage(blob);
   const itemName = extractItemName(text);
   const stats = parseStats(text);
-  return { itemName, stats, confidence };
+  const { enhancementLevel, remainingSlots } = parseSlotInfo(text);
+  return { itemName, stats, confidence, enhancementLevel, remainingSlots };
 }
 
 /**
