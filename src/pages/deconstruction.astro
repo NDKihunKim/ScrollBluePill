@@ -49,15 +49,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
                   data-camera-btn
                   title="스크린샷 업로드"
                   aria-label="스크린샷 업로드"
-                >📷</button>
-                <button
-                  type="button"
-                  class="item-search-clear-btn"
-                  data-clear-screenshot-btn
-                  title="스크린샷 데이터 제거"
-                  aria-label="스크린샷 데이터 제거"
-                  hidden
-                >✕</button>
+                ><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
                 <input
                   type="file"
                   accept="image/*"
@@ -550,7 +542,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   const selectedItemIdInput = form?.querySelector('[data-selected-item-id]');
   const itemSuggestions = form?.querySelector('[data-item-suggestions]');
   const cameraBtn = form?.querySelector('[data-camera-btn]');
-  const clearScreenshotBtn = form?.querySelector('[data-clear-screenshot-btn]');
+  const uploadIconSVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`;
+  const spinnerSVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spinner" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>`;
   const screenshotInput = form?.querySelector('[data-screenshot-input]');
   const screenshotFeedback = form?.querySelector('[data-screenshot-feedback]');
   const selectedItemCard = document.querySelector('[data-selected-item-card]');
@@ -694,7 +687,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
         itemNameInput.disabled = true;
         itemNameInput.placeholder = '이미지 분석 중…';
         row.classList.add('item-search-input-row--processing');
-        if (cameraBtn instanceof HTMLElement) cameraBtn.textContent = '🔄';
+        if (cameraBtn instanceof HTMLElement) cameraBtn.innerHTML = spinnerSVG;
         if (feedback) {
           feedback.hidden = false;
           feedback.textContent = '⏳ 스크린샷을 분석하고 있습니다…';
@@ -705,8 +698,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
         itemNameInput.disabled = false;
         itemNameInput.removeAttribute('placeholder');
         row.classList.add('item-search-input-row--success');
-        if (cameraBtn instanceof HTMLElement) cameraBtn.hidden = true;
-        if (clearScreenshotBtn instanceof HTMLElement) clearScreenshotBtn.hidden = false;
+        if (cameraBtn instanceof HTMLElement) {
+          cameraBtn.hidden = false;
+          cameraBtn.innerHTML = uploadIconSVG;
+        }
         if (feedback) {
           feedback.hidden = false;
           feedback.textContent = '✓ 아이템 식별 완료 — 스탯이 편집기에 반영되었습니다';
@@ -718,8 +713,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
         itemNameInput.value = '';
         itemNameInput.placeholder = '아이템을 식별할 수 없습니다';
         row.classList.add('item-search-input-row--error');
-        if (cameraBtn instanceof HTMLElement) cameraBtn.hidden = false;
-        if (clearScreenshotBtn instanceof HTMLElement) clearScreenshotBtn.hidden = true;
+        if (cameraBtn instanceof HTMLElement) {
+          cameraBtn.hidden = false;
+          cameraBtn.innerHTML = uploadIconSVG;
+        }
         if (feedback) {
           feedback.hidden = false;
           feedback.className = 'item-screenshot-feedback item-screenshot-feedback--error';
@@ -731,9 +728,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
         itemNameInput.placeholder = '예: 노가다 목장갑, 노목 — 스크린샷을 붙여넣으세요 (Ctrl+V)';
         if (cameraBtn instanceof HTMLElement) {
           cameraBtn.hidden = false;
-          cameraBtn.textContent = '📷';
+          cameraBtn.innerHTML = uploadIconSVG;
         }
-        if (clearScreenshotBtn instanceof HTMLElement) clearScreenshotBtn.hidden = true;
         if (feedback) feedback.hidden = true;
         break;
     }
@@ -784,6 +780,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
         // Success: select the item
         window.__lastScreenshotItem = matchedItem;
         commitSuggestedItem(matchedItem, { syncFilters: false });
+        if (itemNameInput instanceof HTMLInputElement) {
+          itemNameInput.value = matchedItem.nameKo;
+        }
 
         // Apply parsed stats as deconDeltas (deltas = target - base)
         const parsedStats = parseResult.stats;
@@ -2271,13 +2270,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     screenshotInput.addEventListener('change', () => {
       const file = screenshotInput.files?.[0];
       if (file) processScreenshot(file);
-    });
-  }
-
-  // ── Clear screenshot button ─────────────────────────────────────
-  if (clearScreenshotBtn instanceof HTMLElement) {
-    clearScreenshotBtn.addEventListener('click', () => {
-      clearScreenshotState();
     });
   }
 
@@ -5389,29 +5381,39 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     border-color: #e05555;
   }
 
-  .item-search-camera-btn,
-  .item-search-clear-btn {
+  .item-search-camera-btn {
     flex-shrink: 0;
-    padding: 8px 14px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
     border: none;
-    border-left: 1px solid var(--border, #444);
+    border-radius: 0 7px 7px 0;
     background: none;
-    font-size: 20px;
     line-height: 1;
     cursor: pointer;
     color: var(--fg-muted, #999);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: color 0.15s, background 0.15s;
   }
 
-  .item-search-camera-btn:hover,
-  .item-search-clear-btn:hover {
+  .item-search-camera-btn:hover {
     color: var(--fg, #ddd);
     background: var(--surface-hover, #2a2a30);
   }
 
-  .item-search-camera-btn:active,
-  .item-search-clear-btn:active {
+  .item-search-camera-btn:active {
     background: var(--surface-active, #333);
+  }
+
+  .item-search-camera-btn .spinner {
+    animation: spin 1s linear infinite;
+    transform-origin: center;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 
   .item-screenshot-feedback {
