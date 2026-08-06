@@ -39,7 +39,7 @@ export function extractItemName(rawText) {
   if (lines.length === 0) return '';
   const firstLine = lines[0].trim();
   const cleaned = firstLine.replace(
-    /\s*(STR|DEX|INT|LUK|공격력|마력|최대\s*HP|최대\s*MP|물리방어력|마법방어력|명중률|회피율|이동속도|점프력)\s*:\s*\+\d+.*$/i,
+    /\s*(STR|DEX|INT|LUK|공격력|마력|최대\s*HP|최대\s*MP|물리방어력|마법방어력|명중률|회피율|이동속도|점프력)\s*:?\s*\+?\d+.*$/i,
     ''
   ).trim();
   return cleaned;
@@ -57,20 +57,20 @@ export function parseStats(rawText) {
   const lines = rawText.split('\n');
 
   const patterns = [
-    { regex: /STR\s*:\s*\+?(\d+)/i,                     key: 'str' },
-    { regex: /DEX\s*:\s*\+?(\d+)/i,                     key: 'dex' },
-    { regex: /INT\s*:\s*\+?(\d+)/i,                     key: 'int' },
-    { regex: /LUK\s*:\s*\+?(\d+)/i,                     key: 'luk' },
-    { regex: /공격력\s*:\s*\+?(\d+)/,                    key: 'weaponAttack' },
-    { regex: /마력\s*:\s*\+?(\d+)/,                      key: 'magicAttack' },
-    { regex: /최대\s*HP\s*:\s*\+?(\d+)/i,               key: 'maxHp' },
-    { regex: /최대\s*MP\s*:\s*\+?(\d+)/i,               key: 'maxMp' },
-    { regex: /물리방어력\s*:\s*\+?(\d+)/,                 key: 'weaponDefense' },
-    { regex: /마법방어력\s*:\s*\+?(\d+)/,                 key: 'magicDefense' },
-    { regex: /명중률\s*:\s*\+?(\d+)/,                    key: 'accuracy' },
-    { regex: /회피율\s*:\s*\+?(\d+)/,                    key: 'avoidability' },
-    { regex: /이동속도\s*:\s*\+?(\d+)/,                   key: 'speed' },
-    { regex: /점프력\s*:\s*\+?(\d+)/,                     key: 'jump' },
+    { regex: /STR\s*:?\s*\+?(\d+)/i,                     key: 'str' },
+    { regex: /DEX\s*:?\s*\+?(\d+)/i,                     key: 'dex' },
+    { regex: /INT\s*:?\s*\+?(\d+)/i,                     key: 'int' },
+    { regex: /LUK\s*:?\s*\+?(\d+)/i,                     key: 'luk' },
+    { regex: /공격력\s*:?\s*\+?(\d+)/,                    key: 'weaponAttack' },
+    { regex: /마력\s*:?\s*\+?(\d+)/,                      key: 'magicAttack' },
+    { regex: /최대\s*HP\s*:?\s*\+?(\d+)/i,               key: 'maxHp' },
+    { regex: /최대\s*MP\s*:?\s*\+?(\d+)/i,               key: 'maxMp' },
+    { regex: /물리방어력\s*:?\s*\+?(\d+)/,                 key: 'weaponDefense' },
+    { regex: /마법방어력\s*:?\s*\+?(\d+)/,                 key: 'magicDefense' },
+    { regex: /명중률\s*:?\s*\+?(\d+)/,                    key: 'accuracy' },
+    { regex: /회피율\s*:?\s*\+?(\d+)/,                    key: 'avoidability' },
+    { regex: /이동속도\s*:?\s*\+?(\d+)/,                   key: 'speed' },
+    { regex: /점프력\s*:?\s*\+?(\d+)/,                     key: 'jump' },
   ];
 
   for (const line of lines) {
