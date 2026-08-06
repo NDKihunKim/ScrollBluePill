@@ -719,7 +719,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
         itemNameInput.placeholder = '아이템을 식별할 수 없습니다';
         row.classList.add('item-search-input-row--error');
         if (cameraBtn instanceof HTMLElement) cameraBtn.hidden = false;
-        if (clearScreenshotBtn instanceof HTMLElement) clearScreenshotBtn.hidden = false;
+        if (clearScreenshotBtn instanceof HTMLElement) clearScreenshotBtn.hidden = true;
         if (feedback) {
           feedback.hidden = false;
           feedback.className = 'item-screenshot-feedback item-screenshot-feedback--error';
@@ -741,9 +741,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
   const clearScreenshotState = () => {
     setScreenshotUIState('idle');
-    if (selectedItem && hasDeconDraftState()) {
-      deconDeltas = {};
-      activateDeconEditPanel(selectedItem);
+    if (window.__lastScreenshotItem) {
+      delete window.__lastScreenshotItem;
     }
   };
 
@@ -783,6 +782,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
         }
 
         // Success: select the item
+        window.__lastScreenshotItem = matchedItem;
         commitSuggestedItem(matchedItem, { syncFilters: false });
 
         // Apply parsed stats as deconDeltas (deltas = target - base)
@@ -5358,15 +5358,15 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     display: flex;
     align-items: center;
     gap: 0;
-    border: 1px solid var(--line);
+    border: 1px solid var(--border, #444);
     border-radius: 8px;
     overflow: hidden;
-    background: var(--bg);
+    background: var(--bg, #161618);
     transition: border-color 0.2s;
   }
 
   .item-search-input-row:focus-within {
-    border-color: var(--green);
+    border-color: var(--accent, #6c8cff);
   }
 
   .item-search-input-row #item-name-input {
@@ -5377,17 +5377,12 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     border-radius: 0;
   }
 
-  .item-search-input-row #item-name-input::-webkit-search-cancel-button {
-    -webkit-appearance: none;
-    appearance: none;
-  }
-
   .item-search-input-row--processing {
-    border-color: var(--green);
+    border-color: var(--accent, #6c8cff);
   }
 
   .item-search-input-row--success {
-    border-color: var(--green);
+    border-color: #5ebb5e;
   }
 
   .item-search-input-row--error {
@@ -5397,29 +5392,26 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   .item-search-camera-btn,
   .item-search-clear-btn {
     flex-shrink: 0;
-    width: 40px;
-    height: 40px;
-    padding: 0;
+    padding: 8px 14px;
     border: none;
-    border-left: 1px solid var(--line);
+    border-left: 1px solid var(--border, #444);
     background: none;
     font-size: 20px;
     line-height: 1;
-    font-weight: 400;
     cursor: pointer;
-    color: var(--muted);
+    color: var(--fg-muted, #999);
     transition: color 0.15s, background 0.15s;
   }
 
   .item-search-camera-btn:hover,
   .item-search-clear-btn:hover {
-    color: var(--ink);
-    background: var(--nav-hover);
+    color: var(--fg, #ddd);
+    background: var(--surface-hover, #2a2a30);
   }
 
   .item-search-camera-btn:active,
   .item-search-clear-btn:active {
-    background: var(--nav-hover);
+    background: var(--surface-active, #333);
   }
 
   .item-screenshot-feedback {
