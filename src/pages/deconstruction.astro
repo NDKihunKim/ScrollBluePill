@@ -5407,9 +5407,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     background: var(--surface-active, #333);
   }
 
-  .item-search-camera-btn .spinner {
+  .item-search-camera-btn :global(.spinner) {
     animation: spin 1s linear infinite;
-    transform-origin: center;
+    transform-origin: 50% 50%;
   }
 
   @keyframes spin {
