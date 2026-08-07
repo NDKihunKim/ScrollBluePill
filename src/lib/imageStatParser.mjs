@@ -1,15 +1,28 @@
 /**
  * Client-side screenshot-to-stats parser using Tesseract.js OCR.
- * Lazy-loads the Tesseract worker on first call (~4MB CDN payload).
+ * Lazy-loads the Tesseract worker on first call (self-hosted assets in /ocr/).
  */
 import { searchKoreanItems } from './itemSearch.mjs';
 
 // ── Tesseract lazy-init ────────────────────────────────────────
 
 let _workerPromise = null;
-const getWorker = () => (_workerPromise ??= import('tesseract.js').then(
-  ({ createWorker }) => createWorker('kor+eng', 1, { logger: () => {} })
-));
+const getWorker = () => {
+  if (_workerPromise) return _workerPromise;
+  _workerPromise = import('tesseract.js').then(
+    ({ createWorker }) => createWorker('kor+eng', 1, {
+      logger: () => {},
+      workerPath: '/ocr/worker.min.js',
+      corePath: '/ocr/tesseract-core-lstm.wasm.js',
+      langPath: '/ocr',
+      workerBlobURL: false,
+    })
+  ).catch(err => {
+    _workerPromise = null;
+    throw err;
+  });
+  return _workerPromise;
+};
 
 // ── OCR ─────────────────────────────────────────────────────────
 
