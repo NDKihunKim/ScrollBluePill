@@ -6,17 +6,32 @@ import { searchKoreanItems } from './itemSearch.mjs';
 
 // ── Tesseract lazy-init ────────────────────────────────────────
 
+// ponytail: 30s timeout — tesseract.js swallows init errors internally
+// (.catch(() => {}) in createWorker), so a failed importScripts or fetch
+// inside the worker causes the promise to hang forever instead of rejecting.
+// The timeout guarantees we surface an error rather than spinning indefinitely.
+const WORKER_TIMEOUT_MS = 30_000;
+
 let _workerPromise = null;
 const getWorker = () => {
   if (_workerPromise) return _workerPromise;
   _workerPromise = import('tesseract.js').then(
-    ({ createWorker }) => createWorker('kor+eng', 1, {
-      logger: () => {},
-      workerPath: '/ocr/worker.min.js',
-      corePath: '/ocr/tesseract-core-lstm.wasm.js',
-      langPath: '/ocr',
-      workerBlobURL: false,
-    })
+    ({ createWorker }) => {
+      const worker = createWorker('kor+eng', 1, {
+        logger: () => {},
+        workerPath: '/ocr/worker.min.js',
+        corePath: '/ocr/tesseract-core-lstm.wasm.js',
+        langPath: '/ocr',
+        workerBlobURL: false,
+        gzip: false,
+      });
+      return Promise.race([
+        worker,
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Tesseract worker init timed out after 30s')), WORKER_TIMEOUT_MS)
+        ),
+      ]);
+    }
   ).catch(err => {
     _workerPromise = null;
     throw err;
