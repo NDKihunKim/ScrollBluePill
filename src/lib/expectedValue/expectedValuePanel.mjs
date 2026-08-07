@@ -400,5 +400,6 @@ export function createResultUI() {
     showThresholdUnsupported,
     showZeroSuccess,
     rechart,
+    destroy: () => themeObserver.disconnect(),
   };
 }

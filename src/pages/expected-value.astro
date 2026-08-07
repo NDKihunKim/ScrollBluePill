@@ -1233,6 +1233,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       resultContent.hidden = true;
       resultContent.replaceChildren();
     }
+    if (evResultUI) evResultUI.destroy();
     evResultUI = null;
     evResultSummary = null;
     checkStarState();
