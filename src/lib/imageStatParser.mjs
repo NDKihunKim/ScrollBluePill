@@ -15,24 +15,41 @@ const WORKER_TIMEOUT_MS = 30_000;
 let _workerPromise = null;
 const getWorker = () => {
   if (_workerPromise) return _workerPromise;
+
+  console.warn('[OCR] Step 1/5: importing tesseract.js module…');
   _workerPromise = import('tesseract.js').then(
     ({ createWorker }) => {
-      const worker = createWorker('kor+eng', 1, {
-        logger: () => {},
+      console.warn('[OCR] Step 2/5: tesseract.js loaded, creating worker…');
+
+      const options = {
+        logger: (m) => {
+          if (m.status) console.warn(`[OCR] worker progress: ${m.status} (${Math.round(m.progress * 100)}%)`);
+        },
         workerPath: '/ocr/worker.min.js',
         corePath: '/ocr/tesseract-core-lstm.wasm.js',
         langPath: '/ocr',
         workerBlobURL: false,
         gzip: false,
-      });
-      return Promise.race([
-        worker,
+      };
+      console.warn('[OCR] Step 3/5: createWorker options:', JSON.stringify(options));
+
+      const workerPromise = createWorker('kor+eng', 1, options);
+
+      const withTimeout = Promise.race([
+        workerPromise.then(w => {
+          console.warn('[OCR] Step 5/5: worker ready');
+          return w;
+        }),
         new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Tesseract worker init timed out after 30s')), WORKER_TIMEOUT_MS)
         ),
       ]);
+
+      console.warn('[OCR] Step 4/5: waiting for worker init (30s timeout)…');
+      return withTimeout;
     }
   ).catch(err => {
+    console.warn('[OCR] FAILED:', err.message || err);
     _workerPromise = null;
     throw err;
   });
