@@ -1,5 +1,5 @@
 export const site = {
-  name: 'ScrollBluePill',
+  name: '옛메 해체분석기',
   description: '옛날 메이플 MapleWorlds 주문서 확률 계산을 위한 한국어 도구입니다.',
   nav: [
     { href: '/', label: '계산기' },
