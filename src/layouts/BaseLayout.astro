@@ -5,21 +5,25 @@ type Props = {
   title: string;
   description: string;
   canonicalPath?: string;
+  favicon?: { png32: string; png48: string; ico: string };
 };
 
-const { title, description, canonicalPath = Astro.url.pathname } = Astro.props;
+const { title, description, canonicalPath = Astro.url.pathname, favicon } = Astro.props;
+const f32 = favicon?.png32 ?? '/favicon.png';
+const f48 = favicon?.png48 ?? '/favicon-48.png';
+const fico = favicon?.ico ?? '/favicon.ico';
 const canonical = new URL(canonicalPath, Astro.site ?? Astro.url).toString();
-const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
+const pageTitle = title === site.name ? title : `${site.name} | ${title}`;
 ---
 
 <!doctype html>
 <html lang="ko" data-theme="bright">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
-    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
-    <link rel="icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" sizes="48x48" href="/favicon-48.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href={f32} />
+    <link rel="icon" type="image/png" sizes="48x48" href={f48} />
+    <link rel="icon" href={fico} />
+    <link rel="apple-touch-icon" sizes="48x48" href={f48} />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <title>{pageTitle}</title>
