@@ -40,6 +40,17 @@ const pageTitle = title === site.name ? title : `${site.name} | ${title}`;
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="/og-image.png" />
+    <script type="application/ld+json" set:html={`{
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "${site.name}",
+      "description": "${site.description}",
+      "url": "${canonical}",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Any",
+      "inLanguage": "ko",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" }
+    }`} />
     <script is:inline>
       try {
         const savedTheme = localStorage.getItem('scrollbluepill-theme');

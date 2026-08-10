@@ -5,7 +5,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 ---
 
 <BaseLayout
-  title="해체분석기"
+  title="옛메 아이템 해체분석기"
   description="목표 아이템의 최종 스탯을 만들 수 있는 모든 강화 방법을 찾아냅니다."
   favicon={{
     png32: '/favicon-decon.png',
@@ -752,9 +752,19 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
    * Process an image blob through the OCR pipeline and apply results.
    * Uses hasDeconDraftState + showResetConfirmDialog for dirty-state protection.
    */
+  const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024; // 5 MB
+
   const processScreenshot = (blob) => {
     if (!(blob instanceof Blob)) return;
     if (screenshotState === 'processing') return;
+    if (blob.size > MAX_SCREENSHOT_BYTES) {
+      if (screenshotFeedback instanceof HTMLElement) {
+        screenshotFeedback.textContent = '이미지 크기는 5MB 이하여야 합니다.';
+        screenshotFeedback.hidden = false;
+        screenshotFeedback.className = 'item-screenshot-feedback item-screenshot-feedback--error';
+      }
+      return;
+    }
 
     const doProcess = async () => {
       setScreenshotUIState('processing');
