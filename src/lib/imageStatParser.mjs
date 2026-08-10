@@ -64,13 +64,21 @@ const getWorker = () => {
  */
 export async function ocrImage(blob) {
   const worker = await getWorker();
-  const { data } = await worker.recognize(blob, {}, {});
-  const words = data.words ?? [];
-  const avgConfidence =
-    words.length > 0
-      ? words.reduce((sum, w) => sum + w.confidence, 0) / words.length
-      : 0;
-  return { text: data.text, confidence: avgConfidence };
+  try {
+    const { data } = await worker.recognize(blob, {}, {});
+    const words = data.words ?? [];
+    const avgConfidence =
+      words.length > 0
+        ? words.reduce((sum, w) => sum + w.confidence, 0) / words.length
+        : 0;
+    return { text: data.text, confidence: avgConfidence };
+  } catch (err) {
+    // Worker may have crashed internally — discard so next attempt
+    // creates a fresh one instead of reusing a poisoned instance.
+    _workerPromise = null;
+    try { await worker.terminate(); } catch { /* best effort */ }
+    throw err;
+  }
 }
 
 // ── Item name extraction ───────────────────────────────────────
