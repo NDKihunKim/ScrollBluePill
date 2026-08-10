@@ -34,8 +34,8 @@ export function solveStimulantResidual(
     // Stimulant can only affect stats that exist on the clean item with a
     // positive base value — same rule as the stimulant bounds UI.
     const statExistsOnBase = cleanStats && Number.isFinite(cleanStats[key]) && cleanStats[key] > 0;
-    if (!statExistsOnBase && value !== 0) return null;
-    const effectiveMin = statExistsOnBase ? boundMin : 0;
+    if (cleanStats && !statExistsOnBase && value !== 0) return null;
+    const effectiveMin = cleanStats && !statExistsOnBase ? 0 : boundMin;
     const effectiveMax =
       boundRange && Number.isFinite(boundRange.max)
         ? Math.max(-baseLimit, Math.min(baseLimit, boundRange.max))
