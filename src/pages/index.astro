@@ -11,23 +11,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     ico: '/favicon-main.ico',
   }}
 >
-  <section class="band">
-    <div class="container">
-      <h1>블루 포션</h1>
-      <p class="lede">MapleWorlds 옛날 메이플 아이템 해체분석기 &amp; 기대값 계산기</p>
-    </div>
-  </section>
-
-  <section class="band">
+  <section class="band home-band">
     <div class="container">
       <div class="home-cards">
         <a class="home-card" href="/deconstruction">
-          <h2>옛메 아이템 해체분석기</h2>
-          <p>목표 아이템의 최종 스탯을 만들 수 있는 모든 강화 방법과 주문서 조합을 찾아냅니다.</p>
+          <h2><img src="/favicon-decon.png" alt="" width="28" height="28" class="card-icon" /> 해체분석기</h2>
+          <p>목표 옛메 아이템의 최종 스탯을 만들 수 있는 모든 강화 방법과 주문서 조합을 찾아냅니다.</p>
           <span class="home-card-cta">시작하기 →</span>
         </a>
         <a class="home-card" href="/expected-value">
-          <h2>옛메 아이템 기대값 계산기</h2>
+          <h2><img src="/favicon-ev.png" alt="" width="28" height="28" class="card-icon" /> 기대값 계산기</h2>
           <p>
             주문서, 보석, 촉진제, 아이템 레벨업을 조합하여 목표 스탯에 도달하기까지 필요한 평균 제작
             횟수를 계산합니다.
@@ -40,6 +33,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 </BaseLayout>
 
 <style>
+  .home-band {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .home-band .container {
+    width: 100%;
+  }
+
   .lede {
     color: var(--muted);
     font-size: 1.05rem;
@@ -51,7 +56,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 20px;
-    margin-top: 8px;
+    max-width: 860px;
+    margin: 8px auto 0;
   }
 
   .home-card {
@@ -76,9 +82,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
 
   .home-card h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin: 0 0 10px;
     font-size: 1.3rem;
     font-weight: 800;
+  }
+
+  .card-icon {
+    flex-shrink: 0;
+    border-radius: 4px;
   }
 
   .home-card p {
