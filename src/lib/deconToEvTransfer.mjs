@@ -328,7 +328,7 @@ export function buildEnhancementStateFromStrategy(strategy, item, levelUpDefinit
 
   // ── Stimulant slot ─────────────────────────────────────────────────
   const stimulantSlot = hasStimulant
-    ? { stats: { ...strategy.stimulant.stats }, mode: strategy.stimulant.mode ?? 'manual' }
+    ? { stats: { ...strategy.stimulant.stats }, mode: strategy.stimulant.mode ?? 'probability' }
     : null;
 
   // ── Item level-up slots ────────────────────────────────────────────
