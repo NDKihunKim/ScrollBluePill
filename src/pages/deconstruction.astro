@@ -3642,7 +3642,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
   :global(.chaos-stepper-btn) {
     width: 28px;
-    height: 24px;
+    height: 30px;
+    min-height: 0; /* override global button min-height 40px from BaseLayout */
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -3681,7 +3682,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     max-width: 56px;
     width: 48px;
     padding: 0 4px;
-    height: 24px;
+    height: 30px;
+    min-height: 0; /* override global input min-height 40px from BaseLayout */
     border: 1px solid var(--line);
     border-radius: 6px;
     background: var(--surface);
