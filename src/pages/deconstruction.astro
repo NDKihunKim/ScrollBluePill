@@ -64,6 +64,13 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
                 />
               </div>
               <p class="item-screenshot-feedback" data-screenshot-feedback hidden></p>
+              {import.meta.env.DEV && (
+                <div class="screenshot-debug-panel" data-screenshot-debug hidden>
+                  <img data-debug-original alt="Original screenshot" title="original" />
+                  <img data-debug-processed alt="Preprocessed black-on-white" title="preprocessed" />
+                  <pre data-debug-ocr></pre>
+                </div>
+              )}
               <input type="hidden" name="itemId" data-selected-item-id />
               <div
                 id="item-suggestion-list"
@@ -5562,5 +5569,28 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
   .item-screenshot-feedback--error {
     color: #e05555;
+  }
+
+  .screenshot-debug-panel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 8px 0 0 0;
+  }
+  .screenshot-debug-panel[hidden] {
+    display: none; /* display:flex above would otherwise override the hidden attribute */
+  }
+  .screenshot-debug-panel img {
+    max-width: min(420px, 100%);
+    border: 1px solid var(--border, #555);
+    background: #fff; /* binarized output is always black-on-white */
+  }
+  .screenshot-debug-panel pre {
+    margin: 0;
+    max-width: 420px;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: pre-wrap;
   }
 </style>
