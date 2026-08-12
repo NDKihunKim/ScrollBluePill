@@ -2327,6 +2327,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   }
 
   :global(.slot-checkpoint-row .slot-box--filled) {
+    background: var(--surface-soft);
+  }
+
+  :root[data-theme='dark'] :global(.slot-checkpoint-row .slot-box--filled) {
     background: #295979;
   }
 
