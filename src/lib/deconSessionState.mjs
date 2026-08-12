@@ -119,6 +119,7 @@ export function clearDeconResult() {
  * @param {HTMLInputElement|null} opts.itemNameInput - item name input
  * @param {Record<string,number>} opts.deconDeltas - stat delta map
  * @param {string[]} opts.deconStatKeys - active stat keys
+ * @param {'add'|'sum'} opts.deconStatMode - stat editor input mode
  * @param {{successfulScrollCount:number,remainingSlots:number,maxSlots:number}} opts.slotState
  * @param {number} opts.totalAppliedScrolls - successful + inferred failed
  * @param {number} opts.appliedLevelCount - item level-up count
@@ -137,6 +138,7 @@ export function saveDeconTransferSession({
   itemNameInput,
   deconDeltas,
   deconStatKeys,
+  deconStatMode,
   slotState,
   totalAppliedScrolls,
   appliedLevelCount,
@@ -156,6 +158,7 @@ export function saveDeconTransferSession({
       itemNameInput instanceof HTMLInputElement ? itemNameInput.value : (selectedItem.nameKo ?? ''),
     deconDeltas: { ...deconDeltas },
     deconStatKeys: [...deconStatKeys],
+    deconStatMode,
     successfulScrollCount: slotState.successfulScrollCount,
     remainingSlots: slotState.remainingSlots,
     maxSlots: slotState.maxSlots,

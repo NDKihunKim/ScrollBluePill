@@ -219,7 +219,13 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
         </form>
 
         <section class="calculator-panel calc-panel" data-decon-edit-panel>
-          <h2>2. 스탯 편집</h2>
+          <div class="decon-stat-mode-row">
+            <h2>2. 스탯 편집</h2>
+            <div class="segmented-control" aria-label="스탯 입력 방식">
+              <button type="button" class="segment active" data-decon-stat-mode="add">추가</button>
+              <button type="button" class="segment" data-decon-stat-mode="sum">합</button>
+            </div>
+          </div>
           <p class="enhancement-placeholder" data-decon-edit-placeholder>
             먼저 위에서 아이템을 선택해주세요
           </p>
@@ -514,6 +520,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   import { parseScreenshot, matchItem } from '../lib/imageStatParser.mjs';
   import {
     equalizeGroupLabels,
+    statDisplayValue,
     rebuildStatEditor as _rebuildStatEditor,
     populateAddStatList as _populateAddStatList,
   } from '../lib/deconstruction/statEditor.mjs';
@@ -859,6 +866,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   let selectedItem = null;
   let deconDeltas = {};
   let deconStatKeys = [];
+  let deconStatMode = 'add';
   let deconSlotState = createDeconstructionSlotState(0);
   let deconHasActionableResults = false;
   let deconScrollRateFilter = new Set(['100', '60', '10']);
@@ -1141,7 +1149,28 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       renderTargetChips,
       updateTargetCard,
       checkStarState,
+      deconStatMode,
     });
+
+  // ---- Stat input mode segmented control (추가 / 합) ----
+
+  const deconStatModeButtons = document.querySelectorAll('[data-decon-stat-mode]');
+
+  const syncDeconStatModeButtons = () => {
+    deconStatModeButtons.forEach((button) => {
+      button.classList.toggle('active', button.dataset.deconStatMode === deconStatMode);
+    });
+  };
+
+  deconStatModeButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const mode = button.dataset.deconStatMode;
+      if (!mode || mode === deconStatMode) return;
+      deconStatMode = mode;
+      syncDeconStatModeButtons();
+      rebuildStatEditor();
+    });
+  });
 
   const populateAddStatList = () =>
     _populateAddStatList({
@@ -1160,7 +1189,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       deconDeltas[key] = value;
       const valueInput = document.querySelector(`[data-decon-stat-value="${key}"]`);
       if (valueInput instanceof HTMLInputElement) {
-        valueInput.value = String(value);
+        const base = selectedItem?.stats?.[key] ?? 0;
+        valueInput.value = String(statDisplayValue(deconStatMode, base, value));
       }
       updateAnalyzeButton();
       updateTargetCard();
@@ -1994,6 +2024,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
           itemNameInput,
           deconDeltas,
           deconStatKeys,
+          deconStatMode,
           slotState: deconSlotState,
           totalAppliedScrolls,
           appliedLevelCount: deconAppliedLevelCount,
@@ -2662,6 +2693,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     //    these to defaults)
     deconDeltas = { ...(saved.deconDeltas ?? {}) };
     deconStatKeys = [...(saved.deconStatKeys ?? [])];
+    deconStatMode = saved.deconStatMode === 'sum' ? 'sum' : 'add';
+    syncDeconStatModeButtons();
     deconSlotState = createDeconstructionSlotState(saved.maxSlots ?? 0);
     deconSlotState = setSuccessfulScrollCount(deconSlotState, saved.successfulScrollCount ?? 0);
     deconSlotState = setRemainingSlotCount(
@@ -3488,6 +3521,18 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     font-size: clamp(1.05rem, 1.5vw, 1.35rem);
     font-weight: 800;
     line-height: 1.2;
+  }
+
+  .decon-stat-mode-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .decon-stat-mode-row h2 {
+    margin: 0;
   }
 
   /* Deconstruction-specific styles */

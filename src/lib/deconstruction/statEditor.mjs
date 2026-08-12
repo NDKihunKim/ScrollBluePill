@@ -7,6 +7,21 @@
  */
 import { HP_MP_KEYS } from '../enhancementState.mjs';
 
+// ── Stat input mode helpers ──────────────────────────────────
+
+/**
+ * Value shown in the editor input for a stored delta.
+ * 'add' mode: input is the delta itself; 'sum' mode: input is the
+ * final stat (clean base + delta), so a clean stat shows as-is.
+ */
+export const statDisplayValue = (mode, base, delta) => (mode === 'sum' ? base + delta : delta);
+
+/**
+ * Inverse of statDisplayValue: convert an entered input value back
+ * to the stored delta.
+ */
+export const statDeltaFromDisplay = (mode, base, value) => (mode === 'sum' ? value - base : value);
+
 // ── Label equalization ────────────────────────────────────────
 
 /**
@@ -66,6 +81,7 @@ export function rebuildStatEditor({
   renderTargetChips,
   updateTargetCard,
   checkStarState,
+  deconStatMode = 'add',
 }) {
   if (!(deconStatEditor instanceof HTMLElement)) return;
   deconStatEditor.replaceChildren();
@@ -118,13 +134,18 @@ export function rebuildStatEditor({
     valueInput.type = 'number';
     valueInput.className = 'chaos-stepper-value';
     valueInput.dataset.deconStatValue = k;
-    valueInput.value = String(deconDeltas[k] ?? 0);
+    valueInput.value = String(
+      statDisplayValue(deconStatMode, baseValue, deconDeltas[k] ?? 0),
+    );
     valueInput.addEventListener('input', () => {
       const raw = parseInt(valueInput.value, 10);
       if (Number.isFinite(raw)) {
-        const clamped = Math.max(rangeMin, Math.min(rangeMax, raw));
+        const rawDelta = statDeltaFromDisplay(deconStatMode, baseValue, raw);
+        const clamped = Math.max(rangeMin, Math.min(rangeMax, rawDelta));
         setStatDelta(k, clamped);
-        if (clamped !== raw) valueInput.value = String(clamped);
+        if (clamped !== rawDelta) {
+          valueInput.value = String(statDisplayValue(deconStatMode, baseValue, clamped));
+        }
       }
     });
 
