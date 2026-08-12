@@ -59,14 +59,14 @@ const getWorker = () => {
 // ── Image preprocessing ──────────────────────────────────────────
 
 /**
- * Preprocess a screenshot blob for OCR: grayscale → mean threshold → invert if
+ * Preprocess a screenshot blob for OCR: grayscale → Otsu threshold → invert if
  * light-on-dark (MapleStory tooltips). Returns a clean binarized PNG blob
  * that Tesseract can read reliably.
  *
- * ponytail: adaptive threshold from mean brightness. A global threshold
+ * ponytail: global Otsu threshold (between-class variance). A global threshold
  * loses detail in mixed tooltip+world screenshots; upgrading to Sauvola
  * (per-pixel local threshold) would handle edge-lit UIs but needs a full
- * convolution pass — try mean-first.
+ * convolution pass — try Otsu first.
  */
 export async function preprocessImage(blob) {
   const img = await createImageBitmap(blob);
@@ -267,7 +267,7 @@ export function parseSlotInfo(rawText) {
 
 /**
  * Full pipeline: OCR → extract item name → parse stats → parse slot info.
- * Returns { itemName, stats, confidence, enhancementLevel, remainingSlots }.
+ * Returns { text, itemName, stats, confidence, enhancementLevel, remainingSlots }.
  */
 export async function parseScreenshot(blob) {
   const { text, confidence } = await ocrImage(blob);
