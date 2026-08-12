@@ -145,11 +145,17 @@ export function rebuildStatEditor({
       if (Number.isFinite(raw)) {
         const rawDelta = statDeltaFromDisplay(deconStatMode, baseValue, raw);
         const clamped = Math.max(rangeMin, Math.min(rangeMax, rawDelta));
-        setStatDelta(k, clamped);
-        if (clamped !== rawDelta) {
-          valueInput.value = String(statDisplayValue(deconStatMode, baseValue, clamped));
-        }
+        // Store the clamped delta but never rewrite the field while the
+        // user is typing — mid-input value writes fight mobile keyboards.
+        setStatDelta(k, clamped, { fromInput: true });
       }
+    });
+
+    // Snap the display to the clamped state once editing ends.
+    valueInput.addEventListener('blur', () => {
+      valueInput.value = String(
+        statDisplayValue(deconStatMode, baseValue, deconDeltas[k] ?? 0),
+      );
     });
 
     const incBtn = document.createElement('button');

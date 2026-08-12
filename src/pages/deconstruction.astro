@@ -1207,11 +1207,13 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       deconAddStatToggle,
     });
 
-  const setStatDelta = (key, value, { skipGuard = false } = {}) => {
+  const setStatDelta = (key, value, { skipGuard = false, fromInput = false } = {}) => {
     const apply = () => {
       deconDeltas[key] = value;
       const valueInput = document.querySelector(`[data-decon-stat-value="${key}"]`);
-      if (valueInput instanceof HTMLInputElement) {
+      // fromInput: the user is typing in that field — leave its text alone;
+      // the stat editor snaps the display on blur.
+      if (valueInput instanceof HTMLInputElement && !fromInput) {
         const base = selectedItem?.stats?.[key] ?? 0;
         valueInput.value = String(statDisplayValue(deconStatMode, base, value));
       }
