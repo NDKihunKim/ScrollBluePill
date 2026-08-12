@@ -148,6 +148,30 @@
         "weaponDefense": 50
       },
       "aliases": []
+    },
+    {
+      "id": 1050098,
+      "nameKo": "레드 카티나스",
+      "nameEn": "Red Katina",
+      "equipmentKind": "한벌옷",
+      "requiredLevel": 100,
+      "requiredJobs": [
+        "Thief"
+      ],
+      "requirements": {
+        "dex": 140,
+        "int": 0,
+        "luk": 260,
+        "str": 0
+      },
+      "stats": {
+        "dex": 3,
+        "luk": 7,
+        "avoidability": 2,
+        "upgradeSlots": 10,
+        "weaponDefense": 105
+      },
+      "aliases": ["카티나스", "레드카티나스"]
     }
   ]
 }
