@@ -221,9 +221,18 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
         <section class="calculator-panel calc-panel" data-decon-edit-panel>
           <div class="decon-stat-mode-row">
             <h2>2. 스탯 편집</h2>
-            <div class="segmented-control" aria-label="스탯 입력 방식">
-              <button type="button" class="segment active" data-decon-stat-mode="add">추가</button>
-              <button type="button" class="segment" data-decon-stat-mode="sum">합</button>
+            <div
+              class="decon-stat-mode-control"
+              aria-label="스탯 입력 방식"
+              data-decon-stat-mode-control
+            >
+              <span class="decon-stat-mode-thumb" aria-hidden="true"></span>
+              <button type="button" class="decon-stat-mode-option active" data-decon-stat-mode="add"
+                >추가</button
+              >
+              <button type="button" class="decon-stat-mode-option" data-decon-stat-mode="sum"
+                >합</button
+              >
             </div>
           </div>
           <p class="enhancement-placeholder" data-decon-edit-placeholder>
@@ -1155,11 +1164,22 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   // ---- Stat input mode segmented control (추가 / 합) ----
 
   const deconStatModeButtons = document.querySelectorAll('[data-decon-stat-mode]');
+  const deconStatModeControl = document.querySelector('[data-decon-stat-mode-control]');
+  const deconStatModeThumb = deconStatModeControl?.querySelector('.decon-stat-mode-thumb');
 
   const syncDeconStatModeButtons = () => {
     deconStatModeButtons.forEach((button) => {
       button.classList.toggle('active', button.dataset.deconStatMode === deconStatMode);
     });
+    // Slide the thumb under the active option (offsetLeft is relative to
+    // the control, whose 3px padding the thumb's own left: 3px offsets).
+    const active = [...deconStatModeButtons].find((button) =>
+      button.classList.contains('active'),
+    );
+    if (deconStatModeThumb instanceof HTMLElement && active) {
+      deconStatModeThumb.style.width = `${active.offsetWidth}px`;
+      deconStatModeThumb.style.transform = `translateX(${active.offsetLeft - 3}px)`;
+    }
   };
 
   deconStatModeButtons.forEach((button) => {
@@ -1171,6 +1191,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       rebuildStatEditor();
     });
   });
+
+  // Position the thumb on initial load (before any mode switch)
+  syncDeconStatModeButtons();
 
   const populateAddStatList = () =>
     _populateAddStatList({
@@ -3533,6 +3556,48 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   }
   .decon-stat-mode-row h2 {
     margin: 0;
+  }
+
+  .decon-stat-mode-control {
+    position: relative;
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface-soft);
+  }
+  .decon-stat-mode-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    height: calc(100% - 6px);
+    border-radius: 999px;
+    background: rgb(1 143 199 / 45%);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
+    transition:
+      transform 180ms ease,
+      width 180ms ease;
+  }
+  .decon-stat-mode-option {
+    position: relative;
+    z-index: 1;
+    min-height: 26px;
+    padding: 3px 14px;
+    border: none;
+    background: transparent;
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: color 180ms ease;
+  }
+  .decon-stat-mode-option.active {
+    color: var(--ink);
+  }
+  .decon-stat-mode-option:not(.active):hover {
+    color: var(--ink);
   }
 
   /* Deconstruction-specific styles */
