@@ -533,7 +533,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   import { buildGemPreFilter } from '../lib/deconstruction/gemPreFilterUI.mjs';
   import { buildLevelUpSlotEditors } from '../lib/deconstruction/levelUpSlotEditors.mjs';
   import { computeGradeColor } from '../lib/deconstruction/gradeColor.mjs';
-  import { parseScreenshot, matchItem } from '../lib/imageStatParser.mjs';
+  import { parseScreenshot, matchItem, preprocessImage } from '../lib/imageStatParser.mjs';
   import {
     equalizeGroupLabels,
     statDisplayValue,
@@ -575,6 +575,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   const spinnerSVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spinner" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>`;
   const screenshotInput = form?.querySelector('[data-screenshot-input]');
   const screenshotFeedback = form?.querySelector('[data-screenshot-feedback]');
+  const screenshotDebugPanel = form?.querySelector('[data-screenshot-debug]');
   const selectedItemCard = document.querySelector('[data-selected-item-card]');
   const itemPlaceholder = document.querySelector('[data-item-placeholder]');
   const selectedItemName = document.querySelector('[data-selected-item-name]');
@@ -794,6 +795,20 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
       try {
         const parseResult = await parseScreenshot(blob);
+
+        // ponytail: dev-only preview; object URLs intentionally not revoked.
+        // Placed BEFORE the confidence guards so messy, low-confidence
+        // screenshots still show their preprocessed output for eyeballing.
+        if (import.meta.env.DEV && screenshotDebugPanel) {
+          const processedBlob = await preprocessImage(blob);
+          const originalImg = screenshotDebugPanel.querySelector('[data-debug-original]');
+          const processedImg = screenshotDebugPanel.querySelector('[data-debug-processed]');
+          const ocrPre = screenshotDebugPanel.querySelector('[data-debug-ocr]');
+          originalImg.src = URL.createObjectURL(blob);
+          processedImg.src = URL.createObjectURL(processedBlob);
+          ocrPre.textContent = `confidence: ${parseResult.confidence}\n\n${parseResult.text}`;
+          screenshotDebugPanel.hidden = false;
+        }
 
         // Guard: confidence threshold
         if (parseResult.confidence < 50) {
