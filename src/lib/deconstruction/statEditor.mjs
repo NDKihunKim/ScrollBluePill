@@ -110,9 +110,12 @@ export function rebuildStatEditor({
     const isHpMp = HP_MP_KEYS.has(k);
     const stepSize = isHpMp ? 10 : 1;
     const perScrollMax = isHpMp ? 50 : 5;
-    const rangeMax = Math.min(100, deconSlotState.maxSlots * perScrollMax);
+    const scrollRange = Math.min(100, deconSlotState.maxSlots * perScrollMax);
+    const rangeMax = scrollRange;
     const baseValue = selectedItem?.stats?.[k] ?? 0;
-    const rangeMin = -baseValue;
+    // Floor is slot-derived like the ceiling, but the final stat can never
+    // drop below 0, so the delta can't remove more than the base stat.
+    const rangeMin = Math.max(-scrollRange, -baseValue);
 
     const minBtn = document.createElement('button');
     minBtn.type = 'button';
