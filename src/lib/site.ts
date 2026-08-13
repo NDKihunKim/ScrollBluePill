@@ -4,6 +4,5 @@ export const site = {
   nav: [
     { href: '/deconstruction/', label: '해체분석기', icon: '/favicon-decon.png' },
     { href: '/expected-value/', label: '기대값 계산기', icon: '/favicon-ev.png' },
-    { href: '/contact/', label: '문의' },
   ],
 };
