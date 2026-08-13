@@ -128,7 +128,7 @@ return 200.
 1. Go to [uptimerobot.com](https://uptimerobot.com/) and sign up (free)
 2. Click **Add New Monitor**
 3. Choose type: **HTTP(s)**
-4. Set URL to: `https://scrollbluepill.pages.dev/healthz/`
+4. Set URL to: `https://paranpot.com/healthz/`
 5. Monitoring interval: **5 minutes** (free tier default)
 6. Alert contacts: add your email (or Slack/Discord if preferred)
 7. Click **Create Monitor**
@@ -138,7 +138,7 @@ The free tier allows 50 monitors with 5-minute checks — more than enough.
 ### Alternative: Better Stack
 
 [Better Stack](https://betterstack.com/) also has a generous free tier
-and includes a nicer dashboard. Same setup: monitor `https://scrollbluepill.pages.dev/healthz/`.
+and includes a nicer dashboard. Same setup: monitor `https://paranpot.com/healthz/`.
 
 ### What you get
 

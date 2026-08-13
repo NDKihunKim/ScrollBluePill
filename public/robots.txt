@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://scrollbluepill.pages.dev/sitemap-index.xml
+Sitemap: https://paranpot.com/sitemap-index.xml

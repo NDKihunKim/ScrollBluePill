@@ -42,7 +42,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
                   id="item-name-input"
                   type="search"
                   name="itemName"
-                  placeholder="예: 노가다 목장갑, 노목 — 스크린샷을 붙여넣으세요 (Ctrl+V)"
+                  placeholder="예: 노가다 목장갑, 노목"
                   autocomplete="off"
                   aria-autocomplete="list"
                   aria-controls="item-suggestion-list"
@@ -519,6 +519,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     confirmReplaceDeconSlot,
     confirmDeleteDeconSlot,
     confirmUnsaveDeconSlot,
+    showScreenshotUploadDialog,
   } from '../lib/deconstruction/dialogs.mjs';
   import {
     buildDeconPageState,
@@ -755,7 +756,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       default:
         // idle
         itemNameInput.disabled = false;
-        itemNameInput.placeholder = '예: 노가다 목장갑, 노목 — 스크린샷을 붙여넣으세요 (Ctrl+V)';
+        itemNameInput.placeholder = '예: 노가다 목장갑, 노목';
         if (cameraBtn instanceof HTMLElement) {
           cameraBtn.hidden = false;
           cameraBtn.innerHTML = uploadIconSVG;
@@ -2334,36 +2335,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     }
   });
 
-  // ── Paste handler for screenshot upload ─────────────────────────
-  if (itemNameInput instanceof HTMLInputElement) {
-    itemNameInput.addEventListener('paste', (event) => {
-      const clipboardData = event.clipboardData;
-      if (!clipboardData) return;
-
-      const items = clipboardData.items;
-      if (!items) return;
-
-      for (const item of items) {
-        if (item.type.startsWith('image/')) {
-          event.preventDefault();
-          const blob = item.getAsFile();
-          if (blob) processScreenshot(blob);
-          return;
-        }
-      }
-    });
-  }
-
-  // ── Camera button → trigger hidden file input ───────────────────
+  // ── Camera button → open screenshot upload dialog ───────────────
   if (cameraBtn instanceof HTMLElement && screenshotInput instanceof HTMLInputElement) {
     cameraBtn.addEventListener('click', () => {
-      screenshotInput.value = '';
-      screenshotInput.click();
-    });
-
-    screenshotInput.addEventListener('change', () => {
-      const file = screenshotInput.files?.[0];
-      if (file) processScreenshot(file);
+      if (screenshotState === 'processing') return; // spinner covers btn; guard anyway
+      showScreenshotUploadDialog({ screenshotInput, onScreenshot: processScreenshot });
     });
   }
 
@@ -5062,6 +5038,57 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     background: #e74c3c;
     border-color: #e74c3c;
     color: #fff;
+  }
+
+  :global(dialog.screenshot-upload-dialog) {
+    border: none;
+    margin: auto;
+  }
+
+  :global(dialog.screenshot-upload-dialog)::backdrop {
+    background: rgba(0, 0, 0, 0.35);
+  }
+
+  :global(.screenshot-upload-dialog) {
+    background: var(--surface);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 20px 24px;
+    max-width: 420px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  }
+
+  :global(.screenshot-upload-dialog h3) {
+    margin: 0 0 8px;
+    font-size: 1rem;
+  }
+
+  :global(.screenshot-upload-notice) {
+    margin: 0 0 14px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  :global(.screenshot-upload-dropzone) {
+    border: 1.5px dashed var(--line);
+    border-radius: 6px;
+    padding: 28px 16px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  :global(.screenshot-upload-dropzone--over) {
+    border-color: var(--green);
+    background: var(--surface-soft);
+  }
+
+  /* neutralize the destructive-first-child red for this dialog's cancel row */
+  :global(.screenshot-upload-dialog .decon-confirm-buttons button) {
+    background: var(--surface-soft);
+    border-color: var(--line);
+    color: var(--ink);
   }
 
   :global(.decon-strategy-source) {

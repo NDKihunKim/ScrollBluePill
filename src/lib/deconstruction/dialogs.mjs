@@ -368,3 +368,102 @@ export function confirmUnsaveDeconSlot({
   document.body.append(dialog);
   dialog.showModal();
 }
+
+/**
+ * Screenshot upload dialog: paste, drag-and-drop, or click to pick a file.
+ * Closes itself before calling onScreenshot(blob).
+ * @param {{ screenshotInput: HTMLInputElement, onScreenshot?: (blob: Blob) => void }} opts
+ */
+export function showScreenshotUploadDialog({ screenshotInput, onScreenshot } = {}) {
+  const { dialog, returnEl } = createDialog('screenshot-upload-dialog', '스크린샷 업로드');
+
+  const close = (blob) => {
+    screenshotInput.removeEventListener('change', onInputChange); // idempotent
+    dismissDialog(dialog, returnEl);
+    if (blob) onScreenshot?.(blob);
+  };
+
+  const title = document.createElement('h3');
+  title.textContent = '스크린샷 업로드';
+
+  const notice = document.createElement('p');
+  notice.className = 'screenshot-upload-notice';
+  notice.textContent = '배경이 투명하지 않은 스크린샷만 완벽하게 분석됩니다';
+
+  const dropzone = document.createElement('div');
+  dropzone.className = 'screenshot-upload-dropzone';
+  dropzone.setAttribute('role', 'button');
+  dropzone.setAttribute('tabindex', '0');
+  dropzone.setAttribute('aria-label', '스크린샷 붙여넣기 또는 파일 선택');
+  const zoneText = document.createElement('div');
+  zoneText.textContent = '여기에 스크린샷을 붙여넣거나 드래그하세요 (Ctrl+V)';
+  const zoneHint = document.createElement('small');
+  zoneHint.textContent = '또는 클릭하여 파일 선택';
+  dropzone.append(zoneText, zoneHint);
+  dropzone.addEventListener('click', () => {
+    screenshotInput.value = '';
+    screenshotInput.click();
+  });
+  dropzone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      dropzone.click();
+    }
+  });
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.type = 'button';
+  cancelBtn.textContent = '취소';
+  cancelBtn.addEventListener('click', () => close(null));
+  const buttonRow = document.createElement('div');
+  buttonRow.className = 'decon-confirm-buttons';
+  buttonRow.append(cancelBtn);
+
+  dialog.append(title, notice, dropzone, buttonRow);
+
+  // Paste (dialog holds focus after showModal; events bubble to it)
+  dialog.addEventListener('paste', (event) => {
+    const item = [...(event.clipboardData?.items ?? [])].find((i) =>
+      i.type.startsWith('image/'),
+    );
+    if (!item) return; // non-image paste: ignore
+    event.preventDefault();
+    const blob = item.getAsFile();
+    if (blob) close(blob);
+  });
+
+  // Drag & drop (backdrop region retargets to the dialog element)
+  dialog.addEventListener('dragover', (event) => {
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+    dropzone.classList.add('screenshot-upload-dropzone--over');
+  });
+  dialog.addEventListener('dragleave', () =>
+    dropzone.classList.remove('screenshot-upload-dropzone--over'),
+  );
+  dialog.addEventListener('drop', (event) => {
+    event.preventDefault();
+    dropzone.classList.remove('screenshot-upload-dropzone--over');
+    const file = event.dataTransfer?.files?.[0]; // first file wins
+    if (file && file.type.startsWith('image/')) close(file);
+  });
+
+  // File picker change — wired here so the dialog closes itself first.
+  // Removed in close() so canceled dialogs don't accumulate listeners.
+  const onInputChange = () => {
+    const file = screenshotInput.files?.[0];
+    screenshotInput.value = '';
+    if (file) close(file);
+  };
+  screenshotInput.addEventListener('change', onInputChange);
+
+  // Esc: preventDefault stops the native close, then dismissDialog
+  // removes the node cleanly (existing dialogs skip this and leak).
+  dialog.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    close(null);
+  });
+
+  document.body.append(dialog);
+  dialog.showModal();
+}

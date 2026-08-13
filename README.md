@@ -52,7 +52,7 @@ Use these settings:
 - Build command: `npm run build`
 - Build output directory: `dist`
 - Environment variables:
-  - `SITE_URL=https://scrollbluepill.pages.dev`
+  - `SITE_URL=https://paranpot.com`
 
 The `sync:data` step in `npm run build` skips gracefully when Supabase
 credentials aren't available (CI), relying on committed data files in
