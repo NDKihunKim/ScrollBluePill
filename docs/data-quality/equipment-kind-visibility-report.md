@@ -18,7 +18,7 @@ Hidden equipment kinds: Cash, Face, Hair, Medal, Mount, Pet Equipment, Skill Eff
 | 두손도끼 | 23 |
 | 두손둔기 | 25 |
 | 망토 | 48 |
-| 모자 | 332 |
+| 모자 | 334 |
 | 반지 | 16 |
 | 방패 | 44 |
 | 벨트 | 14 |
@@ -35,9 +35,9 @@ Hidden equipment kinds: Cash, Face, Hair, Medal, Mount, Pet Equipment, Skill Eff
 | 펜던트 | 8 |
 | 폴암 | 52 |
 | 하의 | 203 |
-| 한벌옷 | 179 |
+| 한벌옷 | 180 |
 | 한손검 | 50 |
 | 한손도끼 | 27 |
-| 한손둔기 | 42 |
+| 한손둔기 | 43 |
 | 활 | 41 |
 

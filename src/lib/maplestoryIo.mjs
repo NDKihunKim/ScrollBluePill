@@ -200,6 +200,7 @@ const ICON_ID_OVERRIDES = {
 const ICON_VERSION_OVERRIDES = {
   // Items whose icons only exist in a newer API version
   2048717: { version: '253' }, // Eternal Rebirth Flame (post-v83)
+  1003112: { version: '253' }, // Chaos Zakum Helmet (post-v83)
 };
 
 export function buildItemIconUrl(

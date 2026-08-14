@@ -172,6 +172,34 @@
         "weaponDefense": 105
       },
       "aliases": ["카티나스", "레드카티나스"]
+    },
+    {
+      "id": 1003112,
+      "nameKo": "카오스 자쿰의 투구",
+      "nameEn": "Chaos Zakum Helmet",
+      "equipmentKind": "모자",
+      "requiredLevel": 100,
+      "requiredJobs": [
+        "Beginner"
+      ],
+      "requirements": {
+        "dex": 0,
+        "int": 0,
+        "luk": 0,
+        "str": 0
+      },
+      "stats": {
+        "str": 21,
+        "dex": 21,
+        "int": 21,
+        "luk": 21,
+        "weaponDefense": 180,
+        "magicDefense": 180,
+        "accuracy": 35,
+        "avoidability": 35,
+        "upgradeSlots": 10
+      },
+      "aliases": ["카자투"]
     }
   ]
 }
