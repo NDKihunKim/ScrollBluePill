@@ -1095,10 +1095,12 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
         const targetItem = itemById.get(transferPayload.itemId);
         if (targetItem) {
           // Try to apply immediately; if enhancement data not ready,
-          // store as pending for the enhancementDataReady event
-          const levelUpById = window.__evGetItemLevelUpById?.();
-          if (levelUpById) {
-            const levelUpDef = levelUpById.get(targetItem.id) ?? null;
+          // store as pending for the enhancementDataReady event.  The
+          // level-up map must be loaded first: it sizes the level-up slots
+          // and supplies the stat ranges for the probability computation.
+          if (window.__evIsEnhancementDataLoaded?.()) {
+            const levelUpById = window.__evGetItemLevelUpById?.();
+            const levelUpDef = levelUpById?.get(targetItem.id) ?? null;
             const constructedState = buildEnhancementStateFromStrategy(
               transferPayload.strategy,
               targetItem,
@@ -1437,9 +1439,21 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
         const stimulantStats = userStrategy.useStimulant
           ? (enhancementState.stimulantSlot?.stats ?? null)
           : null;
+        const levelUpById = window.__evGetItemLevelUpById?.();
+        const levelUpDef = levelUpById?.get(selectedBaseItem.id) ?? null;
+        const levelUp = userStrategy.useItemLevelUp
+          ? {
+              ranges: levelUpDef?.statRanges ?? {},
+              slots: enhancementState.itemLevelUpSlots.filter((s) => s !== null),
+              ...(enhancementState.itemLevelUpAggregate
+                ? { aggregate: enhancementState.itemLevelUpAggregate }
+                : {}),
+            }
+          : null;
         probability = computeDirectOutcomeProbability(scrollSequence, {
           statFilter,
           stimulantStats,
+          levelUp,
         });
       }
     } catch (err) {

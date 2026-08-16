@@ -110,6 +110,7 @@ export function initEnhancementPanel(renderEnhancedItemCard, host = {}) {
   let scrollIndex = [];
   let scrollsByEquipmentKind = new Map();
   let itemLevelUpByItemId = new Map();
+  let enhancementDataLoaded = false;
   let enhancementState = null;
   let selectedBaseItem = null;
   let selectedItemLevelUpDefinition = null;
@@ -1150,9 +1151,29 @@ export function initEnhancementPanel(renderEnhancedItemCard, host = {}) {
       }
 
       // Signal that enhancement data is ready (for decon→EV transfer)
+      enhancementDataLoaded = true;
       window.dispatchEvent(new CustomEvent('enhancementDataReady'));
+
+      // An item may have been selected before the level-up data finished
+      // loading — re-activate the level-up panel so the 레벨업 toggle and
+      // slots reflect the loaded definition.  No notifyEv: nothing about the
+      // strategy changed, so the EV result must not be marked stale.
+      if (enhancementState && selectedBaseItem) {
+        const loadedDefinition = itemLevelUpByItemId.get(selectedBaseItem.id) ?? null;
+        selectedItemLevelUpDefinition = supportsItemLevelUp(loadedDefinition)
+          ? loadedDefinition
+          : null;
+        itemLevelUpPanel.activate(
+          enhancementState,
+          selectedBaseItem,
+          selectedItemLevelUpDefinition,
+        );
+        refreshEnhancedCard();
+      }
     })
     .catch((_error) => {
+      enhancementDataLoaded = true;
+      window.dispatchEvent(new CustomEvent('enhancementDataReady'));
       showEnhancementError('주문서 데이터를 불러오지 못했습니다');
     });
 
@@ -1170,6 +1191,11 @@ export function initEnhancementPanel(renderEnhancedItemCard, host = {}) {
 
   // Expose item-level-up-by-id map for deconstruction strategy transfer
   window.__evGetItemLevelUpById = () => itemLevelUpByItemId;
+
+  // Expose data-readiness so the EV page can defer transfer application
+  // until the level-up map (needed for slot sizing and probability ranges)
+  // is populated.
+  window.__evIsEnhancementDataLoaded = () => enhancementDataLoaded;
 
   /**
    * Notifies the EV calculator (if available) that the enhancement state changed.

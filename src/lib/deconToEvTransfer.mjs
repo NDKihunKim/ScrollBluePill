@@ -338,36 +338,45 @@ export function buildEnhancementStateFromStrategy(strategy, item, levelUpDefinit
       : (strategy.itemLevelUp?.levelCount ?? 0);
   const itemLevelUpSlots = new Array(maxLevelUps).fill(null);
 
+  // Remaining (not yet applied) levels as an aggregate for the exact
+  // probability computation.  The decon strategy pins the TOTAL of
+  // `levelCount` uniform rolls, so the EV probability must convolve the
+  // rolls — multiplying per-slot shares would undercount combinations.
+  let itemLevelUpAggregate = null;
+
   if (strategy.itemLevelUp) {
     const il = strategy.itemLevelUp;
-    const appliedCount = il.appliedLevelCount ?? 0;
+    const appliedCount = Math.max(0, il.appliedLevelCount ?? 0);
+    const appliedStats = il.appliedStats ?? {};
 
-    // Distribute aggregate applied stats evenly across pre-applied slots.
-    // The deconstruction engine accumulates all applied level-up stats into a
-    // single aggregate, so each slot gets its proportional share via integer
-    // division with remainder (same pattern as chaos even-distribution).
-    if (il.appliedStats && appliedCount > 0) {
-      const perSlotStats = [];
-      for (let i = 0; i < appliedCount; i++) {
-        perSlotStats.push({});
-      }
-      for (const [key, total] of Object.entries(il.appliedStats)) {
-        const base = Math.trunc(total / appliedCount);
-        const remainder = total - base * appliedCount;
-        for (let i = 0; i < appliedCount; i++) {
-          const extra = i < Math.abs(remainder) ? Math.sign(remainder) : 0;
-          perSlotStats[i][key] = base + extra;
-        }
-      }
-      for (let i = 0; i < appliedCount && i < maxLevelUps; i++) {
-        itemLevelUpSlots[i] = { stats: perSlotStats[i] };
+    // Strategy stats include the applied portion — subtract it to get the
+    // aggregate of the remaining levels (applied stats are deterministic).
+    const remainingStats = {};
+    const statKeys = new Set([...Object.keys(il.stats ?? {}), ...Object.keys(appliedStats)]);
+    for (const key of statKeys) {
+      remainingStats[key] = (il.stats?.[key] ?? 0) - (appliedStats[key] ?? 0);
+    }
+    const remainingCount = Math.max(0, (il.levelCount ?? 0) - appliedCount);
+
+    // Pre-applied levels are deterministic — distribute their stats evenly
+    // across the first slots (same even-distribution pattern as chaos).
+    if (appliedCount > 0) {
+      const appliedSlots = distributeStatTotals(appliedStats, appliedCount);
+      for (let i = 0; i < appliedSlots.length && i < maxLevelUps; i++) {
+        itemLevelUpSlots[i] = { stats: { ...appliedSlots[i] } };
       }
     }
 
-    // Place remaining stats in the first non-applied slot
-    const firstRemaining = appliedCount;
-    if (firstRemaining < maxLevelUps) {
-      itemLevelUpSlots[firstRemaining] = { stats: { ...il.stats } };
+    // Implement each remaining level as its own slot.  The per-slot stats
+    // are an even split of the aggregate for display only; probability uses
+    // the aggregate (itemLevelUpAggregate) so the split choice never biases
+    // the EV result.
+    if (remainingCount > 0) {
+      const remainingSlots = distributeStatTotals(remainingStats, remainingCount);
+      for (let i = 0; i < remainingSlots.length && appliedCount + i < maxLevelUps; i++) {
+        itemLevelUpSlots[appliedCount + i] = { stats: { ...remainingSlots[i] } };
+      }
+      itemLevelUpAggregate = { levelCount: remainingCount, stats: { ...remainingStats } };
     }
   }
 
@@ -379,6 +388,7 @@ export function buildEnhancementStateFromStrategy(strategy, item, levelUpDefinit
     stimulantSlot,
     itemLevelUpSlots,
     itemLevelUpSlotCount: maxLevelUps,
-    itemLevelUpMode: strategy.itemLevelUp?.mode ?? 'manual',
+    itemLevelUpMode: strategy.itemLevelUp?.mode ?? 'probability',
+    itemLevelUpAggregate,
   };
 }

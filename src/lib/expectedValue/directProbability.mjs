@@ -17,6 +17,7 @@ import { CHAOS_SUCCESS_RATE, CHAOS_OUTCOME_TABLE } from './chaosModel.mjs';
 import { STIMULANT_SUCCESS_RATE, STIMULANT_OUTCOME_TABLE } from './stimulantModel.mjs';
 import { parseScrollSuccessRate } from './scrollModel.mjs';
 import { HP_MP_KEYS } from '../enhancementState.mjs';
+import { normalizeItemLevelUpRange } from '../itemLevelUpData.mjs';
 
 /** HP/MP multiplier applied to chaos scroll deltas for hp/mp stats. */
 const CHAOS_HPMP_MULTIPLIER = 10;
@@ -183,6 +184,111 @@ function fixedScrollProbability(scroll) {
 }
 
 /**
+ * Probability that `levelCount` independent uniform rolls per stat land
+ * exactly on the aggregate totals (deconstruction transfer semantics).
+ *
+ * The decon strategy pins only the TOTAL of the level-up rolls, so the
+ * probability is the convolution over all roll combinations summing to the
+ * aggregate — not a product over any single per-slot split.
+ *
+ * Stat-filter gate mirrors scrolls: if none of the aggregate keys are in
+ * the filter the level-up contributes 1.0; otherwise every key with a known
+ * range contributes.
+ *
+ * @param {Record<string, {min: number, max: number}>|null} ranges - Per-stat roll ranges
+ * @param {{ levelCount: number, stats: Record<string, number> }} aggregate
+ * @param {Set<string>|null} statFilter
+ * @returns {number} Probability in [0, 1]
+ */
+function aggregateLevelUpProbability(ranges, aggregate, statFilter) {
+  const keys = Object.keys(aggregate.stats ?? {});
+  if (keys.length === 0) return 1.0;
+
+  if (statFilter && statFilter.size > 0 && !keys.some((k) => statFilter.has(k))) {
+    return 1.0;
+  }
+
+  let prob = 1.0;
+  for (const key of keys) {
+    const range = normalizeItemLevelUpRange(ranges?.[key]);
+    if (!range) continue;
+    const total = aggregate.stats[key];
+    if (!Number.isFinite(total)) continue;
+
+    // DP over sums of `levelCount` iid uniform rolls in [min, max]
+    const count = Math.max(0, Math.trunc(aggregate.levelCount ?? 0));
+    if (count === 0) continue;
+    const uniformProb = 1 / (range.max - range.min + 1);
+
+    let dp = new Map([[0, 1]]);
+    for (let i = 0; i < count; i++) {
+      const next = new Map();
+      for (const [sum, p] of dp) {
+        for (let delta = range.min; delta <= range.max; delta++) {
+          const nextSum = sum + delta;
+          next.set(nextSum, (next.get(nextSum) ?? 0) + p * uniformProb);
+        }
+      }
+      dp = next;
+    }
+
+    prob *= dp.get(total) ?? 0;
+    if (prob === 0) return 0;
+  }
+  return prob;
+}
+
+/**
+ * Probability that each filled level-up slot produces exactly its specified
+ * stats (native EV semantics) — the product of per-slot uniform roll
+ * probabilities within the per-level ranges.
+ *
+ * @param {Array<{ stats: Record<string, number> }>|null} slots - Filled level-up slots
+ * @param {Record<string, {min: number, max: number}>|null} ranges - Per-stat roll ranges
+ * @param {Set<string>|null} statFilter
+ * @returns {number} Probability in [0, 1]
+ */
+function perSlotLevelUpProbability(slots, ranges, statFilter) {
+  const filled = (slots ?? []).filter((slot) => slot && slot.stats);
+  if (filled.length === 0) return 1.0;
+
+  const groupKeys = new Set(filled.flatMap((slot) => Object.keys(slot.stats)));
+  if (statFilter && statFilter.size > 0 && ![...groupKeys].some((k) => statFilter.has(k))) {
+    return 1.0;
+  }
+
+  let prob = 1.0;
+  for (const slot of filled) {
+    for (const [key, value] of Object.entries(slot.stats)) {
+      if (!Number.isFinite(value)) continue;
+      const range = normalizeItemLevelUpRange(ranges?.[key]);
+      if (!range) continue;
+      if (value < range.min || value > range.max) return 0;
+      prob *= 1 / (range.max - range.min + 1);
+    }
+  }
+  return prob;
+}
+
+/**
+ * Computes the item level-up contribution to the exact-outcome product.
+ *
+ * Aggregate (decon transfer): convolution over `levelCount` uniform rolls.
+ * Slots only (native EV): product of per-slot uniform roll probabilities.
+ *
+ * @param {{ ranges?: object, slots?: Array, aggregate?: object }|null} levelUp
+ * @param {Set<string>|null} statFilter
+ * @returns {number} Probability in [0, 1]
+ */
+function computeLevelUpProbability(levelUp, statFilter) {
+  if (!levelUp) return 1.0;
+  if (levelUp.aggregate) {
+    return aggregateLevelUpProbability(levelUp.ranges, levelUp.aggregate, statFilter);
+  }
+  return perSlotLevelUpProbability(levelUp.slots, levelUp.ranges, statFilter);
+}
+
+/**
  * Compute the exact probability that ALL scrolls in the sequence produce
  * EXACTLY their user-specified outcomes, multiplied by any stimulant
  * probability if provided.
@@ -198,10 +304,13 @@ function fixedScrollProbability(scroll) {
  * @param {Record<string, number>|null} [options.stimulantStats=null] - If
  *   provided, stimulant stat deltas whose probability is multiplied into
  *   the total.
+ * @param {object|null} [options.levelUp=null] - Item level-up info:
+ *   { ranges, slots?, aggregate? }. Aggregate uses convolution, slots use
+ *   the per-slot product.
  * @returns {number} Probability in [0, 1]
  */
 export function computeDirectOutcomeProbability(scrollSequence, options = {}) {
-  const { statFilter = null, stimulantStats = null } = options;
+  const { statFilter = null, stimulantStats = null, levelUp = null } = options;
 
   let totalProb = 1.0;
 
@@ -221,6 +330,12 @@ export function computeDirectOutcomeProbability(scrollSequence, options = {}) {
     if (totalProb === 0) return 0;
   }
 
+  // Multiply in item level-up probability if present
+  if (levelUp) {
+    totalProb *= computeLevelUpProbability(levelUp, statFilter);
+    if (totalProb === 0) return 0;
+  }
+
   return Math.max(0, Math.min(1, totalProb));
 }
 
@@ -231,28 +346,18 @@ export function computeDirectOutcomeProbability(scrollSequence, options = {}) {
  * Exact-outcome mode requires that every random element has explicitly
  * specified outcomes (per-stat deltas). It returns false if any probability-
  * mode random element is present:
- *   - Item level-up in probability mode
  *   - Random Maker gem in probability mode
  *   - Chaos scroll with empty or missing stats
  *
- * Stimulant in probability mode is allowed — it has a known outcome
- * distribution and user-specified stat deltas that feed into the
- * exact-outcome product.
+ * Stimulant and item level-up in probability mode are allowed — both have
+ * known outcome distributions (outcome tables / per-level uniform ranges)
+ * and explicit stat deltas that feed into the exact-outcome product.
  *
  * @param {object} strategy - { scrollSequence, makerChoices, useStimulant, useItemLevelUp }
  * @returns {boolean}
  */
 export function canUseExactOutcome(strategy) {
-  const {
-    scrollSequence = [],
-    makerChoices = [],
-    useItemLevelUp = false,
-    useStimulant = false,
-  } = strategy || {};
-
-  // Stimulant in probability mode is allowed — it contributes explicit
-  // stat deltas with a known outcome distribution to the exact-outcome product.
-  if (useItemLevelUp) return false;
+  const { scrollSequence = [], makerChoices = [], useStimulant = false } = strategy || {};
 
   for (const choice of makerChoices) {
     if (!choice || !choice.gemKey) continue;

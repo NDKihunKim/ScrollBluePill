@@ -46,6 +46,7 @@ export function createEnhancementState(
     itemLevelUpSlots,
     itemLevelUpSlotCount,
     itemLevelUpMode: MATERIAL_MODE_MANUAL,
+    itemLevelUpAggregate: null,
   };
 }
 
@@ -97,6 +98,9 @@ export function applyItemLevelUp(state, slotIndex, stats) {
   }
 
   state.itemLevelUpSlots[slotIndex] = { stats: normalizedStats };
+  // Manual edits pin per-slot stats — the transferred aggregate semantics
+  // (probability over all roll combinations) no longer apply.
+  state.itemLevelUpAggregate = null;
   return true;
 }
 
@@ -109,12 +113,14 @@ export function clearItemLevelUpSlot(state, slotIndex) {
     return;
   }
   state.itemLevelUpSlots[slotIndex] = null;
+  state.itemLevelUpAggregate = null;
 }
 
 export function resetItemLevelUps(state) {
   for (let i = 0; i < state.itemLevelUpSlots.length; i++) {
     state.itemLevelUpSlots[i] = null;
   }
+  state.itemLevelUpAggregate = null;
 }
 
 export function computeItemLevelUpCardMeta(state, levelUpDefinition = null) {
