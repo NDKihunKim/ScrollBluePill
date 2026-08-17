@@ -66,7 +66,7 @@ const pageTitle = title === site.name ? title : `${site.name} | ${title}`;
     <a href="#main-content" class="skip-link">콘텐츠로 건너뛰기</a>
     <header class="site-header">
       <a class="brand" href="/" aria-label={`${site.name} 홈`}>
-        <img class="brand-mark" src="/favicon-main.png" alt="파란 포션" width="32" height="32" />
+        <img class="brand-mark" src="/favicon-main.png" alt="" width="32" height="32" />
         <span>{site.name}</span>
       </a>
       <div class="site-actions">
@@ -169,6 +169,7 @@ const pageTitle = title === site.name ? title : `${site.name} | ${title}`;
     --muted: #5a6870;
     --line: #cfe6ef;
     --green: var(--brand-dark);
+    --green-text: #0177a6; /* darker brand tint for text on light bg (contrast ≥ 4.5:1) */
     --blue: var(--brand-dark);
     --chrome-bg: #e2eef4;
     --header-bg: rgb(226 238 244 / 92%);
@@ -218,6 +219,7 @@ const pageTitle = title === site.name ? title : `${site.name} | ${title}`;
 
   :root[data-theme='dark'] {
     color-scheme: dark;
+    --green-text: var(--green);
     --bg: #071e29;
     --surface: #0f2f3d;
     --surface-soft: #123b4d;
@@ -359,7 +361,7 @@ const pageTitle = title === site.name ? title : `${site.name} | ${title}`;
 
   .eyebrow {
     margin: 0 0 8px;
-    color: var(--green);
+    color: var(--green-text);
     font-size: 0.9rem;
     font-weight: 800;
   }

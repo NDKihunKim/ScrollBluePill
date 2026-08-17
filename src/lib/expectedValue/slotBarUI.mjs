@@ -65,9 +65,9 @@ export function renderEvSlotBar({
     const s = slots[i];
     const box = document.createElement('div');
     box.className = s ? 'item-slot item-slot--filled' : 'item-slot item-slot--empty';
-    box.setAttribute('role', 'button');
-    box.setAttribute('tabindex', '0');
     if (s) {
+      box.setAttribute('role', 'button');
+      box.setAttribute('tabindex', '0');
       box.setAttribute('aria-label', s.item.nameKo);
       const icon = document.createElement('img');
       icon.src = buildItemIconUrl(s.item.iconId);
