@@ -293,6 +293,31 @@ function chaosDeltaInRange(entry, chaosRanges) {
   return true;
 }
 
+function gemValueInRange(entry, ranges) {
+  if (!ranges || ranges.size === 0) return true;
+  for (const [gemOptionKey, statRanges] of ranges) {
+    const gems = (entry.strategy.gems ?? []).filter(
+      (gem) => `gem:${gem.gemKey}:${gem.gradeIndex}` === gemOptionKey,
+    );
+    // A strategy without this gem contributes 0 to every constrained stat
+    // (like missing stimulant or item level-up) — it only passes ranges
+    // that include 0.
+    if (gems.length === 0) {
+      for (const { min, max } of statRanges.values()) {
+        if (min > 0 || max < 0) return false;
+      }
+      continue;
+    }
+    for (const gem of gems) {
+      for (const [statKey, { min, max }] of statRanges) {
+        const value = gem.stats?.[statKey] ?? 0;
+        if (value < min || value > max) return false;
+      }
+    }
+  }
+  return true;
+}
+
 export function getVisibleStrategyIndexes(
   model,
   selections,
@@ -300,6 +325,7 @@ export function getVisibleStrategyIndexes(
   itemLevelUpRanges = null,
   scrollCountRanges = null,
   chaosDeltaRanges = null,
+  gemValueRanges = null,
 ) {
   return model.entries
     .filter(
@@ -308,7 +334,8 @@ export function getVisibleStrategyIndexes(
         stimulantInRange(entry, stimulantRanges) &&
         itemLevelUpInRange(entry, itemLevelUpRanges) &&
         scrollCountInRange(entry, scrollCountRanges) &&
-        chaosDeltaInRange(entry, chaosDeltaRanges),
+        chaosDeltaInRange(entry, chaosDeltaRanges) &&
+        gemValueInRange(entry, gemValueRanges),
     )
     .map(({ strategyIndex }) => strategyIndex);
 }

@@ -251,3 +251,96 @@ test('facet option ordering breaks sort-key ties by option key', () => {
     );
   }
 });
+
+test('gem value ranges treat strategies without that gem as 0 contribution', () => {
+  const variableGemStrategies = [
+    {
+      scrolls: [],
+      stimulant: null,
+      gems: [
+        { gemKey: 'blackAmethyst', nameKo: '흑수정', gradeIndex: 1, stats: { weaponAttack: -2 } },
+      ],
+      itemLevelUp: null,
+    },
+    { scrolls: [], stimulant: null, gems: [], itemLevelUp: null },
+  ];
+  const model = buildSecondaryFilterModel(variableGemStrategies);
+  const selections = createInitialSecondarySelections(model);
+
+  const rangeMap = (statKey, min, max) =>
+    new Map([['gem:blackAmethyst:1', new Map([[statKey, { min, max }]])]]);
+
+  // Range including 0: gem strategy (-2) hidden, no-gem strategy (0) visible
+  assert.deepEqual(
+    getVisibleStrategyIndexes(model, selections, null, null, null, null, rangeMap('weaponAttack', 0, 2)),
+    [1],
+  );
+
+  // Range excluding 0: both hidden — no-gem strategy contributes 0, not null
+  assert.deepEqual(
+    getVisibleStrategyIndexes(model, selections, null, null, null, null, rangeMap('weaponAttack', 2, 2)),
+    [],
+  );
+
+  // No ranges: everything visible
+  assert.deepEqual(getVisibleStrategyIndexes(model, selections), [0, 1]);
+});
+
+test('흑수정 ranges constrain each stat key independently', () => {
+  const gemStrategies = [
+    {
+      scrolls: [],
+      stimulant: null,
+      gems: [
+        { gemKey: 'blackAmethyst', nameKo: '흑수정', gradeIndex: 2, stats: { weaponAttack: 1, magicAttack: 0 } },
+      ],
+      itemLevelUp: null,
+    },
+    {
+      scrolls: [],
+      stimulant: null,
+      gems: [
+        { gemKey: 'blackAmethyst', nameKo: '흑수정', gradeIndex: 2, stats: { weaponAttack: 0, magicAttack: 1 } },
+      ],
+      itemLevelUp: null,
+    },
+  ];
+  const model = buildSecondaryFilterModel(gemStrategies);
+  const selections = createInitialSecondarySelections(model);
+  const rangeMap = (statKey, min, max) =>
+    new Map([['gem:blackAmethyst:2', new Map([[statKey, { min, max }]])]]);
+
+  // 공격력 1~1: 공격력 +1 passes, 마력-only +1 hidden
+  assert.deepEqual(
+    getVisibleStrategyIndexes(model, selections, null, null, null, null, rangeMap('weaponAttack', 1, 1)),
+    [0],
+  );
+
+  // 마력 1~1: 마력-only +1 passes, 공격력 +1 hidden
+  assert.deepEqual(
+    getVisibleStrategyIndexes(model, selections, null, null, null, null, rangeMap('magicAttack', 1, 1)),
+    [1],
+  );
+
+  // Both keys constrained to 1~1: each strategy misses one key → all hidden
+  assert.deepEqual(
+    getVisibleStrategyIndexes(
+      model,
+      selections,
+      null,
+      null,
+      null,
+      null,
+      new Map([
+        [
+          'gem:blackAmethyst:2',
+          new Map([
+            ['weaponAttack', { min: 1, max: 1 }],
+            ['magicAttack', { min: 1, max: 1 }],
+          ]),
+        ],
+      ]),
+    ),
+    [],
+  );
+});

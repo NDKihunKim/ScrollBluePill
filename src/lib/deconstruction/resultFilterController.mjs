@@ -30,6 +30,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
   let itemLevelUpRanges = new Map();
   let scrollCountRanges = new Map();
   let chaosDeltaRanges = new Map();
+  let gemValueRanges = new Map();
   let activeScrollStatFilter = 'all';
 
   const hidePanel = () => {
@@ -62,6 +63,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
     const hasLevelRanges = itemLevelUpRanges.size > 0;
     const hasCountRanges = scrollCountRanges.size > 0;
     const hasChaosRanges = chaosDeltaRanges.size > 0;
+    const hasGemRanges = gemValueRanges.size > 0;
     const visibleIndexes = new Set(
       getVisibleStrategyIndexes(
         model,
@@ -70,6 +72,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
         hasLevelRanges ? itemLevelUpRanges : null,
         hasCountRanges ? scrollCountRanges : null,
         hasChaosRanges ? chaosDeltaRanges : null,
+        hasGemRanges ? gemValueRanges : null,
       ),
     );
     let visibleCount = 0;
@@ -105,6 +108,8 @@ export function createResultFilterController({ root, secondaryContainer }) {
       // Clear any count range when toggled off so it doesn't
       // silently filter strategies that don't use this scroll.
       if (source === 'scrolls') scrollCountRanges.delete(key);
+      // Same for gem value ranges — an unchecked grade must not keep filtering.
+      if (source === 'gems') gemValueRanges.delete(key);
     }
     applyFilters();
     _onAfterFilter?.();
@@ -564,6 +569,170 @@ export function createResultFilterController({ root, secondaryContainer }) {
 
       header.append(backBtn, icon, name);
 
+      const gemType = getGemTypeByKey(cat.gemKey);
+
+      // Variable gems (흑수정, 어둠의 크리스탈): rows like the scrolls with a
+      // dual-handle value range slider per grade instead of plain toggle cards.
+      if (gemType?.behavior === 'variable') {
+        const list = document.createElement('div');
+        list.className = 'decon-secondary-scroll-list';
+
+        // Slider bounds follow the strategies: per grade, per stat key, the
+        // min/max of values that actually appear, always including 0 so
+        // no-gem strategies stay reachable. Unused keys get no slider.
+        const boundsByGrade = new Map(); // gradeIndex -> Map<statKey, {min,max}>
+        for (const entry of model.entries) {
+          for (const gem of entry.strategy.gems ?? []) {
+            if (gem.gemKey !== cat.gemKey) continue;
+            let byKey = boundsByGrade.get(gem.gradeIndex);
+            if (!byKey) {
+              byKey = new Map();
+              boundsByGrade.set(gem.gradeIndex, byKey);
+            }
+            for (const [statKey, value] of Object.entries(gem.stats ?? {})) {
+              if (value === 0) continue;
+              const bound = byKey.get(statKey);
+              if (!bound) byKey.set(statKey, { min: Math.min(0, value), max: Math.max(0, value) });
+              else {
+                bound.min = Math.min(bound.min, value);
+                bound.max = Math.max(bound.max, value);
+              }
+            }
+          }
+        }
+
+        for (const gradeOpt of cat.grades) {
+          const gradeKey =
+            gradeOpt.gradeIndex === 0 ? 'low' : gradeOpt.gradeIndex === 1 ? 'mid' : 'high';
+
+          const isSelected = selected.has(gradeOpt.key);
+          const isAvailable = gradeOpt.available;
+
+          const row = document.createElement('div');
+          row.className = 'decon-secondary-scroll-row';
+          if (isSelected) row.classList.add('decon-secondary-scroll-row--selected');
+          if (!isAvailable) row.classList.add('decon-secondary-scroll-row--unavailable');
+          row.setAttribute('role', 'button');
+          row.setAttribute('aria-pressed', String(isSelected));
+          row.setAttribute('tabindex', isAvailable ? '0' : '-1');
+          if (!isAvailable) row.setAttribute('aria-disabled', 'true');
+
+          const toggleGrade = () => {
+            if (!isAvailable) return;
+            setSecondaryOption('gems', gradeOpt.key, !selected.has(gradeOpt.key));
+          };
+          row.addEventListener('click', toggleGrade);
+          row.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'Enter') {
+              e.preventDefault();
+              toggleGrade();
+            }
+          });
+
+          const info = document.createElement('span');
+          info.className = 'decon-secondary-scroll-info';
+
+          const gradeIconId = GEM_ITEM_IDS[cat.gemKey]?.[gradeKey] ?? 0;
+          if (gradeIconId) {
+            const gradeIcon = document.createElement('img');
+            gradeIcon.className = 'decon-secondary-scroll-icon';
+            gradeIcon.src = buildItemIconUrl(gradeIconId);
+            gradeIcon.alt = GEM_GRADES[gradeOpt.gradeIndex] ?? '';
+            gradeIcon.loading = 'lazy';
+            gradeIcon.addEventListener('error', () => {
+              gradeIcon.hidden = true;
+            });
+            info.append(gradeIcon);
+          }
+
+          const textBlock = document.createElement('span');
+          textBlock.className = 'decon-secondary-scroll-text';
+          const gradeText = document.createElement('span');
+          gradeText.className = 'decon-secondary-scroll-name';
+          gradeText.textContent = GEM_GRADES[gradeOpt.gradeIndex] ?? '';
+          textBlock.append(gradeText);
+          info.append(textBlock);
+          row.append(info);
+
+          // One dual-handle slider per stat key used by this grade
+          const sliderWrap = document.createElement('span');
+          sliderWrap.className = 'decon-secondary-scroll-chaos-stats';
+          if (!isSelected) {
+            sliderWrap.classList.add('decon-secondary-scroll-slider-wrap--disabled');
+          }
+
+          const keyBounds = boundsByGrade.get(gradeOpt.gradeIndex) ?? new Map();
+          const statRanges = gemValueRanges.get(gradeOpt.key) ?? new Map();
+
+          for (const [statKey, fullBound] of keyBounds) {
+            const existing = statRanges.get(statKey);
+            const curMin = existing ? existing.min : fullBound.min;
+            const curMax = existing ? existing.max : fullBound.max;
+
+            const statRow = document.createElement('span');
+            statRow.className = 'decon-secondary-scroll-chaos-stat-row';
+
+            const label = document.createElement('span');
+            label.className = 'decon-secondary-scroll-stat';
+            const formatLabel = (mn, mx) =>
+              `${statLabelByKey[statKey] ?? statKey}: ${mn} ~ ${mx}`;
+            label.textContent = formatLabel(curMin, curMax);
+
+            const minSlider = document.createElement('input');
+            minSlider.type = 'range';
+            minSlider.min = fullBound.min;
+            minSlider.max = fullBound.max;
+            minSlider.step = 1;
+            minSlider.value = curMin;
+            minSlider.disabled = !isSelected || !isAvailable;
+
+            const maxSlider = document.createElement('input');
+            maxSlider.type = 'range';
+            maxSlider.min = fullBound.min;
+            maxSlider.max = fullBound.max;
+            maxSlider.step = 1;
+            maxSlider.value = curMax;
+            maxSlider.disabled = !isSelected || !isAvailable;
+
+            const updateRange = () => {
+              let mn = Number(minSlider.value);
+              let mx = Number(maxSlider.value);
+              if (mn > mx) [mn, mx] = [mx, mn];
+              statRanges.set(statKey, { min: mn, max: mx });
+              gemValueRanges.set(gradeOpt.key, statRanges);
+              minSlider.value = mn;
+              maxSlider.value = mx;
+              label.textContent = formatLabel(mn, mx);
+              scheduleFilters();
+            };
+
+            minSlider.addEventListener('input', updateRange);
+            maxSlider.addEventListener('input', updateRange);
+
+            const dualRange = document.createElement('span');
+            dualRange.className = 'decon-chaos-dual-range';
+            dualRange.append(minSlider, maxSlider);
+            statRow.append(label, dualRange);
+            sliderWrap.append(statRow);
+          }
+
+          sliderWrap.addEventListener('click', (e) => {
+            e.stopPropagation();
+          });
+          sliderWrap.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+          });
+
+          row.append(sliderWrap);
+
+          list.append(row);
+        }
+
+        secondaryContainer.append(header, list);
+        secondaryContainer.hidden = false;
+        return;
+      }
+
       const gradeList = document.createElement('div');
       gradeList.className = 'decon-gem-grades';
 
@@ -945,6 +1114,7 @@ export function createResultFilterController({ root, secondaryContainer }) {
     itemLevelUpRanges = new Map();
     scrollCountRanges = new Map();
     chaosDeltaRanges = new Map();
+    gemValueRanges = new Map();
     activeScrollStatFilter = 'all';
     hidePanel();
   };
