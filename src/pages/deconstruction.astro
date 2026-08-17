@@ -316,7 +316,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
             스탯 편집 후 목표 조건을 선택해주세요
           </p>
           <div data-decon-calc-content hidden>
-            <div class="ev-target-chip-grid" data-decon-target-chips></div>
+            <fieldset class="decon-target-options">
+              <legend>분석 목표 스탯을 선택해 주세요.</legend>
+              <div class="ev-target-chip-grid" data-decon-target-chips></div>
+            </fieldset>
             <fieldset class="decon-source-options" aria-describedby="decon-source-message">
               <legend>분석에 사용할 강화 유형</legend>
               <div class="decon-source-accordion">
@@ -908,7 +911,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   let deconChaosBoundsMap = {};
   let deconChaosEnabledKeys = new Set();
   let deconChaosShadow = {};
-  let deconGemFilter = null; // null = all gems available, Set<string> of "gemKey:gradeIndex" = whitelist
+  let deconGemFilter = new Set(); // Set<string> of "gemKey:gradeIndex" — empty = no gems selected
   let deconGemEligible = true; // whether selected item meets maker gem REQLEV threshold for its class
   let deconLevelUpTotalRanges = {};
   let deconAppliedLevelCount = 0; // how many level-ups are already applied (0..maxLevelUps)
@@ -1016,7 +1019,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     // If gems are not eligible and the checkbox was checked, uncheck it and collapse sub-panel
     if (!eligible && deconGemsSource instanceof HTMLInputElement && deconGemsSource.checked) {
       deconGemsSource.checked = false;
-      deconGemFilter = null;
+      deconGemFilter = new Set();
       if (deconGemSub instanceof HTMLElement) {
         deconGemSub.classList.remove('decon-source-sub--open');
         deconGemSub.hidden = true;
@@ -1325,15 +1328,6 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       onStateChange: checkStarState,
     });
   const buildGemFilter = () => {
-    if (deconGemFilter === null) {
-      deconGemFilter = new Set();
-      for (const gem of GEM_TYPES) {
-        if (gem.weaponOnly && !isWeaponKind(selectedItem?.equipmentKind)) continue;
-        for (let gi = 0; gi < GEM_GRADES.length; gi++) {
-          deconGemFilter.add(`${gem.key}:${gi}`);
-        }
-      }
-    }
     buildGemPreFilter({
       container: deconGemSub,
       selectedItem,
@@ -1471,7 +1465,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     deconChaosBoundsMap = {};
     deconChaosEnabledKeys = new Set();
     deconChaosShadow = {};
-    deconGemFilter = null;
+    deconGemFilter = new Set();
     deconGemEligible = true;
     deconLevelUpTotalRanges = {};
     deconScrollRateInputs.forEach((inp) => {
@@ -1661,7 +1655,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       deconChaosBounds.classList.remove('decon-source-sub--open');
       deconChaosBounds.hidden = true;
     }
-    deconGemFilter = null;
+    deconGemFilter = new Set();
     deconLevelUpTotalRanges = {};
     deconScrollRateInputs.forEach((inp) => {
       if (inp instanceof HTMLInputElement) {
@@ -2622,11 +2616,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   deconGemsSource?.addEventListener('change', () => {
     guardCheckboxMutation(deconGemsSource, guardDeconMutation, () => {
       toggleSourceSub(deconGemsSource, deconGemSub, () => {
-        deconGemFilter = null;
+        deconGemFilter = new Set();
         buildGemFilter();
       });
       if (!deconGemsSource.checked) {
-        deconGemFilter = null;
+        deconGemFilter = new Set();
       }
       updateAnalyzeButton();
     });
@@ -2732,7 +2726,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     deconStimulantEnabledKeys = new Set(saved.stimulantEnabledKeys ?? []);
     deconChaosBoundsMap = saved.chaosBoundsMap ?? {};
     deconChaosEnabledKeys = new Set(saved.chaosEnabledKeys ?? []);
-    deconGemFilter = saved.gemFilter ? new Set(saved.gemFilter) : null;
+    deconGemFilter = new Set(saved.gemFilter ?? []);
     deconLevelUpTotalRanges = saved.levelUpTotalRanges ?? {};
 
     // Sync scroll-rate checkboxes to restored filter
@@ -3833,12 +3827,14 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     outline-offset: 2px;
   }
 
-  .decon-source-options {
+  .decon-source-options,
+  .decon-target-options {
     margin: 12px 0 8px;
     padding: 0;
     border: 0;
   }
-  .decon-source-options legend {
+  .decon-source-options legend,
+  .decon-target-options legend {
     margin-bottom: 6px;
     color: var(--muted);
     font-size: 0.82rem;
