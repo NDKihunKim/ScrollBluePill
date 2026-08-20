@@ -5071,7 +5071,11 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     border-left-color: var(--ink);
   }
 
-  :global(.decon-ev-transfer-btn, .decon-share-btn) {
+  /* Two separate :global() wrappers — Astro does not globalize comma
+     lists inside a single :global(), and the share button is created in
+     JS (no scope attribute), so a scoped second selector would never match. */
+  :global(.decon-ev-transfer-btn),
+  :global(.decon-share-btn) {
     font: inherit;
     padding: 5px 12px;
     border: 1px solid var(--line);
@@ -5083,11 +5087,13 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     font-weight: 650;
     line-height: 1.3;
     white-space: nowrap;
+    min-height: 0; /* override BaseLayout's global button reset (40px) */
     transition:
       background 0.15s,
       border-color 0.15s;
   }
-  :global(.decon-ev-transfer-btn, .decon-share-btn):hover {
+  :global(.decon-ev-transfer-btn):hover,
+  :global(.decon-share-btn):hover {
     background: var(--green);
     color: #fff;
     border-color: var(--green);
