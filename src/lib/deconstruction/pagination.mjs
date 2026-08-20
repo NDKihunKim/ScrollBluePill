@@ -17,7 +17,8 @@ const PAGE_SIZE = 5;
  * Creates a pagination controller bound to a result panel.
  *
  * @param {string} containerSelector — CSS selector for the result panel element
- * @returns {{ renderBar: () => void, applyPagination: (isFilterUpdate?: boolean) => void }}
+ * @returns {{ renderBar: () => void, applyPagination: (isFilterUpdate?: boolean) => void,
+ *   resetPage: () => void, goToPage: (page: number) => void }}
  */
 export function createPagination(containerSelector) {
   let _currentPage = 1;
@@ -150,5 +151,5 @@ export function createPagination(containerSelector) {
     _currentPage = 1;
   }
 
-  return { renderBar, applyPagination: _applyPagination, resetPage };
+  return { renderBar, applyPagination: _applyPagination, resetPage, goToPage: _goToPage };
 }
