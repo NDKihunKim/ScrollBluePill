@@ -2884,21 +2884,27 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
           () => card.classList.remove('decon-strategy-card--shared'),
           { once: true },
         );
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // The document still settles while the smooth scroll runs (late
-        // fonts/images reflow), so the scroll can clamp against the shorter
-        // layout and stop mid-way.  Re-check when it finishes and correct
-        // only if the card is not actually in view.
-        window.addEventListener(
-          'scrollend',
-          () => {
-            const rect = card.getBoundingClientRect();
-            if (rect.top < 0 || rect.bottom > window.innerHeight) {
-              card.scrollIntoView({ block: 'center' });
-            }
-          },
-          { once: true },
-        );
+        // The layout keeps settling after restore (sub-panels finish
+        // building, rows grow for ~1s), so a scroll issued now computes
+        // against a moving target and stops mid-way.  Wait until the
+        // document height is stable for a few frames (capped at ~1s),
+        // then issue ONE smooth scroll — it lands correctly the first time.
+        let _lastHeight = 0;
+        let _stableFrames = 0;
+        let _waitedFrames = 0;
+        const scrollWhenSettled = () => {
+          _waitedFrames++;
+          const height = document.documentElement.scrollHeight;
+          if (height === _lastHeight) _stableFrames++;
+          else _stableFrames = 0;
+          _lastHeight = height;
+          if (_stableFrames >= 3 || _waitedFrames >= 60) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } else {
+            requestAnimationFrame(scrollWhenSettled);
+          }
+        };
+        requestAnimationFrame(scrollWhenSettled);
       }
     } else {
       requestAnimationFrame(() => {
