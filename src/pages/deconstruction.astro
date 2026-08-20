@@ -2153,6 +2153,32 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
       headerRow.append(transferLink);
 
+      const shareBtn = document.createElement('button');
+      shareBtn.type = 'button';
+      shareBtn.className = 'decon-share-btn';
+      shareBtn.textContent = '공유';
+      let revertTimer = null;
+      shareBtn.addEventListener('click', async () => {
+        if (!selectedItem) return;
+        const payload = await encodeShareLink(
+          collectDeconState(buildSessionSnapshotOpts()),
+          strategyIndex,
+        );
+        const url = new URL(location.pathname, location.href);
+        url.searchParams.set('s', payload);
+        const ok = await copyTextToClipboard(url.href);
+        shareBtn.textContent = ok ? '링크 복사됨' : '복사 실패';
+        clearTimeout(revertTimer);
+        revertTimer = setTimeout(() => {
+          shareBtn.textContent = '공유';
+        }, 2000);
+        announce(ok ? '링크가 복사되었습니다.' : '복사에 실패했습니다.');
+        // eslint-disable-next-line no-console -- dev aid for failed clipboard copies
+        if (!ok) console.log('[decon-share] copy failed, URL:', url);
+        trackEvent('deconstruction_share', { strategyIndex });
+      });
+      headerRow.append(shareBtn);
+
       card.append(headerRow);
 
       // 2. Total stats — summary subtitle
@@ -5037,7 +5063,8 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     border-left-color: var(--ink);
   }
 
-  :global(.decon-ev-transfer-btn) {
+  :global(.decon-ev-transfer-btn, .decon-share-btn) {
+    font: inherit;
     padding: 5px 12px;
     border: 1px solid var(--line);
     border-radius: 6px;
@@ -5048,15 +5075,17 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     font-weight: 650;
     line-height: 1.3;
     white-space: nowrap;
-    text-decoration: none;
     transition:
       background 0.15s,
       border-color 0.15s;
   }
-  :global(.decon-ev-transfer-btn:hover) {
+  :global(.decon-ev-transfer-btn, .decon-share-btn):hover {
     background: var(--green);
     color: #fff;
     border-color: var(--green);
+  }
+  :global(.decon-ev-transfer-btn) {
+    text-decoration: none;
   }
 
   :global(dialog.decon-confirm-dialog) {
@@ -5699,5 +5728,22 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     font-size: 12px;
     line-height: 1.4;
     white-space: pre-wrap;
+  }
+</style>
+
+<style is:global>
+  /* Share-link highlight — single pulse that fades out over ~5s.
+     Global because the class is applied to JS-generated cards and the
+     keyframes must not be Astro-scoped. */
+  .decon-strategy-card--shared {
+    animation: decon-share-pulse 5s ease-out forwards;
+  }
+  @keyframes decon-share-pulse {
+    0% {
+      box-shadow: 0 0 0 3px var(--green);
+    }
+    100% {
+      box-shadow: 0 0 0 3px transparent;
+    }
   }
 </style>
