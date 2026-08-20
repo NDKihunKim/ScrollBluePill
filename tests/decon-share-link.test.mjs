@@ -46,6 +46,19 @@ test('gzipped payload stays well under a 2 KB URL budget', async () => {
   assert.ok(payload.length < 2000, `payload was ${payload.length} chars`);
 });
 
+test('encode falls back to raw JSON without CompressionStream', async () => {
+  const original = globalThis.CompressionStream;
+  globalThis.CompressionStream = undefined;
+  try {
+    const payload = await encodeShareLink(SNAPSHOT, 1);
+    const decoded = await decodeShareLink(payload);
+    assert.equal(decoded.strategyIndex, 1);
+    assert.equal(decoded.itemId, 1001);
+  } finally {
+    globalThis.CompressionStream = original;
+  }
+});
+
 test('decode accepts uncompressed payloads (old-browser fallback)', async () => {
   const payload = toBase64Url(JSON.stringify({ v: 1, ...SNAPSHOT, strategyIndex: 2 }));
   const decoded = await decodeShareLink(payload);

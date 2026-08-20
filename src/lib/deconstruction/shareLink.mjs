@@ -54,6 +54,10 @@ export async function encodeShareLink(state, strategyIndex) {
  */
 export async function decodeShareLink(payload) {
   if (!payload) return null;
+  // Cap input size before decompressing attacker-controlled payloads.
+  // gzip can amplify ~1000x (measured); legit links are <2 KB, so 16 KB
+  // bounds worst-case expansion to ~16 MB and rejects nothing real.
+  if (payload.length > 16000) return null;
   try {
     const bytes = base64UrlToBytes(payload);
     let json;
