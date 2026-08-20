@@ -931,11 +931,15 @@ Insert directly after the `headerRow.append(transferLink);` line (currently line
 Insert directly after the `.decon-ev-transfer-btn:hover` block (currently ending at line 4993):
 
 ```css
-  /* Group selector replaces the old standalone .decon-ev-transfer-btn block
-     (review: the two buttons share identical styling; font: inherit matches
-     .decon-page-btn). */
-  :global(.decon-ev-transfer-btn, .decon-share-btn) {
-    font: inherit; /* first — the shorthand resets anything declared after it */
+  /* Two separate :global() wrappers — Astro does not globalize comma
+     lists inside a single :global(), and the share button is created in
+     JS (no scope attribute), so a scoped second selector would never
+     match.  font: inherit comes FIRST (the shorthand resets anything
+     declared after it).  min-height: 0 overrides BaseLayout's global
+     button reset (40px) so both controls share one height. */
+  :global(.decon-ev-transfer-btn),
+  :global(.decon-share-btn) {
+    font: inherit;
     padding: 5px 12px;
     border: 1px solid var(--line);
     border-radius: 6px;
@@ -946,11 +950,13 @@ Insert directly after the `.decon-ev-transfer-btn:hover` block (currently ending
     font-weight: 650;
     line-height: 1.3;
     white-space: nowrap;
+    min-height: 0;
     transition:
       background 0.15s,
       border-color 0.15s;
   }
-  :global(.decon-ev-transfer-btn, .decon-share-btn):hover {
+  :global(.decon-ev-transfer-btn):hover,
+  :global(.decon-share-btn):hover {
     background: var(--green);
     color: #fff;
     border-color: var(--green);
