@@ -2919,8 +2919,16 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
           ? sharePayload.strategyIndex
           : null,
       });
-      if (restored) trackEvent('deconstruction_share_open');
-      return;
+      if (restored) {
+        trackEvent('deconstruction_share_open');
+        return;
+      }
+      // Unrestorable share link (e.g. item left the index) — treat as a normal
+      // visit per spec: fall through to session restore, and drop ?s so a
+      // refresh does not re-attempt the dead link.
+      const url = new URL(location.href);
+      url.searchParams.delete('s');
+      history.replaceState(null, '', url.pathname + url.search);
     }
     tryRestoreDeconSession();
   };
