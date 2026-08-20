@@ -495,6 +495,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     loadDeconSession,
     clearDeconSession,
     saveDeconTransferSession,
+    collectDeconState,
     loadDeconResult,
     clearDeconResult,
   } from '../lib/deconSessionState.mjs';
@@ -547,6 +548,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     populateAddStatList as _populateAddStatList,
   } from '../lib/deconstruction/statEditor.mjs';
   import { createPagination } from '../lib/deconstruction/pagination.mjs';
+  import { encodeShareLink, decodeShareLink } from '../lib/deconstruction/shareLink.mjs';
   import {
     renderTargetChips as _renderTargetChips,
     getCheckedTargetKeys as _getCheckedTargetKeys,
@@ -1950,6 +1952,67 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     }
   };
 
+  // ---- Share helpers ----
+
+  /**
+   * Build the opts object consumed by collectDeconState for every save/share
+   * path on this page (transfer button, pagehide auto-save, share button).
+   */
+  const buildSessionSnapshotOpts = () => ({
+    selectedItem,
+    itemNameInput,
+    deconDeltas,
+    deconStatKeys,
+    deconStatMode,
+    slotState: deconSlotState,
+    totalAppliedScrolls:
+      deconSlotState.successfulScrollCount + inferFailedScrollCount(deconSlotState),
+    appliedLevelCount: deconAppliedLevelCount,
+    scrollRateFilter: deconScrollRateFilter,
+    stimulantBoundsMap: deconStimulantBoundsMap,
+    stimulantEnabledKeys: deconStimulantEnabledKeys,
+    chaosBoundsMap: deconChaosBoundsMap,
+    chaosEnabledKeys: deconChaosEnabledKeys,
+    gemFilter: deconGemFilter,
+    levelUpTotalRanges: deconLevelUpTotalRanges,
+    getCheckedTargetKeys,
+    sourceInputs: {
+      scrolls: deconScrollSource,
+      stimulant: deconStimulantSource,
+      gems: deconGemsSource,
+      itemLevelUp: deconItemLevelUpSource,
+    },
+  });
+
+  /**
+   * Copy text to the clipboard.  Prefers navigator.clipboard in secure
+   * contexts, falls back to a hidden textarea + execCommand('copy').
+   * @returns {Promise<boolean>} true on success
+   */
+  const copyTextToClipboard = async (text) => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch {
+      // fall through to the legacy path
+    }
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.append(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      ta.remove();
+      return ok;
+    } catch {
+      return false;
+    }
+  };
+
   // ---- Display results ----
   const displayResults = (result, targetDeltas) => {
     if (
@@ -2063,30 +2126,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
         const totalAppliedScrolls =
           deconSlotState.successfulScrollCount + inferFailedScrollCount(deconSlotState);
         writeDeconTransfer(strategy, selectedItem.id, { totalAppliedScrolls });
-        saveDeconTransferSession({
-          selectedItem,
-          itemNameInput,
-          deconDeltas,
-          deconStatKeys,
-          deconStatMode,
-          slotState: deconSlotState,
-          totalAppliedScrolls,
-          appliedLevelCount: deconAppliedLevelCount,
-          scrollRateFilter: deconScrollRateFilter,
-          stimulantBoundsMap: deconStimulantBoundsMap,
-          stimulantEnabledKeys: deconStimulantEnabledKeys,
-          chaosBoundsMap: deconChaosBoundsMap,
-          chaosEnabledKeys: deconChaosEnabledKeys,
-          gemFilter: deconGemFilter,
-          levelUpTotalRanges: deconLevelUpTotalRanges,
-          getCheckedTargetKeys,
-          sourceInputs: {
-            scrolls: deconScrollSource,
-            stimulant: deconStimulantSource,
-            gems: deconGemsSource,
-            itemLevelUp: deconItemLevelUpSource,
-          },
-        });
+        saveDeconTransferSession(buildSessionSnapshotOpts());
       };
 
       transferLink.addEventListener('mousedown', writeTransferPayload);
@@ -2675,12 +2715,9 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
 
   // ---- Session restoration (back-navigation) ----
 
-  const tryRestoreDeconSession = () => {
-    const saved = loadDeconSession();
-    if (!saved || saved.v !== 1 || !saved.itemId) return;
-
+  const restoreDeconState = (saved, { share = false, highlightStrategyIndex = null } = {}) => {
     const item = itemById.get(saved.itemId);
-    if (!item) return; // item no longer in index — skip silently
+    if (!item) return false; // item no longer in index — skip silently
 
     // 1. Restore item selection — commitSuggestedItem calls
     //    activateDeconEditPanel internally which sets up the panel
@@ -2781,31 +2818,85 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
       });
     }
 
-    // 4. Restore results if available
-    const deconResult = saved.result ?? loadDeconResult();
-    clearDeconResult();
-    if (deconResult && deconResult.strategies?.length > 0) {
-      const targetDeltas = {};
-      for (const key of saved.targetKeys ?? []) {
-        targetDeltas[key] = saved.deconDeltas?.[key] ?? 0;
+    // 4. Results — share links re-run the deterministic engine (the recipient
+    //    gets the same strategies in the same order, so strategyIndex stays
+    //    valid); back-navigation reuses the cached result payload.
+    if (share) {
+      runAnalysis();
+      // Drop ?s from the URL so a refresh does not re-highlight.
+      const url = new URL(location.href);
+      url.searchParams.delete('s');
+      history.replaceState(null, '', url.pathname + url.search);
+    } else {
+      const deconResult = saved.result ?? loadDeconResult();
+      clearDeconResult();
+      if (deconResult && deconResult.strategies?.length > 0) {
+        const targetDeltas = {};
+        for (const key of saved.targetKeys ?? []) {
+          targetDeltas[key] = saved.deconDeltas?.[key] ?? 0;
+        }
+        displayResults(deconResult, targetDeltas);
       }
-      displayResults(deconResult, targetDeltas);
     }
 
-    // 5. Restore scroll position (after layout settles)
-    requestAnimationFrame(() => {
-      window.scrollTo(0, saved.scrollPosition ?? 0);
-    });
+    // 5. Position — share links jump to the shared card's page and pulse it
+    //    (~5s CSS animation, class removed on animationend); back-navigation
+    //    restores the prior scroll position.  Out-of-range strategyIndex
+    //    (or missing card) skips the highlight, results still show.
+    if (share && Number.isInteger(highlightStrategyIndex)) {
+      pagination.goToPage(Math.floor(highlightStrategyIndex / 5) + 1); // PAGE_SIZE is 5
+      const card = document.querySelector(
+        `.decon-strategy-card[data-strategy-index="${highlightStrategyIndex}"]`,
+      );
+      if (card instanceof HTMLElement) {
+        card.classList.add('decon-strategy-card--shared');
+        card.addEventListener(
+          'animationend',
+          () => card.classList.remove('decon-strategy-card--shared'),
+          { once: true },
+        );
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    } else {
+      requestAnimationFrame(() => {
+        window.scrollTo(0, saved.scrollPosition ?? 0);
+      });
+    }
+    return true;
+  };
+
+  const tryRestoreDeconSession = () => {
+    const saved = loadDeconSession();
+    if (!saved || saved.v !== 1 || !saved.itemId) return;
+    restoreDeconState(saved);
   };
 
   // Data-load readiness tracking — both fetches must complete before restoration
   let _itemsLoaded = false;
   let _scrollsLoaded = false;
 
-  const _maybeRestoreDeconSession = () => {
-    if (_itemsLoaded && _scrollsLoaded) {
-      tryRestoreDeconSession();
+  // Share-link payload from ?s= — decoded lazily once; restoration waits on
+  // the same data-load gate as session restoration.
+  let _sharePayloadPromise = null;
+  const _getSharePayload = () =>
+    (_sharePayloadPromise ??= decodeShareLink(new URLSearchParams(location.search).get('s')));
+
+  const _maybeRestoreDeconSession = async () => {
+    if (!_itemsLoaded || !_scrollsLoaded) return;
+    const sharePayload = await _getSharePayload();
+    if (sharePayload) {
+      // Share links win over sessionStorage state — a stale local session must
+      // not override what the sender shared.
+      const restored = restoreDeconState(sharePayload, {
+        share: true,
+        highlightStrategyIndex: Number.isInteger(sharePayload.strategyIndex)
+          ? sharePayload.strategyIndex
+          : null,
+      });
+      if (restored) trackEvent('deconstruction_share_open');
+      return;
     }
+    tryRestoreDeconSession();
   };
 
   // ---- Init ----
@@ -2901,31 +2992,7 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
   // leaving the page without clicking "기대값 계산으로 보내기".
   addEventListener('pagehide', () => {
     if (!selectedItem) return;
-    const totalScrolls =
-      deconSlotState.successfulScrollCount + inferFailedScrollCount(deconSlotState);
-    saveDeconTransferSession({
-      selectedItem,
-      itemNameInput,
-      deconDeltas,
-      deconStatKeys,
-      slotState: deconSlotState,
-      totalAppliedScrolls: totalScrolls,
-      appliedLevelCount: deconAppliedLevelCount,
-      scrollRateFilter: deconScrollRateFilter,
-      stimulantBoundsMap: deconStimulantBoundsMap,
-      stimulantEnabledKeys: deconStimulantEnabledKeys,
-      chaosBoundsMap: deconChaosBoundsMap,
-      chaosEnabledKeys: deconChaosEnabledKeys,
-      gemFilter: deconGemFilter,
-      levelUpTotalRanges: deconLevelUpTotalRanges,
-      getCheckedTargetKeys,
-      sourceInputs: {
-        scrolls: deconScrollSource,
-        stimulant: deconStimulantSource,
-        gems: deconGemsSource,
-        itemLevelUp: deconItemLevelUpSource,
-      },
-    });
+    saveDeconTransferSession(buildSessionSnapshotOpts());
   });
 </script>
 
