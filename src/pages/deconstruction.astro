@@ -2870,7 +2870,10 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
     //    restores the prior scroll position.  Out-of-range strategyIndex
     //    (or missing card) skips the highlight, results still show.
     if (share && Number.isInteger(highlightStrategyIndex)) {
-      pagination.goToPage(Math.floor(highlightStrategyIndex / 5) + 1); // PAGE_SIZE is 5
+      // Skip goToPage's own panel scroll — two smooth scrolls issued in the
+      // same frame cancel each other mid-animation; the card scroll below is
+      // the only one and completes reliably.
+      pagination.goToPage(Math.floor(highlightStrategyIndex / 5) + 1, { scroll: false }); // PAGE_SIZE is 5
       const card = document.querySelector(
         `.decon-strategy-card[data-strategy-index="${highlightStrategyIndex}"]`,
       );
@@ -2882,6 +2885,20 @@ import { MAPLESTORY_IO_REGION, MAPLESTORY_IO_VERSION } from '../lib/maplestoryIo
           { once: true },
         );
         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // The document still settles while the smooth scroll runs (late
+        // fonts/images reflow), so the scroll can clamp against the shorter
+        // layout and stop mid-way.  Re-check when it finishes and correct
+        // only if the card is not actually in view.
+        window.addEventListener(
+          'scrollend',
+          () => {
+            const rect = card.getBoundingClientRect();
+            if (rect.top < 0 || rect.bottom > window.innerHeight) {
+              card.scrollIntoView({ block: 'center' });
+            }
+          },
+          { once: true },
+        );
       }
     } else {
       requestAnimationFrame(() => {

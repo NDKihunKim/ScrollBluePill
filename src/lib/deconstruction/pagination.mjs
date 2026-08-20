@@ -18,7 +18,7 @@ const PAGE_SIZE = 5;
  *
  * @param {string} containerSelector — CSS selector for the result panel element
  * @returns {{ renderBar: () => void, applyPagination: (isFilterUpdate?: boolean) => void,
- *   resetPage: () => void, goToPage: (page: number) => void }}
+ *   resetPage: () => void, goToPage: (page: number, opts?: {scroll?: boolean}) => void }}
  */
 export function createPagination(containerSelector) {
   let _currentPage = 1;
@@ -27,13 +27,15 @@ export function createPagination(containerSelector) {
 
   // ── Internal helpers ─────────────────────────────────────────
 
-  function _goToPage(page) {
+  function _goToPage(page, { scroll = true } = {}) {
     const totalPages = Math.max(1, Math.ceil(_totalStrategies / PAGE_SIZE));
     _currentPage = Math.max(1, Math.min(page, totalPages));
     _applyPagination();
-    const panel = document.querySelector(containerSelector);
-    if (panel instanceof HTMLElement) {
-      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (scroll) {
+      const panel = document.querySelector(containerSelector);
+      if (panel instanceof HTMLElement) {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
   }
 
