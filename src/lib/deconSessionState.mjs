@@ -108,11 +108,14 @@ export function clearDeconResult() {
 }
 
 /**
- * Build and persist a full deconstruction-page snapshot for back-navigation
- * restoration.  Used by the transfer-payload handler and other save points.
+ * Build a serialisable snapshot of the deconstruction page state — the shape
+ * shared by sessionStorage auto-save and share links.
  *
  * All mutable state (Sets, Maps, objects) is shallow-cloned before storage
  * so later mutations don't corrupt the saved snapshot.
+ *
+ * `scrollPosition` is deliberately excluded — it is session-local only and
+ * meaningless to a share-link recipient.
  *
  * @param {object} opts
  * @param {object} opts.selectedItem - currently selected item
@@ -132,8 +135,9 @@ export function clearDeconResult() {
  * @param {Record<string,{min:number,max:number}>} opts.levelUpTotalRanges
  * @param {() => string[]} opts.getCheckedTargetKeys
  * @param {{scrolls:HTMLInputElement,stimulant:HTMLInputElement,gems:HTMLInputElement,itemLevelUp:HTMLInputElement}} opts.sourceInputs
+ * @returns {object} serialisable snapshot
  */
-export function saveDeconTransferSession({
+export function collectDeconState({
   selectedItem,
   itemNameInput,
   deconDeltas,
@@ -152,7 +156,7 @@ export function saveDeconTransferSession({
   getCheckedTargetKeys,
   sourceInputs,
 }) {
-  saveDeconSession({
+  return {
     itemId: selectedItem.id,
     itemName:
       itemNameInput instanceof HTMLInputElement ? itemNameInput.value : (selectedItem.nameKo ?? ''),
@@ -183,6 +187,18 @@ export function saveDeconTransferSession({
           ? sourceInputs.itemLevelUp.checked
           : false,
     },
+  };
+}
+
+/**
+ * Build and persist a full deconstruction-page snapshot for back-navigation
+ * restoration.  Used by the transfer-payload handler and other save points.
+ *
+ * @param {object} opts - same shape as collectDeconState (see its JSDoc)
+ */
+export function saveDeconTransferSession(opts) {
+  saveDeconSession({
+    ...collectDeconState(opts),
     scrollPosition: window.scrollY,
   });
 
