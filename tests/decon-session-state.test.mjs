@@ -17,9 +17,9 @@ const buildOpts = (overrides = {}) => ({
   totalAppliedScrolls: 4,
   appliedLevelCount: 1,
   scrollRateFilter: new Set(['100', '60']),
-  stimulantBoundsMap: new Map([['str', { min: -10, max: 10 }]]),
+  stimulantBoundsMap: { str: { min: -10, max: 10 } },
   stimulantEnabledKeys: ['str'],
-  chaosBoundsMap: new Map(),
+  chaosBoundsMap: {},
   chaosEnabledKeys: [],
   gemFilter: new Set([1, 2]),
   levelUpTotalRanges: { str: { min: 1, max: 3 } },
@@ -42,9 +42,9 @@ test('collectDeconState builds the snapshot shape share links use', () => {
   assert.equal(snapshot.totalAppliedScrolls, 4);
   assert.equal(snapshot.appliedLevelCount, 1);
   assert.deepEqual(snapshot.scrollRateFilter, ['100', '60']);
-  assert.deepEqual(snapshot.stimulantBoundsMap, new Map([['str', { min: -10, max: 10 }]]));
+  assert.deepEqual(snapshot.stimulantBoundsMap, { str: { min: -10, max: 10 } });
   assert.deepEqual(snapshot.stimulantEnabledKeys, ['str']);
-  assert.deepEqual(snapshot.chaosBoundsMap, new Map());
+  assert.deepEqual(snapshot.chaosBoundsMap, {});
   assert.deepEqual(snapshot.chaosEnabledKeys, []);
   assert.deepEqual(snapshot.gemFilter, [1, 2]);
   assert.deepEqual(snapshot.levelUpTotalRanges, { str: { min: 1, max: 3 } });
@@ -63,7 +63,7 @@ test('collectDeconState clones mutable inputs', () => {
   const deconDeltas = { str: 1 };
   const scrollRateFilter = new Set(['100']);
   const gemFilter = new Set([7]);
-  const stimulantBoundsMap = new Map([['str', { min: -10, max: 10 }]]);
+  const stimulantBoundsMap = { str: { min: -10, max: 10 } };
   const snapshot = collectDeconState(
     buildOpts({ deconDeltas, scrollRateFilter, gemFilter, stimulantBoundsMap }),
   );
@@ -71,12 +71,12 @@ test('collectDeconState clones mutable inputs', () => {
   deconDeltas.str = 99;
   scrollRateFilter.add('60');
   gemFilter.add(8);
-  stimulantBoundsMap.set('str', { min: 99, max: 99 });
+  stimulantBoundsMap.str = { min: 99, max: 99 };
 
   assert.equal(snapshot.deconDeltas.str, 1);
   assert.deepEqual(snapshot.scrollRateFilter, ['100']);
   assert.deepEqual(snapshot.gemFilter, [7]);
-  assert.deepEqual(snapshot.stimulantBoundsMap, new Map([['str', { min: -10, max: 10 }]]));
+  assert.deepEqual(snapshot.stimulantBoundsMap, { str: { min: -10, max: 10 } });
 });
 
 test('collectDeconState reads live input values and null gemFilter', () => {

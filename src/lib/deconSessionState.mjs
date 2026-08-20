@@ -127,9 +127,9 @@ export function clearDeconResult() {
  * @param {number} opts.totalAppliedScrolls - successful + inferred failed
  * @param {number} opts.appliedLevelCount - item level-up count
  * @param {Set<string>} opts.scrollRateFilter - active rate filter
- * @param {Map} opts.stimulantBoundsMap - stimulant bounds
+ * @param {Record<string,{min:number,max:number}>} opts.stimulantBoundsMap - stimulant bounds
  * @param {string[]} opts.stimulantEnabledKeys
- * @param {Map} opts.chaosBoundsMap - chaos bounds
+ * @param {Record<string,{min:number,max:number}>} opts.chaosBoundsMap - chaos bounds
  * @param {string[]} opts.chaosEnabledKeys
  * @param {Set<number>|null} opts.gemFilter
  * @param {Record<string,{min:number,max:number}>} opts.levelUpTotalRanges
