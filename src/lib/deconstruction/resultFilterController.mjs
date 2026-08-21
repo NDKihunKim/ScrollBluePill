@@ -1129,6 +1129,10 @@ export function createResultFilterController({ root, secondaryContainer }) {
       const source = chip.dataset.deconFilter === 'all' ? null : chip.dataset.deconFilter;
       chip.addEventListener('click', () => {
         setActiveFilter(source);
+        // Re-apply before notifying: pagination snapshots the cards' hidden
+        // state, which is only filter-only right after applyFilters() has
+        // re-derived it (otherwise pagination-hidden cards get miscounted).
+        applyFilters();
         _onAfterFilter?.();
       });
     });
