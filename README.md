@@ -1,78 +1,108 @@
 # ScrollBluePill
 
-Korean-first MapleWorlds old-school scroll probability tool planned for
-Cloudflare Pages with Supabase data frames.
+**The codebase behind [paranpot.com](https://paranpot.com)** - a Korean-first
+expected-value and strategy calculator for MapleStory item enhancement.
 
-## Project Scope
+ScrollBluePill models the probability and expected cost of enhancement paths,
+ranks candidate strategies, and helps players compare options before
+committing in-game resources. The production site is a static Astro build
+served from Cloudflare Pages: the browser never queries the database at
+runtime.
 
-- Cloudflare Pages static site
-- Korean calculator shell
-- SEO-ready guide, methodology, privacy, terms, and contact pages
-- Supabase table frames for scroll definitions, item categories, probability
-  sets, version tags, and guide content
-- Probability engine output contract only
+## Live site
 
-The actual calculation inputs and formulas are intentionally not implemented
-yet.
+- https://paranpot.com
 
-## Commands
+## Features
 
-```sh
-npm run dev
-npm run build
-npm run preview
+- **Expected-value engine** covering multiple enhancement paths, with a
+  strategy optimizer and candidate generator that ranks outcomes for users.
+- **In-browser OCR** (Korean and English, Tesseract.js) so users can upload a
+  screenshot instead of entering item data by hand, removing the primary
+  source of input error.
+- **Shareable strategy links** that reconstruct exact application state from a
+  URL payload.
+- **Static data pipeline**: Supabase/PostgreSQL is the authoring source; build
+  scripts export seeded, deduplicated JSON so the deployed site serves zero
+  runtime database queries.
+- **34 automated test suites** (`node:test`), with Playwright used in
+  browser-level tests and Lighthouse CI wired into GitHub Actions.
+- **Production operations**: `/healthz` health-check endpoint, uptime
+  monitoring, Cloudflare Web Analytics, SEO sitemap, and a sitemap index.
+
+## Stack
+
+| Layer | Technology |
+| --- | --- |
+| Site | Astro, TypeScript, vanilla JS |
+| Data | Supabase/PostgreSQL, static JSON build pipeline |
+| OCR | Tesseract.js (Korean and English) |
+| Hosting | Cloudflare Pages |
+| Testing | `node:test` (34 suites), Playwright |
+| CI | GitHub Actions (Lighthouse CI) |
+
+## Architecture
+
+```text
+Supabase/PostgreSQL  ->  build scripts  ->  public/data/*.json
+                                                |
+                                           Astro static build
+                                                |
+                                          Cloudflare Pages  ->  browser
+                                                                   |
+                                                           Tesseract.js OCR
 ```
 
-### Data Sync
+Only the build scripts (`scripts/seed-*`, `scripts/generate-*`,
+`scripts/sync-data.mjs`) talk to Supabase. The browser reads static JSON and
+runs OCR locally.
 
-```sh
+## Local development
+
+```bash
+npm install
+cp .env.example .env      # fill in Supabase project values
+npm run dev               # Astro dev server
+```
+
+Data maintenance (requires Supabase credentials in `.env`):
+
+```bash
+npm run seed:items
+npm run seed:item-level-ups
+npm run generate:item-index
+npm run generate:scroll-index
 npm run sync:data
 ```
 
-Regenerates all static JSON data files from Supabase:
+Tests and checks:
 
-- `public/data/items-gms83-ko.json`
-- `public/data/scrolls-gms83-ko.json`
-- `public/data/item-level-ups-gms83-ko.json`
+```bash
+npm test                  # 34 node:test suites
+npm run lint
+npm run format:check
+npm run lhci              # Lighthouse CI against a built site
+```
 
-**When to run:** After editing items or scrolls in the review dashboard
-(`npm run review:items`), run `npm run sync:data` so the main app sees your
-changes. The dashboard edits Supabase directly; the main app reads from these
-generated JSON files.
+Production build:
 
-`npm run build` runs `sync:data` automatically before building.
+```bash
+npm run build             # syncs OCR assets and static data, then astro build
+```
 
-Requires `SUPABASE_URL` and `SUPABASE_ANON_KEY` in `.env`.
+## Deployment
 
-## Cloudflare Pages
+Cloudflare Pages builds the site from `main`. `SITE_URL` defaults to
+`https://paranpot.com` in `astro.config.mjs`. Do not add the Supabase
+service-role key to Cloudflare Pages environment variables; the deploy needs
+only the committed static data.
 
-Use these settings:
+## Data attribution
 
-- Framework preset: `Astro`
-- Build command: `npm run build`
-- Build output directory: `dist`
-- Environment variables:
-  - `SITE_URL=https://paranpot.com`
-
-The `sync:data` step in `npm run build` skips gracefully when Supabase
-credentials aren't available (CI), relying on committed data files in
-`public/data/`. When you update item or scroll data locally, run
-`npm run sync:data` first, verify the changes, then commit the updated JSON
-files — Cloudflare will pick them up on the next deploy.
-
-**Do NOT add `SUPABASE_URL`, `SUPABASE_ANON_KEY`, or `SUPABASE_SERVICE_ROLE_KEY`
-to Cloudflare Pages environment variables.** The anon key is safe to expose
-but unnecessary for the CI build. The service role key should only exist in
-your local `.env` file.
+Item metadata is fetched through the [maplestory.io](https://maplestory.io)
+API. MapleStory is a trademark of Nexon. This project is not affiliated with
+or endorsed by Nexon.
 
 ## License
 
-ScrollBluePill is proprietary software. All rights reserved.
-
-This source code is provided for reference purposes only. No permission is
-granted to use, copy, modify, merge, publish, distribute, sublicense, or sell
-copies of this software. See [LICENSE](./LICENSE).
-
----
-
-Test commit to verify author configuration.
+Proprietary. All rights reserved. See [LICENSE](./LICENSE).
