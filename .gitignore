@@ -32,3 +32,13 @@ supabase/.temp/
 
 # jetbrains setting folder
 .idea/
+
+# internal agent and session artifacts (not part of the product)
+.agents/
+.claude/
+.codex/
+.superpowers/
+.vibeskills/
+
+# local test artifacts
+test-results/
